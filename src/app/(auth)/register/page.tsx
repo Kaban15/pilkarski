@@ -32,9 +32,9 @@ export default function RegisterPage() {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
       role,
-      clubName: formData.get("clubName") as string | undefined,
-      firstName: formData.get("firstName") as string | undefined,
-      lastName: formData.get("lastName") as string | undefined,
+      clubName: (formData.get("clubName") as string) || undefined,
+      firstName: (formData.get("firstName") as string) || undefined,
+      lastName: (formData.get("lastName") as string) || undefined,
     };
 
     try {

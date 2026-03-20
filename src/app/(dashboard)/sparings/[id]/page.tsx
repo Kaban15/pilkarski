@@ -7,6 +7,8 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SendMessageButton } from "@/components/send-message-button";
+import { SPARING_STATUS_LABELS, SPARING_STATUS_COLORS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
 
 export default function SparingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -56,20 +58,6 @@ export default function SparingDetailPage() {
 
   if (!sparing) return <p className="text-gray-500">Ładowanie...</p>;
 
-  const statusLabels: Record<string, string> = {
-    OPEN: "Otwarty",
-    MATCHED: "Dopasowany",
-    CANCELLED: "Anulowany",
-    COMPLETED: "Zakończony",
-  };
-
-  const statusColors: Record<string, string> = {
-    OPEN: "bg-green-100 text-green-800",
-    MATCHED: "bg-blue-100 text-blue-800",
-    CANCELLED: "bg-gray-100 text-gray-600",
-    COMPLETED: "bg-purple-100 text-purple-800",
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -78,9 +66,12 @@ export default function SparingDetailPage() {
           <p className="mt-1 text-gray-600">
             {sparing.club.name}{sparing.club.city && ` · ${sparing.club.city}`}
           </p>
+          <div className="mt-2">
+            <SendMessageButton recipientUserId={sparing.club.userId} />
+          </div>
         </div>
-        <span className={`rounded-full px-3 py-1 text-sm font-medium ${statusColors[sparing.status]}`}>
-          {statusLabels[sparing.status]}
+        <span className={`rounded-full px-3 py-1 text-sm font-medium ${SPARING_STATUS_COLORS[sparing.status]}`}>
+          {SPARING_STATUS_LABELS[sparing.status]}
         </span>
       </div>
 
@@ -151,19 +142,7 @@ export default function SparingDetailPage() {
             <p className="text-sm text-gray-500">Brak zgłoszeń</p>
           ) : (
             <ul className="space-y-3">
-              {sparing.applications.map((app: any) => {
-                const appStatusLabels: Record<string, string> = {
-                  PENDING: "Oczekuje",
-                  ACCEPTED: "Zaakceptowany",
-                  REJECTED: "Odrzucony",
-                };
-                const appStatusColors: Record<string, string> = {
-                  PENDING: "text-yellow-700 bg-yellow-50",
-                  ACCEPTED: "text-green-700 bg-green-50",
-                  REJECTED: "text-red-700 bg-red-50",
-                };
-
-                return (
+              {sparing.applications.map((app: any) => (
                   <li key={app.id} className="flex items-center justify-between rounded-md border p-3">
                     <div>
                       <p className="font-medium">
@@ -175,8 +154,8 @@ export default function SparingDetailPage() {
                       {app.message && <p className="text-sm text-gray-600">{app.message}</p>}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${appStatusColors[app.status]}`}>
-                        {appStatusLabels[app.status]}
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${APPLICATION_STATUS_COLORS[app.status]}`}>
+                        {APPLICATION_STATUS_LABELS[app.status]}
                       </span>
                       {app.status === "PENDING" && (
                         <>
@@ -190,8 +169,7 @@ export default function SparingDetailPage() {
                       )}
                     </div>
                   </li>
-                );
-              })}
+              ))}
             </ul>
           )}
         </CardContent>

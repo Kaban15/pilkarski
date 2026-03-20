@@ -19,10 +19,7 @@ type EventItem = {
   _count: { applications: number };
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  OPEN_TRAINING: "Trening otwarty",
-  RECRUITMENT: "Nabór",
-};
+import { EVENT_TYPE_LABELS } from "@/lib/labels";
 
 const TYPE_COLORS: Record<string, string> = {
   OPEN_TRAINING: "bg-green-50 text-green-700",
@@ -92,7 +89,7 @@ export default function EventsPage() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{ev.title}</CardTitle>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[ev.type]}`}>
-                      {TYPE_LABELS[ev.type]}
+                      {EVENT_TYPE_LABELS[ev.type]}
                     </span>
                   </div>
                 </CardHeader>

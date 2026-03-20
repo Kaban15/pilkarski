@@ -6,6 +6,9 @@ import { playerRouter } from "./routers/player";
 import { regionRouter } from "./routers/region";
 import { sparingRouter } from "./routers/sparing";
 import { eventRouter } from "./routers/event";
+import { messageRouter } from "./routers/message";
+import { feedRouter } from "./routers/feed";
+import { searchRouter } from "./routers/search";
 
 export const appRouter = router({
   health: healthRouter,
@@ -15,6 +18,9 @@ export const appRouter = router({
   region: regionRouter,
   sparing: sparingRouter,
   event: eventRouter,
+  message: messageRouter,
+  feed: feedRouter,
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ImageUpload } from "@/components/image-upload";
 
 const POSITIONS = [
   { value: "GK", label: "Bramkarz" },
@@ -40,6 +41,7 @@ interface PlayerProfileFormProps {
     preferredFoot: string | null;
     primaryPosition: string | null;
     secondaryPosition: string | null;
+    photoUrl: string | null;
     bio: string | null;
     careerEntries: { id: string; clubName: string; season: string; notes: string | null }[];
   };
@@ -50,6 +52,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [photoUrl, setPhotoUrl] = useState<string | null>(player.photoUrl);
   const [careers, setCareers] = useState(player.careerEntries);
 
   // Career entry form
@@ -68,6 +71,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       await trpc.player.update.mutate({
         firstName: fd.get("firstName") as string,
         lastName: fd.get("lastName") as string,
+        photoUrl: photoUrl ?? undefined,
         dateOfBirth: (fd.get("dateOfBirth") as string) || undefined,
         city: (fd.get("city") as string) || undefined,
         regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
@@ -114,6 +118,12 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <ImageUpload
+              currentUrl={photoUrl}
+              folder="players"
+              entityId={player.id}
+              onUploaded={setPhotoUrl}
+            />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Imię</Label>

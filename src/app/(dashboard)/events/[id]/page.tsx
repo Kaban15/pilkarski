@@ -7,17 +7,8 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const TYPE_LABELS: Record<string, string> = {
-  OPEN_TRAINING: "Trening otwarty",
-  RECRUITMENT: "Nabór",
-};
-
-const POSITION_LABELS: Record<string, string> = {
-  GK: "Bramkarz", CB: "Śr. obrońca", LB: "L. obrońca", RB: "P. obrońca",
-  CDM: "Def. pomocnik", CM: "Śr. pomocnik", CAM: "Of. pomocnik",
-  LM: "L. pomocnik", RM: "P. pomocnik", LW: "L. skrzydłowy", RW: "P. skrzydłowy", ST: "Napastnik",
-};
+import { SendMessageButton } from "@/components/send-message-button";
+import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -67,12 +58,15 @@ export default function EventDetailPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">{event.title}</h1>
             <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
-              {TYPE_LABELS[event.type]}
+              {EVENT_TYPE_LABELS[event.type]}
             </span>
           </div>
           <p className="mt-1 text-gray-600">
             {event.club.name}{event.club.city && ` · ${event.club.city}`}
           </p>
+          <div className="mt-2">
+            <SendMessageButton recipientUserId={event.club.userId} />
+          </div>
         </div>
       </div>
 
@@ -142,17 +136,7 @@ export default function EventDetailPage() {
             <p className="text-sm text-gray-500">Brak zgłoszeń</p>
           ) : (
             <ul className="space-y-3">
-              {event.applications.map((app: any) => {
-                const statusLabels: Record<string, string> = {
-                  PENDING: "Oczekuje", ACCEPTED: "Zaakceptowany", REJECTED: "Odrzucony",
-                };
-                const statusColors: Record<string, string> = {
-                  PENDING: "text-yellow-700 bg-yellow-50",
-                  ACCEPTED: "text-green-700 bg-green-50",
-                  REJECTED: "text-red-700 bg-red-50",
-                };
-
-                return (
+              {event.applications.map((app: any) => (
                   <li key={app.id} className="flex items-center justify-between rounded-md border p-3">
                     <div>
                       <p className="font-medium">
@@ -166,8 +150,8 @@ export default function EventDetailPage() {
                       {app.message && <p className="text-sm text-gray-600">{app.message}</p>}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[app.status]}`}>
-                        {statusLabels[app.status]}
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${APPLICATION_STATUS_COLORS[app.status]}`}>
+                        {APPLICATION_STATUS_LABELS[app.status]}
                       </span>
                       {app.status === "PENDING" && (
                         <>
@@ -181,8 +165,7 @@ export default function EventDetailPage() {
                       )}
                     </div>
                   </li>
-                );
-              })}
+              ))}
             </ul>
           )}
         </CardContent>

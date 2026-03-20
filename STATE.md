@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Faza 5 — System Wiadomości (DO ZROBIENIA)
+## Aktualny etap: Wszystkie fazy ukończone
 **Ostatnia sesja:** 2026-03-20
 
 ---
@@ -49,31 +49,54 @@
 
 ---
 
-## Co zostało do zrobienia
+### Faza 5: System Wiadomości ✅
+- **tRPC router `message`:**
+  - `getConversations` — lista konwersacji z ostatnią wiadomością i danymi rozmówcy
+  - `getMessages` — wiadomości w konwersacji (cursor-based pagination)
+  - `send` — wyślij wiadomość (auto-tworzenie konwersacji jeśli nie istnieje)
+  - `markAsRead` — oznacz wiadomości od rozmówcy jako przeczytane
+  - `unreadCount` — liczba nieprzeczytanych (do badge'a)
+  - `getConversationWith` — szukanie istniejącej konwersacji z danym userem
+- **UI:**
+  - `/messages` — lista konwersacji (avatar, nazwa, ostatnia wiadomość, data)
+  - `/messages/[conversationId]` — widok czatu (bąbelki, auto-scroll, polling co 5s)
+  - Komponent `SendMessageButton` — przycisk "Napisz wiadomość" (inline formularz → redirect do czatu)
+  - Przycisk dodany na `/sparings/[id]` i `/events/[id]` (kontakt z właścicielem klubu)
+- **Prisma:** modele `Conversation`, `ConversationParticipant`, `Message` (17 tabel łącznie)
+- **Validators:** `sendMessageSchema`, `getMessagesSchema`, `markAsReadSchema`
 
-### Faza 5: System Wiadomości ⏳ NASTĘPNA
-1. tRPC router `message`:
-   - `getConversations` — lista konwersacji użytkownika
-   - `getMessages` — wiadomości w konwersacji (z paginacją)
-   - `send` — wyślij wiadomość (utwórz konwersację jeśli nie istnieje)
-   - `markAsRead` — oznacz jako przeczytane
-2. UI:
-   - `/messages` — lista konwersacji
-   - `/messages/[conversationId]` — widok czatu
-   - Przycisk "Napisz wiadomość" na profilu klubu/zawodnika i w sparingach
-3. Opcjonalnie: Supabase Realtime (WebSocket) dla live updates
+---
 
-### Faza 6: Feed, Filtrowanie, Polish ⬜
-1. Główny feed (`/feed`) — agregacja aktywności z regionu użytkownika:
-   - Nowe sparingi, wydarzenia, nowi zawodnicy/kluby
-2. Wyszukiwarka:
-   - Kluby (po nazwie, mieście, regionie)
-   - Zawodnicy (po nazwisku, pozycji, regionie)
-   - Sparingi i wydarzenia
-3. Responsywność mobilna (nawigacja hamburger, karty full-width)
-4. SEO: meta tagi, OpenGraph
-5. Landing page `/` — opis platformy, CTA do rejestracji
-6. Testy e2e krytycznych ścieżek (rejestracja → logowanie → profil → sparing)
+### Faza 6: Feed, Filtrowanie, Polish ✅
+- **Feed (`/feed`):**
+  - tRPC `feed.get` — agregacja sparingów, wydarzeń, nowych klubów i zawodników z regionu użytkownika
+  - Unified feed posortowany po dacie, kolorowe tagi typów (sparing/wydarzenie/klub/zawodnik)
+- **Wyszukiwarka (`/search`):**
+  - tRPC `search.global` — szukanie po klubach (nazwa, miasto), zawodnikach (imię, nazwisko), sparingach i wydarzeniach
+  - Case-insensitive matching, wyniki pogrupowane po typie
+- **Responsywność mobilna:**
+  - Hamburger menu z animacją (3 kreski → X), pełne menu mobilne z linkami i wylogowaniem
+- **SEO:**
+  - Root layout: OpenGraph meta, template title (`%s | PilkaSport`), locale `pl_PL`
+  - Landing page: dedykowane meta tagi i OG
+- **Landing page (`/`):**
+  - Hero z CTA (rejestracja + logowanie), sekcja 3 filarów, dolne CTA, footer
+- **Code review & cleanup (`/simplify`):**
+  - Wyekstrahowano wspólne stałe do `src/lib/labels.ts`: `POSITION_LABELS`, `EVENT_TYPE_LABELS`, `SPARING_STATUS_*`, `APPLICATION_STATUS_*`, `getUserDisplayName()`
+  - Usunięto duplikacje z 6 plików UI (feed, search, events, sparings, messages)
+  - Zrównoleglono zapytania w feed router (`Promise.all` dla club/player lookup)
+  - Polling w czacie: change detection (skip `markAsRead` gdy brak nowych wiadomości)
+  - Usunięto dead code (`unused q` w search, `unreadCount = 0` w message router)
+  - Region name w feed pobierany bezpośrednio z DB zamiast fragile chain `??`
+
+---
+
+## Co zostało do zrobienia (opcjonalnie)
+- Testy e2e krytycznych ścieżek (rejestracja → logowanie → profil → sparing)
+- Supabase Realtime (WebSocket) dla live chat
+- Publiczne profile klubów/zawodników (strony `/clubs/[id]`, `/players/[id]`)
+- Upload zdjęć (logo klubu, zdjęcie zawodnika)
+- Powiadomienia (nowe wiadomości, nowe zgłoszenia)
 
 ---
 
@@ -93,7 +116,7 @@
 
 ## Kluczowe Pliki
 ```
-prisma/schema.prisma                  — schemat BD (14 modeli)
+prisma/schema.prisma                  — schemat BD (17 modeli)
 prisma/prisma.config.ts               — konfiguracja Prisma 7 (env() helper)
 prisma/seed.ts                        — seed regionów/lig/grup
 
@@ -101,32 +124,40 @@ src/middleware.ts                      — ochrona tras (JWT, Edge-compatible)
 src/server/auth/config.ts             — Auth.js config (credentials)
 src/server/db/client.ts               — Prisma client singleton (PrismaPg adapter)
 src/server/trpc/trpc.ts               — tRPC init + publicProcedure + protectedProcedure
-src/server/trpc/router.ts             — root router (health, auth, club, player, region, sparing, event)
+src/server/trpc/router.ts             — root router (health, auth, club, player, region, sparing, event, message, feed, search)
 src/server/trpc/routers/auth.ts       — rejestracja
 src/server/trpc/routers/club.ts       — CRUD klubu + lista
 src/server/trpc/routers/player.ts     — CRUD zawodnika + kariera + lista
 src/server/trpc/routers/region.ts     — regiony, ligi, grupy, hierarchy
 src/server/trpc/routers/sparing.ts    — CRUD sparingów + aplikacje
 src/server/trpc/routers/event.ts      — CRUD wydarzeń + zgłoszenia
+src/server/trpc/routers/message.ts    — system wiadomości (konwersacje, czat)
+src/server/trpc/routers/feed.ts       — feed z regionu użytkownika
+src/server/trpc/routers/search.ts     — globalna wyszukiwarka
 
 src/lib/trpc.ts                       — tRPC vanilla client (frontend)
 src/lib/format.ts                     — formatDate (pl-PL)
+src/lib/labels.ts                     — wspólne stałe (labels, statusy, getUserDisplayName)
 src/lib/validators/auth.ts            — Zod: rejestracja, logowanie
 src/lib/validators/profile.ts         — Zod: profil klubu, zawodnika, kariera
 src/lib/validators/sparing.ts         — Zod: tworzenie sparingu, aplikacja
 src/lib/validators/event.ts           — Zod: tworzenie wydarzenia, zgłoszenie
+src/lib/validators/message.ts         — Zod: wysyłka wiadomości, paginacja, markAsRead
 
 src/app/(auth)/login/page.tsx         — logowanie
 src/app/(auth)/register/page.tsx      — rejestracja (z tab Klub/Zawodnik)
 src/app/(dashboard)/layout.tsx        — layout z nawigacją
-src/app/(dashboard)/feed/page.tsx     — placeholder feed
+src/app/(dashboard)/feed/page.tsx     — feed z regionu (sparingi, wydarzenia, kluby, zawodnicy)
+src/app/(dashboard)/search/page.tsx   — globalna wyszukiwarka
 src/app/(dashboard)/profile/page.tsx  — profil (server component → formularz)
-src/app/(dashboard)/sparings/         — lista, nowy, szczegóły sparingu
-src/app/(dashboard)/events/           — lista, nowy, szczegóły wydarzenia
+src/app/(dashboard)/sparings/         — lista, nowy, szczegóły sparingu (+ przycisk wiadomości)
+src/app/(dashboard)/events/           — lista, nowy, szczegóły wydarzenia (+ przycisk wiadomości)
+src/app/(dashboard)/messages/         — lista konwersacji, widok czatu
 
 src/components/forms/club-profile-form.tsx    — formularz klubu (kaskadowe dropdowny)
 src/components/forms/player-profile-form.tsx  — formularz zawodnika + kariera
-src/components/layout/dashboard-nav.tsx       — górna nawigacja
+src/components/layout/dashboard-nav.tsx       — górna nawigacja (responsywna, hamburger menu)
+src/components/send-message-button.tsx       — przycisk "Napisz wiadomość" (inline)
 src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 ```
 
@@ -149,7 +180,7 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 - Projekt: **Kabanos** (free tier)
 - Host: `aws-1-eu-west-1.pooler.supabase.com` (Session Pooler)
 - Baza: `postgres`
-- 14 tabel + seed data (16 regionów, 80 lig, 272 grup)
+- 17 tabel + seed data (16 regionów, 80 lig, 272 grup)
 
 ---
 
@@ -161,14 +192,14 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 | 2    | Auth + User + Profile CRUD    | ✅ Gotowe    |
 | 3    | Regiony, Ligi, Grupy (seed)   | ✅ Gotowe    |
 | 4    | Moduł Sparingów i Wydarzeń    | ✅ Gotowe    |
-| 5    | System Wiadomości             | ⏳ Następna  |
-| 6    | Feed, Filtrowanie, Polish     | ⬜           |
+| 5    | System Wiadomości             | ✅ Gotowe    |
+| 6    | Feed, Filtrowanie, Polish     | ✅ Gotowe    |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. Rozpocznij od **Fazy 5** (System Wiadomości).
+3. Wszystkie 6 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
 4. Przed instalacją nowych zależności — pytaj o zgodę.
-5. Po zakończeniu fazy — zaktualizuj ten plik i commitnij.
+5. Po zakończeniu prac — zaktualizuj ten plik.

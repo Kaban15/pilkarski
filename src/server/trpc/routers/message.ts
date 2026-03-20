@@ -1,0 +1,265 @@
+import { z } from "zod/v4";
+import { router, protectedProcedure } from "../trpc";
+import {
+  sendMessageSchema,
+  getMessagesSchema,
+  markAsReadSchema,
+} from "@/lib/validators/message";
+import { TRPCError } from "@trpc/server";
+
+export const messageRouter = router({
+  // List conversations for current user
+  getConversations: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const participants = await ctx.db.conversationParticipant.findMany({
+      where: { userId },
+      select: { conversationId: true },
+    });
+
+    if (participants.length === 0) return [];
+
+    const conversationIds = participants.map((p) => p.conversationId);
+
+    const conversations = await ctx.db.conversation.findMany({
+      where: { id: { in: conversationIds } },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+                club: { select: { name: true, logoUrl: true } },
+                player: { select: { firstName: true, lastName: true, photoUrl: true } },
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Sort by last message date (conversations with newest messages first)
+    return conversations
+      .map((conv) => {
+        const otherParticipant = conv.participants.find(
+          (p) => p.userId !== userId
+        );
+        const lastMessage = conv.messages[0] ?? null;
+        return {
+          id: conv.id,
+          otherUser: otherParticipant?.user ?? null,
+          lastMessage,
+          createdAt: conv.createdAt,
+        };
+      })
+      .sort((a, b) => {
+        const aDate = a.lastMessage?.createdAt ?? a.createdAt;
+        const bDate = b.lastMessage?.createdAt ?? b.createdAt;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      });
+  }),
+
+  // Get messages in a conversation (cursor-based pagination)
+  getMessages: protectedProcedure
+    .input(getMessagesSchema)
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Verify user is participant
+      const participant = await ctx.db.conversationParticipant.findUnique({
+        where: {
+          conversationId_userId: {
+            conversationId: input.conversationId,
+            userId,
+          },
+        },
+      });
+      if (!participant) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Nie masz dostępu do tej konwersacji" });
+      }
+
+      const items = await ctx.db.message.findMany({
+        where: { conversationId: input.conversationId },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              club: { select: { name: true } },
+              player: { select: { firstName: true, lastName: true } },
+            },
+          },
+        },
+        take: input.limit + 1,
+        ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
+        orderBy: { createdAt: "desc" },
+      });
+
+      let nextCursor: string | undefined;
+      if (items.length > input.limit) {
+        nextCursor = items.pop()!.id;
+      }
+
+      return { items: items.reverse(), nextCursor };
+    }),
+
+  // Send a message (create conversation if needed)
+  send: protectedProcedure
+    .input(sendMessageSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      if (input.recipientUserId === userId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Nie możesz wysłać wiadomości do siebie" });
+      }
+
+      // Check recipient exists
+      const recipient = await ctx.db.user.findUnique({
+        where: { id: input.recipientUserId },
+      });
+      if (!recipient) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Nie znaleziono użytkownika" });
+      }
+
+      // Find existing conversation between these two users
+      const myConversations = await ctx.db.conversationParticipant.findMany({
+        where: { userId },
+        select: { conversationId: true },
+      });
+      const myConvIds = myConversations.map((c) => c.conversationId);
+
+      let conversationId: string | null = null;
+
+      if (myConvIds.length > 0) {
+        const shared = await ctx.db.conversationParticipant.findFirst({
+          where: {
+            conversationId: { in: myConvIds },
+            userId: input.recipientUserId,
+          },
+        });
+        if (shared) conversationId = shared.conversationId;
+      }
+
+      // Create conversation if not exists
+      if (!conversationId) {
+        const conv = await ctx.db.conversation.create({
+          data: {
+            participants: {
+              create: [
+                { userId },
+                { userId: input.recipientUserId },
+              ],
+            },
+          },
+        });
+        conversationId = conv.id;
+      }
+
+      // Create message
+      const message = await ctx.db.message.create({
+        data: {
+          conversationId,
+          senderId: userId,
+          content: input.content,
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              club: { select: { name: true } },
+              player: { select: { firstName: true, lastName: true } },
+            },
+          },
+        },
+      });
+
+      return { message, conversationId };
+    }),
+
+  // Mark all messages in conversation as read
+  markAsRead: protectedProcedure
+    .input(markAsReadSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Verify user is participant
+      const participant = await ctx.db.conversationParticipant.findUnique({
+        where: {
+          conversationId_userId: {
+            conversationId: input.conversationId,
+            userId,
+          },
+        },
+      });
+      if (!participant) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      // Mark unread messages from OTHER users as read
+      await ctx.db.message.updateMany({
+        where: {
+          conversationId: input.conversationId,
+          senderId: { not: userId },
+          readAt: null,
+        },
+        data: { readAt: new Date() },
+      });
+
+      return { success: true };
+    }),
+
+  // Get unread count for badge
+  unreadCount: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const myConversations = await ctx.db.conversationParticipant.findMany({
+      where: { userId },
+      select: { conversationId: true },
+    });
+
+    if (myConversations.length === 0) return 0;
+
+    const count = await ctx.db.message.count({
+      where: {
+        conversationId: { in: myConversations.map((c) => c.conversationId) },
+        senderId: { not: userId },
+        readAt: null,
+      },
+    });
+
+    return count;
+  }),
+
+  // Find or get conversation ID with a specific user (for "Napisz wiadomość" button)
+  getConversationWith: protectedProcedure
+    .input(z.object({ userId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const myUserId = ctx.session.user.id;
+
+      const myConversations = await ctx.db.conversationParticipant.findMany({
+        where: { userId: myUserId },
+        select: { conversationId: true },
+      });
+
+      if (myConversations.length === 0) return null;
+
+      const shared = await ctx.db.conversationParticipant.findFirst({
+        where: {
+          conversationId: { in: myConversations.map((c) => c.conversationId) },
+          userId: input.userId,
+        },
+      });
+
+      return shared?.conversationId ?? null;
+    }),
+});

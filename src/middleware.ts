@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const publicRoutes = ["/", "/login", "/register"];
+const publicPrefixes = ["/clubs/", "/players/"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -10,6 +11,7 @@ export async function middleware(req: NextRequest) {
   // Allow public routes and API/static
   if (
     publicRoutes.includes(pathname) ||
+    publicPrefixes.some((prefix) => pathname.startsWith(prefix)) ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/")
   ) {

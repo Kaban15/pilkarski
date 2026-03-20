@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 export const updateClubSchema = z.object({
   name: z.string().min(2).max(200),
+  logoUrl: z.string().url().max(500).optional(),
   description: z.string().max(2000).optional(),
   city: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),
@@ -14,6 +15,7 @@ export const updateClubSchema = z.object({
 export const updatePlayerSchema = z.object({
   firstName: z.string().min(2).max(100),
   lastName: z.string().min(2).max(100),
+  photoUrl: z.string().url().max(500).optional(),
   dateOfBirth: z.string().optional(), // ISO date string
   city: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),

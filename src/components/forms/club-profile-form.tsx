@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ImageUpload } from "@/components/image-upload";
 
 interface LeagueGroup {
   id: number;
@@ -28,6 +29,7 @@ interface ClubProfileFormProps {
   club: {
     id: string;
     name: string;
+    logoUrl: string | null;
     description: string | null;
     city: string | null;
     regionId: number | null;
@@ -44,6 +46,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(club.logoUrl);
 
   // Cascading state
   const [regionId, setRegionId] = useState<number | null>(club.regionId);
@@ -77,6 +80,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     try {
       await trpc.club.update.mutate({
         name: fd.get("name") as string,
+        logoUrl: logoUrl ?? undefined,
         description: (fd.get("description") as string) || undefined,
         city: (fd.get("city") as string) || undefined,
         regionId: regionId ?? undefined,
@@ -100,6 +104,12 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ImageUpload
+            currentUrl={logoUrl}
+            folder="clubs"
+            entityId={club.id}
+            onUploaded={setLogoUrl}
+          />
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="name">Nazwa klubu</Label>
