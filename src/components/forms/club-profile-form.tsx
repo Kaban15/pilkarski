@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+interface LeagueGroup {
+  id: number;
+  name: string;
+}
+
+interface LeagueLevel {
+  id: number;
+  name: string;
+  tier: number;
+  groups: LeagueGroup[];
+}
+
 interface ClubProfileFormProps {
   club: {
     id: string;
@@ -19,6 +31,8 @@ interface ClubProfileFormProps {
     description: string | null;
     city: string | null;
     regionId: number | null;
+    leagueGroupId: number | null;
+    leagueGroup: { id: number; leagueLevel: { id: number } } | null;
     contactEmail: string | null;
     contactPhone: string | null;
     website: string | null;
@@ -30,6 +44,27 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  // Cascading state
+  const [regionId, setRegionId] = useState<number | null>(club.regionId);
+  const [leagueLevelId, setLeagueLevelId] = useState<number | null>(
+    club.leagueGroup?.leagueLevel.id ?? null
+  );
+  const [leagueGroupId, setLeagueGroupId] = useState<number | null>(club.leagueGroupId);
+  const [hierarchy, setHierarchy] = useState<LeagueLevel[]>([]);
+
+  // Load hierarchy when region changes
+  useEffect(() => {
+    if (!regionId) {
+      setHierarchy([]);
+      setLeagueLevelId(null);
+      setLeagueGroupId(null);
+      return;
+    }
+    trpc.region.hierarchy.query({ regionId }).then(setHierarchy);
+  }, [regionId]);
+
+  const selectedLevel = hierarchy.find((l) => l.id === leagueLevelId);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,7 +79,8 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         name: fd.get("name") as string,
         description: (fd.get("description") as string) || undefined,
         city: (fd.get("city") as string) || undefined,
-        regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+        regionId: regionId ?? undefined,
+        leagueGroupId: leagueGroupId ?? undefined,
         contactEmail: (fd.get("contactEmail") as string) || undefined,
         contactPhone: (fd.get("contactPhone") as string) || undefined,
         website: (fd.get("website") as string) || undefined,
@@ -73,12 +109,18 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
               <Label htmlFor="city">Miasto</Label>
               <Input id="city" name="city" defaultValue={club.city ?? ""} />
             </div>
+
+            {/* Region */}
             <div className="space-y-2">
-              <Label htmlFor="regionId">Region (ZPN)</Label>
+              <Label>Region (ZPN)</Label>
               <select
-                id="regionId"
-                name="regionId"
-                defaultValue={club.regionId ?? ""}
+                value={regionId ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value ? Number(e.target.value) : null;
+                  setRegionId(val);
+                  setLeagueLevelId(null);
+                  setLeagueGroupId(null);
+                }}
                 className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
               >
                 <option value="">Wybierz region</option>
@@ -89,6 +131,49 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                 ))}
               </select>
             </div>
+
+            {/* League Level */}
+            <div className="space-y-2">
+              <Label>Szczebel ligowy</Label>
+              <select
+                value={leagueLevelId ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value ? Number(e.target.value) : null;
+                  setLeagueLevelId(val);
+                  setLeagueGroupId(null);
+                }}
+                disabled={!regionId || hierarchy.length === 0}
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50"
+              >
+                <option value="">Wybierz szczebel</option>
+                {hierarchy.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* League Group */}
+            <div className="space-y-2">
+              <Label>Grupa</Label>
+              <select
+                value={leagueGroupId ?? ""}
+                onChange={(e) =>
+                  setLeagueGroupId(e.target.value ? Number(e.target.value) : null)
+                }
+                disabled={!selectedLevel}
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50"
+              >
+                <option value="">Wybierz grupę</option>
+                {selectedLevel?.groups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="contactEmail">E-mail kontaktowy</Label>
               <Input
