@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(npx:*)",
+      "Read(//c/Users/piotr/CascadeProjects/**)",
+      "Bash(mv pilkarski/STATE.md /tmp/STATE.md)",
+      "Bash(1:*)",
+      "Bash(rm -rf /c/Users/piotr/CascadeProjects/pilkarski_temp)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "pilkarski",
+  "version": "1.0.0",
+  "description": "PilkaSport — platforma łącząca kluby piłkarskie i zawodników",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^7.5.0",
+    "@tanstack/react-query": "^5.91.3",
+    "@trpc/client": "^11.13.4",
+    "@trpc/next": "^11.13.4",
+    "@trpc/react-query": "^11.13.4",
+    "@trpc/server": "^11.13.4",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "clsx": "^2.1.1",
+    "next": "^16.2.0",
+    "prisma": "^7.5.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "superjson": "^2.2.6",
+    "tailwind-merge": "^3.5.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  }
+}
