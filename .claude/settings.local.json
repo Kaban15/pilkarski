@@ -13,7 +13,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(grep -r \"PrismaConfig\\\\|defineConfig\" node_modules/prisma/config*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:Ciapek515%21%21%21@db.ozwbukoetxqnjuexsyhm.supabase.co:5432/postgres\" npx prisma db push 2>&1)",
+      "Bash(node:*)"
     ]
   }
 }
