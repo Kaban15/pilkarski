@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Etap: 2 — Auth + Profile (UKOŃCZONA)
+## Etap: 4 — Sparingi i Wydarzenia (UKOŃCZONA)
 **Data rozpoczęcia:** 2026-03-20
 
 ---
@@ -21,8 +21,18 @@
   - shadcn/ui komponenty (Button, Input, Label, Card, Tabs, Select)
   - Dashboard layout z nawigacją
 
+- [x] **Faza 3: Regiony, Ligi, Grupy**
+  - Seed: 16 ZPN, 80 szczebli, 272 grup
+  - tRPC region router (list, hierarchy, cascading)
+  - Kaskadowe dropdowny w profilu klubu
+- [x] **Faza 4: Sparingi i Wydarzenia**
+  - Sparing CRUD + system aplikacji (apply, accept/reject, auto-reject)
+  - Event CRUD (treningi otwarte, nabory) + zgłoszenia zawodników
+  - Filtrowanie po regionie i typie
+  - Pełne UI: listy, formularze, widoki szczegółowe
+
 ## Co w trakcie
-- [ ] Faza 3: Regiony, Ligi, Grupy (seed)
+- [ ] Faza 5: System Wiadomości
 
 ---
 
@@ -74,6 +84,7 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji
 4. Middleware: `getToken()` z next-auth/jwt (bez Prisma — Edge compatible).
 5. Next.js 16 deprecjonuje middleware → warning, ale działa.
 6. Zod v4 z importem `zod/v4`.
+7. tRPC: `apply` jest reserved word — używamy `applyFor`.
 
 ---
 
@@ -91,9 +102,9 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji
 |------|-------------------------------|--------------|
 | 1    | Inicjalizacja projektu        | ✅ Gotowe    |
 | 2    | Auth + User + Profile CRUD    | ✅ Gotowe    |
-| 3    | Regiony, Ligi, Grupy (seed)   | ⏳ Następna  |
-| 4    | Moduł Sparingów i Wydarzeń    | ⬜           |
-| 5    | System Wiadomości             | ⬜           |
+| 3    | Regiony, Ligi, Grupy (seed)   | ✅ Gotowe    |
+| 4    | Moduł Sparingów i Wydarzeń    | ✅ Gotowe    |
+| 5    | System Wiadomości             | ⏳ Następna  |
 | 6    | Feed, Filtrowanie, Polish     | ⬜           |
 
 ---
