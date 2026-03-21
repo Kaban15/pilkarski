@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { registerSchema } from "@/lib/validators/auth";
+import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,12 +22,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"CLUB" | "PLAYER">("CLUB");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -37,8 +42,16 @@ export default function RegisterPage() {
       lastName: (formData.get("lastName") as string) || undefined,
     };
 
+    const result = registerSchema.safeParse(data);
+    if (!result.success) {
+      setFieldErrors(getFieldErrors(result.error));
+      setLoading(false);
+      return;
+    }
+
     try {
       await trpc.auth.register.mutate(data);
+      toast.success("Rejestracja udana! Zaloguj się.");
       router.push("/login?registered=true");
     } catch (err: any) {
       setError(err.message || "Wystąpił błąd podczas rejestracji");
@@ -70,7 +83,11 @@ export default function RegisterPage() {
                   type="email"
                   required
                   placeholder="twoj@email.pl"
+                  className={fieldErrors.email ? "border-red-500" : ""}
                 />
+                {fieldErrors.email && (
+                  <p className="text-xs text-red-600">{fieldErrors.email}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Hasło</Label>
@@ -79,9 +96,12 @@ export default function RegisterPage() {
                   name="password"
                   type="password"
                   required
-                  minLength={8}
                   placeholder="Minimum 8 znaków"
+                  className={fieldErrors.password ? "border-red-500" : ""}
                 />
+                {fieldErrors.password && (
+                  <p className="text-xs text-red-600">{fieldErrors.password}</p>
+                )}
               </div>
 
               <TabsContent value="CLUB" className="mt-0 space-y-2">
@@ -91,7 +111,11 @@ export default function RegisterPage() {
                   name="clubName"
                   placeholder="np. KS Orlik Poznań"
                   required={role === "CLUB"}
+                  className={fieldErrors.clubName ? "border-red-500" : ""}
                 />
+                {fieldErrors.clubName && (
+                  <p className="text-xs text-red-600">{fieldErrors.clubName}</p>
+                )}
               </TabsContent>
 
               <TabsContent value="PLAYER" className="mt-0 space-y-4">
@@ -102,7 +126,11 @@ export default function RegisterPage() {
                     name="firstName"
                     placeholder="Jan"
                     required={role === "PLAYER"}
+                    className={fieldErrors.firstName ? "border-red-500" : ""}
                   />
+                  {fieldErrors.firstName && (
+                    <p className="text-xs text-red-600">{fieldErrors.firstName}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Nazwisko</Label>
@@ -111,7 +139,11 @@ export default function RegisterPage() {
                     name="lastName"
                     placeholder="Kowalski"
                     required={role === "PLAYER"}
+                    className={fieldErrors.lastName ? "border-red-500" : ""}
                   />
+                  {fieldErrors.lastName && (
+                    <p className="text-xs text-red-600">{fieldErrors.lastName}</p>
+                  )}
                 </div>
               </TabsContent>
 

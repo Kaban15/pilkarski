@@ -5,6 +5,7 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConversationSkeleton } from "@/components/card-skeleton";
 import { getUserDisplayName } from "@/lib/labels";
 
 type Conversation = {
@@ -41,7 +42,11 @@ export default function MessagesPage() {
       <h1 className="mb-6 text-2xl font-bold">Wiadomości</h1>
 
       {loading ? (
-        <p className="text-gray-500">Ładowanie...</p>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <ConversationSkeleton key={i} />
+          ))}
+        </div>
       ) : conversations.length === 0 ? (
         <p className="text-gray-500">
           Brak konwersacji. Napisz wiadomość z profilu klubu lub zawodnika.

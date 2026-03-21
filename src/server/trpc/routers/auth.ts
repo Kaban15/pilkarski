@@ -1,12 +1,20 @@
 import { router, publicProcedure } from "../trpc";
 import { registerSchema } from "@/lib/validators/auth";
 import { TRPCError } from "@trpc/server";
+import { isRateLimited } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 
 export const authRouter = router({
   register: publicProcedure
     .input(registerSchema)
     .mutation(async ({ ctx, input }) => {
+      if (isRateLimited(`register:${input.email}`, { maxAttempts: 3, windowMs: 60_000 })) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Zbyt wiele prób rejestracji. Spróbuj ponownie za minutę.",
+        });
+      }
+
       const existing = await ctx.db.user.findUnique({
         where: { email: input.email },
       });

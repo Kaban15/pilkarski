@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/server/db/client";
+import { isRateLimited } from "@/lib/rate-limit";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
@@ -19,6 +20,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const password = credentials?.password as string | undefined;
 
         if (!email || !password) return null;
+
+        if (isRateLimited(`login:${email}`, { maxAttempts: 5, windowMs: 60_000 })) {
+          throw new Error("Zbyt wiele prób logowania. Spróbuj ponownie za minutę.");
+        }
 
         const user = await db.user.findUnique({
           where: { email },

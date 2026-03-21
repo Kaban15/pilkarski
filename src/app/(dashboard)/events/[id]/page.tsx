@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SendMessageButton } from "@/components/send-message-button";
 import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
 
@@ -16,7 +18,6 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [applying, setApplying] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (id) trpc.event.getById.query({ id }).then(setEvent);
@@ -24,14 +25,14 @@ export default function EventDetailPage() {
 
   async function handleApply() {
     setApplying(true);
-    setError("");
     try {
       await trpc.event.applyFor.mutate({ eventId: id, message: message || undefined });
       const updated = await trpc.event.getById.query({ id });
       setEvent(updated);
       setMessage("");
+      toast.success("Zgłoszenie wysłane");
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setApplying(false);
     }
@@ -42,12 +43,28 @@ export default function EventDetailPage() {
       await trpc.event.respond.mutate({ applicationId, status });
       const updated = await trpc.event.getById.query({ id });
       setEvent(updated);
+      toast.success(status === "ACCEPTED" ? "Zgłoszenie zaakceptowane" : "Zgłoszenie odrzucone");
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
-  if (!event) return <p className="text-gray-500">Ładowanie...</p>;
+  if (!event) return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="mt-2 h-4 w-1/3" />
+      </div>
+      <Card>
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   const acceptedCount = event.applications.filter((a: any) => a.status === "ACCEPTED").length;
 
@@ -120,7 +137,6 @@ export default function EventDetailPage() {
               {applying ? "Wysyłanie..." : "Zgłoś się"}
             </Button>
           </div>
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </CardContent>
       </Card>
 

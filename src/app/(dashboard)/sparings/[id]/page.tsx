@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SendMessageButton } from "@/components/send-message-button";
 import { SPARING_STATUS_LABELS, SPARING_STATUS_COLORS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
 
@@ -16,7 +18,6 @@ export default function SparingDetailPage() {
   const [sparing, setSparing] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [applying, setApplying] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (id) trpc.sparing.getById.query({ id }).then(setSparing);
@@ -24,14 +25,14 @@ export default function SparingDetailPage() {
 
   async function handleApply() {
     setApplying(true);
-    setError("");
     try {
       await trpc.sparing.applyFor.mutate({ sparingOfferId: id, message: message || undefined });
       const updated = await trpc.sparing.getById.query({ id });
       setSparing(updated);
       setMessage("");
+      toast.success("Zgłoszenie wysłane");
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setApplying(false);
     }
@@ -42,21 +43,38 @@ export default function SparingDetailPage() {
       await trpc.sparing.respond.mutate({ applicationId, status });
       const updated = await trpc.sparing.getById.query({ id });
       setSparing(updated);
+      toast.success(status === "ACCEPTED" ? "Zgłoszenie zaakceptowane" : "Zgłoszenie odrzucone");
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
   async function handleCancel() {
     try {
       await trpc.sparing.cancel.mutate({ id });
+      toast.success("Sparing anulowany");
       router.push("/sparings");
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
-  if (!sparing) return <p className="text-gray-500">Ładowanie...</p>;
+  if (!sparing) return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="mt-2 h-4 w-1/3" />
+      </div>
+      <Card>
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -125,7 +143,6 @@ export default function SparingDetailPage() {
                 {applying ? "Wysyłanie..." : "Aplikuj"}
               </Button>
             </div>
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           </CardContent>
         </Card>
       )}

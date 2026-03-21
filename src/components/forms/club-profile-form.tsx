@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +45,6 @@ interface ClubProfileFormProps {
 
 export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(club.logoUrl);
 
   // Cascading state
@@ -72,8 +71,6 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
-    setSuccess(false);
-    setError("");
 
     const fd = new FormData(e.currentTarget);
 
@@ -89,9 +86,9 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         contactPhone: (fd.get("contactPhone") as string) || undefined,
         website: (fd.get("website") as string) || undefined,
       });
-      setSuccess(true);
+      toast.success("Profil klubu zapisany");
     } catch (err: any) {
-      setError(err.message || "Nie udało się zapisać");
+      toast.error(err.message || "Nie udało się zapisać");
     } finally {
       setSaving(false);
     }
@@ -220,9 +217,6 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
               className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
             />
           </div>
-
-          {success && <p className="text-sm text-green-600">Zapisano!</p>}
-          {error && <p className="text-sm text-red-600">{error}</p>}
 
           <Button type="submit" disabled={saving}>
             {saving ? "Zapisywanie..." : "Zapisz profil"}

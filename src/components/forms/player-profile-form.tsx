@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +51,6 @@ interface PlayerProfileFormProps {
 
 export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(player.photoUrl);
   const [careers, setCareers] = useState(player.careerEntries);
 
@@ -62,8 +61,6 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
-    setSuccess(false);
-    setError("");
 
     const fd = new FormData(e.currentTarget);
 
@@ -82,9 +79,9 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
         secondaryPosition: (fd.get("secondaryPosition") as any) || undefined,
         bio: (fd.get("bio") as string) || undefined,
       });
-      setSuccess(true);
+      toast.success("Profil zawodnika zapisany");
     } catch (err: any) {
-      setError(err.message || "Nie udało się zapisać");
+      toast.error(err.message || "Nie udało się zapisać");
     } finally {
       setSaving(false);
     }
@@ -100,14 +97,20 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       setCareers([entry, ...careers]);
       setNewClub("");
       setNewSeason("");
-    } catch {}
+      toast.success("Wpis dodany");
+    } catch {
+      toast.error("Nie udało się dodać wpisu");
+    }
   }
 
   async function deleteCareer(id: string) {
     try {
       await trpc.player.deleteCareer.mutate({ id });
       setCareers(careers.filter((c) => c.id !== id));
-    } catch {}
+      toast.success("Wpis usunięty");
+    } catch {
+      toast.error("Nie udało się usunąć wpisu");
+    }
   }
 
   return (
@@ -245,9 +248,6 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
               />
             </div>
-
-            {success && <p className="text-sm text-green-600">Zapisano!</p>}
-            {error && <p className="text-sm text-red-600">{error}</p>}
 
             <Button type="submit" disabled={saving}>
               {saving ? "Zapisywanie..." : "Zapisz profil"}

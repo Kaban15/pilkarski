@@ -5,6 +5,7 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
+import { FeedCardSkeleton } from "@/components/card-skeleton";
 import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 
 type FeedItem = {
@@ -129,7 +130,11 @@ export default function FeedPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Ładowanie...</p>
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <FeedCardSkeleton key={i} />
+          ))}
+        </div>
       ) : items.length === 0 ? (
         <p className="text-gray-500">Brak aktywności w Twoim regionie. Uzupełnij profil, aby zobaczyć dopasowane treści.</p>
       ) : (

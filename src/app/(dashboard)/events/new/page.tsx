@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { createEventSchema } from "@/lib/validators/event";
+import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function NewEventPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
@@ -20,24 +23,33 @@ export default function NewEventPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFieldErrors({});
     setLoading(true);
-    setError("");
 
     const fd = new FormData(e.currentTarget);
+    const data = {
+      type: fd.get("type") as "OPEN_TRAINING" | "RECRUITMENT",
+      title: fd.get("title") as string,
+      description: (fd.get("description") as string) || undefined,
+      eventDate: fd.get("eventDate") as string,
+      location: (fd.get("location") as string) || undefined,
+      maxParticipants: fd.get("maxParticipants") ? Number(fd.get("maxParticipants")) : undefined,
+      regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+    };
+
+    const validation = createEventSchema.safeParse(data);
+    if (!validation.success) {
+      setFieldErrors(getFieldErrors(validation.error));
+      setLoading(false);
+      return;
+    }
 
     try {
-      const result = await trpc.event.create.mutate({
-        type: fd.get("type") as "OPEN_TRAINING" | "RECRUITMENT",
-        title: fd.get("title") as string,
-        description: (fd.get("description") as string) || undefined,
-        eventDate: fd.get("eventDate") as string,
-        location: (fd.get("location") as string) || undefined,
-        maxParticipants: fd.get("maxParticipants") ? Number(fd.get("maxParticipants")) : undefined,
-        regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
-      });
+      const result = await trpc.event.create.mutate(data);
+      toast.success("Wydarzenie utworzone");
       router.push(`/events/${result.id}`);
     } catch (err: any) {
-      setError(err.message || "Nie udało się utworzyć wydarzenia");
+      toast.error(err.message || "Nie udało się utworzyć wydarzenia");
     } finally {
       setLoading(false);
     }
@@ -65,13 +77,31 @@ export default function NewEventPage() {
 
           <div className="space-y-2">
             <Label htmlFor="title">Tytuł</Label>
-            <Input id="title" name="title" required placeholder="np. Nabór do drużyny seniorów" />
+            <Input
+              id="title"
+              name="title"
+              required
+              placeholder="np. Nabór do drużyny seniorów"
+              className={fieldErrors.title ? "border-red-500" : ""}
+            />
+            {fieldErrors.title && (
+              <p className="text-xs text-red-600">{fieldErrors.title}</p>
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="eventDate">Data i godzina</Label>
-              <Input id="eventDate" name="eventDate" type="datetime-local" required />
+              <Input
+                id="eventDate"
+                name="eventDate"
+                type="datetime-local"
+                required
+                className={fieldErrors.eventDate ? "border-red-500" : ""}
+              />
+              {fieldErrors.eventDate && (
+                <p className="text-xs text-red-600">{fieldErrors.eventDate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">Miejsce</Label>
@@ -106,8 +136,6 @@ export default function NewEventPage() {
               placeholder="Dodatkowe informacje..."
             />
           </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
 
           <div className="flex gap-2">
             <Button type="submit" disabled={loading}>

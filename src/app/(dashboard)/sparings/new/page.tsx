@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { createSparingSchema } from "@/lib/validators/sparing";
+import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function NewSparingPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
@@ -20,23 +23,32 @@ export default function NewSparingPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFieldErrors({});
     setLoading(true);
-    setError("");
 
     const fd = new FormData(e.currentTarget);
+    const data = {
+      title: fd.get("title") as string,
+      description: (fd.get("description") as string) || undefined,
+      matchDate: fd.get("matchDate") as string,
+      location: (fd.get("location") as string) || undefined,
+      costSplitInfo: (fd.get("costSplitInfo") as string) || undefined,
+      regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+    };
+
+    const validation = createSparingSchema.safeParse(data);
+    if (!validation.success) {
+      setFieldErrors(getFieldErrors(validation.error));
+      setLoading(false);
+      return;
+    }
 
     try {
-      const result = await trpc.sparing.create.mutate({
-        title: fd.get("title") as string,
-        description: (fd.get("description") as string) || undefined,
-        matchDate: fd.get("matchDate") as string,
-        location: (fd.get("location") as string) || undefined,
-        costSplitInfo: (fd.get("costSplitInfo") as string) || undefined,
-        regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
-      });
+      const result = await trpc.sparing.create.mutate(data);
+      toast.success("Sparing utworzony");
       router.push(`/sparings/${result.id}`);
     } catch (err: any) {
-      setError(err.message || "Nie udało się utworzyć sparingu");
+      toast.error(err.message || "Nie udało się utworzyć sparingu");
     } finally {
       setLoading(false);
     }
@@ -51,13 +63,31 @@ export default function NewSparingPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Tytuł ogłoszenia</Label>
-            <Input id="title" name="title" required placeholder="np. Szukamy sparingpartnera na sobotę" />
+            <Input
+              id="title"
+              name="title"
+              required
+              placeholder="np. Szukamy sparingpartnera na sobotę"
+              className={fieldErrors.title ? "border-red-500" : ""}
+            />
+            {fieldErrors.title && (
+              <p className="text-xs text-red-600">{fieldErrors.title}</p>
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="matchDate">Data i godzina meczu</Label>
-              <Input id="matchDate" name="matchDate" type="datetime-local" required />
+              <Input
+                id="matchDate"
+                name="matchDate"
+                type="datetime-local"
+                required
+                className={fieldErrors.matchDate ? "border-red-500" : ""}
+              />
+              {fieldErrors.matchDate && (
+                <p className="text-xs text-red-600">{fieldErrors.matchDate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">Miejsce</Label>
@@ -92,8 +122,6 @@ export default function NewSparingPage() {
               placeholder="Dodatkowe informacje..."
             />
           </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
 
           <div className="flex gap-2">
             <Button type="submit" disabled={loading}>

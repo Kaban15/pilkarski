@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardSkeleton } from "@/components/card-skeleton";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 type SparingItem = {
   id: string;
@@ -23,6 +25,8 @@ export default function SparingsPage() {
   const [regionId, setRegionId] = useState<number | undefined>();
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
 
   useEffect(() => {
     trpc.region.list.query().then(setRegions);
@@ -30,11 +34,29 @@ export default function SparingsPage() {
 
   useEffect(() => {
     setLoading(true);
+    setNextCursor(undefined);
     trpc.sparing.list
       .query({ regionId, status: "OPEN" })
-      .then((res) => setItems(res.items as any))
+      .then((res) => {
+        setItems(res.items as any);
+        setNextCursor(res.nextCursor);
+      })
       .finally(() => setLoading(false));
   }, [regionId]);
+
+  const loadMore = useCallback(() => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    trpc.sparing.list
+      .query({ regionId, status: "OPEN", cursor: nextCursor })
+      .then((res) => {
+        setItems((prev) => [...prev, ...(res.items as any)]);
+        setNextCursor(res.nextCursor);
+      })
+      .finally(() => setLoadingMore(false));
+  }, [nextCursor, loadingMore, regionId]);
+
+  const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
 
   return (
     <div>
@@ -59,7 +81,11 @@ export default function SparingsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Ładowanie...</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       ) : items.length === 0 ? (
         <p className="text-gray-500">Brak sparingów w tym regionie.</p>
       ) : (
@@ -84,6 +110,13 @@ export default function SparingsPage() {
               </Card>
             </Link>
           ))}
+          {loadingMore && (
+            <>
+              <CardSkeleton />
+              <CardSkeleton />
+            </>
+          )}
+          <div ref={sentinelRef} />
         </div>
       )}
     </div>

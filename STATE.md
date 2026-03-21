@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–6 + Publiczne profile + Upload zdjęć + Powiadomienia
+## Aktualny etap: Fazy 1–11 (UX Polish)
 **Ostatnia sesja:** 2026-03-21
 
 ---
@@ -133,8 +133,41 @@
 
 ---
 
+### Faza 10: Testy E2E ✅
+- **Playwright** (`@playwright/test`) — Chromium, headless
+- **22 testy** pokrywające wszystkie krytyczne ścieżki:
+  - **Auth (5):** rejestracja klub/zawodnik, logowanie, błędne hasło, redirect niezalogowanego, duplikat email
+  - **Sparingi (4):** tworzenie → lista → aplikacja klubu B → akceptacja (status "Dopasowany")
+  - **Wydarzenia (4):** tworzenie → lista → zgłoszenie zawodnika → akceptacja (status "Zaakceptowany")
+  - **Wiadomości (4):** rejestracja kont → tworzenie sparingu → przycisk "Napisz wiadomość" → lista konwersacji
+  - **Powiadomienia (2):** strona `/notifications` dostępna, bell icon w nawigacji
+  - **Publiczne profile (3):** `/clubs/[id]` i `/players/[id]` bez logowania, landing page
+- **Konfiguracja:** `playwright.config.ts` (workers: 1, serial, webServer: `npm run dev`)
+- **Helpery:** `e2e/helpers.ts` — `registerClub`, `registerPlayer`, `login`, `logout`, `uniqueEmail`
+- **Skrypty:** `npm run test:e2e` (headless), `npm run test:e2e:ui` (z UI)
+
+---
+
+### Faza 11: UX Polish ✅
+- **Toast notifications (sonner):**
+  - `<Toaster>` w root layout (`position="top-right"`, `richColors`, `closeButton`)
+  - `toast.success()` / `toast.error()` na wszystkich akcjach: zapis profilu, tworzenie/aplikowanie/akceptacja/odrzucenie sparingów i wydarzeń, wysyłka wiadomości, rejestracja
+  - Usunięto inline success/error state i `alert()` — zastąpione toastami
+- **Skeleton loadery (shadcn/ui Skeleton):**
+  - Komponent `CardSkeleton` z 4 wariantami: `CardSkeleton`, `FeedCardSkeleton`, `ConversationSkeleton`, `NotificationSkeleton`
+  - Skeleton loadery na: feed, sparingi (lista + detail), wydarzenia (lista + detail), wiadomości (lista + czat), powiadomienia
+- **Infinite scroll:**
+  - Hook `useInfiniteScroll` (IntersectionObserver)
+  - Automatyczne doładowywanie na listach sparingów i wydarzeń (cursor-based pagination z tRPC)
+  - Skeleton loadery jako wskaźnik ładowania kolejnych elementów
+- **Inline walidacja formularzy:**
+  - Helper `getFieldErrors()` — parsowanie Zod errors na per-field messages
+  - Walidacja client-side z podświetleniem pól (border-red-500) i komunikatami pod polami
+  - Dodane na: rejestracja, nowy sparing, nowe wydarzenie
+
+---
+
 ## Co zostało do zrobienia (opcjonalnie)
-- Testy e2e krytycznych ścieżek (rejestracja → logowanie → profil → sparing)
 - Supabase Realtime (WebSocket) dla live chat
 - Deploy na Vercel
 
@@ -144,13 +177,14 @@
 | Warstwa     | Technologia                            |
 |-------------|----------------------------------------|
 | Frontend    | Next.js 16 (App Router) + TypeScript   |
-| UI          | Tailwind CSS 4 + shadcn/ui             |
+| UI          | Tailwind CSS 4 + shadcn/ui + sonner    |
 | API         | tRPC v11 (fetch adapter)               |
 | ORM         | Prisma 7 + @prisma/adapter-pg          |
 | Baza danych | PostgreSQL (Supabase — Session Pooler) |
 | Storage     | Supabase Storage (bucket `avatars`)    |
 | Auth        | Auth.js v5 (next-auth@beta)            |
 | Walidacja   | Zod v4                                 |
+| Testy       | Playwright (E2E, 22 testy)             |
 | Hosting     | Vercel (planowany)                     |
 
 ---
@@ -186,6 +220,7 @@ src/lib/validators/profile.ts         — Zod: profil klubu (+ logoUrl), zawodni
 src/lib/validators/sparing.ts         — Zod: tworzenie sparingu, aplikacja
 src/lib/validators/event.ts           — Zod: tworzenie wydarzenia, zgłoszenie
 src/lib/validators/message.ts         — Zod: wysyłka wiadomości, paginacja, markAsRead
+src/lib/form-errors.ts                — helper getFieldErrors() (Zod → per-field errors)
 
 src/app/(auth)/login/page.tsx         — logowanie
 src/app/(auth)/register/page.tsx      — rejestracja (z tab Klub/Zawodnik)
@@ -205,7 +240,18 @@ src/components/forms/player-profile-form.tsx  — formularz zawodnika + kariera 
 src/components/layout/dashboard-nav.tsx       — górna nawigacja (responsywna, bell icon z badge)
 src/components/send-message-button.tsx       — przycisk "Napisz wiadomość" (inline)
 src/components/image-upload.tsx              — komponent uploadu zdjęć (Supabase Storage)
+src/components/card-skeleton.tsx             — skeleton loadery (CardSkeleton, FeedCardSkeleton, ConversationSkeleton, NotificationSkeleton)
+src/hooks/use-infinite-scroll.ts             — hook IntersectionObserver do infinite scroll
 src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
+
+playwright.config.ts                  — konfiguracja Playwright (workers: 1, serial)
+e2e/helpers.ts                        — helpery testowe (register, login, uniqueEmail)
+e2e/auth.spec.ts                      — testy auth (rejestracja, logowanie, redirect)
+e2e/sparing.spec.ts                   — testy sparingów (tworzenie → aplikacja → akceptacja)
+e2e/event.spec.ts                     — testy wydarzeń (tworzenie → zgłoszenie → akceptacja)
+e2e/messages.spec.ts                  — testy wiadomości (przycisk, konwersacje)
+e2e/notifications.spec.ts             — testy powiadomień (strona, bell icon)
+e2e/public-profiles.spec.ts           — testy publicznych profili i landing page
 ```
 
 ---
@@ -248,13 +294,15 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 | 7    | Publiczne Profile             | ✅ Gotowe    |
 | 8    | Upload Zdjęć                  | ✅ Gotowe    |
 | 9    | Powiadomienia                 | ✅ Gotowe    |
+| 10   | Testy E2E                     | ✅ Gotowe    |
+| 11   | UX Polish                     | ✅ Gotowe    |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. Wszystkie 9 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
+3. Wszystkie 11 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
 4. Przed instalacją nowych zależności — pytaj o zgodę.
 5. Po zakończeniu prac — zaktualizuj ten plik.
 6. **Prisma db push:** użyj `npx prisma db push --url "..."` (env() nie działa z db push).

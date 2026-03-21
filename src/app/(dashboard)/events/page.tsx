@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardSkeleton } from "@/components/card-skeleton";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 type EventItem = {
   id: string;
@@ -32,6 +34,8 @@ export default function EventsPage() {
   const [type, setType] = useState<"OPEN_TRAINING" | "RECRUITMENT" | undefined>();
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
 
   useEffect(() => {
     trpc.region.list.query().then(setRegions);
@@ -39,11 +43,29 @@ export default function EventsPage() {
 
   useEffect(() => {
     setLoading(true);
+    setNextCursor(undefined);
     trpc.event.list
       .query({ regionId, type })
-      .then((res) => setItems(res.items as any))
+      .then((res) => {
+        setItems(res.items as any);
+        setNextCursor(res.nextCursor);
+      })
       .finally(() => setLoading(false));
   }, [regionId, type]);
+
+  const loadMore = useCallback(() => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    trpc.event.list
+      .query({ regionId, type, cursor: nextCursor })
+      .then((res) => {
+        setItems((prev) => [...prev, ...(res.items as any)]);
+        setNextCursor(res.nextCursor);
+      })
+      .finally(() => setLoadingMore(false));
+  }, [nextCursor, loadingMore, regionId, type]);
+
+  const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
 
   return (
     <div>
@@ -77,7 +99,11 @@ export default function EventsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Ładowanie...</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       ) : items.length === 0 ? (
         <p className="text-gray-500">Brak wydarzeń.</p>
       ) : (
@@ -108,6 +134,13 @@ export default function EventsPage() {
               </Card>
             </Link>
           ))}
+          {loadingMore && (
+            <>
+              <CardSkeleton />
+              <CardSkeleton />
+            </>
+          )}
+          <div ref={sentinelRef} />
         </div>
       )}
     </div>

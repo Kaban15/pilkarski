@@ -5,6 +5,7 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NotificationSkeleton } from "@/components/card-skeleton";
 import { formatDate } from "@/lib/format";
 import { NOTIFICATION_TYPE_LABELS, NOTIFICATION_TYPE_COLORS } from "@/lib/labels";
 
@@ -43,7 +44,11 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Ładowanie...</p>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <NotificationSkeleton key={i} />
+          ))}
+        </div>
       ) : notifications.length === 0 ? (
         <p className="text-gray-500">Brak powiadomień</p>
       ) : (

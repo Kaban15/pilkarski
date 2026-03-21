@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { getUserDisplayName } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Message = {
   id: string;
@@ -79,7 +81,7 @@ export default function ConversationPage() {
       setMessages((prev) => [...prev, result.message as any]);
       setNewMessage("");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSending(false);
     }
@@ -122,7 +124,13 @@ export default function ConversationPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {loading ? (
-          <p className="text-gray-500">Ładowanie...</p>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={`flex ${i % 2 === 0 ? "justify-start" : "justify-end"}`}>
+                <Skeleton className="h-12 w-[60%] rounded-2xl" />
+              </div>
+            ))}
+          </div>
         ) : messages.length === 0 ? (
           <p className="text-center text-gray-400">Brak wiadomości. Napisz pierwszą!</p>
         ) : (
