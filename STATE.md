@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–11 (UX Polish)
+## Aktualny etap: Fazy 1–12 (Deploy + Quick Wins)
 **Ostatnia sesja:** 2026-03-21
 
 ---
@@ -167,9 +167,40 @@
 
 ---
 
+### Faza 12: Deploy + Quick Wins + Code Review ✅
+- **Deploy na Vercel:**
+  - Projekt: `pilkarski.vercel.app` (auto-deploy z GitHub `main`)
+  - GitHub: `https://github.com/Kaban15/pilkarski`
+  - Env vars: `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `AUTH_SECRET`, `AUTH_TRUST_HOST`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `postinstall: "prisma generate"` w package.json (Vercel nie ma wygenerowanego klienta)
+- **Auth fixes (Vercel):**
+  - `SessionProvider` w root layout (`src/components/providers.tsx`) — bez niego `signIn()` nie pobierał CSRF tokena
+  - Middleware: cookie name `__Secure-authjs.session-token` + `AUTH_SECRET` (Auth.js v5 zmienił nazwy vs v4)
+- **SEO:**
+  - `robots.ts` — blokuje crawlery na prywatnych trasach
+  - `sitemap.ts` — publiczne strony
+  - `manifest.ts` — PWA manifest (standalone, theme green-600)
+  - `icon.svg` — favicon SVG (zielona piłka z "PS")
+- **Strony błędów:**
+  - `error.tsx` — globalny error boundary (po polsku, przycisk "Spróbuj ponownie")
+  - `not-found.tsx` — 404 (po polsku, link do strony głównej)
+- **Rate limiting:**
+  - In-memory rate limiter (`src/lib/rate-limit.ts`) z auto-cleanup co 5 min
+  - Rejestracja: 3 próby/min na email
+  - Logowanie: 5 prób/min na email
+- **Publiczne profile — session-aware CTA:**
+  - Komponent `PublicProfileCTA` — zalogowany widzi "Wróć do dashboardu", niezalogowany "Dołącz/Zaloguj"
+- **Code review (`/simplify`):**
+  - Fix memory leak w rate limiterze (unbounded Map → cleanup expired entries)
+  - `FOOT_LABELS` scentralizowane do `labels.ts` (było zduplikowane)
+  - Event type options z `EVENT_TYPE_LABELS` (było hardcoded)
+  - `DetailPageSkeleton` wyekstrahowany (było zduplikowane w events/sparings)
+  - `PublicProfileCTA` wyekstrahowany (było zduplikowane w clubs/players)
+
+---
+
 ## Co zostało do zrobienia (opcjonalnie)
 - Supabase Realtime (WebSocket) dla live chat
-- Deploy na Vercel
 
 ---
 
@@ -185,7 +216,7 @@
 | Auth        | Auth.js v5 (next-auth@beta)            |
 | Walidacja   | Zod v4                                 |
 | Testy       | Playwright (E2E, 22 testy)             |
-| Hosting     | Vercel (planowany)                     |
+| Hosting     | Vercel (`pilkarski.vercel.app`)         |
 
 ---
 
@@ -214,7 +245,8 @@ src/server/trpc/routers/notification.ts — powiadomienia (list, unreadCount, ma
 src/lib/trpc.ts                       — tRPC vanilla client (frontend)
 src/lib/supabase.ts                   — Supabase client (storage)
 src/lib/format.ts                     — formatDate (pl-PL)
-src/lib/labels.ts                     — wspólne stałe (labels, statusy, notification types, getUserDisplayName)
+src/lib/labels.ts                     — wspólne stałe (labels, statusy, FOOT_LABELS, notification types, getUserDisplayName)
+src/lib/rate-limit.ts                 — in-memory rate limiter z auto-cleanup
 src/lib/validators/auth.ts            — Zod: rejestracja, logowanie
 src/lib/validators/profile.ts         — Zod: profil klubu (+ logoUrl), zawodnika (+ photoUrl), kariera
 src/lib/validators/sparing.ts         — Zod: tworzenie sparingu, aplikacja
@@ -240,9 +272,18 @@ src/components/forms/player-profile-form.tsx  — formularz zawodnika + kariera 
 src/components/layout/dashboard-nav.tsx       — górna nawigacja (responsywna, bell icon z badge)
 src/components/send-message-button.tsx       — przycisk "Napisz wiadomość" (inline)
 src/components/image-upload.tsx              — komponent uploadu zdjęć (Supabase Storage)
-src/components/card-skeleton.tsx             — skeleton loadery (CardSkeleton, FeedCardSkeleton, ConversationSkeleton, NotificationSkeleton)
+src/components/card-skeleton.tsx             — skeleton loadery (CardSkeleton, FeedCardSkeleton, DetailPageSkeleton, ConversationSkeleton, NotificationSkeleton)
+src/components/public-profile-cta.tsx       — session-aware CTA na publicznych profilach
+src/components/providers.tsx                — SessionProvider wrapper (root layout)
 src/hooks/use-infinite-scroll.ts             — hook IntersectionObserver do infinite scroll
 src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
+
+src/app/robots.ts                     — robots.txt (Next.js metadata API)
+src/app/sitemap.ts                    — sitemap.xml
+src/app/manifest.ts                   — PWA web manifest
+src/app/icon.svg                      — favicon SVG
+src/app/error.tsx                     — globalny error boundary
+src/app/not-found.tsx                 — strona 404
 
 playwright.config.ts                  — konfiguracja Playwright (workers: 1, serial)
 e2e/helpers.ts                        — helpery testowe (register, login, uniqueEmail)
@@ -269,6 +310,8 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 10. **Prisma db push** — flaga `--url` wymagana (env() w prisma.config.ts nie działa z db push w v7.5.0).
 11. **Notyfikacje fire-and-forget** — nie blokują response'a, `.catch(() => {})`.
 12. **Supabase Storage** — bucket `avatars` publiczny, upsert z entity ID jako nazwa pliku.
+13. **Auth.js v5 na Vercel** — wymaga `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, cookie name `__Secure-authjs.session-token` (nie `__Secure-next-auth.*`).
+14. **SessionProvider** — wymagany w root layout żeby `signIn()`/`useSession()` z `next-auth/react` działały.
 
 ---
 
@@ -296,13 +339,16 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 | 9    | Powiadomienia                 | ✅ Gotowe    |
 | 10   | Testy E2E                     | ✅ Gotowe    |
 | 11   | UX Polish                     | ✅ Gotowe    |
+| 12   | Deploy + Quick Wins + Review  | ✅ Gotowe    |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. Wszystkie 11 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
+3. Wszystkie 12 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
+   - Aplikacja live: **https://pilkarski.vercel.app**
+   - GitHub: **https://github.com/Kaban15/pilkarski**
 4. Przed instalacją nowych zależności — pytaj o zgodę.
 5. Po zakończeniu prac — zaktualizuj ten plik.
 6. **Prisma db push:** użyj `npx prisma db push --url "..."` (env() nie działa z db push).
