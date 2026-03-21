@@ -44,6 +44,26 @@ export const APPLICATION_STATUS_COLORS: Record<string, string> = {
   REJECTED: "text-red-700 bg-red-50",
 };
 
+export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  SPARING_APPLICATION: "Zgłoszenie na sparing",
+  SPARING_ACCEPTED: "Sparing zaakceptowany",
+  SPARING_REJECTED: "Sparing odrzucony",
+  EVENT_APPLICATION: "Zgłoszenie na wydarzenie",
+  EVENT_ACCEPTED: "Wydarzenie zaakceptowane",
+  EVENT_REJECTED: "Wydarzenie odrzucone",
+  NEW_MESSAGE: "Nowa wiadomość",
+};
+
+export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
+  SPARING_APPLICATION: "bg-green-50 text-green-700",
+  SPARING_ACCEPTED: "bg-blue-50 text-blue-700",
+  SPARING_REJECTED: "bg-red-50 text-red-700",
+  EVENT_APPLICATION: "bg-purple-50 text-purple-700",
+  EVENT_ACCEPTED: "bg-blue-50 text-blue-700",
+  EVENT_REJECTED: "bg-red-50 text-red-700",
+  NEW_MESSAGE: "bg-yellow-50 text-yellow-700",
+};
+
 export function getUserDisplayName(user: {
   email?: string;
   club?: { name: string } | null;

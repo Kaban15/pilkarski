@@ -15,7 +15,14 @@
       "Bash(grep -r \"PrismaConfig\\\\|defineConfig\" node_modules/prisma/config*)",
       "Bash(npm uninstall:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres:Ciapek515%21%21%21@db.ozwbukoetxqnjuexsyhm.supabase.co:5432/postgres\" npx prisma db push 2>&1)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(dotenv -e .env -- npx prisma db push --config prisma/prisma.config.ts)",
+      "Bash(ls:*)",
+      "Bash(taskkill //PID 171776 //F)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill:*)",
+      "Bash(export DATABASE_URL=\"postgresql://postgres.ozwbukoetxqnjuexsyhm:Ciapek515%21%21%21@aws-1-eu-west-1.pooler.supabase.com:5432/postgres\")",
+      "Bash(npm run:*)"
     ]
   }
 }

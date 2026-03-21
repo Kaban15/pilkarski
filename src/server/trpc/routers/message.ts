@@ -6,6 +6,7 @@ import {
   markAsReadSchema,
 } from "@/lib/validators/message";
 import { TRPCError } from "@trpc/server";
+import { getUserDisplayName } from "@/lib/labels";
 
 export const messageRouter = router({
   // List conversations for current user
@@ -182,6 +183,18 @@ export const messageRouter = router({
           },
         },
       });
+
+      // Notify recipient (fire-and-forget)
+      const senderName = getUserDisplayName(message.sender);
+      ctx.db.notification.create({
+        data: {
+          userId: input.recipientUserId,
+          type: "NEW_MESSAGE",
+          title: "Nowa wiadomość",
+          message: `${senderName}: ${input.content.substring(0, 100)}`,
+          link: `/messages/${conversationId}`,
+        },
+      }).catch(() => {});
 
       return { message, conversationId };
     }),

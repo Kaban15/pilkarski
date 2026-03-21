@@ -100,7 +100,10 @@ export const eventRouter = router({
       });
       if (!player) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko zawodnicy mogą się zgłaszać" });
 
-      const event = await ctx.db.event.findUnique({ where: { id: input.eventId } });
+      const event = await ctx.db.event.findUnique({
+        where: { id: input.eventId },
+        include: { club: { select: { userId: true } } },
+      });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
 
       // Check max participants
@@ -113,13 +116,26 @@ export const eventRouter = router({
         }
       }
 
-      return ctx.db.eventApplication.create({
+      const application = await ctx.db.eventApplication.create({
         data: {
           eventId: input.eventId,
           playerId: player.id,
           message: input.message,
         },
       });
+
+      // Notify event owner (fire-and-forget)
+      ctx.db.notification.create({
+        data: {
+          userId: event.club.userId,
+          type: "EVENT_APPLICATION",
+          title: "Nowe zgłoszenie na wydarzenie",
+          message: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
+          link: `/events/${event.id}`,
+        },
+      }).catch(() => {});
+
+      return application;
     }),
 
   // Accept/reject player application (club owner only)
@@ -140,10 +156,24 @@ export const eventRouter = router({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      return ctx.db.eventApplication.update({
+      const updated = await ctx.db.eventApplication.update({
         where: { id: input.applicationId },
+        include: { player: true, event: true },
         data: { status: input.status },
       });
+
+      // Notify player (fire-and-forget)
+      ctx.db.notification.create({
+        data: {
+          userId: updated.player.userId,
+          type: input.status === "ACCEPTED" ? "EVENT_ACCEPTED" : "EVENT_REJECTED",
+          title: input.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane!" : "Zgłoszenie odrzucone",
+          message: `Twoje zgłoszenie na "${updated.event.title}" zostało ${input.status === "ACCEPTED" ? "zaakceptowane" : "odrzucone"}`,
+          link: `/events/${application.event.id}`,
+        },
+      }).catch(() => {});
+
+      return updated;
     }),
 
   // My events (as club owner)

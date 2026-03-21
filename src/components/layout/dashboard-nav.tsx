@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 
 interface DashboardNavProps {
@@ -21,8 +22,36 @@ const NAV_LINKS = [
   { href: "/search", label: "Szukaj" },
 ];
 
+function NotifBell({ count }: { count: number }) {
+  return (
+    <>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+      {count > 0 && (
+        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </>
+  );
+}
+
 export function DashboardNav({ user }: DashboardNavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = () => {
+      trpc.notification.unreadCount.query()
+        .then((count) => setUnreadNotifs((prev) => (prev !== count ? count : prev)))
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header className="border-b bg-white">
@@ -40,6 +69,9 @@ export function DashboardNav({ user }: DashboardNavProps) {
           </nav>
         </div>
         <div className="hidden items-center gap-3 md:flex">
+          <Link href="/notifications" className="relative hover:text-blue-600" title="Powiadomienia">
+            <NotifBell count={unreadNotifs} />
+          </Link>
           <Link href="/profile" className="text-sm hover:text-blue-600">
             {user.name || user.email}
           </Link>
@@ -56,15 +88,20 @@ export function DashboardNav({ user }: DashboardNavProps) {
         </div>
 
         {/* Hamburger button (mobile) */}
-        <button
-          className="flex flex-col gap-1.5 md:hidden"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Menu"
-        >
-          <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
-          <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "opacity-0" : ""}`} />
-          <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
-        </button>
+        <div className="flex items-center gap-3 md:hidden">
+          <Link href="/notifications" className="relative" title="Powiadomienia">
+            <NotifBell count={unreadNotifs} />
+          </Link>
+          <button
+            className="flex flex-col gap-1.5"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Menu"
+          >
+            <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
+            <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "opacity-0" : ""}`} />
+            <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -81,6 +118,13 @@ export function DashboardNav({ user }: DashboardNavProps) {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/notifications"
+              className="hover:text-blue-600"
+              onClick={() => setMenuOpen(false)}
+            >
+              Powiadomienia{unreadNotifs > 0 ? ` (${unreadNotifs})` : ""}
+            </Link>
             <Link
               href="/profile"
               className="hover:text-blue-600"

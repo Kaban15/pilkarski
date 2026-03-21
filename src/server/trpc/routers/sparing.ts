@@ -100,6 +100,7 @@ export const sparingRouter = router({
 
       const offer = await ctx.db.sparingOffer.findUnique({
         where: { id: input.sparingOfferId },
+        include: { club: { select: { userId: true } } },
       });
       if (!offer) throw new TRPCError({ code: "NOT_FOUND" });
       if (offer.clubId === club.id) {
@@ -109,13 +110,26 @@ export const sparingRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest już otwarty" });
       }
 
-      return ctx.db.sparingApplication.create({
+      const application = await ctx.db.sparingApplication.create({
         data: {
           sparingOfferId: input.sparingOfferId,
           applicantClubId: club.id,
           message: input.message,
         },
       });
+
+      // Notify sparing owner (fire-and-forget)
+      ctx.db.notification.create({
+        data: {
+          userId: offer.club.userId,
+          type: "SPARING_APPLICATION",
+          title: "Nowe zgłoszenie na sparing",
+          message: `${club.name} chce zagrać sparing`,
+          link: `/sparings/${offer.id}`,
+        },
+      }).catch(() => {});
+
+      return application;
     }),
 
   // Accept/reject application (owner only)
@@ -138,6 +152,7 @@ export const sparingRouter = router({
 
       const updated = await ctx.db.sparingApplication.update({
         where: { id: input.applicationId },
+        include: { applicantClub: true, sparingOffer: true },
         data: { status: input.status },
       });
 
@@ -156,6 +171,17 @@ export const sparingRouter = router({
           data: { status: "REJECTED" },
         });
       }
+
+      // Notify applicant (fire-and-forget)
+      ctx.db.notification.create({
+        data: {
+          userId: updated.applicantClub.userId,
+          type: input.status === "ACCEPTED" ? "SPARING_ACCEPTED" : "SPARING_REJECTED",
+          title: input.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane!" : "Zgłoszenie odrzucone",
+          message: `Twoje zgłoszenie na sparing "${updated.sparingOffer.title}" zostało ${input.status === "ACCEPTED" ? "zaakceptowane" : "odrzucone"}`,
+          link: `/sparings/${application.sparingOfferId}`,
+        },
+      }).catch(() => {});
 
       return updated;
     }),

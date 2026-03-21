@@ -72,6 +72,7 @@ model User {
   player                   Player?
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]
+  notifications            Notification[]
 
   @@map("users")
 }
@@ -268,6 +269,37 @@ model EventApplication {
 
   @@unique([eventId, playerId])
   @@map("event_applications")
+}
+
+// ============================================================
+// POWIADOMIENIA
+// ============================================================
+
+enum NotificationType {
+  SPARING_APPLICATION    // ktoś zaaplikował na Twój sparing
+  SPARING_ACCEPTED       // Twoja aplikacja zaakceptowana
+  SPARING_REJECTED       // Twoja aplikacja odrzucona
+  EVENT_APPLICATION      // ktoś zgłosił się na Twoje wydarzenie
+  EVENT_ACCEPTED         // Twoje zgłoszenie zaakceptowane
+  EVENT_REJECTED         // Twoje zgłoszenie odrzucone
+  NEW_MESSAGE            // nowa wiadomość
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(300)
+  message   String?          @db.VarChar(500)
+  link      String?          @db.VarChar(500)
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 // ============================================================

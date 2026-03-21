@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Wszystkie fazy ukończone
-**Ostatnia sesja:** 2026-03-20
+## Aktualny etap: Fazy 1–6 + Publiczne profile + Upload zdjęć + Powiadomienia
+**Ostatnia sesja:** 2026-03-21
 
 ---
 
@@ -62,7 +62,7 @@
   - `/messages/[conversationId]` — widok czatu (bąbelki, auto-scroll, polling co 5s)
   - Komponent `SendMessageButton` — przycisk "Napisz wiadomość" (inline formularz → redirect do czatu)
   - Przycisk dodany na `/sparings/[id]` i `/events/[id]` (kontakt z właścicielem klubu)
-- **Prisma:** modele `Conversation`, `ConversationParticipant`, `Message` (17 tabel łącznie)
+- **Prisma:** modele `Conversation`, `ConversationParticipant`, `Message`
 - **Validators:** `sendMessageSchema`, `getMessagesSchema`, `markAsReadSchema`
 
 ---
@@ -86,17 +86,57 @@
   - Usunięto duplikacje z 6 plików UI (feed, search, events, sparings, messages)
   - Zrównoleglono zapytania w feed router (`Promise.all` dla club/player lookup)
   - Polling w czacie: change detection (skip `markAsRead` gdy brak nowych wiadomości)
-  - Usunięto dead code (`unused q` w search, `unreadCount = 0` w message router)
-  - Region name w feed pobierany bezpośrednio z DB zamiast fragile chain `??`
+
+---
+
+### Faza 7: Publiczne Profile ✅
+- **Strony publiczne (bez logowania):**
+  - `/clubs/[id]` — profil klubu: logo, nazwa, miasto, region, liga, kontakt, www, opis
+  - `/players/[id]` — profil zawodnika: zdjęcie, imię, pozycja, wiek, region, wzrost/waga, noga, bio, historia kariery
+- **Middleware:** dodane `/clubs/` i `/players/` do publicznych prefixów
+- **Linki:** karty klubów/zawodników w feedzie i wyszukiwarce prowadzą do publicznych profili
+- **CTA:** przyciski "Dołącz do PilkaSport" / "Zaloguj się" na stronach publicznych
+- **Layout:** grupa `(public)` z własnym layoutem (bez nawigacji dashboardu)
+
+---
+
+### Faza 8: Upload Zdjęć ✅
+- **Supabase Storage:** bucket `avatars` (publiczny, 2 MB limit, JPEG/PNG/WebP)
+- **Klient Supabase:** `src/lib/supabase.ts` (`@supabase/supabase-js`)
+- **Komponent `ImageUpload`:** upload z podglądem, walidacja typu i rozmiaru, upsert
+- **Formularz klubu:** upload logo (`logoUrl`) nad formularzem
+- **Formularz zawodnika:** upload zdjęcia (`photoUrl`) nad formularzem
+- **Publiczne profile:** wyświetlanie zdjęcia obok nazwy (placeholder z inicjałami gdy brak)
+- **Validators:** `logoUrl` i `photoUrl` dodane do schematów Zod
+
+---
+
+### Faza 9: Powiadomienia ✅
+- **Prisma:** model `Notification` (typ, tytuł, treść, link, read) — 19 tabel łącznie
+- **Enum `NotificationType`:** SPARING_APPLICATION, SPARING_ACCEPTED, SPARING_REJECTED, EVENT_APPLICATION, EVENT_ACCEPTED, EVENT_REJECTED, NEW_MESSAGE
+- **tRPC router `notification`:** `list` (cursor-based), `unreadCount`, `markAsRead`, `markAllAsRead`
+- **Automatyczne notyfikacje (fire-and-forget):**
+  - Aplikacja na sparing → powiadomienie do właściciela sparingu
+  - Odpowiedź na aplikację sparingową → powiadomienie do aplikanta
+  - Zgłoszenie na wydarzenie → powiadomienie do właściciela wydarzenia
+  - Odpowiedź na zgłoszenie → powiadomienie do zawodnika
+  - Nowa wiadomość → powiadomienie do odbiorcy
+- **UI:**
+  - Bell icon z badge w nawigacji (desktop + mobile), polling co 30s z change detection
+  - `/notifications` — lista powiadomień z oznaczaniem jako przeczytane (pojedynczo + wszystkie)
+  - Polskie etykiety typów (`NOTIFICATION_TYPE_LABELS`, `NOTIFICATION_TYPE_COLORS` w `labels.ts`)
+- **Code review (`/simplify`):**
+  - Bell icon SVG zdeduplikowany do komponentu `NotifBell`
+  - `getUserDisplayName()` użyte w message.ts
+  - Redundantne zapytania DB usunięte (include club w istniejącym query)
+  - Notyfikacje fire-and-forget (nie blokują response'a)
 
 ---
 
 ## Co zostało do zrobienia (opcjonalnie)
 - Testy e2e krytycznych ścieżek (rejestracja → logowanie → profil → sparing)
 - Supabase Realtime (WebSocket) dla live chat
-- Publiczne profile klubów/zawodników (strony `/clubs/[id]`, `/players/[id]`)
-- Upload zdjęć (logo klubu, zdjęcie zawodnika)
-- Powiadomienia (nowe wiadomości, nowe zgłoszenia)
+- Deploy na Vercel
 
 ---
 
@@ -108,6 +148,7 @@
 | API         | tRPC v11 (fetch adapter)               |
 | ORM         | Prisma 7 + @prisma/adapter-pg          |
 | Baza danych | PostgreSQL (Supabase — Session Pooler) |
+| Storage     | Supabase Storage (bucket `avatars`)    |
 | Auth        | Auth.js v5 (next-auth@beta)            |
 | Walidacja   | Zod v4                                 |
 | Hosting     | Vercel (planowany)                     |
@@ -116,30 +157,32 @@
 
 ## Kluczowe Pliki
 ```
-prisma/schema.prisma                  — schemat BD (17 modeli)
+prisma/schema.prisma                  — schemat BD (19 modeli)
 prisma/prisma.config.ts               — konfiguracja Prisma 7 (env() helper)
 prisma/seed.ts                        — seed regionów/lig/grup
 
-src/middleware.ts                      — ochrona tras (JWT, Edge-compatible)
+src/middleware.ts                      — ochrona tras (JWT, Edge-compatible, public prefixes)
 src/server/auth/config.ts             — Auth.js config (credentials)
 src/server/db/client.ts               — Prisma client singleton (PrismaPg adapter)
 src/server/trpc/trpc.ts               — tRPC init + publicProcedure + protectedProcedure
-src/server/trpc/router.ts             — root router (health, auth, club, player, region, sparing, event, message, feed, search)
+src/server/trpc/router.ts             — root router (health, auth, club, player, region, sparing, event, message, feed, search, notification)
 src/server/trpc/routers/auth.ts       — rejestracja
 src/server/trpc/routers/club.ts       — CRUD klubu + lista
 src/server/trpc/routers/player.ts     — CRUD zawodnika + kariera + lista
 src/server/trpc/routers/region.ts     — regiony, ligi, grupy, hierarchy
-src/server/trpc/routers/sparing.ts    — CRUD sparingów + aplikacje
-src/server/trpc/routers/event.ts      — CRUD wydarzeń + zgłoszenia
-src/server/trpc/routers/message.ts    — system wiadomości (konwersacje, czat)
+src/server/trpc/routers/sparing.ts    — CRUD sparingów + aplikacje + notyfikacje
+src/server/trpc/routers/event.ts      — CRUD wydarzeń + zgłoszenia + notyfikacje
+src/server/trpc/routers/message.ts    — system wiadomości (konwersacje, czat) + notyfikacje
 src/server/trpc/routers/feed.ts       — feed z regionu użytkownika
 src/server/trpc/routers/search.ts     — globalna wyszukiwarka
+src/server/trpc/routers/notification.ts — powiadomienia (list, unreadCount, markAsRead)
 
 src/lib/trpc.ts                       — tRPC vanilla client (frontend)
+src/lib/supabase.ts                   — Supabase client (storage)
 src/lib/format.ts                     — formatDate (pl-PL)
-src/lib/labels.ts                     — wspólne stałe (labels, statusy, getUserDisplayName)
+src/lib/labels.ts                     — wspólne stałe (labels, statusy, notification types, getUserDisplayName)
 src/lib/validators/auth.ts            — Zod: rejestracja, logowanie
-src/lib/validators/profile.ts         — Zod: profil klubu, zawodnika, kariera
+src/lib/validators/profile.ts         — Zod: profil klubu (+ logoUrl), zawodnika (+ photoUrl), kariera
 src/lib/validators/sparing.ts         — Zod: tworzenie sparingu, aplikacja
 src/lib/validators/event.ts           — Zod: tworzenie wydarzenia, zgłoszenie
 src/lib/validators/message.ts         — Zod: wysyłka wiadomości, paginacja, markAsRead
@@ -149,15 +192,19 @@ src/app/(auth)/register/page.tsx      — rejestracja (z tab Klub/Zawodnik)
 src/app/(dashboard)/layout.tsx        — layout z nawigacją
 src/app/(dashboard)/feed/page.tsx     — feed z regionu (sparingi, wydarzenia, kluby, zawodnicy)
 src/app/(dashboard)/search/page.tsx   — globalna wyszukiwarka
-src/app/(dashboard)/profile/page.tsx  — profil (server component → formularz)
+src/app/(dashboard)/profile/page.tsx  — profil (server component → formularz z upload zdjęcia)
 src/app/(dashboard)/sparings/         — lista, nowy, szczegóły sparingu (+ przycisk wiadomości)
 src/app/(dashboard)/events/           — lista, nowy, szczegóły wydarzenia (+ przycisk wiadomości)
 src/app/(dashboard)/messages/         — lista konwersacji, widok czatu
+src/app/(dashboard)/notifications/    — lista powiadomień
+src/app/(public)/clubs/[id]/page.tsx  — publiczny profil klubu
+src/app/(public)/players/[id]/page.tsx — publiczny profil zawodnika
 
-src/components/forms/club-profile-form.tsx    — formularz klubu (kaskadowe dropdowny)
-src/components/forms/player-profile-form.tsx  — formularz zawodnika + kariera
-src/components/layout/dashboard-nav.tsx       — górna nawigacja (responsywna, hamburger menu)
+src/components/forms/club-profile-form.tsx    — formularz klubu (kaskadowe dropdowny + upload logo)
+src/components/forms/player-profile-form.tsx  — formularz zawodnika + kariera + upload zdjęcia
+src/components/layout/dashboard-nav.tsx       — górna nawigacja (responsywna, bell icon z badge)
 src/components/send-message-button.tsx       — przycisk "Napisz wiadomość" (inline)
+src/components/image-upload.tsx              — komponent uploadu zdjęć (Supabase Storage)
 src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 ```
 
@@ -173,6 +220,9 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 7. **tRPC** — `apply` to reserved word, używamy `applyFor`.
 8. **Supabase Session Pooler** zamiast direct connection (IPv4 kompatybilność).
 9. **Prisma generated client** → `src/generated/prisma/` (gitignored, import z `/client`).
+10. **Prisma db push** — flaga `--url` wymagana (env() w prisma.config.ts nie działa z db push w v7.5.0).
+11. **Notyfikacje fire-and-forget** — nie blokują response'a, `.catch(() => {})`.
+12. **Supabase Storage** — bucket `avatars` publiczny, upsert z entity ID jako nazwa pliku.
 
 ---
 
@@ -180,7 +230,8 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 - Projekt: **Kabanos** (free tier)
 - Host: `aws-1-eu-west-1.pooler.supabase.com` (Session Pooler)
 - Baza: `postgres`
-- 17 tabel + seed data (16 regionów, 80 lig, 272 grup)
+- 19 tabel + seed data (16 regionów, 80 lig, 272 grup)
+- Storage: bucket `avatars` (public, 2 MB, image/jpeg, image/png, image/webp)
 
 ---
 
@@ -194,12 +245,16 @@ src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
 | 4    | Moduł Sparingów i Wydarzeń    | ✅ Gotowe    |
 | 5    | System Wiadomości             | ✅ Gotowe    |
 | 6    | Feed, Filtrowanie, Polish     | ✅ Gotowe    |
+| 7    | Publiczne Profile             | ✅ Gotowe    |
+| 8    | Upload Zdjęć                  | ✅ Gotowe    |
+| 9    | Powiadomienia                 | ✅ Gotowe    |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. Wszystkie 6 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
+3. Wszystkie 9 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
 4. Przed instalacją nowych zależności — pytaj o zgodę.
 5. Po zakończeniu prac — zaktualizuj ten plik.
+6. **Prisma db push:** użyj `npx prisma db push --url "..."` (env() nie działa z db push).
