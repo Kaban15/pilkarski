@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { formatShortDate } from "@/lib/format";
 
 export default function ClubPublicProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const { data: session } = useSession();
   const [club, setClub] = useState<any>(null);
   const [error, setError] = useState(false);
 
@@ -119,12 +121,20 @@ export default function ClubPublicProfilePage() {
       </Card>
 
       <div className="mt-6 flex gap-3">
-        <Link href="/register">
-          <Button>Dołącz do PilkaSport</Button>
-        </Link>
-        <Link href="/login">
-          <Button variant="outline">Zaloguj się</Button>
-        </Link>
+        {session ? (
+          <Link href="/feed">
+            <Button variant="outline">Wróć do dashboardu</Button>
+          </Link>
+        ) : (
+          <>
+            <Link href="/register">
+              <Button>Dołącz do PilkaSport</Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline">Zaloguj się</Button>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
