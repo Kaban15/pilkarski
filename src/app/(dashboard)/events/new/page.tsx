@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EVENT_TYPE_LABELS } from "@/lib/labels";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -70,8 +71,9 @@ export default function NewEventPage() {
               required
               className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
             >
-              <option value="OPEN_TRAINING">Trening otwarty</option>
-              <option value="RECRUITMENT">Nabór</option>
+              {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
           </div>
 

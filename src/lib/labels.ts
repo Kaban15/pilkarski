@@ -13,6 +13,12 @@ export const POSITION_LABELS: Record<string, string> = {
   ST: "Napastnik",
 };
 
+export const FOOT_LABELS: Record<string, string> = {
+  LEFT: "Lewa",
+  RIGHT: "Prawa",
+  BOTH: "Obie",
+};
+
 export const EVENT_TYPE_LABELS: Record<string, string> = {
   OPEN_TRAINING: "Trening otwarty",
   RECRUITMENT: "Nabór",

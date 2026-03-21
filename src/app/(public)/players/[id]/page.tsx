@@ -3,22 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { POSITION_LABELS } from "@/lib/labels";
+import { PublicProfileCTA } from "@/components/public-profile-cta";
+import { POSITION_LABELS, FOOT_LABELS } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
-
-const FOOT_LABELS: Record<string, string> = {
-  LEFT: "Lewa",
-  RIGHT: "Prawa",
-  BOTH: "Obie",
-};
 
 export default function PlayerPublicProfilePage() {
   const { id } = useParams<{ id: string }>();
-  const { data: session } = useSession();
   const [player, setPlayer] = useState<any>(null);
   const [error, setError] = useState(false);
 
@@ -158,20 +150,7 @@ export default function PlayerPublicProfilePage() {
       )}
 
       <div className="mt-6 flex gap-3">
-        {session ? (
-          <Link href="/feed">
-            <Button variant="outline">Wróć do dashboardu</Button>
-          </Link>
-        ) : (
-          <>
-            <Link href="/register">
-              <Button>Dołącz do PilkaSport</Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="outline">Zaloguj się</Button>
-            </Link>
-          </>
-        )}
+        <PublicProfileCTA />
       </div>
     </div>
   );

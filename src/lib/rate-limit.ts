@@ -1,5 +1,13 @@
 const hits = new Map<string, { count: number; resetAt: number }>();
 
+// Cleanup expired entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of hits) {
+    if (now > entry.resetAt) hits.delete(key);
+  }
+}, 5 * 60_000);
+
 /**
  * Simple in-memory rate limiter.
  * Returns true if the request should be BLOCKED.

@@ -52,6 +52,25 @@ export function ConversationSkeleton() {
   );
 }
 
+export function DetailPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="mt-2 h-4 w-1/3" />
+      </div>
+      <Card>
+        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function NotificationSkeleton() {
   return (
     <Card>

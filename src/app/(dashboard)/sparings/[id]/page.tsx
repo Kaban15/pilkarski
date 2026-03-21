@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { SendMessageButton } from "@/components/send-message-button";
 import { SPARING_STATUS_LABELS, SPARING_STATUS_COLORS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
 
@@ -59,22 +59,7 @@ export default function SparingDetailPage() {
     }
   }
 
-  if (!sparing) return (
-    <div className="space-y-6">
-      <div>
-        <Skeleton className="h-8 w-2/3" />
-        <Skeleton className="mt-2 h-4 w-1/3" />
-      </div>
-      <Card>
-        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </CardContent>
-      </Card>
-    </div>
-  );
+  if (!sparing) return <DetailPageSkeleton />;
 
   return (
     <div className="space-y-6">
