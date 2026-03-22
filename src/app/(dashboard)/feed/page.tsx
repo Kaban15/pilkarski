@@ -185,8 +185,8 @@ export default function FeedPage() {
         <p className="text-muted-foreground">Brak aktywności w Twoim regionie. Uzupełnij profil, aby zobaczyć dopasowane treści.</p>
       ) : (
         <div className="space-y-3">
-          {items.map((item, i) => (
-            <FeedCard key={`${item.type}-${item.data.id}-${i}`} item={item} />
+          {items.map((item) => (
+            <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
           ))}
         </div>
       )}

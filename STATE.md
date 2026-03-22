@@ -231,6 +231,8 @@
   - `FavoriteButton` sync z `initialFavorited` via `useEffect`
   - Pusty div usunięty gdy `!isOwner` w events detail
   - Apply form ukryty dla właściciela (UX fix)
+  - Fix: `favorite.check` na `loadMore` (paginacja nie sprawdzała favoritów — merge do Set)
+  - Feed key: usunięto zbędny index z React key (`type-id` unikalne)
 
 ---
 

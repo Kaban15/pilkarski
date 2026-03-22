@@ -85,8 +85,15 @@ export default function EventsPage() {
         sortBy, sortOrder,
       })
       .then((res) => {
-        setItems((prev) => [...prev, ...(res.items as any)]);
+        const newItems = res.items as any[];
+        setItems((prev) => [...prev, ...newItems]);
         setNextCursor(res.nextCursor);
+        const newIds = newItems.map((i) => i.id);
+        if (newIds.length) {
+          trpc.favorite.check.query({ eventIds: newIds }).then((favs) =>
+            setFavoritedIds((prev) => new Set([...prev, ...favs]))
+          );
+        }
       })
       .finally(() => setLoadingMore(false));
   }, [nextCursor, loadingMore, regionId, type, city, dateFrom, dateTo, sortBy, sortOrder]);

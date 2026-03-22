@@ -81,8 +81,15 @@ export default function SparingsPage() {
         sortBy, sortOrder,
       })
       .then((res) => {
-        setItems((prev) => [...prev, ...(res.items as any)]);
+        const newItems = res.items as any[];
+        setItems((prev) => [...prev, ...newItems]);
         setNextCursor(res.nextCursor);
+        const newIds = newItems.map((i) => i.id);
+        if (newIds.length) {
+          trpc.favorite.check.query({ sparingOfferIds: newIds }).then((favs) =>
+            setFavoritedIds((prev) => new Set([...prev, ...favs]))
+          );
+        }
       })
       .finally(() => setLoadingMore(false));
   }, [nextCursor, loadingMore, regionId, city, dateFrom, dateTo, sortBy, sortOrder]);
