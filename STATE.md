@@ -237,6 +237,7 @@
 ```
 prisma/schema.prisma                  — schemat BD (19 modeli)
 prisma/prisma.config.ts               — konfiguracja Prisma 7 (env() helper)
+prisma/migrations/                    — migracje BD (baseline 0_init + przyszłe zmiany)
 prisma/seed.ts                        — seed regionów/lig/grup
 
 src/middleware.ts                      — ochrona tras (JWT, Edge-compatible, public prefixes)
@@ -320,7 +321,7 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 7. **tRPC** — `apply` to reserved word, używamy `applyFor`.
 8. **Supabase Session Pooler** zamiast direct connection (IPv4 kompatybilność).
 9. **Prisma generated client** → `src/generated/prisma/` (gitignored, import z `/client`).
-10. **Prisma db push** — flaga `--url` wymagana (env() w prisma.config.ts nie działa z db push w v7.5.0).
+10. **Prisma migrate** zamiast `db push` — baseline migration `0_init` + `vercel-build` script (`prisma migrate deploy && next build`). Lokalnie: `--url "..."` wymagany (env() w prisma.config.ts nie działa na Windows w v7.5.0).
 11. **Notyfikacje fire-and-forget** — nie blokują response'a, `.catch(() => {})`.
 12. **Supabase Storage** — bucket `avatars` publiczny, upsert z entity ID jako nazwa pliku.
 13. **Auth.js v5 na Vercel** — wymaga `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, cookie name `__Secure-authjs.session-token` (nie `__Secure-next-auth.*`).
