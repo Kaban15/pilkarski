@@ -210,7 +210,7 @@
 - `vercel-build` script: `prisma migrate deploy && next build` (Vercel używa tego zamiast `build`)
 - Workflow zmian schematu:
   1. Edytuj `prisma/schema.prisma`
-  2. `npm run db:migrate -- "postgresql://..." --name <nazwa_zmiany>` (tworzy plik migration)
+  2. `npm run db:migrate -- --url "postgresql://..." --name <nazwa_zmiany>` (tworzy plik migration)
   3. Commituj `prisma/migrations/` do gita
   4. Push → Vercel auto-deploy uruchamia `prisma migrate deploy`
 - **Uwaga:** `env()` w `prisma.config.ts` nie działa na Windows (Prisma 7.5.0 bug) — zawsze używaj `--url "..."` dla lokalnych komend migrate
@@ -364,6 +364,6 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
    - GitHub: **https://github.com/Kaban15/pilkarski**
 4. Przed instalacją nowych zależności — pytaj o zgodę.
 5. Po zakończeniu prac — zaktualizuj ten plik.
-6. **Prisma migrations:** używaj `npm run db:migrate -- "postgresql://..." --name <nazwa>` do tworzenia nowych migracji lokalnie.
+6. **Prisma migrations:** używaj `npm run db:migrate -- --url "postgresql://..." --name <nazwa>` do tworzenia nowych migracji lokalnie.
    - `env()` w `prisma.config.ts` nie działa na Windows → zawsze podaj `--url "..."` dla lokalnych komend.
    - Na Vercel działa automatycznie przez `vercel-build` script (`prisma migrate deploy`).
