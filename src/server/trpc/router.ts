@@ -10,6 +10,8 @@ import { messageRouter } from "./routers/message";
 import { feedRouter } from "./routers/feed";
 import { searchRouter } from "./routers/search";
 import { notificationRouter } from "./routers/notification";
+import { favoriteRouter } from "./routers/favorite";
+import { statsRouter } from "./routers/stats";
 
 export const appRouter = router({
   health: healthRouter,
@@ -23,6 +25,8 @@ export const appRouter = router({
   feed: feedRouter,
   search: searchRouter,
   notification: notificationRouter,
+  favorite: favoriteRouter,
+  stats: statsRouter,
 });
 
 export type AppRouter = typeof appRouter;

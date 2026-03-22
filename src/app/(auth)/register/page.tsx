@@ -83,10 +83,10 @@ export default function RegisterPage() {
                   type="email"
                   required
                   placeholder="twoj@email.pl"
-                  className={fieldErrors.email ? "border-red-500" : ""}
+                  className={fieldErrors.email ? "border-destructive" : ""}
                 />
                 {fieldErrors.email && (
-                  <p className="text-xs text-red-600">{fieldErrors.email}</p>
+                  <p className="text-xs text-destructive">{fieldErrors.email}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -97,10 +97,10 @@ export default function RegisterPage() {
                   type="password"
                   required
                   placeholder="Minimum 8 znaków"
-                  className={fieldErrors.password ? "border-red-500" : ""}
+                  className={fieldErrors.password ? "border-destructive" : ""}
                 />
                 {fieldErrors.password && (
-                  <p className="text-xs text-red-600">{fieldErrors.password}</p>
+                  <p className="text-xs text-destructive">{fieldErrors.password}</p>
                 )}
               </div>
 
@@ -111,10 +111,10 @@ export default function RegisterPage() {
                   name="clubName"
                   placeholder="np. KS Orlik Poznań"
                   required={role === "CLUB"}
-                  className={fieldErrors.clubName ? "border-red-500" : ""}
+                  className={fieldErrors.clubName ? "border-destructive" : ""}
                 />
                 {fieldErrors.clubName && (
-                  <p className="text-xs text-red-600">{fieldErrors.clubName}</p>
+                  <p className="text-xs text-destructive">{fieldErrors.clubName}</p>
                 )}
               </TabsContent>
 
@@ -126,10 +126,10 @@ export default function RegisterPage() {
                     name="firstName"
                     placeholder="Jan"
                     required={role === "PLAYER"}
-                    className={fieldErrors.firstName ? "border-red-500" : ""}
+                    className={fieldErrors.firstName ? "border-destructive" : ""}
                   />
                   {fieldErrors.firstName && (
-                    <p className="text-xs text-red-600">{fieldErrors.firstName}</p>
+                    <p className="text-xs text-destructive">{fieldErrors.firstName}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -139,16 +139,16 @@ export default function RegisterPage() {
                     name="lastName"
                     placeholder="Kowalski"
                     required={role === "PLAYER"}
-                    className={fieldErrors.lastName ? "border-red-500" : ""}
+                    className={fieldErrors.lastName ? "border-destructive" : ""}
                   />
                   {fieldErrors.lastName && (
-                    <p className="text-xs text-red-600">{fieldErrors.lastName}</p>
+                    <p className="text-xs text-destructive">{fieldErrors.lastName}</p>
                   )}
                 </div>
               </TabsContent>
 
               {error && (
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-destructive">{error}</p>
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
@@ -157,9 +157,9 @@ export default function RegisterPage() {
             </form>
           </Tabs>
 
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Masz już konto?{" "}
-            <Link href="/login" className="font-medium text-blue-600 hover:underline">
+            <Link href="/login" className="font-medium text-primary hover:underline">
               Zaloguj się
             </Link>
           </p>

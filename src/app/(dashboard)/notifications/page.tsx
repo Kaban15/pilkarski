@@ -50,7 +50,7 @@ export default function NotificationsPage() {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <p className="text-gray-500">Brak powiadomień</p>
+        <p className="text-muted-foreground">Brak powiadomień</p>
       ) : (
         <div className="space-y-2">
           {notifications.map((n) => (
@@ -68,22 +68,22 @@ export default function NotificationsPage() {
                     >
                       <p className="font-medium">{n.title}</p>
                       {n.message && (
-                        <p className="truncate text-sm text-gray-600">{n.message}</p>
+                        <p className="truncate text-sm text-muted-foreground">{n.message}</p>
                       )}
                     </Link>
                   ) : (
                     <>
                       <p className="font-medium">{n.title}</p>
                       {n.message && (
-                        <p className="truncate text-sm text-gray-600">{n.message}</p>
+                        <p className="truncate text-sm text-muted-foreground">{n.message}</p>
                       )}
                     </>
                   )}
                   <div className="mt-1 flex items-center gap-2">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${NOTIFICATION_TYPE_COLORS[n.type] ?? "bg-gray-50 text-gray-600"}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${NOTIFICATION_TYPE_COLORS[n.type] ?? "bg-muted text-muted-foreground"}`}>
                       {NOTIFICATION_TYPE_LABELS[n.type] ?? n.type}
                     </span>
-                    <span className="text-xs text-gray-400">{formatDate(n.createdAt)}</span>
+                    <span className="text-xs text-muted-foreground">{formatDate(n.createdAt)}</span>
                   </div>
                 </div>
                 {!n.read && (

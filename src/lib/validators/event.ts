@@ -22,4 +22,9 @@ export const respondEventApplicationSchema = z.object({
   status: z.enum(["ACCEPTED", "REJECTED"]),
 });
 
+export const updateEventSchema = createEventSchema.extend({
+  id: z.string().uuid(),
+});
+
 export type CreateEventInput = z.infer<typeof createEventSchema>;
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;

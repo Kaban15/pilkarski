@@ -48,7 +48,7 @@ export default function MessagesPage() {
           ))}
         </div>
       ) : conversations.length === 0 ? (
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           Brak konwersacji. Napisz wiadomość z profilu klubu lub zawodnika.
         </p>
       ) : (
@@ -66,13 +66,13 @@ export default function MessagesPage() {
                         {getUserDisplayName(conv.otherUser)}
                       </p>
                       {conv.lastMessage && (
-                        <span className="shrink-0 text-xs text-gray-400">
+                        <span className="shrink-0 text-xs text-muted-foreground">
                           {formatDate(conv.lastMessage.createdAt)}
                         </span>
                       )}
                     </div>
                     {conv.lastMessage && (
-                      <p className="truncate text-sm text-gray-500">
+                      <p className="truncate text-sm text-muted-foreground">
                         {conv.lastMessage.content}
                       </p>
                     )}

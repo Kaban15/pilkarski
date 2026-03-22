@@ -63,7 +63,7 @@ function LoginForm() {
         </CardHeader>
         <CardContent>
           {registered && (
-            <p className="mb-4 rounded-md bg-green-50 p-3 text-center text-sm text-green-700">
+            <p className="mb-4 rounded-md bg-green-50 dark:bg-green-950 p-3 text-center text-sm text-green-700 dark:text-green-300">
               Rejestracja udana! Zaloguj się.
             </p>
           )}
@@ -91,7 +91,7 @@ function LoginForm() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-destructive">{error}</p>
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
@@ -99,9 +99,9 @@ function LoginForm() {
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Nie masz konta?{" "}
-            <Link href="/register" className="font-medium text-blue-600 hover:underline">
+            <Link href="/register" className="font-medium text-primary hover:underline">
               Zarejestruj się
             </Link>
           </p>

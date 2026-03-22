@@ -278,7 +278,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
             </Button>
           </div>
           {careers.length === 0 ? (
-            <p className="text-sm text-gray-500">Brak wpisów</p>
+            <p className="text-sm text-muted-foreground">Brak wpisów</p>
           ) : (
             <ul className="space-y-2">
               {careers.map((c) => (
@@ -288,13 +288,13 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 >
                   <span>
                     <strong>{c.clubName}</strong>{" "}
-                    <span className="text-gray-500">({c.season})</span>
+                    <span className="text-muted-foreground">({c.season})</span>
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteCareer(c.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-destructive hover:text-destructive"
                   >
                     Usuń
                   </Button>

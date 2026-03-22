@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–12 + Prisma Migrations
+## Aktualny etap: Fazy 1–15 + Prisma Migrations
 **Ostatnia sesja:** 2026-03-22
 
 ---
@@ -199,8 +199,90 @@
 
 ---
 
+### Faza 13: Nowe Funkcjonalności ✅
+- **Edycja i usuwanie sparingów/wydarzeń:**
+  - tRPC `sparing.update` / `sparing.delete`, `event.update` / `event.delete`
+  - Walidacja własności (tylko właściciel) i statusu (OPEN)
+  - Validatory: `updateSparingSchema` / `updateEventSchema` (`.extend()` z create)
+  - Strony edycji: `/sparings/[id]/edit`, `/events/[id]/edit` (pre-filled formularze)
+  - Przyciski "Edytuj" / "Usuń" na stronach szczegółów (widoczne tylko dla właściciela)
+  - Potwierdzenie usunięcia (inline banner z przyciskami)
+  - Formularz aplikowania ukryty dla właściciela (`!isOwner` guard)
+- **Filtrowanie i sortowanie list:**
+  - Nowe parametry w `sparing.list` / `event.list`: `city`, `dateFrom`, `dateTo`, `sortBy`, `sortOrder`, `clubId`
+  - Dropdown sortowania (data rosnąco/malejąco, najnowsze/najstarsze, tytuł A-Z/Z-A)
+  - Panel "Więcej filtrów": miasto (z debounce 400ms), zakres dat, przycisk "Wyczyść filtry"
+- **Publiczny profil klubu z aktywnością:**
+  - Na `/clubs/[id]`: sekcje "Aktywne sparingi" i "Nadchodzące wydarzenia" (limit 5, `Promise.all`)
+- **System ulubionych:**
+  - Prisma: model `Favorite` (relacje User/SparingOffer/Event, unique constraints)
+  - Migracja: `20260322080408_add_favorites`
+  - tRPC router `favorite`: `toggle`, `check` (batch), `list` (cursor-based pagination)
+  - Komponent `FavoriteButton` (serduszko, toggle, sync z propem `initialFavorited`)
+  - Serduszka na kartach sparingów i wydarzeń (z `favorite.check` po załadowaniu listy)
+  - Strona `/favorites` z listą zapisanych ogłoszeń
+  - Link "Ulubione" w nawigacji (`DashboardNav`)
+- **Code review (`/simplify`):**
+  - Schema `.extend()` zamiast duplikacji pól (validators)
+  - Usunięto dead code: unused `_count` w sparing delete, unreachable throw w favorite router
+  - `EVENT_TYPE_COLORS` przeniesione do `labels.ts` (było inline)
+  - Debounce na input miasta (400ms) — eliminacja DB hit per keystroke
+  - `Promise.all` na public profile klubu (3 zapytania równolegle zamiast waterfall)
+  - `FavoriteButton` sync z `initialFavorited` via `useEffect`
+  - Pusty div usunięty gdy `!isOwner` w events detail
+  - Apply form ukryty dla właściciela (UX fix)
+
+---
+
+### Faza 14: Ulepszenia Techniczne ✅
+- **Supabase Realtime dla czatu (WebSocket):**
+  - Broadcast channel `chat:${conversationId}` — wiadomości przychodzą natychmiastowo
+  - Po wysłaniu via tRPC → broadcast do drugiego uczestnika
+  - Deduplikacja wiadomości (sprawdzenie `msg.id` w istniejącym stanie)
+  - Fallback poll zmniejszony z 5s → 30s (łapie wiadomości przy zerwaniu WebSocket)
+  - Zero nowych zależności (`@supabase/supabase-js` ma Realtime wbudowany)
+- **Optymalizacja obrazków (client-side):**
+  - `compressImage()` — resize do max 800×800, konwersja do WebP (quality 0.8) via Canvas API
+  - Limit uploadu podniesiony z 2 MB → 5 MB (po kompresji plik mały)
+  - Zawsze uploaduje jako `.webp` z `contentType: "image/webp"`
+  - Zero nowych zależności (Canvas API w przeglądarce)
+- **Dynamiczne SEO na publicznych profilach:**
+  - `/clubs/[id]` i `/players/[id]` przerobione z `"use client"` na server components
+  - `generateMetadata()` — dynamiczne `title`, `description`, `og:image` per klub/zawodnik
+  - Dane fetchowane server-side (Prisma bezpośrednio) — content w HTML od razu (lepsze SEO)
+  - `notFound()` zamiast client-side error state
+
+---
+
+### Faza 15: UX — Dark Mode, Kalendarz, Statystyki ✅
+- **Dark mode (Tailwind CSS 4 class strategy):**
+  - `@custom-variant dark` w `globals.css` — class-based dark mode
+  - Pełne zmienne tematyczne CSS (light + dark): `--background`, `--foreground`, `--card`, `--primary`, `--muted`, `--border`, etc.
+  - Komponent `ThemeToggle` (słońce/księżyc) w nawigacji desktop i mobile
+  - Script w `<head>` ładuje preferencję z `localStorage` przed hydracją (zero flash)
+  - Respektuje `prefers-color-scheme` jako domyślny
+  - Zaktualizowane kolory w ~25 plikach: `bg-white` → `bg-background`, `text-gray-*` → `text-muted-foreground`, kolorowe tagi z `dark:` wariantami
+  - shadcn/ui komponenty (Card, Button, Input) automatycznie reagują na dark mode via CSS vars
+- **Kalendarz sparingów/wydarzeń (`/calendar`):**
+  - Widok miesięczny z siatką 7 kolumn (Pn–Nd)
+  - Nawigacja: poprzedni/następny miesiąc, przycisk "Dziś"
+  - Dane z istniejących endpointów `sparing.list` + `event.list` (dateFrom/dateTo)
+  - Kolorowe tagi: zielone (sparingi), fioletowe (wydarzenia)
+  - Max 3 pozycje na dzień + "+N więcej"
+  - Dzisiejszy dzień podświetlony `ring-primary`
+  - Link "Kalendarz" w nawigacji dashboardu
+  - Zero nowych zależności (custom komponent)
+- **Statystyki na dashboardzie (feed):**
+  - tRPC router `stats.dashboard` — zlicza sparingi, aplikacje, wydarzenia, wiadomości
+  - Różne karty dla roli CLUB (4 karty) i PLAYER (2 karty)
+  - `Promise.all` na wszystkie count queries
+  - Karty statystyk nad feedem z linkami do odpowiednich sekcji
+  - Komponent `StatsBar` w `feed/page.tsx`
+
+---
+
 ## Co zostało do zrobienia (opcjonalnie)
-- Supabase Realtime (WebSocket) dla live chat
+- Brak zaplanowanych zadań
 
 ---
 
@@ -235,7 +317,7 @@
 
 ## Kluczowe Pliki
 ```
-prisma/schema.prisma                  — schemat BD (19 modeli)
+prisma/schema.prisma                  — schemat BD (20 modeli)
 prisma/prisma.config.ts               — konfiguracja Prisma 7 (env() helper)
 prisma/migrations/                    — migracje BD (baseline 0_init + przyszłe zmiany)
 prisma/seed.ts                        — seed regionów/lig/grup
@@ -255,6 +337,8 @@ src/server/trpc/routers/message.ts    — system wiadomości (konwersacje, czat)
 src/server/trpc/routers/feed.ts       — feed z regionu użytkownika
 src/server/trpc/routers/search.ts     — globalna wyszukiwarka
 src/server/trpc/routers/notification.ts — powiadomienia (list, unreadCount, markAsRead)
+src/server/trpc/routers/favorite.ts    — ulubione (toggle, check, list)
+src/server/trpc/routers/stats.ts       — statystyki dashboardu (counts per role)
 
 src/lib/trpc.ts                       — tRPC vanilla client (frontend)
 src/lib/supabase.ts                   — Supabase client (storage)
@@ -278,6 +362,10 @@ src/app/(dashboard)/sparings/         — lista, nowy, szczegóły sparingu (+ p
 src/app/(dashboard)/events/           — lista, nowy, szczegóły wydarzenia (+ przycisk wiadomości)
 src/app/(dashboard)/messages/         — lista konwersacji, widok czatu
 src/app/(dashboard)/notifications/    — lista powiadomień
+src/app/(dashboard)/favorites/        — lista ulubionych
+src/app/(dashboard)/calendar/         — widok kalendarza sparingów/wydarzeń
+src/app/(dashboard)/sparings/[id]/edit/ — edycja sparingu
+src/app/(dashboard)/events/[id]/edit/ — edycja wydarzenia
 src/app/(public)/clubs/[id]/page.tsx  — publiczny profil klubu
 src/app/(public)/players/[id]/page.tsx — publiczny profil zawodnika
 
@@ -288,6 +376,9 @@ src/components/send-message-button.tsx       — przycisk "Napisz wiadomość" (
 src/components/image-upload.tsx              — komponent uploadu zdjęć (Supabase Storage)
 src/components/card-skeleton.tsx             — skeleton loadery (CardSkeleton, FeedCardSkeleton, DetailPageSkeleton, ConversationSkeleton, NotificationSkeleton)
 src/components/public-profile-cta.tsx       — session-aware CTA na publicznych profilach
+src/components/favorite-button.tsx          — przycisk serduszka (toggle ulubione)
+src/components/theme-toggle.tsx            — przełącznik dark/light mode
+src/components/calendar-view.tsx           — widok kalendarza miesięcznego
 src/components/providers.tsx                — SessionProvider wrapper (root layout)
 src/hooks/use-infinite-scroll.ts             — hook IntersectionObserver do infinite scroll
 src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
@@ -333,7 +424,7 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 - Projekt: **Kabanos** (free tier)
 - Host: `aws-1-eu-west-1.pooler.supabase.com` (Session Pooler)
 - Baza: `postgres`
-- 19 tabel + seed data (16 regionów, 80 lig, 272 grup)
+- 20 tabel + seed data (16 regionów, 80 lig, 272 grup)
 - Storage: bucket `avatars` (public, 2 MB, image/jpeg, image/png, image/webp)
 
 ---
@@ -354,6 +445,9 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 | 10   | Testy E2E                     | ✅ Gotowe    |
 | 11   | UX Polish                     | ✅ Gotowe    |
 | 12   | Deploy + Quick Wins + Review  | ✅ Gotowe    |
+| 13   | Nowe Funkcjonalności          | ✅ Gotowe    |
+| 14   | Ulepszenia Techniczne         | ✅ Gotowe    |
+| 15   | Dark Mode, Kalendarz, Statystyki | ✅ Gotowe |
 
 ---
 

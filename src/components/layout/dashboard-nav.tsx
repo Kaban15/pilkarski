@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface DashboardNavProps {
   user: {
@@ -19,6 +20,8 @@ const NAV_LINKS = [
   { href: "/sparings", label: "Sparingi" },
   { href: "/events", label: "Wydarzenia" },
   { href: "/messages", label: "Wiadomości" },
+  { href: "/favorites", label: "Ulubione" },
+  { href: "/calendar", label: "Kalendarz" },
   { href: "/search", label: "Szukaj" },
 ];
 
@@ -54,7 +57,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
   }, []);
 
   return (
-    <header className="border-b bg-white">
+    <header className="border-b border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6">
           <Link href="/feed" className="text-xl font-bold">
@@ -62,20 +65,21 @@ export function DashboardNav({ user }: DashboardNavProps) {
           </Link>
           <nav className="hidden items-center gap-4 text-sm md:flex">
             {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-blue-600">
+              <Link key={link.href} href={link.href} className="hover:text-primary">
                 {link.label}
               </Link>
             ))}
           </nav>
         </div>
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="/notifications" className="relative hover:text-blue-600" title="Powiadomienia">
+          <ThemeToggle />
+          <Link href="/notifications" className="relative hover:text-primary" title="Powiadomienia">
             <NotifBell count={unreadNotifs} />
           </Link>
-          <Link href="/profile" className="text-sm hover:text-blue-600">
+          <Link href="/profile" className="text-sm hover:text-primary">
             {user.name || user.email}
           </Link>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium uppercase">
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium uppercase">
             {user.role === "CLUB" ? "Klub" : "Zawodnik"}
           </span>
           <Button
@@ -89,6 +93,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
 
         {/* Hamburger button (mobile) */}
         <div className="flex items-center gap-3 md:hidden">
+          <ThemeToggle />
           <Link href="/notifications" className="relative" title="Powiadomienia">
             <NotifBell count={unreadNotifs} />
           </Link>
@@ -97,9 +102,9 @@ export function DashboardNav({ user }: DashboardNavProps) {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Menu"
           >
-            <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
-            <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "opacity-0" : ""}`} />
-            <span className={`block h-0.5 w-6 bg-gray-700 transition ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+            <span className={`block h-0.5 w-6 bg-foreground transition ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
+            <span className={`block h-0.5 w-6 bg-foreground transition ${menuOpen ? "opacity-0" : ""}`} />
+            <span className={`block h-0.5 w-6 bg-foreground transition ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
           </button>
         </div>
       </div>
@@ -112,7 +117,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="hover:text-blue-600"
+                className="hover:text-primary"
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}
@@ -120,20 +125,20 @@ export function DashboardNav({ user }: DashboardNavProps) {
             ))}
             <Link
               href="/notifications"
-              className="hover:text-blue-600"
+              className="hover:text-primary"
               onClick={() => setMenuOpen(false)}
             >
               Powiadomienia{unreadNotifs > 0 ? ` (${unreadNotifs})` : ""}
             </Link>
             <Link
               href="/profile"
-              className="hover:text-blue-600"
+              className="hover:text-primary"
               onClick={() => setMenuOpen(false)}
             >
               Profil ({user.name || user.email})
             </Link>
             <div className="flex items-center gap-2 pt-2 border-t">
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium uppercase">
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium uppercase">
                 {user.role === "CLUB" ? "Klub" : "Zawodnik"}
               </span>
               <Button

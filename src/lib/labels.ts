@@ -24,6 +24,11 @@ export const EVENT_TYPE_LABELS: Record<string, string> = {
   RECRUITMENT: "Nabór",
 };
 
+export const EVENT_TYPE_COLORS: Record<string, string> = {
+  OPEN_TRAINING: "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300",
+  RECRUITMENT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
+};
+
 export const SPARING_STATUS_LABELS: Record<string, string> = {
   OPEN: "Otwarty",
   MATCHED: "Dopasowany",
@@ -32,10 +37,10 @@ export const SPARING_STATUS_LABELS: Record<string, string> = {
 };
 
 export const SPARING_STATUS_COLORS: Record<string, string> = {
-  OPEN: "bg-green-100 text-green-800",
-  MATCHED: "bg-blue-100 text-blue-800",
-  CANCELLED: "bg-gray-100 text-gray-600",
-  COMPLETED: "bg-purple-100 text-purple-800",
+  OPEN: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+  MATCHED: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+  CANCELLED: "bg-secondary text-muted-foreground",
+  COMPLETED: "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
 };
 
 export const APPLICATION_STATUS_LABELS: Record<string, string> = {
@@ -45,9 +50,9 @@ export const APPLICATION_STATUS_LABELS: Record<string, string> = {
 };
 
 export const APPLICATION_STATUS_COLORS: Record<string, string> = {
-  PENDING: "text-yellow-700 bg-yellow-50",
-  ACCEPTED: "text-green-700 bg-green-50",
-  REJECTED: "text-red-700 bg-red-50",
+  PENDING: "text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-950",
+  ACCEPTED: "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950",
+  REJECTED: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950",
 };
 
 export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
@@ -61,13 +66,13 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
 };
 
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
-  SPARING_APPLICATION: "bg-green-50 text-green-700",
-  SPARING_ACCEPTED: "bg-blue-50 text-blue-700",
-  SPARING_REJECTED: "bg-red-50 text-red-700",
-  EVENT_APPLICATION: "bg-purple-50 text-purple-700",
-  EVENT_ACCEPTED: "bg-blue-50 text-blue-700",
-  EVENT_REJECTED: "bg-red-50 text-red-700",
-  NEW_MESSAGE: "bg-yellow-50 text-yellow-700",
+  SPARING_APPLICATION: "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300",
+  SPARING_ACCEPTED: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
+  SPARING_REJECTED: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
+  EVENT_APPLICATION: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
+  EVENT_ACCEPTED: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
+  EVENT_REJECTED: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
+  NEW_MESSAGE: "bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300",
 };
 
 export function getUserDisplayName(user: {

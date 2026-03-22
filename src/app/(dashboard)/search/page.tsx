@@ -52,7 +52,7 @@ export default function SearchPage() {
       </form>
 
       {results && !hasResults && (
-        <p className="text-gray-500">Brak wyników dla &quot;{query}&quot;</p>
+        <p className="text-muted-foreground">Brak wyników dla &quot;{query}&quot;</p>
       )}
 
       {results?.clubs.length > 0 && (
@@ -64,9 +64,9 @@ export default function SearchPage() {
             <ul className="space-y-2">
               {results.clubs.map((club: any) => (
                 <Link key={club.id} href={`/clubs/${club.id}`} className="block">
-                  <li className="rounded-md border p-3 transition hover:bg-gray-50">
+                  <li className="rounded-md border p-3 transition hover:bg-muted">
                     <p className="font-medium">{club.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {club.city ?? ""}{club.region ? ` · ${club.region.name}` : ""}
                     </p>
                   </li>
@@ -86,16 +86,16 @@ export default function SearchPage() {
             <ul className="space-y-2">
               {results.players.map((player: any) => (
                 <Link key={player.id} href={`/players/${player.id}`} className="block">
-                  <li className="rounded-md border p-3 transition hover:bg-gray-50">
+                  <li className="rounded-md border p-3 transition hover:bg-muted">
                     <p className="font-medium">
                       {player.firstName} {player.lastName}
                       {player.primaryPosition && (
-                        <span className="ml-2 text-xs text-gray-500">
+                        <span className="ml-2 text-xs text-muted-foreground">
                           {POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition}
                         </span>
                       )}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {player.city ?? ""}{player.region ? ` · ${player.region.name}` : ""}
                     </p>
                   </li>
@@ -115,9 +115,9 @@ export default function SearchPage() {
             <ul className="space-y-2">
               {results.sparings.map((s: any) => (
                 <Link key={s.id} href={`/sparings/${s.id}`} className="block">
-                  <li className="rounded-md border p-3 transition hover:bg-gray-50">
+                  <li className="rounded-md border p-3 transition hover:bg-muted">
                     <p className="font-medium">{s.title}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {s.club.name} · {formatDate(s.matchDate)}
                       {s.region && ` · ${s.region.name}`}
                     </p>
@@ -138,12 +138,12 @@ export default function SearchPage() {
             <ul className="space-y-2">
               {results.events.map((ev: any) => (
                 <Link key={ev.id} href={`/events/${ev.id}`} className="block">
-                  <li className="rounded-md border p-3 transition hover:bg-gray-50">
+                  <li className="rounded-md border p-3 transition hover:bg-muted">
                     <p className="font-medium">
                       {ev.title}
-                      <span className="ml-2 text-xs text-gray-500">{EVENT_TYPE_LABELS[ev.type] ?? ev.type}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{EVENT_TYPE_LABELS[ev.type] ?? ev.type}</span>
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {ev.club.name} · {formatDate(ev.eventDate)}
                       {ev.region && ` · ${ev.region.name}`}
                     </p>

@@ -20,20 +20,20 @@ export default function Home() {
         <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">
           PilkaSport
         </h1>
-        <p className="mb-8 max-w-xl text-lg text-gray-600">
+        <p className="mb-8 max-w-xl text-lg text-muted-foreground">
           Platforma łącząca kluby piłkarskie i zawodników. Organizuj sparingi,
           przeglądaj wydarzenia, szukaj talentów — wszystko w jednym miejscu.
         </p>
         <div className="flex gap-3">
           <Link
             href="/register"
-            className="rounded-md bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-white transition hover:bg-primary/90"
           >
             Dołącz za darmo
           </Link>
           <Link
             href="/login"
-            className="rounded-md border border-gray-300 px-6 py-3 text-sm font-medium transition hover:bg-gray-50"
+            className="rounded-md border border-border px-6 py-3 text-sm font-medium transition hover:bg-muted"
           >
             Zaloguj się
           </Link>
@@ -41,12 +41,12 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="border-t bg-gray-50 px-4 py-16">
+      <section className="border-t bg-muted px-4 py-16">
         <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-3">
           <div className="text-center">
             <div className="mb-3 text-3xl">&#9917;</div>
             <h3 className="mb-2 font-semibold">Sparingi</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Twórz ogłoszenia i znajdź rywali na mecze sparingowe w swoim
               regionie.
             </p>
@@ -54,7 +54,7 @@ export default function Home() {
           <div className="text-center">
             <div className="mb-3 text-3xl">&#128197;</div>
             <h3 className="mb-2 font-semibold">Wydarzenia</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Treningi otwarte i nabory — zarządzaj i zgłaszaj się do wydarzeń
               piłkarskich.
             </p>
@@ -62,7 +62,7 @@ export default function Home() {
           <div className="text-center">
             <div className="mb-3 text-3xl">&#128172;</div>
             <h3 className="mb-2 font-semibold">Wiadomości</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Bezpośrednia komunikacja między klubami i zawodnikami — szybko i
               wygodnie.
             </p>
@@ -73,20 +73,20 @@ export default function Home() {
       {/* CTA */}
       <section className="px-4 py-16 text-center">
         <h2 className="mb-4 text-2xl font-bold">Dla klubów i zawodników</h2>
-        <p className="mx-auto mb-6 max-w-lg text-gray-600">
+        <p className="mx-auto mb-6 max-w-lg text-muted-foreground">
           Zarejestruj się jako klub lub zawodnik. Uzupełnij profil, dodaj swój
           region i zacznij korzystać z platformy.
         </p>
         <Link
           href="/register"
-          className="inline-block rounded-md bg-blue-600 px-8 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+          className="inline-block rounded-md bg-primary px-8 py-3 text-sm font-medium text-white transition hover:bg-primary/90"
         >
           Zarejestruj się
         </Link>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-6 text-center text-xs text-gray-400">
+      <footer className="border-t py-6 text-center text-xs text-muted-foreground">
         PilkaSport &copy; {new Date().getFullYear()}
       </footer>
     </main>

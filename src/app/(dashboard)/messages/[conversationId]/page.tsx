@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { supabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
 import { getUserDisplayName } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function ConversationPage() {
   const [otherUserId, setOtherUserId] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -64,6 +66,33 @@ export default function ConversationPage() {
     });
   }, [conversationId]);
 
+  // Supabase Realtime — broadcast channel per conversation
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const channel = supabase
+      .channel(`chat:${conversationId}`)
+      .on("broadcast", { event: "new_message" }, ({ payload }) => {
+        const msg = payload as Message;
+        setMessages((prev) => {
+          // Deduplicate (fallback poll or own message already added)
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          lastMessageIdRef.current = msg.id;
+          return [...prev, msg];
+        });
+        // Mark as read since user is viewing the conversation
+        trpc.message.markAsRead.mutate({ conversationId }).catch(() => {});
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+      channelRef.current = null;
+    };
+  }, [conversationId]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -80,6 +109,13 @@ export default function ConversationPage() {
       });
       setMessages((prev) => [...prev, result.message as any]);
       setNewMessage("");
+
+      // Broadcast to other participant via Supabase Realtime
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "new_message",
+        payload: result.message,
+      });
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -87,7 +123,7 @@ export default function ConversationPage() {
     }
   }
 
-  // Poll for new messages every 5 seconds
+  // Fallback poll every 30s (catches messages missed during connection drops)
   useEffect(() => {
     if (!conversationId) return;
 
@@ -97,7 +133,6 @@ export default function ConversationPage() {
         const items = data.items as Message[];
         const newLastId = items.length > 0 ? items[items.length - 1].id : null;
 
-        // Only update state and mark as read if there are new messages
         if (newLastId !== lastMessageIdRef.current) {
           setMessages(items);
           lastMessageIdRef.current = newLastId;
@@ -106,7 +141,7 @@ export default function ConversationPage() {
       } catch {
         // ignore polling errors
       }
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [conversationId]);
@@ -132,7 +167,7 @@ export default function ConversationPage() {
             ))}
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-center text-gray-400">Brak wiadomości. Napisz pierwszą!</p>
+          <p className="text-center text-muted-foreground">Brak wiadomości. Napisz pierwszą!</p>
         ) : (
           <div className="space-y-3">
             {messages.map((msg) => {
@@ -146,13 +181,13 @@ export default function ConversationPage() {
                     className={`max-w-[70%] rounded-2xl px-4 py-2 ${
                       isOwn
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-900"
+                        : "bg-secondary text-foreground"
                     }`}
                   >
                     <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                     <p
                       className={`mt-1 text-xs ${
-                        isOwn ? "text-blue-200" : "text-gray-400"
+                        isOwn ? "text-blue-200" : "text-muted-foreground"
                       }`}
                     >
                       {formatDate(msg.createdAt)}

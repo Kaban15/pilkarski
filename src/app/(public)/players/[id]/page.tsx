@@ -1,49 +1,53 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { Metadata } from "next";
+import { db } from "@/server/db/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicProfileCTA } from "@/components/public-profile-cta";
 import { POSITION_LABELS, FOOT_LABELS } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
 
-export default function PlayerPublicProfilePage() {
-  const { id } = useParams<{ id: string }>();
-  const [player, setPlayer] = useState<any>(null);
-  const [error, setError] = useState(false);
+type Props = { params: Promise<{ id: string }> };
 
-  useEffect(() => {
-    if (id) {
-      trpc.player.getById
-        .query({ id })
-        .then(setPlayer)
-        .catch(() => setError(true));
-    }
-  }, [id]);
+async function getPlayer(id: string) {
+  const player = await db.player.findUnique({
+    where: { id },
+    include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
+  });
+  return player;
+}
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Zawodnik nie znaleziony</h1>
-          <p className="mt-2 text-gray-500">Ten profil nie istnieje lub został usunięty.</p>
-          <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
-            Strona główna
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const player = await getPlayer(id);
+  if (!player) return { title: "Zawodnik nie znaleziony" };
 
-  if (!player) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Ładowanie...</p>
-      </div>
-    );
-  }
+  const name = `${player.firstName} ${player.lastName}`;
+  const description = [
+    player.primaryPosition && POSITION_LABELS[player.primaryPosition],
+    player.city,
+    player.region?.name && `Region: ${player.region.name}`,
+    player.bio?.substring(0, 150),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return {
+    title: name,
+    description: description || `Profil zawodnika ${name} na PilkaSport`,
+    openGraph: {
+      title: `${name} | PilkaSport`,
+      description: description || `Profil zawodnika ${name} na PilkaSport`,
+      ...(player.photoUrl && { images: [{ url: player.photoUrl, width: 200, height: 200 }] }),
+      type: "profile",
+    },
+  };
+}
+
+export default async function PlayerPublicProfilePage({ params }: Props) {
+  const { id } = await params;
+  const player = await getPlayer(id);
+  if (!player) notFound();
 
   const age = player.dateOfBirth
     ? Math.floor((Date.now() - new Date(player.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
@@ -51,7 +55,7 @@ export default function PlayerPublicProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <Link href="/" className="text-sm text-blue-600 hover:underline">
+      <Link href="/" className="text-sm text-primary hover:underline">
         &larr; PilkaSport
       </Link>
 
@@ -59,27 +63,27 @@ export default function PlayerPublicProfilePage() {
         {player.photoUrl ? (
           <img src={player.photoUrl} alt={`${player.firstName} ${player.lastName}`} className="h-20 w-20 rounded-full object-cover border" />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full border bg-gray-100 text-2xl font-bold text-gray-400">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full border bg-secondary text-2xl font-bold text-muted-foreground">
             {player.firstName.charAt(0)}{player.lastName.charAt(0)}
           </div>
         )}
         <div>
-        <h1 className="text-3xl font-bold">
-          {player.firstName} {player.lastName}
-        </h1>
-        <div className="mt-1 flex flex-wrap gap-2">
-          {player.primaryPosition && (
-            <span className="rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
-              {POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition}
-            </span>
-          )}
-          {player.secondaryPosition && (
-            <span className="rounded-full bg-gray-100 px-3 py-0.5 text-sm font-medium text-gray-700">
-              {POSITION_LABELS[player.secondaryPosition] ?? player.secondaryPosition}
-            </span>
-          )}
-        </div>
-        {player.city && <p className="mt-2 text-gray-600">{player.city}</p>}
+          <h1 className="text-3xl font-bold">
+            {player.firstName} {player.lastName}
+          </h1>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {player.primaryPosition && (
+              <span className="rounded-full bg-blue-100 dark:bg-blue-900 px-3 py-0.5 text-sm font-medium text-blue-800 dark:text-blue-200">
+                {POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition}
+              </span>
+            )}
+            {player.secondaryPosition && (
+              <span className="rounded-full bg-secondary px-3 py-0.5 text-sm font-medium text-foreground">
+                {POSITION_LABELS[player.secondaryPosition] ?? player.secondaryPosition}
+              </span>
+            )}
+          </div>
+          {player.city && <p className="mt-2 text-muted-foreground">{player.city}</p>}
         </div>
       </div>
 
@@ -87,41 +91,41 @@ export default function PlayerPublicProfilePage() {
         <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
           {age !== null && (
             <div>
-              <p className="text-sm text-gray-500">Wiek</p>
+              <p className="text-sm text-muted-foreground">Wiek</p>
               <p className="font-medium">{age} lat</p>
             </div>
           )}
           {player.region && (
             <div>
-              <p className="text-sm text-gray-500">Region</p>
+              <p className="text-sm text-muted-foreground">Region</p>
               <p className="font-medium">{player.region.name}</p>
             </div>
           )}
           {player.heightCm && (
             <div>
-              <p className="text-sm text-gray-500">Wzrost</p>
+              <p className="text-sm text-muted-foreground">Wzrost</p>
               <p className="font-medium">{player.heightCm} cm</p>
             </div>
           )}
           {player.weightKg && (
             <div>
-              <p className="text-sm text-gray-500">Waga</p>
+              <p className="text-sm text-muted-foreground">Waga</p>
               <p className="font-medium">{player.weightKg} kg</p>
             </div>
           )}
           {player.preferredFoot && (
             <div>
-              <p className="text-sm text-gray-500">Noga</p>
+              <p className="text-sm text-muted-foreground">Noga</p>
               <p className="font-medium">{FOOT_LABELS[player.preferredFoot] ?? player.preferredFoot}</p>
             </div>
           )}
           <div>
-            <p className="text-sm text-gray-500">Na platformie od</p>
+            <p className="text-sm text-muted-foreground">Na platformie od</p>
             <p className="font-medium">{formatShortDate(player.createdAt)}</p>
           </div>
           {player.bio && (
             <div className="sm:col-span-2">
-              <p className="text-sm text-gray-500">O zawodniku</p>
+              <p className="text-sm text-muted-foreground">O zawodniku</p>
               <p className="whitespace-pre-wrap">{player.bio}</p>
             </div>
           )}
@@ -135,13 +139,13 @@ export default function PlayerPublicProfilePage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {player.careerEntries.map((entry: any) => (
+              {player.careerEntries.map((entry) => (
                 <li key={entry.id} className="flex items-baseline justify-between rounded-md border p-3">
                   <div>
                     <p className="font-medium">{entry.clubName}</p>
-                    {entry.notes && <p className="text-sm text-gray-500">{entry.notes}</p>}
+                    {entry.notes && <p className="text-sm text-muted-foreground">{entry.notes}</p>}
                   </div>
-                  <span className="text-sm text-gray-500">{entry.season}</span>
+                  <span className="text-sm text-muted-foreground">{entry.season}</span>
                 </li>
               ))}
             </ul>

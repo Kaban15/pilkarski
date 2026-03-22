@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import {
   createEventSchema,
+  updateEventSchema,
   applyEventSchema,
   respondEventApplicationSchema,
 } from "@/lib/validators/event";
@@ -33,20 +34,81 @@ export const eventRouter = router({
       });
     }),
 
-  // List events (with filters)
+  update: protectedProcedure
+    .input(updateEventSchema)
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const event = await ctx.db.event.findUnique({ where: { id: input.id } });
+      if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+      if (event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+
+      return ctx.db.event.update({
+        where: { id: input.id },
+        data: {
+          type: input.type,
+          title: input.title,
+          description: input.description,
+          eventDate: new Date(input.eventDate),
+          location: input.location,
+          lat: input.lat,
+          lng: input.lng,
+          maxParticipants: input.maxParticipants,
+          regionId: input.regionId,
+        },
+      });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const event = await ctx.db.event.findUnique({ where: { id: input.id } });
+      if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+      if (event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+
+      await ctx.db.eventApplication.deleteMany({ where: { eventId: input.id } });
+      return ctx.db.event.delete({ where: { id: input.id } });
+    }),
+
   list: publicProcedure
     .input(
       z.object({
+        clubId: z.string().uuid().optional(),
         regionId: z.number().int().optional(),
         type: z.enum(["OPEN_TRAINING", "RECRUITMENT"]).optional(),
+        city: z.string().max(100).optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+        sortBy: z.enum(["eventDate", "createdAt", "title"]).default("eventDate"),
+        sortOrder: z.enum(["asc", "desc"]).default("asc"),
         cursor: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(50).default(20),
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: any = { eventDate: { gte: new Date() } };
+      const where: any = {};
+      if (input.clubId) where.clubId = input.clubId;
       if (input.regionId) where.regionId = input.regionId;
       if (input.type) where.type = input.type;
+      if (input.city) {
+        where.club = { city: { contains: input.city, mode: "insensitive" } };
+      }
+      if (input.dateFrom || input.dateTo) {
+        where.eventDate = {};
+        if (input.dateFrom) where.eventDate.gte = new Date(input.dateFrom);
+        else where.eventDate.gte = new Date(); // default: future events
+        if (input.dateTo) where.eventDate.lte = new Date(input.dateTo);
+      } else {
+        where.eventDate = { gte: new Date() };
+      }
 
       const items = await ctx.db.event.findMany({
         where,
@@ -57,7 +119,7 @@ export const eventRouter = router({
         },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
-        orderBy: { eventDate: "asc" },
+        orderBy: { [input.sortBy]: input.sortOrder },
       });
 
       let nextCursor: string | undefined;

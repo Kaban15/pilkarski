@@ -4,6 +4,32 @@ import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 
+function compressImage(file: File, maxSize: number, quality: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Compression failed"))),
+        "image/webp",
+        quality,
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 interface ImageUploadProps {
   currentUrl: string | null;
   folder: string;
@@ -26,20 +52,21 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Maksymalny rozmiar pliku to 2 MB");
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Maksymalny rozmiar pliku to 5 MB");
       return;
     }
 
     setUploading(true);
     setError("");
 
-    const ext = file.name.split(".").pop();
-    const path = `${folder}/${entityId}.${ext}`;
+    // Client-side resize & compress (max 800x800, WebP quality 0.8)
+    const compressed = await compressImage(file, 800, 0.8);
+    const path = `${folder}/${entityId}.webp`;
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
-      .upload(path, file, { upsert: true });
+      .upload(path, compressed, { upsert: true, contentType: "image/webp" });
 
     if (uploadError) {
       setError("Błąd uploadu: " + uploadError.message);
@@ -64,7 +91,7 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
           className="h-20 w-20 rounded-full object-cover border"
         />
       ) : (
-        <div className="flex h-20 w-20 items-center justify-center rounded-full border bg-gray-100 text-xs text-gray-400">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full border bg-secondary text-xs text-muted-foreground">
           Brak
         </div>
       )}
@@ -85,7 +112,7 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
         >
           {uploading ? "Przesyłanie..." : preview ? "Zmień zdjęcie" : "Dodaj zdjęcie"}
         </Button>
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
       </div>
     </div>
   );

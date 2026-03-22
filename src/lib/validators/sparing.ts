@@ -21,4 +21,9 @@ export const respondApplicationSchema = z.object({
   status: z.enum(["ACCEPTED", "REJECTED"]),
 });
 
+export const updateSparingSchema = createSparingSchema.extend({
+  id: z.string().uuid(),
+});
+
 export type CreateSparingInput = z.infer<typeof createSparingSchema>;
+export type UpdateSparingInput = z.infer<typeof updateSparingSchema>;

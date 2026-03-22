@@ -2,13 +2,13 @@ import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import {
   createSparingSchema,
+  updateSparingSchema,
   applySparingSchema,
   respondApplicationSchema,
 } from "@/lib/validators/sparing";
 import { TRPCError } from "@trpc/server";
 
 export const sparingRouter = router({
-  // Create sparing offer (club only)
   create: protectedProcedure
     .input(createSparingSchema)
     .mutation(async ({ ctx, input }) => {
@@ -32,21 +32,84 @@ export const sparingRouter = router({
       });
     }),
 
-  // List sparings (with filters)
+  update: protectedProcedure
+    .input(updateSparingSchema)
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const offer = await ctx.db.sparingOffer.findUnique({ where: { id: input.id } });
+      if (!offer) throw new TRPCError({ code: "NOT_FOUND" });
+      if (offer.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+      if (offer.status !== "OPEN") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Można edytować tylko otwarte sparingi" });
+      }
+
+      return ctx.db.sparingOffer.update({
+        where: { id: input.id },
+        data: {
+          title: input.title,
+          description: input.description,
+          matchDate: new Date(input.matchDate),
+          location: input.location,
+          lat: input.lat,
+          lng: input.lng,
+          costSplitInfo: input.costSplitInfo,
+          regionId: input.regionId,
+        },
+      });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const offer = await ctx.db.sparingOffer.findUnique({ where: { id: input.id } });
+      if (!offer) throw new TRPCError({ code: "NOT_FOUND" });
+      if (offer.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+      if (offer.status !== "OPEN") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Można usunąć tylko otwarte sparingi" });
+      }
+
+      await ctx.db.sparingApplication.deleteMany({ where: { sparingOfferId: input.id } });
+      return ctx.db.sparingOffer.delete({ where: { id: input.id } });
+    }),
+
   list: publicProcedure
     .input(
       z.object({
+        clubId: z.string().uuid().optional(),
         regionId: z.number().int().optional(),
         status: z.enum(["OPEN", "MATCHED", "CANCELLED", "COMPLETED"]).optional(),
+        city: z.string().max(100).optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+        sortBy: z.enum(["matchDate", "createdAt", "title"]).default("matchDate"),
+        sortOrder: z.enum(["asc", "desc"]).default("asc"),
         cursor: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(50).default(20),
       })
     )
     .query(async ({ ctx, input }) => {
       const where: any = {};
+      if (input.clubId) where.clubId = input.clubId;
       if (input.regionId) where.regionId = input.regionId;
       if (input.status) where.status = input.status;
-      else where.status = "OPEN"; // default: only open
+      else where.status = "OPEN";
+      if (input.city) {
+        where.club = { city: { contains: input.city, mode: "insensitive" } };
+      }
+      if (input.dateFrom || input.dateTo) {
+        where.matchDate = {};
+        if (input.dateFrom) where.matchDate.gte = new Date(input.dateFrom);
+        if (input.dateTo) where.matchDate.lte = new Date(input.dateTo);
+      }
 
       const items = await ctx.db.sparingOffer.findMany({
         where,
@@ -57,7 +120,7 @@ export const sparingRouter = router({
         },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
-        orderBy: { matchDate: "asc" },
+        orderBy: { [input.sortBy]: input.sortOrder },
       });
 
       let nextCursor: string | undefined;
