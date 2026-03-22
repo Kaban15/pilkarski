@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–12 (Deploy + Quick Wins)
-**Ostatnia sesja:** 2026-03-21
+## Aktualny etap: Fazy 1–12 + Prisma Migrations
+**Ostatnia sesja:** 2026-03-22
 
 ---
 
@@ -204,6 +204,19 @@
 
 ---
 
+### Prisma Migrations ✅
+- Baseline migration: `prisma/migrations/0_init/migration.sql` (336 linii, wygenerowane z live DB)
+- Migration oznaczona jako zastosowana (`migrate resolve --applied 0_init`)
+- `vercel-build` script: `prisma migrate deploy && next build` (Vercel używa tego zamiast `build`)
+- Workflow zmian schematu:
+  1. Edytuj `prisma/schema.prisma`
+  2. `npm run db:migrate -- "postgresql://..." --name <nazwa_zmiany>` (tworzy plik migration)
+  3. Commituj `prisma/migrations/` do gita
+  4. Push → Vercel auto-deploy uruchamia `prisma migrate deploy`
+- **Uwaga:** `env()` w `prisma.config.ts` nie działa na Windows (Prisma 7.5.0 bug) — zawsze używaj `--url "..."` dla lokalnych komend migrate
+
+---
+
 ## Tech Stack
 | Warstwa     | Technologia                            |
 |-------------|----------------------------------------|
@@ -351,4 +364,6 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
    - GitHub: **https://github.com/Kaban15/pilkarski**
 4. Przed instalacją nowych zależności — pytaj o zgodę.
 5. Po zakończeniu prac — zaktualizuj ten plik.
-6. **Prisma db push:** użyj `npx prisma db push --url "..."` (env() nie działa z db push).
+6. **Prisma migrations:** używaj `npm run db:migrate -- "postgresql://..." --name <nazwa>` do tworzenia nowych migracji lokalnie.
+   - `env()` w `prisma.config.ts` nie działa na Windows → zawsze podaj `--url "..."` dla lokalnych komend.
+   - Na Vercel działa automatycznie przez `vercel-build` script (`prisma migrate deploy`).

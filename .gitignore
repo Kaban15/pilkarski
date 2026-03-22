@@ -43,3 +43,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+
+# Temp Prisma config (contains DB password)
+prisma/prisma.config.migrate.*
