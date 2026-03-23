@@ -9,8 +9,10 @@ import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 export default function EditSparingPage() {
   const { id } = useParams<{ id: string }>();
@@ -64,6 +66,14 @@ export default function EditSparingPage() {
   }
 
   return (
+    <div>
+      <Breadcrumbs
+        items={[
+          { label: "Sparingi", href: "/sparings" },
+          { label: sparing.title, href: `/sparings/${id}` },
+          { label: "Edycja" },
+        ]}
+      />
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
         <CardTitle>Edytuj sparing</CardTitle>
@@ -125,11 +135,10 @@ export default function EditSparingPage() {
 
           <div className="space-y-2">
             <Label htmlFor="description">Opis</Label>
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={4}
-              className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
               defaultValue={sparing.description || ""}
             />
           </div>
@@ -145,5 +154,6 @@ export default function EditSparingPage() {
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }

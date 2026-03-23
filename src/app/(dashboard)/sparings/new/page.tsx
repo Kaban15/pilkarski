@@ -9,7 +9,9 @@ import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormTooltip } from "@/components/form-tooltip";
 
 export default function NewSparingPage() {
   const router = useRouter();
@@ -107,18 +109,20 @@ export default function NewSparingPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="costSplitInfo">Podział kosztów</Label>
+              <Label htmlFor="costSplitInfo" className="inline-flex items-center gap-1.5">
+                Podział kosztów
+                <FormTooltip text="Opisz jak chcesz podzielić koszty meczu — np. sędzia, wynajem boiska, szatnie." />
+              </Label>
               <Input id="costSplitInfo" name="costSplitInfo" placeholder="np. 50/50 sędzia + boisko" />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Opis</Label>
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={4}
-              className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
               placeholder="Dodatkowe informacje..."
             />
           </div>

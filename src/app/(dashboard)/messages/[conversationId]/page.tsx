@@ -10,6 +10,7 @@ import { getUserDisplayName } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Send } from "lucide-react";
 
 type Message = {
   id: string;
@@ -41,7 +42,6 @@ export default function ConversationPage() {
   useEffect(() => {
     if (!conversationId) return;
 
-    // Load messages and extract other user info from first message
     trpc.message.getMessages
       .query({ conversationId })
       .then((data) => {
@@ -53,10 +53,8 @@ export default function ConversationPage() {
       })
       .finally(() => setLoading(false));
 
-    // Mark as read
     trpc.message.markAsRead.mutate({ conversationId });
 
-    // Get other user info from conversations list
     trpc.message.getConversations.query().then((convs: any[]) => {
       const conv = convs.find((c: any) => c.id === conversationId);
       if (conv?.otherUser) {
@@ -66,7 +64,6 @@ export default function ConversationPage() {
     });
   }, [conversationId]);
 
-  // Supabase Realtime — broadcast channel per conversation
   useEffect(() => {
     if (!conversationId) return;
 
@@ -75,12 +72,10 @@ export default function ConversationPage() {
       .on("broadcast", { event: "new_message" }, ({ payload }) => {
         const msg = payload as Message;
         setMessages((prev) => {
-          // Deduplicate (fallback poll or own message already added)
           if (prev.some((m) => m.id === msg.id)) return prev;
           lastMessageIdRef.current = msg.id;
           return [...prev, msg];
         });
-        // Mark as read since user is viewing the conversation
         trpc.message.markAsRead.mutate({ conversationId }).catch(() => {});
       })
       .subscribe();
@@ -110,7 +105,6 @@ export default function ConversationPage() {
       setMessages((prev) => [...prev, result.message as any]);
       setNewMessage("");
 
-      // Broadcast to other participant via Supabase Realtime
       channelRef.current?.send({
         type: "broadcast",
         event: "new_message",
@@ -123,7 +117,6 @@ export default function ConversationPage() {
     }
   }
 
-  // Fallback poll every 30s (catches messages missed during connection drops)
   useEffect(() => {
     if (!conversationId) return;
 
@@ -147,13 +140,23 @@ export default function ConversationPage() {
   }, [conversationId]);
 
   return (
-    <div className="flex h-[calc(100vh-80px)] flex-col">
+    <div className="flex h-[calc(100vh-theme(spacing.6)*2)] flex-col overflow-hidden rounded-xl border border-border bg-card md:h-[calc(100vh-theme(spacing.6)*2)]">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b px-4 py-3">
-        <Button variant="ghost" size="sm" onClick={() => router.push("/messages")}>
-          &larr;
+      <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => router.push("/messages")}
+          className="shrink-0"
+        >
+          <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-semibold">{otherUserName || "Konwersacja"}</h1>
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+            {otherUserName?.[0]?.toUpperCase() ?? "?"}
+          </div>
+          <h1 className="font-semibold">{otherUserName || "Konwersacja"}</h1>
+        </div>
       </div>
 
       {/* Messages */}
@@ -167,9 +170,13 @@ export default function ConversationPage() {
             ))}
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-center text-muted-foreground">Brak wiadomości. Napisz pierwszą!</p>
+          <div className="flex h-full items-center justify-center">
+            <p className="text-center text-sm text-muted-foreground">
+              Brak wiadomości. Napisz pierwszą!
+            </p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {messages.map((msg) => {
               const isOwn = msg.senderId !== otherUserId;
               return (
@@ -178,16 +185,18 @@ export default function ConversationPage() {
                   className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                       isOwn
-                        ? "bg-blue-600 text-white"
-                        : "bg-secondary text-foreground"
+                        ? "rounded-br-md bg-primary text-primary-foreground"
+                        : "rounded-bl-md bg-secondary text-foreground"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                      {msg.content}
+                    </p>
                     <p
-                      className={`mt-1 text-xs ${
-                        isOwn ? "text-blue-200" : "text-muted-foreground"
+                      className={`mt-1 text-[10px] ${
+                        isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
                       }`}
                     >
                       {formatDate(msg.createdAt)}
@@ -202,7 +211,7 @@ export default function ConversationPage() {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="border-t px-4 py-3">
+      <form onSubmit={handleSend} className="border-t border-border bg-card px-4 py-3">
         <div className="flex gap-2">
           <Input
             value={newMessage}
@@ -210,9 +219,15 @@ export default function ConversationPage() {
             placeholder="Napisz wiadomość..."
             maxLength={2000}
             disabled={sending}
+            className="flex-1"
           />
-          <Button type="submit" disabled={sending || !newMessage.trim()}>
-            {sending ? "..." : "Wyślij"}
+          <Button
+            type="submit"
+            disabled={sending || !newMessage.trim()}
+            size="icon"
+            className="shrink-0"
+          >
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </form>

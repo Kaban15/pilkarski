@@ -1,6 +1,7 @@
 import { auth } from "@/server/auth/config";
 import { redirect } from "next/navigation";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { Sidebar } from "@/components/layout/sidebar";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default async function DashboardLayout({
   children,
@@ -11,9 +12,14 @@ export default async function DashboardLayout({
   if (!session) redirect("/login");
 
   return (
-    <div className="min-h-screen">
-      <DashboardNav user={session.user} />
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+    <div className="min-h-screen bg-background">
+      <Sidebar user={session.user} />
+      <main className="pb-20 md:pb-0 md:ml-60">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+          {children}
+        </div>
+      </main>
+      <BottomNav />
     </div>
   );
 }

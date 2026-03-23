@@ -9,7 +9,9 @@ import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormTooltip } from "@/components/form-tooltip";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 
 export default function NewEventPage() {
@@ -123,18 +125,20 @@ export default function NewEventPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxParticipants">Maks. uczestników</Label>
+              <Label htmlFor="maxParticipants" className="inline-flex items-center gap-1.5">
+                Maks. uczestników
+                <FormTooltip text="Pozostaw puste, jeśli nie chcesz ograniczać liczby zgłoszeń." />
+              </Label>
               <Input id="maxParticipants" name="maxParticipants" type="number" min={1} placeholder="np. 30" />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Opis</Label>
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={4}
-              className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
               placeholder="Dodatkowe informacje..."
             />
           </div>

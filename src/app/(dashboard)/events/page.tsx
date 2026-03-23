@@ -6,10 +6,24 @@ import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { EVENT_TYPE_LABELS } from "@/lib/labels";
+import { EmptyState } from "@/components/empty-state";
+import {
+  Plus,
+  Calendar,
+  MapPin,
+  Globe,
+  Users,
+  SlidersHorizontal,
+  X,
+  Trophy,
+  Search,
+} from "lucide-react";
 
 type EventItem = {
   id: string;
@@ -23,7 +37,10 @@ type EventItem = {
   _count: { applications: number };
 };
 
-import { EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from "@/lib/labels";
+const EVENT_BADGE_STYLES: Record<string, string> = {
+  OPEN_TRAINING: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
+  RECRUITMENT: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+};
 
 export default function EventsPage() {
   const [items, setItems] = useState<EventItem[]>([]);
@@ -99,22 +116,34 @@ export default function EventsPage() {
   }, [nextCursor, loadingMore, regionId, type, city, dateFrom, dateTo, sortBy, sortOrder]);
 
   const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
+  const hasActiveFilters = cityInput || dateFrom || dateTo;
 
   return (
-    <div>
+    <div className="animate-fade-in">
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Wydarzenia</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Wydarzenia</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Treningi otwarte i nabory w Twoim regionie
+          </p>
+        </div>
         <Link href="/events/new">
-          <Button>Dodaj wydarzenie</Button>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Dodaj wydarzenie</span>
+            <span className="sm:hidden">Dodaj</span>
+          </Button>
         </Link>
       </div>
 
-      <div className="mb-4 space-y-3">
-        <div className="flex flex-wrap gap-3">
+      {/* Filters */}
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={regionId ?? ""}
             onChange={(e) => setRegionId(e.target.value ? Number(e.target.value) : undefined)}
-            className="rounded-md border bg-transparent px-3 py-1.5 text-sm"
+            className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Wszystkie regiony</option>
             {regions.map((r) => (
@@ -124,7 +153,7 @@ export default function EventsPage() {
           <select
             value={type ?? ""}
             onChange={(e) => setType((e.target.value || undefined) as any)}
-            className="rounded-md border bg-transparent px-3 py-1.5 text-sm"
+            className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Wszystkie typy</option>
             <option value="OPEN_TRAINING">Treningi otwarte</option>
@@ -137,7 +166,7 @@ export default function EventsPage() {
               setSortBy(sb as any);
               setSortOrder(so as any);
             }}
-            className="rounded-md border bg-transparent px-3 py-1.5 text-sm"
+            className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="eventDate-asc">Data (rosnąco)</option>
             <option value="eventDate-desc">Data (malejąco)</option>
@@ -147,90 +176,128 @@ export default function EventsPage() {
             <option value="title-desc">Tytuł Z-A</option>
           </select>
           <Button
-            variant="outline"
+            variant={showFilters ? "secondary" : "outline"}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
+            className="gap-1.5"
           >
-            {showFilters ? "Ukryj filtry" : "Więcej filtrów"}
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Filtry
+            {hasActiveFilters && (
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                !
+              </span>
+            )}
           </Button>
         </div>
+
         {showFilters && (
-          <div className="flex flex-wrap gap-3 rounded-md border p-3">
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Miasto</label>
-              <Input
-                value={cityInput}
-                onChange={(e) => setCityInput(e.target.value)}
-                placeholder="np. Kraków"
-                className="h-8 w-40 text-sm"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Data od</label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="h-8 w-40 text-sm"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Data do</label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="h-8 w-40 text-sm"
-              />
-            </div>
-            {(cityInput || dateFrom || dateTo) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="self-end"
-                onClick={() => { setCityInput(""); setCity(""); setDateFrom(""); setDateTo(""); }}
-              >
-                Wyczyść filtry
-              </Button>
-            )}
-          </div>
+          <Card>
+            <CardContent className="flex flex-wrap items-end gap-4 py-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Miasto</label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={cityInput}
+                    onChange={(e) => setCityInput(e.target.value)}
+                    placeholder="np. Kraków"
+                    className="h-9 w-44 pl-8 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Data od</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="h-9 w-40 text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Data do</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="h-9 w-40 text-sm"
+                />
+              </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-muted-foreground"
+                  onClick={() => { setCityInput(""); setCity(""); setDateFrom(""); setDateTo(""); }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Wyczyść
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 
+      {/* List */}
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className="text-muted-foreground">Brak wydarzeń.</p>
+        <EmptyState
+          icon={Trophy}
+          title="Brak wydarzeń"
+          description="Nie znaleziono wydarzeń z aktualnymi filtrami. Spróbuj zmienić region lub typ."
+        />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="stagger-children grid gap-4 sm:grid-cols-2">
           {items.map((ev) => (
-            <Link key={ev.id} href={`/events/${ev.id}`}>
-              <Card className="transition hover:shadow-md">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{ev.title}</CardTitle>
-                    <div className="flex items-center gap-1">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${EVENT_TYPE_COLORS[ev.type]}`}>
-                        {EVENT_TYPE_LABELS[ev.type]}
-                      </span>
-                      <FavoriteButton eventId={ev.id} initialFavorited={favoritedIds.has(ev.id)} />
+            <Link key={ev.id} href={`/events/${ev.id}`} className="group">
+              <Card className="h-full border-l-[3px] border-l-violet-500 transition-all hover:shadow-md hover:-translate-y-0.5">
+                <CardContent className="py-4">
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="mb-1.5">
+                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
+                          {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        {ev.title}
+                      </h3>
                     </div>
+                    <FavoriteButton eventId={ev.id} initialFavorited={favoritedIds.has(ev.id)} />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-1 text-sm text-muted-foreground">
-                  <p><strong>{ev.club.name}</strong>{ev.club.city && ` · ${ev.club.city}`}</p>
-                  <p>{formatDate(ev.eventDate)}</p>
-                  {ev.location && <p>{ev.location}</p>}
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs text-muted-foreground">{ev.region?.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {ev._count.applications} zgłoszeń
-                      {ev.maxParticipants && ` / ${ev.maxParticipants} miejsc`}
-                    </span>
+                  <p className="mb-3 text-sm font-medium">
+                    {ev.club.name}
+                    {ev.club.city && <span className="text-muted-foreground"> · {ev.club.city}</span>}
+                  </p>
+                  <div className="space-y-1.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(ev.eventDate)}
+                    </div>
+                    {ev.location && (
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {ev.location}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Globe className="h-3 w-3" />
+                      {ev.region?.name}
+                    </div>
+                    <Badge variant="secondary" className="gap-1 text-xs">
+                      <Users className="h-3 w-3" />
+                      {ev._count.applications}
+                      {ev.maxParticipants && ` / ${ev.maxParticipants}`}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>

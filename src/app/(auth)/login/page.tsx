@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LogIn } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -55,58 +56,79 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Logowanie</CardTitle>
-          <CardDescription>Zaloguj się do PilkaSport</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {registered && (
-            <p className="mb-4 rounded-md bg-green-50 dark:bg-green-950 p-3 text-center text-sm text-green-700 dark:text-green-300">
-              Rejestracja udana! Zaloguj się.
-            </p>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                placeholder="twoj@email.pl"
-              />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 via-background to-background p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground">
+              PS
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Hasło</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder="Twoje hasło"
-              />
-            </div>
+            <span className="text-2xl font-bold tracking-tight">PilkaSport</span>
+          </Link>
+        </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
+        <Card className="shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Witaj z powrotem</CardTitle>
+            <CardDescription>Zaloguj się do swojego konta</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {registered && (
+              <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                Rejestracja udana! Zaloguj się.
+              </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logowanie..." : "Zaloguj się"}
-            </Button>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="twoj@email.pl"
+                  autoComplete="email"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Hasło</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="Twoje hasło"
+                  autoComplete="current-password"
+                />
+              </div>
 
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Nie masz konta?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Zarejestruj się
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+              {error && (
+                <div className="rounded-lg bg-destructive/10 p-3 text-center text-sm font-medium text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <Button type="submit" className="w-full gap-2" disabled={loading}>
+                <LogIn className="h-4 w-4" />
+                {loading ? "Logowanie..." : "Zaloguj się"}
+              </Button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Nie masz konta?{" "}
+              <Link href="/register" className="font-semibold text-primary hover:underline">
+                Zarejestruj się
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} PilkaSport
+        </p>
+      </div>
     </div>
   );
 }

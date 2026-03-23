@@ -9,8 +9,10 @@ import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 
 export default function EditEventPage() {
@@ -66,6 +68,14 @@ export default function EditEventPage() {
   }
 
   return (
+    <div>
+      <Breadcrumbs
+        items={[
+          { label: "Wydarzenia", href: "/events" },
+          { label: event.title, href: `/events/${id}` },
+          { label: "Edycja" },
+        ]}
+      />
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
         <CardTitle>Edytuj wydarzenie</CardTitle>
@@ -148,11 +158,10 @@ export default function EditEventPage() {
 
           <div className="space-y-2">
             <Label htmlFor="description">Opis</Label>
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={4}
-              className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
               defaultValue={event.description || ""}
             />
           </div>
@@ -168,5 +177,6 @@ export default function EditEventPage() {
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }

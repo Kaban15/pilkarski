@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Users, UserPlus } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -61,20 +61,53 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Rejestracja</CardTitle>
-          <CardDescription>Dołącz do PilkaSport</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={role} onValueChange={(v) => setRole(v as "CLUB" | "PLAYER")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="CLUB">Klub</TabsTrigger>
-              <TabsTrigger value="PLAYER">Zawodnik</TabsTrigger>
-            </TabsList>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary/5 via-background to-background p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground">
+              PS
+            </div>
+            <span className="text-2xl font-bold tracking-tight">PilkaSport</span>
+          </Link>
+        </div>
 
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <Card className="shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Dołącz do PilkaSport</CardTitle>
+            <CardDescription>Wybierz typ konta i zarejestruj się</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Role selector */}
+            <div className="mb-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setRole("CLUB")}
+                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition ${
+                  role === "CLUB"
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border hover:border-primary/30 hover:bg-muted"
+                }`}
+              >
+                <Shield className={`h-6 w-6 ${role === "CLUB" ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="text-sm font-semibold">Klub</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("PLAYER")}
+                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition ${
+                  role === "PLAYER"
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border hover:border-primary/30 hover:bg-muted"
+                }`}
+              >
+                <Users className={`h-6 w-6 ${role === "PLAYER" ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="text-sm font-semibold">Zawodnik</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
                 <Input
@@ -83,6 +116,7 @@ export default function RegisterPage() {
                   type="email"
                   required
                   placeholder="twoj@email.pl"
+                  autoComplete="email"
                   className={fieldErrors.email ? "border-destructive" : ""}
                 />
                 {fieldErrors.email && (
@@ -97,6 +131,7 @@ export default function RegisterPage() {
                   type="password"
                   required
                   placeholder="Minimum 8 znaków"
+                  autoComplete="new-password"
                   className={fieldErrors.password ? "border-destructive" : ""}
                 />
                 {fieldErrors.password && (
@@ -104,67 +139,78 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              <TabsContent value="CLUB" className="mt-0 space-y-2">
-                <Label htmlFor="clubName">Nazwa klubu</Label>
-                <Input
-                  id="clubName"
-                  name="clubName"
-                  placeholder="np. KS Orlik Poznań"
-                  required={role === "CLUB"}
-                  className={fieldErrors.clubName ? "border-destructive" : ""}
-                />
-                {fieldErrors.clubName && (
-                  <p className="text-xs text-destructive">{fieldErrors.clubName}</p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="PLAYER" className="mt-0 space-y-4">
+              {role === "CLUB" && (
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Imię</Label>
+                  <Label htmlFor="clubName">Nazwa klubu</Label>
                   <Input
-                    id="firstName"
-                    name="firstName"
-                    placeholder="Jan"
-                    required={role === "PLAYER"}
-                    className={fieldErrors.firstName ? "border-destructive" : ""}
+                    id="clubName"
+                    name="clubName"
+                    placeholder="np. KS Orlik Poznań"
+                    required
+                    className={fieldErrors.clubName ? "border-destructive" : ""}
                   />
-                  {fieldErrors.firstName && (
-                    <p className="text-xs text-destructive">{fieldErrors.firstName}</p>
+                  {fieldErrors.clubName && (
+                    <p className="text-xs text-destructive">{fieldErrors.clubName}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Nazwisko</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    placeholder="Kowalski"
-                    required={role === "PLAYER"}
-                    className={fieldErrors.lastName ? "border-destructive" : ""}
-                  />
-                  {fieldErrors.lastName && (
-                    <p className="text-xs text-destructive">{fieldErrors.lastName}</p>
-                  )}
-                </div>
-              </TabsContent>
-
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              {role === "PLAYER" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Imię</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      placeholder="Jan"
+                      required
+                      className={fieldErrors.firstName ? "border-destructive" : ""}
+                    />
+                    {fieldErrors.firstName && (
+                      <p className="text-xs text-destructive">{fieldErrors.firstName}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Nazwisko</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      placeholder="Kowalski"
+                      required
+                      className={fieldErrors.lastName ? "border-destructive" : ""}
+                    />
+                    {fieldErrors.lastName && (
+                      <p className="text-xs text-destructive">{fieldErrors.lastName}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="rounded-lg bg-destructive/10 p-3 text-center text-sm font-medium text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <Button type="submit" className="w-full gap-2" disabled={loading}>
+                <UserPlus className="h-4 w-4" />
                 {loading ? "Rejestracja..." : "Zarejestruj się"}
               </Button>
             </form>
-          </Tabs>
 
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Masz już konto?{" "}
-            <Link href="/login" className="font-medium text-primary hover:underline">
-              Zaloguj się
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Masz już konto?{" "}
+              <Link href="/login" className="font-semibold text-primary hover:underline">
+                Zaloguj się
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} PilkaSport
+        </p>
+      </div>
     </div>
   );
 }

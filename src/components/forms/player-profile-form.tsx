@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -240,12 +241,11 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">O mnie</Label>
-              <textarea
+              <Textarea
                 id="bio"
                 name="bio"
                 defaultValue={player.bio ?? ""}
                 rows={4}
-                className="flex w-full rounded-md border bg-transparent px-3 py-2 text-sm"
               />
             </div>
 

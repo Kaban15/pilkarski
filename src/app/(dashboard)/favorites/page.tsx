@@ -9,6 +9,8 @@ import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
+import { EmptyState } from "@/components/empty-state";
+import { Heart } from "lucide-react";
 
 export default function FavoritesPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -55,7 +57,13 @@ export default function FavoritesPage() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <p className="text-muted-foreground">Nie masz jeszcze ulubionych ogłoszeń.</p>
+        <EmptyState
+          icon={Heart}
+          title="Brak ulubionych"
+          description="Kliknij serduszko na sparingu lub wydarzeniu, aby dodać je do ulubionych."
+          actionLabel="Przeglądaj sparingi"
+          actionHref="/sparings"
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {items.map((fav) => {

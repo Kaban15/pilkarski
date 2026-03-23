@@ -9,10 +9,27 @@ import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { SendMessageButton } from "@/components/send-message-button";
 import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Breadcrumbs } from "@/components/breadcrumbs";
+import {
+  Calendar,
+  MapPin,
+  Globe,
+  Users,
+  FileText,
+  Pencil,
+  Trash2,
+  Send,
+  CheckCircle2,
+  XCircle,
+  Trophy,
+} from "lucide-react";
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -74,154 +91,214 @@ export default function EventDetailPage() {
   const acceptedCount = event.applications.filter((a: any) => a.status === "ACCEPTED").length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{event.title}</h1>
-            <span className="rounded-full bg-purple-50 dark:bg-purple-950 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300">
+    <div className="animate-fade-in">
+      <Breadcrumbs
+        items={[
+          { label: "Wydarzenia", href: "/events" },
+          { label: event.title },
+        ]}
+      />
+
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {event.title}
+            </h1>
+            <Badge className="bg-violet-500/10 text-violet-700 hover:bg-violet-500/10 dark:text-violet-400">
               {EVENT_TYPE_LABELS[event.type]}
-            </span>
+            </Badge>
           </div>
-          <p className="mt-1 text-muted-foreground">
-            {event.club.name}{event.club.city && ` · ${event.club.city}`}
+          <p className="mt-1.5 text-muted-foreground">
+            {event.club.name}
+            {event.club.city && ` · ${event.club.city}`}
           </p>
-          <div className="mt-2">
+          <div className="mt-3">
             <SendMessageButton recipientUserId={event.club.userId} />
           </div>
         </div>
         {isOwner && (
           <div className="flex items-center gap-2">
             <Link href={`/events/${id}/edit`}>
-              <Button size="sm" variant="outline">Edytuj</Button>
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <Pencil className="h-3.5 w-3.5" />
+                Edytuj
+              </Button>
             </Link>
-            <Button size="sm" variant="destructive" onClick={() => setShowDeleteConfirm(true)}>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="gap-1.5"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
               Usuń
             </Button>
           </div>
         )}
       </div>
 
-      {/* Delete confirmation */}
-      {showDeleteConfirm && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950">
-          <CardContent className="flex items-center justify-between pt-6">
-            <p className="text-sm text-red-800">Czy na pewno chcesz usunąć to wydarzenie? Ta operacja jest nieodwracalna.</p>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Usuń wydarzenie"
+        description="Czy na pewno chcesz usunąć to wydarzenie? Ta operacja jest nieodwracalna."
+        confirmLabel="Tak, usuń"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
+
+      {/* Info grid */}
+      <Card className="mb-6">
+        <CardContent className="py-6">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+                <Calendar className="h-4 w-4 text-violet-500" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Data</p>
+                <p className="font-medium">{formatDate(event.eventDate)}</p>
+              </div>
+            </div>
+            {event.location && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
+                  <MapPin className="h-4 w-4 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Miejsce</p>
+                  <p className="font-medium">{event.location}</p>
+                </div>
+              </div>
+            )}
+            {event.region && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10">
+                  <Globe className="h-4 w-4 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Region</p>
+                  <p className="font-medium">{event.region.name}</p>
+                </div>
+              </div>
+            )}
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                <Users className="h-4 w-4 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Miejsca</p>
+                <p className="font-medium">
+                  {acceptedCount} zaakceptowanych
+                  {event.maxParticipants && ` / ${event.maxParticipants} miejsc`}
+                </p>
+              </div>
+            </div>
+          </div>
+          {event.description && (
+            <>
+              <Separator className="my-6" />
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Opis</p>
+                  <p className="mt-1 whitespace-pre-wrap leading-relaxed">{event.description}</p>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Apply section (for players) */}
+      {!isOwner && (
+        <Card className="mb-6 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Trophy className="h-5 w-5 text-primary" />
+              Zgłoś się
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="flex gap-2">
-              <Button size="sm" variant="destructive" onClick={handleDelete} disabled={deleting}>
-                {deleting ? "Usuwanie..." : "Tak, usuń"}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                Anuluj
+              <Input
+                placeholder="Wiadomość (opcjonalna)"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+              <Button onClick={handleApply} disabled={applying} className="gap-1.5">
+                <Send className="h-4 w-4" />
+                {applying ? "Wysyłanie..." : "Zgłoś się"}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Card>
-        <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
-          <div>
-            <p className="text-sm text-muted-foreground">Data</p>
-            <p className="font-medium">{formatDate(event.eventDate)}</p>
-          </div>
-          {event.location && (
-            <div>
-              <p className="text-sm text-muted-foreground">Miejsce</p>
-              <p className="font-medium">{event.location}</p>
-            </div>
-          )}
-          {event.region && (
-            <div>
-              <p className="text-sm text-muted-foreground">Region</p>
-              <p className="font-medium">{event.region.name}</p>
-            </div>
-          )}
-          <div>
-            <p className="text-sm text-muted-foreground">Miejsca</p>
-            <p className="font-medium">
-              {acceptedCount} zaakceptowanych
-              {event.maxParticipants && ` / ${event.maxParticipants} miejsc`}
-            </p>
-          </div>
-          {event.description && (
-            <div className="md:col-span-2">
-              <p className="text-sm text-muted-foreground">Opis</p>
-              <p className="whitespace-pre-wrap">{event.description}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Apply section (for players) */}
-      {!isOwner && <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Zgłoś się</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Wiadomość (opcjonalna)"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <Button onClick={handleApply} disabled={applying}>
-              {applying ? "Wysyłanie..." : "Zgłoś się"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>}
-
       {/* Applications */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Users className="h-5 w-5 text-muted-foreground" />
             Zgłoszenia ({event.applications.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {event.applications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Brak zgłoszeń</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">Brak zgłoszeń</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y divide-border">
               {event.applications.map((app: any) => (
-                  <li key={app.id} className="flex items-center justify-between rounded-md border p-3">
-                    <div>
-                      <p className="font-medium">
-                        {app.player.firstName} {app.player.lastName}
-                        {app.player.primaryPosition && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            {POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition}
-                          </span>
-                        )}
-                      </p>
-                      {app.message && <p className="text-sm text-muted-foreground">{app.message}</p>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${APPLICATION_STATUS_COLORS[app.status]}`}>
-                        {APPLICATION_STATUS_LABELS[app.status]}
-                      </span>
-                      {app.status === "PENDING" && (
-                        <>
-                          <Button size="sm" onClick={() => handleRespond(app.id, "ACCEPTED")}>
-                            Akceptuj
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleRespond(app.id, "REJECTED")}>
-                            Odrzuć
-                          </Button>
-                        </>
+                <li key={app.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {app.player.firstName} {app.player.lastName}
+                      {app.player.primaryPosition && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition}
+                        </Badge>
                       )}
-                    </div>
-                  </li>
+                    </p>
+                    {app.message && (
+                      <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">{app.message}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[app.status]}>
+                      {APPLICATION_STATUS_LABELS[app.status]}
+                    </Badge>
+                    {isOwner && app.status === "PENDING" && (
+                      <>
+                        <Button
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => handleRespond(app.id, "ACCEPTED")}
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Akceptuj
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1"
+                          onClick={() => handleRespond(app.id, "REJECTED")}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          Odrzuć
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </li>
               ))}
             </ul>
           )}
         </CardContent>
       </Card>
-
-      <Button variant="outline" onClick={() => router.back()}>
-        Wróć
-      </Button>
     </div>
   );
 }

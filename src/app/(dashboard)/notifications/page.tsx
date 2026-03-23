@@ -7,7 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/card-skeleton";
 import { formatDate } from "@/lib/format";
+import { EmptyState } from "@/components/empty-state";
 import { NOTIFICATION_TYPE_LABELS, NOTIFICATION_TYPE_COLORS } from "@/lib/labels";
+import { Bell } from "lucide-react";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -50,7 +52,11 @@ export default function NotificationsPage() {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <p className="text-muted-foreground">Brak powiadomień</p>
+        <EmptyState
+          icon={Bell}
+          title="Brak powiadomień"
+          description="Kiedy ktoś zaaplikuje na Twój sparing lub wyśle wiadomość, zobaczysz powiadomienie tutaj."
+        />
       ) : (
         <div className="space-y-2">
           {notifications.map((n) => (
