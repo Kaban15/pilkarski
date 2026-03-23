@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–2) + Rozbudowa (Etap 3 ✅)
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (DO ZROBIENIA)
 **Ostatnia sesja:** 2026-03-23
 
 ---
@@ -373,22 +373,30 @@
 
 ---
 
-## Code Review — Znane Problemy (z sesji 2026-03-23)
+## Code Review — Znane Problemy
 
 ### Krytyczne (bezpieczeństwo)
-1. **`sparing.getById` i `event.getById` to `publicProcedure`** — zwracają WSZYSTKIE aplikacje z danymi osobowymi. Anonimowy widzi kto się zgłosił.
+1. **`sparing.getById` i `event.getById` to `publicProcedure`** — zwracają WSZYSTKIE aplikacje z danymi osobowymi. → **Zaplanowane w Etap 4, I1-6**
 2. **Brak rate limitingu na mutacjach** — tylko login/register mają rate limit. Wiadomości, aplikacje, favorites — brak.
 3. **Cookie `__Secure-` w middleware** — nie działa na localhost (HTTP). Dev auth może być zepsuty.
 4. **Upload bez walidacji server-side** — Supabase anon key pozwala wrzucić cokolwiek do bucketa.
 
 ### Ważne (architektura)
-5. **Nie używa tRPC React Query hooks** — imperywne `trpc.xxx.query()` z `useState/useEffect`. Brak cache invalidation, optimistic updates. `src/lib/trpc.ts` tworzy vanilla client zamiast React hooks.
-6. **20+ `as any`** — w auth callbacks, Prisma where, listach.
+5. **Nie używa tRPC React Query hooks** — imperywne `trpc.xxx.query()` z `useState/useEffect`. Brak cache invalidation, optimistic updates.
+6. **20+ `as any`** — w auth callbacks, Prisma where, listach. → **Częściowo w Etap 4, I1-2**
 7. **Fire-and-forget notifications `.catch(() => {})`** — ciche połykanie błędów.
 
-### Sugestie
+### Naprawione (sesja 2026-03-23)
+- ~~Duplikat aplikacji na sparing — raw Prisma error~~ → dodano check `findUnique` przed `create`
+- ~~Apply widoczne dla PLAYER~~ → dodano `&& isClub` guard
+- ~~Transfery brak w feedzie~~ → dodane do feed.ts + feed/page.tsx
+- ~~Feed brak error handling~~ → error state + retry button
+- ~~matchDate akceptuje dowolny string~~ → refine() rejects past dates
+- ~~isParticipant bug~~ → sprawdza `applicantClub.userId === session.user.id`
+
+### Sugestie (backlog)
 8. Zduplikowane patterny list (sparingi/wydarzenia) — wyekstrahować shared hook
-9. Native `<select>` zamiast shadcn Select — niespójny dark mode
+9. ~~Native `<select>` zamiast shadcn Select~~ → **Zaplanowane w Etap 4, I1-1**
 10. Brak unit testów — tylko E2E
 
 ---
@@ -527,39 +535,111 @@
 
 ## Co zostało do zrobienia
 
-### Redesign Etap 3: Rozbudowa Platformy ✅ COMPLETE
+### Hotfixy z sesji 2026-03-23 ✅
+- Fix: Vercel build — `process.env.DATABASE_URL` zamiast `env()` w prisma.config.ts
+- Fix: vercel-build script — `prisma generate && next build` (migrate deploy usunięte, migracje aplikowane ręcznie)
+- Fix: Brakujące pliki w git — 34 pliki (komponenty UI, strony) dodane do repo
+- Fix: Duplikat aplikacji na sparing — check `findUnique` przed `create`
+- Fix: Sekcja "Aplikuj" ukryta dla roli PLAYER (widoczna tylko CLUB)
+- Fix: Transfery dodane do feedu (brakowały w feed.ts + feed/page.tsx)
+- Fix: Error handling na Feed (error state + retry) i Sparing detail (404 obsługa)
+- Fix: matchDate validator — odrzuca daty w przeszłości i nieprawidłowe formaty
+- Fix: isParticipant — sprawdza `applicantClub.userId === session.user.id` (nie "jakikolwiek accepted")
 
-### Migracje DB (wymagane przed deploy)
-```bash
-npm run db:migrate -- --url "postgresql://..." --name add_reviews_transfers_gamification_push
-```
-(Dodaje tabele: reviews, transfers, user_points, user_badges, push_subscriptions)
+### Redesign Etap 4: Sparing Flow UX/UI Overhaul (DO ZROBIENIA)
+
+**Cel:** Znacząca poprawa UX/UI i jakości kodu wokół sparingów — od tworzenia, przez zarządzanie, po widok piłkarza. Estetyka: Transfermarkt + Sofascore + nowoczesny SaaS.
+
+#### Code Review — Issue List (2026-03-23)
+
+**P0 — Krytyczne:**
+1. Detail page to god-component (436 linii, 12 useState) — niemożliwe do testowania
+2. Brak stanu "already applied" — klub widzi formularz Apply nawet po aplikacji
+3. `getById` to publicProcedure — zgłoszenia z danymi widoczne dla anonimowych
+4. Brak mutacji `complete` — MATCHED wisi wiecznie, canReview sprawdza COMPLETED
+
+**P1 — Ważne UX:**
+1. Formularz create/edit to "jeden ekran na wszystko" — brak multi-step wizard
+2. Raw `<select>` zamiast shadcn Select na 3 stronach — brak dark mode support
+3. Karta sparingu nie komunikuje wartości — brak poziomu, kategorii, godzin
+4. "Dodaj sparing" widoczne dla PLAYER — error dopiero po wypełnieniu formularza
+5. Zero feedback po accept/reject — brak next-step CTA
+6. Endpoint `sparing.my` nieużywany w UI — brak panelu "Moje sparingi"
+7. Brak error handling na liście sparingów (`.catch()`)
+8. Niespójne kolory błędów (`border-red-500` vs `border-destructive`)
+
+**P2 — Refaktoryzacja:**
+1. `any` wszędzie na froncie (9 wystąpień w plikach sparingowych)
+2. Duplikacja kodu create/edit — brak shared `<SparingForm>`
+3. Ręczny deleteMany przed delete — redundantne (Prisma onDelete: Cascade)
+4. Region fetch bez `.catch()` na 3 stronach
+5. Brak a11y (StarRating bez aria-label, select focus ring)
+6. Brak kontr-propozycji (flow binarny: accept/reject)
+
+#### Plan: Iteracja 1 — Foundation
+
+| # | Zadanie | Pliki | Status |
+|---|---------|-------|--------|
+| I1-1 | **Wydziel `<SparingForm>`** — shared create/edit, shadcn Select zamiast raw, semantic error colors | `src/components/sparings/sparing-form.tsx` (NEW), `sparings/new/page.tsx`, `sparings/[id]/edit/page.tsx` | ⬜ |
+| I1-2 | **Rozdziel detail page na sekcje** — 4 sub-components (~80 linii page.tsx zamiast 436) | `sparings/[id]/page.tsx` → `_components/sparing-info.tsx`, `sparing-applications.tsx`, `sparing-reviews.tsx`, `apply-form.tsx` | ⬜ |
+| I1-3 | **Dodaj "Moje sparingi" panel** — tabs "Szukaj" / "Moje", endpoint `sparing.my` z podziałem na statusy | `sparings/page.tsx` | ⬜ |
+| I1-4 | **Ukryj "Dodaj" dla PLAYER + "already applied" state** — badge "Twoje zgłoszenie: Oczekuje" zamiast formularza | `sparings/page.tsx`, `apply-form.tsx` | ⬜ |
+| I1-5 | **Dodaj mutację `complete`** — owner: MATCHED → COMPLETED, przycisk "Oznacz jako zakończony" | `routers/sparing.ts`, `sparing-info.tsx` | ⬜ |
+| I1-6 | **Error handling na liście + ograniczenie getById** — `.catch()`, error+retry, zgłoszenia widoczne tylko ownerowi | `sparings/page.tsx`, `routers/sparing.ts` | ⬜ |
+
+#### Plan: Iteracja 2 — UX Uplift (Footinho vibe)
+
+| # | Zadanie | Pliki | Status |
+|---|---------|-------|--------|
+| I2-1 | **Multi-step wizard (3 kroki)** — (1) Dane sparingu: tytuł, region, poziom, kategoria (2) Termin + lokalizacja (3) Podsumowanie + "Opublikuj" | `sparings/new/page.tsx`, `sparing-form.tsx` | ⬜ |
+| I2-2 | **Redesign karty sparingu** — avatar klubu, pill-badges (poziom, kategoria, region), countdown "za 3 dni" | `src/components/sparings/sparing-card.tsx` (NEW) | ⬜ |
+| I2-3 | **Post-match flow** — timeline (Utworzony → Dopasowany → Rozegrany), CTA "Wyślij wiadomość rywalowi", CTA "Oceń sparing" | `sparing-info.tsx` | ⬜ |
+| I2-4 | **Kontr-propozycja terminu** — nowy status COUNTER_PROPOSED, date picker w apply form | `routers/sparing.ts`, `apply-form.tsx`, schema migration | ⬜ |
+| I2-5 | **Widok piłkarza** — bez "Dodaj", CTA "Obserwuj sparing", feed-style lista | `sparings/page.tsx` | ⬜ |
+| I2-6 | **Wzbogać model danych** — pola: `level` (enum), `ageCategory` (enum), `preferredTime` | `schema.prisma`, `validators/sparing.ts`, migration | ⬜ |
+
+#### Verification Checklist
+- **Testy ręczne:**
+  1. CLUB: utwórz sparing (wizard) → lista → "Moje sparingi" → szczegóły
+  2. Inny CLUB: aplikuj → owner accept → MATCHED → complete → review
+  3. PLAYER: lista bez "Dodaj" → szczegóły bez "Aplikuj" → ulubione
+  4. Duplikat: 2x aplikuj → komunikat "Już aplikowałeś"
+  5. Mobile 375px: cały flow
+  6. Dark mode: kolory badge'ów, formularzy, kart
+- **Komendy:**
+  ```bash
+  npx tsc --noEmit          # zero errors
+  npm run lint               # zero warnings
+  npm run build              # successful build
+  ```
+- **Istniejące E2E:** `e2e/sparing.spec.ts` (4 testy: create → list → apply → accept)
+- **E2E do dodania:** create wizard, already-applied state, complete flow, PLAYER permissions
+
+### Naprawy z code review (starsze — osobny backlog)
+- Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6
+- Fix #2: Dodać rate limiting na mutacje tRPC
+- Fix #5: Migracja na tRPC React Query hooks (największy impact)
+- Fix #6: Wyeliminować `as any` — użyć Prisma types (częściowo w I1-2)
 
 ### Konfiguracja push (opcjonalna)
 1. `npx web-push generate-vapid-keys`
 2. Dodaj `NEXT_PUBLIC_VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY` do env vars
 3. Zainstaluj `web-push` i dodaj API endpoint do wysyłania push
 
-### Naprawy z code review (do zrobienia w dowolnej kolejności)
-- Fix #1: Ograniczyć widoczność aplikacji w getById (tylko dla ownera)
-- Fix #2: Dodać rate limiting na mutacje tRPC
-- Fix #5: Migracja na tRPC React Query hooks (największy impact)
-- Fix #6: Wyeliminować `as any` — użyć Prisma types
-
-**Plan redesignu:** `docs/superpowers/plans/2026-03-23-pilkasport-redesign.md`
-
 ---
 
 ### Prisma Migrations ✅
 - Baseline migration: `prisma/migrations/0_init/migration.sql` (336 linii, wygenerowane z live DB)
-- Migration oznaczona jako zastosowana (`migrate resolve --applied 0_init`)
-- `vercel-build` script: `prisma migrate deploy && next build` (Vercel używa tego zamiast `build`)
+- Migration `20260323201350_add_reviews_transfers_gamification_push` — zastosowana
+- `vercel-build` script: `prisma generate && next build` (migrate deploy usunięte — migracje aplikowane ręcznie przed deploy)
+- `prisma.config.ts` używa `process.env.DATABASE_URL!` (nie `env()` — nie działa na Vercel ani Windows)
 - Workflow zmian schematu:
   1. Edytuj `prisma/schema.prisma`
   2. `npm run db:migrate -- --url "postgresql://..." --name <nazwa_zmiany>` (tworzy plik migration)
   3. Commituj `prisma/migrations/` do gita
-  4. Push → Vercel auto-deploy uruchamia `prisma migrate deploy`
-- **Uwaga:** `env()` w `prisma.config.ts` nie działa na Windows (Prisma 7.5.0 bug) — zawsze używaj `--url "..."` dla lokalnych komend migrate
+  4. Push → Vercel auto-deploy (generuje klienta, ale NIE uruchamia migrate deploy)
+  5. Migracje na produkcji: ręcznie `prisma migrate deploy --url "..."` przed deploy LUB przywrócić w vercel-build gdy Prisma naprawi env()
+- **Uwaga:** `env()` w `prisma.config.ts` nie działa na Windows (Prisma 7.5.0 bug) i na Vercel — zawsze używaj `--url "..."` lub `process.env`
 
 ---
 
