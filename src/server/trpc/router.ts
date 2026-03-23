@@ -12,6 +12,10 @@ import { searchRouter } from "./routers/search";
 import { notificationRouter } from "./routers/notification";
 import { favoriteRouter } from "./routers/favorite";
 import { statsRouter } from "./routers/stats";
+import { reviewRouter } from "./routers/review";
+import { transferRouter } from "./routers/transfer";
+import { gamificationRouter } from "./routers/gamification";
+import { pushRouter } from "./routers/push";
 
 export const appRouter = router({
   health: healthRouter,
@@ -27,6 +31,10 @@ export const appRouter = router({
   notification: notificationRouter,
   favorite: favoriteRouter,
   stats: statsRouter,
+  review: reviewRouter,
+  transfer: transferRouter,
+  gamification: gamificationRouter,
+  push: pushRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Prisma Migrations
-**Ostatnia sesja:** 2026-03-22
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–2) + Rozbudowa (Etap 3 ✅)
+**Ostatnia sesja:** 2026-03-23
 
 ---
 
@@ -283,8 +283,270 @@
 
 ---
 
-## Co zostało do zrobienia (opcjonalnie)
-- Brak zaplanowanych zadań
+### Redesign Etap 1: UI/Design ✅
+- **Design System:**
+  - Font Inter (next/font/google) z `display: "swap"` — zastąpił Arial
+  - Nowa paleta kolorów Slate-based: `--background: #fafbfc` (light), `#0b0f1a` (dark)
+  - Sidebar CSS variables: `--sidebar-background`, `--sidebar-foreground`, `--sidebar-border`, `--sidebar-accent`, etc.
+  - Animacje CSS: `fade-in`, `slide-up`, `slide-in-left` (keyframes w globals.css)
+  - Font smoothing: antialiased, font-feature-settings
+  - Border radius: `0.75rem` (z 0.625rem)
+- **Nawigacja — Sidebar (desktop) + Bottom Nav (mobile):**
+  - `src/components/layout/sidebar.tsx` — stały lewy panel 240px, 4 sekcje (Główne, Aktywność, Komunikacja, Moje), ikony Lucide, aktywny link podświetlony, badge'e unread (wiadomości + powiadomienia, polling 30s), user section na dole z avatar/imię/rola/theme toggle/wyloguj
+  - `src/components/layout/bottom-nav.tsx` — fixed bottom, 5 ikon (Feed, Sparingi, Wydarzenia, Wiadomości, Profil), badge na wiadomościach, `md:hidden`
+  - `src/app/(dashboard)/layout.tsx` — `Sidebar` + `main.md:ml-60` + `BottomNav`, max-w-6xl content
+  - Stary `dashboard-nav.tsx` zachowany (nie usunięty, ale nieużywany)
+- **Landing page (przeprojektowana):**
+  - Sticky navbar z backdrop-blur + logo "PS"
+  - Hero: gradient tło, badge "Platforma dla polskiego futbolu", heading z akcentem primary, 2 CTA (shadow-lg), gradient orb
+  - Stats bar: 4 kolumny (16 województw, 80 szczebli, 272 grup, 100% darmowa)
+  - Features: 6 kart z ikonami Lucide w kolorowych kółkach (Swords, Trophy, MessageSquare, Globe, Target, Zap)
+  - Sekcja "Dla kogo": 2 karty gradient (zielona=Kluby, fioletowa=Zawodnicy) z listą korzyści
+  - CTA dolne z gradient
+  - Footer z logo + copyright
+- **Dashboard Feed (przeprojektowany):**
+  - Karty feeda z kolorową lewą linią (border-l-[3px]) per typ: emerald=sparing, violet=event, blue=club, orange=player
+  - Ikona typu w kolorowym kółku po lewej, badge typ + data, title z hover:text-primary, meta z ikonami Calendar/MapPin
+  - Arrow on hover (opacity transition)
+  - Stats cards z ikonami w kolorowych kółkach (emerald, blue, violet, amber)
+  - Empty state z ikoną, tytułem, opisem i CTA do profilu
+- **Listy sparingów i wydarzeń (przeprojektowane):**
+  - Karty z border-l (emerald/violet), ikony Calendar/MapPin/Globe/Users, Badge component z shadcn
+  - Filtry: `h-9 rounded-lg`, `SlidersHorizontal` icon, badge "!" przy aktywnych filtrach, Search icon w city input
+  - Empty states z ikonami (Swords/Trophy)
+- **Detail pages sparingów/wydarzeń (przeprojektowane):**
+  - Back button z ArrowLeft, heading + status Badge obok, przyciski z ikonami (Pencil, Trash2)
+  - Info grid z ikonami w kolorowych kółkach (Calendar=emerald, MapPin=blue, Banknote=amber, Globe=orange, Users=emerald, FileText=muted)
+  - Separator między info a opisem
+  - Delete confirmation: `border-destructive/30 bg-destructive/5`, AlertTriangle icon
+  - Aplikacje/zgłoszenia: `divide-y`, Badge status, CheckCircle2/XCircle na przyciskach, `isOwner` guard na accept/reject
+- **Messages (przeprojektowane):**
+  - Lista konwersacji: kolorowe avatary (emerald=klub, violet=zawodnik), hover:text-primary, ArrowRight on hover
+  - Czat: rounded card container, avatar + nazwa w headerze, primary-colored bubbles (rounded-br-md dla własnych, rounded-bl-md dla rozmówcy), Send icon button, timestamp `text-[10px]`
+  - Empty state z ikoną MessageSquare
+- **Profile publiczne (przeprojektowane):**
+  - Klub: hero banner gradient emerald z SVG pattern, logo 28x28 rounded-2xl, Badge'e (region, liga), 3-kolumnowy layout (2+1), sidebar z kontaktem (Mail/Phone/ExternalLink), sparingi/wydarzenia jako `divide-y` listy z Badge'ami
+  - Zawodnik: hero banner gradient violet, stats bar (-mt-12, 4 karty: Wiek/Wzrost/Waga/Noga z ikonami), bio card, career timeline z pionową linią i kropkami (aktywna=violet, reszta=border)
+- **Auth pages (przeprojektowane):**
+  - Gradient tło (`from-primary/5 via-background to-background`), logo PS na górze, shadow-lg card
+  - Login: ikona LogIn na przycisku, error w `rounded-lg bg-destructive/10`, registered success w `rounded-lg bg-emerald-50`
+  - Register: role selector jako 2 karty z ikonami (Shield=Klub, Users=Zawodnik) zamiast Tabs, grid-cols-2 na imię/nazwisko
+- **Nowe komponenty shadcn/ui (8):**
+  - `src/components/ui/badge.tsx`
+  - `src/components/ui/avatar.tsx`
+  - `src/components/ui/separator.tsx`
+  - `src/components/ui/tooltip.tsx`
+  - `src/components/ui/dialog.tsx`
+  - `src/components/ui/sheet.tsx`
+  - `src/components/ui/dropdown-menu.tsx`
+  - `src/components/ui/textarea.tsx`
+
+---
+
+### Redesign Etap 2: UX i Funkcjonalności ✅
+- **Animacje i micro-interactions:**
+  - Keyframe `scale-in` (opacity + scale 0.95→1) w globals.css
+  - Klasa `.stagger-children` — staggered `slide-up` z delay 50ms per element (max 9+)
+  - Zastosowane na: feed (karty + stats), sparingi (grid), wydarzenia (grid)
+  - Globalny `active:scale(0.98)` na przyciskach (button/a/role=button)
+  - Smooth 150ms transitions na interactive elements (color, bg, border, shadow, transform, opacity)
+- **Uniwersalny komponent EmptyState:**
+  - `src/components/empty-state.tsx` — props: `icon`, `title`, `description`, `actionLabel?`, `actionHref?`
+  - Zastosowany na 6 stronach: feed, sparingi, wydarzenia, wiadomości, powiadomienia, ulubione
+  - Spójny wygląd: ikona w kółku, tytuł, opis, opcjonalny link
+- **ConfirmDialog (shadcn Dialog zamiast inline delete):**
+  - `src/components/confirm-dialog.tsx` — props: `open`, `onOpenChange`, `title`, `description`, `onConfirm`, `loading?`, `variant?`
+  - Wariant destructive z ikoną AlertTriangle w czerwonym kółku
+  - Zamieniono inline delete confirmation na modal dialog w: `/sparings/[id]`, `/events/[id]`
+- **Lepsze formularze:**
+  - Zamieniono 6× plain `<textarea>` na shadcn `<Textarea>`: sparings new/edit, events new/edit, club form, player form
+  - `src/components/form-tooltip.tsx` — HelpCircle icon z tooltip (Radix Tooltip)
+  - Tooltips dodane na: "Podział kosztów" (sparings/new), "Maks. uczestników" (events/new)
+- **Breadcrumbs:**
+  - `src/components/breadcrumbs.tsx` — ChevronRight separator, ostatni element bold text-foreground
+  - Zastąpiono "Wróć" button breadcrumbami na: sparings detail, events detail, sparings edit, events edit
+  - Np: `Sparingi > Tytuł sparingu` lub `Wydarzenia > Tytuł > Edycja`
+- **Real-time unread indicators w bottom-nav:**
+  - Bottom-nav: dodano polling `notification.unreadCount` (co 30s, obok istniejącego messages polling)
+  - Zamieniono "Profil" na "Powiadomienia" (Bell icon) w mobile bottom-nav
+  - Badge z unread count na wiadomościach i powiadomieniach (sidebar miał już oba)
+
+---
+
+## Code Review — Znane Problemy (z sesji 2026-03-23)
+
+### Krytyczne (bezpieczeństwo)
+1. **`sparing.getById` i `event.getById` to `publicProcedure`** — zwracają WSZYSTKIE aplikacje z danymi osobowymi. Anonimowy widzi kto się zgłosił.
+2. **Brak rate limitingu na mutacjach** — tylko login/register mają rate limit. Wiadomości, aplikacje, favorites — brak.
+3. **Cookie `__Secure-` w middleware** — nie działa na localhost (HTTP). Dev auth może być zepsuty.
+4. **Upload bez walidacji server-side** — Supabase anon key pozwala wrzucić cokolwiek do bucketa.
+
+### Ważne (architektura)
+5. **Nie używa tRPC React Query hooks** — imperywne `trpc.xxx.query()` z `useState/useEffect`. Brak cache invalidation, optimistic updates. `src/lib/trpc.ts` tworzy vanilla client zamiast React hooks.
+6. **20+ `as any`** — w auth callbacks, Prisma where, listach.
+7. **Fire-and-forget notifications `.catch(() => {})`** — ciche połykanie błędów.
+
+### Sugestie
+8. Zduplikowane patterny list (sparingi/wydarzenia) — wyekstrahować shared hook
+9. Native `<select>` zamiast shadcn Select — niespójny dark mode
+10. Brak unit testów — tylko E2E
+
+---
+
+### Task 3.1: System Ocen i Recenzji ✅
+- **Prisma:** model `Review` (rating 1-5, comment, relacje reviewer/reviewed Club + SparingOffer)
+  - Unique constraint `[sparingOfferId, reviewerClubId]` — 1 recenzja per klub per sparing
+  - `NotificationType.NEW_REVIEW` dodany
+- **tRPC router `review`:**
+  - `create` — wystawienie recenzji (tylko uczestnik MATCHED/COMPLETED sparingu, walidacja własności)
+  - `getForSparing` — lista recenzji per sparing
+  - `listByClub` — recenzje klubu (cursor-based pagination)
+  - `averageByClub` — średnia ocena + count (aggregate)
+  - `myReview` — sprawdzenie czy user już ocenił dany sparing
+- **Validator:** `createReviewSchema` (Zod v4) — rating 1-5, comment max 1000 znaków
+- **Komponent `StarRating`:** interaktywne gwiazdki (sm/md/lg), readonly mode, amber-400 fill
+- **UI `/sparings/[id]`:**
+  - Formularz oceny widoczny po dopasowanym sparingu (dla uczestników, jeśli nie ocenili)
+  - Lista recenzji pod zgłoszeniami
+  - Wskaźnik "Twoja ocena" jeśli już wystawiona
+- **UI `/clubs/[id]` (profil publiczny):**
+  - Badge ze średnią oceną w hero (gwiazdka + X.X + count)
+  - Sekcja "Recenzje" z ostatnimi 5 opiniami (gwiazdki, komentarz, nazwa sparingu)
+- **Labels:** `NEW_REVIEW` w `NOTIFICATION_TYPE_LABELS` i `NOTIFICATION_TYPE_COLORS`
+- **Notyfikacja fire-and-forget** przy wystawieniu recenzji
+- **Migracja DB:** wymaga `npm run db:migrate -- --url "..." --name add_reviews`
+
+---
+
+### Task 3.2: System Ogłoszeń Transferowych ✅
+- **Prisma:** model `Transfer` (TransferType: LOOKING_FOR_CLUB/LOOKING_FOR_PLAYER/FREE_AGENT, TransferStatus: ACTIVE/CLOSED)
+  - Relacje: User, Region. Pola: title, description, position, regionId, minAge, maxAge
+  - Indeksy: `[type, status]`, `[regionId]`, `[position]`
+- **tRPC router `transfer`:**
+  - `create` — walidacja roli (klub=LOOKING_FOR_PLAYER, zawodnik=LOOKING_FOR_CLUB/FREE_AGENT)
+  - `update` / `delete` / `close` — tylko owner, status ACTIVE
+  - `list` — filtry: typ, pozycja, region, cursor-based pagination, sortowanie
+  - `getById` — z include user.club/player + region
+  - `my` — moje ogłoszenia
+- **Validator:** `createTransferSchema`, `updateTransferSchema` (Zod v4)
+- **Labels:** `TRANSFER_TYPE_LABELS/COLORS`, `TRANSFER_STATUS_LABELS/COLORS`
+- **UI:**
+  - `/transfers` — lista z filtrami (typ, pozycja, region), infinite scroll, karty z cyan border-l
+  - `/transfers/new` — formularz (typ zależny od roli, pozycja, region, wiek dla klubów)
+  - `/transfers/[id]` — szczegóły z info grid, przycisk wiadomości, edycja/zamknięcie/usunięcie
+  - `/transfers/[id]/edit` — edycja z pre-filled danymi
+- **Nawigacja:** link "Transfery" (ArrowRightLeft icon) w sidebar sekcja "Aktywność"
+- **Kolorowanie:** cyan=transfery (konsekwentnie z paletą: emerald=sparingi, violet=wydarzenia)
+- **Migracja DB:** wymaga `npm run db:migrate -- --url "..." --name add_transfers`
+
+---
+
+### Task 3.3: Statystyki i Analityka Rozszerzona ✅
+- **Zależność:** `recharts` (wykresy React)
+- **tRPC `stats.detailed`:**
+  - Aktywność per miesiąc (sparingi + wydarzenia, ostatnie 6 mies.) — aggregateByMonth helper
+  - Top 5 najaktywniejszych regionów (groupBy regionId)
+  - Totale platformy: kluby, zawodnicy, sparingi, wydarzenia, transfery, recenzje
+  - User stats (klub): totalSparings, matchRate%, totalApps, acceptRate%, avgRating, reviewCount
+  - User stats (zawodnik): totalApps, acceptedApps, acceptRate%
+- **UI `/stats`:**
+  - 6 kart z totals platformy (ikony kolorowe: emerald, blue, violet, cyan, amber)
+  - Wykres słupkowy (BarChart) — sparingi vs wydarzenia per miesiąc
+  - Wykres kołowy (PieChart) — najaktywniejsze regiony
+  - Sekcja "Twoje statystyki" — karty z match rate, accept rate, średnią oceną (różne per rola)
+- **Nawigacja:** link "Statystyki" (BarChart3 icon) w sidebar sekcja "Moje"
+
+---
+
+### Task 3.4: Mapa z Lokalizacjami ✅
+- **Zależności:** `leaflet`, `react-leaflet`, `@types/leaflet`
+- **Komponent `MapView`** (`src/components/map-view.tsx`):
+  - Leaflet + OpenStreetMap tiles (darmowe, bez klucza API)
+  - Markery z popupami (tytuł, lokalizacja, data, link do szczegółów)
+  - Ikony: domyślne Leaflet z hue-rotate (green=sparingi, violet=wydarzenia)
+  - Center: Polska (51.92, 19.15), zoom 6
+  - `mounted` guard (Leaflet nie działa SSR)
+- **Strona `/map`:**
+  - Pobiera sparingi (OPEN) + wydarzenia z lat/lng
+  - Toggle filtry: Sparingi / Wydarzenia (kolorowe przyciski)
+  - Empty state gdy brak ogłoszeń z lokalizacją
+  - Dynamic import (`next/dynamic`, `ssr: false`)
+- **Nawigacja:** link "Mapa" (MapPin icon) w sidebar sekcja "Aktywność"
+- **Uwaga:** sparingi/wydarzenia już mają pola `lat`/`lng` w schemacie — wystarczy je ustawiać przy tworzeniu
+
+---
+
+### Task 3.5: System Punktacji / Gamifikacja ✅
+- **Prisma:** modele `UserPoints` (punkty per akcja, action+refId) i `UserBadge` (unique userId+badge)
+- **System punktowy (`src/lib/gamification.ts`):**
+  - `POINTS_MAP`: sparing_created=10, sparing_matched=15, event_created=10, application_sent=5, application_accepted=10, review_given=10, transfer_created=5, message_sent=2, profile_completed=20
+  - `BADGES` (9 odznak): Debiutant, Mistrz sparingów, Matchmaker, Organizator, Recenzent, Komunikator, Aktywny gracz, Weteran, Łowca okazji
+- **Helper `awardPoints()`** (`src/server/award-points.ts`) — fire-and-forget, wywoływany z routerów
+- **Integracja punktów w routerach:** sparing.create, sparing.applyFor, sparing.respond(ACCEPTED), event.create, review.create
+- **tRPC router `gamification`:**
+  - `myPoints` — total + ostatnie 20 wpisów
+  - `myBadges` — lista zdobytych odznak
+  - `checkBadges` — mutation sprawdzająca i przyznająca nowe odznaki
+  - `leaderboard` — top N użytkowników (points + badges count + profil)
+- **UI `/ranking`:**
+  - 3 karty: punkty, odznaki, pozycja w rankingu
+  - Sekcja "Twoje odznaki" (zdobyte)
+  - Sekcja "Wszystkie odznaki" (grid, earned vs locked)
+  - Leaderboard top 20 (pozycja, avatar, nazwa, punkty, odznaki, link do profilu)
+  - Historia ostatnich punktów
+- **Nawigacja:** link "Ranking" (Medal icon) w sidebar sekcja "Moje"
+- **Migracja DB:** wymaga `npm run db:migrate -- --url "..." --name add_gamification`
+
+---
+
+### Task 3.6: PWA + Push Notifications ✅
+- **Service Worker** (`public/sw.js`):
+  - Cache static assets (network-first, fallback cache)
+  - Skip API/tRPC calls
+  - Push event handler → `showNotification()` z title, body, icon
+  - Notification click → `clients.openWindow(url)`
+- **Prisma:** model `PushSubscription` (endpoint, p256dh, auth, unique userId+endpoint)
+- **tRPC router `push`:**
+  - `subscribe` — upsert subskrypcji (endpoint, p256dh, auth)
+  - `unsubscribe` — usunięcie subskrypcji
+  - `status` — czy user ma aktywną subskrypcję
+- **Komponent `PushNotificationToggle`:**
+  - Sprawdza `serviceWorker` + `PushManager` support
+  - Rejestruje SW (`/sw.js`)
+  - Toggle: subscribe (requestPermission → pushManager.subscribe → tRPC) / unsubscribe
+  - Wymaga `NEXT_PUBLIC_VAPID_PUBLIC_KEY` env var
+  - Widoczny w sidebar user section (obok ThemeToggle)
+- **Manifest** już istniał (`manifest.ts`) — `display: "standalone"`, `theme_color: #16a34a`
+- **Do konfiguracji na deploy:**
+  - Wygenerować VAPID keys: `npx web-push generate-vapid-keys`
+  - Ustawić `NEXT_PUBLIC_VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY` w env
+  - Zainstalować `web-push` i dodać endpoint API do wysyłania push (lub Supabase Edge Function)
+- **Migracja DB:** wymaga `npm run db:migrate -- --url "..." --name add_push_subscriptions`
+
+---
+
+## Co zostało do zrobienia
+
+### Redesign Etap 3: Rozbudowa Platformy ✅ COMPLETE
+
+### Migracje DB (wymagane przed deploy)
+```bash
+npm run db:migrate -- --url "postgresql://..." --name add_reviews_transfers_gamification_push
+```
+(Dodaje tabele: reviews, transfers, user_points, user_badges, push_subscriptions)
+
+### Konfiguracja push (opcjonalna)
+1. `npx web-push generate-vapid-keys`
+2. Dodaj `NEXT_PUBLIC_VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY` do env vars
+3. Zainstaluj `web-push` i dodaj API endpoint do wysyłania push
+
+### Naprawy z code review (do zrobienia w dowolnej kolejności)
+- Fix #1: Ograniczyć widoczność aplikacji w getById (tylko dla ownera)
+- Fix #2: Dodać rate limiting na mutacje tRPC
+- Fix #5: Migracja na tRPC React Query hooks (największy impact)
+- Fix #6: Wyeliminować `as any` — użyć Prisma types
+
+**Plan redesignu:** `docs/superpowers/plans/2026-03-23-pilkasport-redesign.md`
 
 ---
 
@@ -305,7 +567,8 @@
 | Warstwa     | Technologia                            |
 |-------------|----------------------------------------|
 | Frontend    | Next.js 16 (App Router) + TypeScript   |
-| UI          | Tailwind CSS 4 + shadcn/ui + sonner    |
+| UI          | Tailwind CSS 4 + shadcn/ui (15 komponentów) + sonner + Recharts + Leaflet |
+| Font        | Inter (next/font/google)               |
 | API         | tRPC v11 (fetch adapter)               |
 | ORM         | Prisma 7 + @prisma/adapter-pg          |
 | Baza danych | PostgreSQL (Supabase — Session Pooler) |
@@ -319,7 +582,7 @@
 
 ## Kluczowe Pliki
 ```
-prisma/schema.prisma                  — schemat BD (20 modeli)
+prisma/schema.prisma                  — schemat BD (26 modeli)
 prisma/prisma.config.ts               — konfiguracja Prisma 7 (env() helper)
 prisma/migrations/                    — migracje BD (baseline 0_init + przyszłe zmiany)
 prisma/seed.ts                        — seed regionów/lig/grup
@@ -341,6 +604,11 @@ src/server/trpc/routers/search.ts     — globalna wyszukiwarka
 src/server/trpc/routers/notification.ts — powiadomienia (list, unreadCount, markAsRead)
 src/server/trpc/routers/favorite.ts    — ulubione (toggle, check, list)
 src/server/trpc/routers/stats.ts       — statystyki dashboardu (counts per role)
+src/server/trpc/routers/review.ts      — recenzje (create, getForSparing, listByClub, averageByClub, myReview)
+src/server/trpc/routers/transfer.ts    — transfery (create, update, delete, close, list, getById, my)
+src/server/trpc/routers/gamification.ts — punkty, odznaki, leaderboard
+src/server/trpc/routers/push.ts        — push subscriptions (subscribe, unsubscribe, status)
+src/server/award-points.ts             — helper awardPoints() (fire-and-forget)
 
 src/lib/trpc.ts                       — tRPC vanilla client (frontend)
 src/lib/supabase.ts                   — Supabase client (storage)
@@ -351,6 +619,9 @@ src/lib/validators/auth.ts            — Zod: rejestracja, logowanie
 src/lib/validators/profile.ts         — Zod: profil klubu (+ logoUrl), zawodnika (+ photoUrl), kariera
 src/lib/validators/sparing.ts         — Zod: tworzenie sparingu, aplikacja
 src/lib/validators/event.ts           — Zod: tworzenie wydarzenia, zgłoszenie
+src/lib/validators/review.ts          — Zod: tworzenie recenzji (rating 1-5, comment)
+src/lib/validators/transfer.ts        — Zod: tworzenie/edycja ogłoszenia transferowego
+src/lib/gamification.ts               — POINTS_MAP, BADGES definicje, BadgeCheckStats
 src/lib/validators/message.ts         — Zod: wysyłka wiadomości, paginacja, markAsRead
 src/lib/form-errors.ts                — helper getFieldErrors() (Zod → per-field errors)
 
@@ -371,9 +642,19 @@ src/app/(dashboard)/events/[id]/edit/ — edycja wydarzenia
 src/app/(public)/clubs/[id]/page.tsx  — publiczny profil klubu
 src/app/(public)/players/[id]/page.tsx — publiczny profil zawodnika
 
+src/components/layout/sidebar.tsx             — sidebar nawigacja desktop (240px, sekcje, ikony, badge'e, user)
+src/components/layout/bottom-nav.tsx         — mobile bottom nav (5 ikon, badge'e)
+src/components/layout/dashboard-nav.tsx      — DEPRECATED — stara górna nawigacja (nieużywana po redesign)
+src/components/ui/badge.tsx                  — shadcn Badge (NEW)
+src/components/ui/avatar.tsx                 — shadcn Avatar (NEW)
+src/components/ui/separator.tsx              — shadcn Separator (NEW)
+src/components/ui/tooltip.tsx                — shadcn Tooltip (NEW)
+src/components/ui/dialog.tsx                 — shadcn Dialog (NEW)
+src/components/ui/sheet.tsx                  — shadcn Sheet (NEW)
+src/components/ui/dropdown-menu.tsx          — shadcn DropdownMenu (NEW)
+src/components/ui/textarea.tsx               — shadcn Textarea (NEW)
 src/components/forms/club-profile-form.tsx    — formularz klubu (kaskadowe dropdowny + upload logo)
 src/components/forms/player-profile-form.tsx  — formularz zawodnika + kariera + upload zdjęcia
-src/components/layout/dashboard-nav.tsx       — górna nawigacja (responsywna, bell icon z badge)
 src/components/send-message-button.tsx       — przycisk "Napisz wiadomość" (inline)
 src/components/image-upload.tsx              — komponent uploadu zdjęć (Supabase Storage)
 src/components/card-skeleton.tsx             — skeleton loadery (CardSkeleton, FeedCardSkeleton, DetailPageSkeleton, ConversationSkeleton, NotificationSkeleton)
@@ -381,6 +662,18 @@ src/components/public-profile-cta.tsx       — session-aware CTA na publicznych
 src/components/favorite-button.tsx          — przycisk serduszka (toggle ulubione)
 src/components/theme-toggle.tsx            — przełącznik dark/light mode
 src/components/calendar-view.tsx           — widok kalendarza miesięcznego
+src/components/empty-state.tsx             — uniwersalny empty state (icon, title, description, action)
+src/components/confirm-dialog.tsx          — modal potwierdzenia (shadcn Dialog, wariant destructive)
+src/components/breadcrumbs.tsx             — breadcrumbs nawigacja (ChevronRight separator)
+src/components/form-tooltip.tsx            — tooltip help przy polach formularzy (HelpCircle)
+src/components/star-rating.tsx            — interaktywne gwiazdki 1-5 (sm/md/lg, readonly mode)
+src/components/map-view.tsx              — Leaflet mapa z markerami (dynamic import, SSR-safe)
+src/components/push-notification-toggle.tsx — toggle push notifications (SW + PushManager)
+
+src/app/(dashboard)/transfers/           — lista, nowy, szczegóły, edycja ogłoszeń transferowych
+src/app/(dashboard)/stats/               — statystyki z wykresami (Recharts)
+src/app/(dashboard)/map/                 — mapa sparingów/wydarzeń (Leaflet)
+src/app/(dashboard)/ranking/             — ranking, odznaki, historia punktów
 src/components/providers.tsx                — SessionProvider wrapper (root layout)
 src/hooks/use-infinite-scroll.ts             — hook IntersectionObserver do infinite scroll
 src/types/next-auth.d.ts              — rozszerzenie typów sesji (id, role)
@@ -419,6 +712,11 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 12. **Supabase Storage** — bucket `avatars` publiczny, upsert z entity ID jako nazwa pliku.
 13. **Auth.js v5 na Vercel** — wymaga `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, cookie name `__Secure-authjs.session-token` (nie `__Secure-next-auth.*`).
 14. **SessionProvider** — wymagany w root layout żeby `signIn()`/`useSession()` z `next-auth/react` działały.
+15. **Sidebar layout** zamiast top-nav — sidebar desktop (fixed, 240px, `md:flex`) + bottom nav mobile (`md:hidden`). Content z `md:ml-60`.
+16. **Font Inter** z `next/font/google` — className na `<html>`, NIE ustawiać font-family w globals.css (nadpisywałoby next/font).
+17. **Design tokens Slate-based** — `#fafbfc`/`#0b0f1a` background (zamiast `#ffffff`/`#0a0a0a`), lepszy kontrast.
+18. **Kolorowanie po typie** — emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości. Konsekwentne w całym UI.
+19. **Hero banners na profilach publicznych** — gradient (emerald=kluby, violet=zawodnicy) z SVG pattern, duże zdjęcie/logo, Badge'e.
 
 ---
 
@@ -450,17 +748,24 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 | 13   | Nowe Funkcjonalności          | ✅ Gotowe    |
 | 14   | Ulepszenia Techniczne         | ✅ Gotowe    |
 | 15   | Dark Mode, Kalendarz, Statystyki | ✅ Gotowe |
+| R1   | Redesign Etap 1: UI/Design       | ✅ Gotowe |
+| R2   | Redesign Etap 2: UX/Funkcjonalności | ✅ Gotowe |
+| R3   | Redesign Etap 3: Rozbudowa       | ✅ Gotowe |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. Wszystkie 12 faz ukończone — dalsze prace to opcjonalne ulepszenia (sekcja "Co zostało do zrobienia").
-   - Aplikacja live: **https://pilkarski.vercel.app**
-   - GitHub: **https://github.com/Kaban15/pilkarski**
-4. Przed instalacją nowych zależności — pytaj o zgodę.
-5. Po zakończeniu prac — zaktualizuj ten plik.
-6. **Prisma migrations:** używaj `npm run db:migrate -- --url "postgresql://..." --name <nazwa>` do tworzenia nowych migracji lokalnie.
+3. **Następny krok: Redesign Etap 3** — Rozbudowa Platformy (system ocen, ogłoszenia transferowe, statystyki, mapa, gamifikacja, PWA). Plan w `docs/superpowers/plans/2026-03-23-pilkasport-redesign.md` (Task 3.1–3.6).
+4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
+5. Przed instalacją nowych zależności — pytaj o zgodę.
+6. Po zakończeniu prac — zaktualizuj ten plik.
+7. **Prisma migrations:** używaj `npm run db:migrate -- --url "postgresql://..." --name <nazwa>` do tworzenia nowych migracji lokalnie.
    - `env()` w `prisma.config.ts` nie działa na Windows → zawsze podaj `--url "..."` dla lokalnych komend.
    - Na Vercel działa automatycznie przez `vercel-build` script (`prisma migrate deploy`).
+8. **UI pattern — kolorowanie typów:** emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości. Stosuj konsekwentnie.
+9. **Sidebar nawigacja:** desktop = `sidebar.tsx` (fixed left 240px), mobile = `bottom-nav.tsx` (fixed bottom, 5 ikon: Feed/Sparingi/Wydarzenia/Wiadomości/Powiadomienia). Stary `dashboard-nav.tsx` jest DEPRECATED.
+10. **Znane problemy bezpieczeństwa** opisane w sekcji "Code Review" — do naprawienia w przyszłych sesjach.
+11. **Nowe komponenty (Etap 2):** `EmptyState` (empty states), `ConfirmDialog` (delete modals), `Breadcrumbs` (nawigacja), `FormTooltip` (help tooltips). Używaj ich zamiast inline implementacji.
+12. **Animacje:** klasa `.stagger-children` na kontenerach list daje staggered slide-up. `animate-fade-in` na stronach. `animate-scale-in` na modalach.

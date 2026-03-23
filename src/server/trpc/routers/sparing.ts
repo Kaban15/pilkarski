@@ -7,6 +7,7 @@ import {
   respondApplicationSchema,
 } from "@/lib/validators/sparing";
 import { TRPCError } from "@trpc/server";
+import { awardPoints } from "@/server/award-points";
 
 export const sparingRouter = router({
   create: protectedProcedure
@@ -17,7 +18,7 @@ export const sparingRouter = router({
       });
       if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą tworzyć sparingi" });
 
-      return ctx.db.sparingOffer.create({
+      const sparing = await ctx.db.sparingOffer.create({
         data: {
           clubId: club.id,
           title: input.title,
@@ -30,6 +31,10 @@ export const sparingRouter = router({
           regionId: input.regionId ?? club.regionId,
         },
       });
+
+      awardPoints(ctx.db, ctx.session.user.id, "sparing_created", sparing.id).catch(() => {});
+
+      return sparing;
     }),
 
   update: protectedProcedure
@@ -192,6 +197,8 @@ export const sparingRouter = router({
         },
       }).catch(() => {});
 
+      awardPoints(ctx.db, ctx.session.user.id, "application_sent", application.id).catch(() => {});
+
       return application;
     }),
 
@@ -233,6 +240,10 @@ export const sparingRouter = router({
           },
           data: { status: "REJECTED" },
         });
+
+        // Points for match (fire-and-forget)
+        awardPoints(ctx.db, ctx.session.user.id, "sparing_matched", application.sparingOfferId).catch(() => {});
+        awardPoints(ctx.db, updated.applicantClub.userId, "application_accepted", application.sparingOfferId).catch(() => {});
       }
 
       // Notify applicant (fire-and-forget)

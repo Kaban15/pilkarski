@@ -1,0 +1,55 @@
+// Points awarded per action
+export const POINTS_MAP: Record<string, number> = {
+  sparing_created: 10,
+  sparing_matched: 15,
+  event_created: 10,
+  application_sent: 5,
+  application_accepted: 10,
+  review_given: 10,
+  transfer_created: 5,
+  message_sent: 2,
+  profile_completed: 20,
+};
+
+export const POINTS_LABELS: Record<string, string> = {
+  sparing_created: "Utworzenie sparingu",
+  sparing_matched: "Dopasowanie sparingu",
+  event_created: "Utworzenie wydarzenia",
+  application_sent: "Wysłanie zgłoszenia",
+  application_accepted: "Zaakceptowanie zgłoszenia",
+  review_given: "Wystawienie recenzji",
+  transfer_created: "Dodanie ogłoszenia transferowego",
+  message_sent: "Wysłanie wiadomości",
+  profile_completed: "Uzupełnienie profilu",
+};
+
+// Badge definitions
+export interface BadgeDef {
+  key: string;
+  name: string;
+  description: string;
+  icon: string; // emoji
+  check: (stats: BadgeCheckStats) => boolean;
+}
+
+export interface BadgeCheckStats {
+  totalPoints: number;
+  sparingsCreated: number;
+  sparingsMatched: number;
+  eventsCreated: number;
+  reviewsGiven: number;
+  messagesCount: number;
+  applicationsCount: number;
+}
+
+export const BADGES: BadgeDef[] = [
+  { key: "first_sparing", name: "Debiutant", description: "Stwórz pierwszy sparing", icon: "⚽", check: (s) => s.sparingsCreated >= 1 },
+  { key: "sparing_master", name: "Mistrz sparingów", description: "Stwórz 10 sparingów", icon: "🏆", check: (s) => s.sparingsCreated >= 10 },
+  { key: "matchmaker", name: "Matchmaker", description: "Dopasuj 5 sparingów", icon: "🤝", check: (s) => s.sparingsMatched >= 5 },
+  { key: "event_organizer", name: "Organizator", description: "Stwórz 5 wydarzeń", icon: "📋", check: (s) => s.eventsCreated >= 5 },
+  { key: "reviewer", name: "Recenzent", description: "Wystaw 3 recenzje", icon: "⭐", check: (s) => s.reviewsGiven >= 3 },
+  { key: "communicator", name: "Komunikator", description: "Wyślij 50 wiadomości", icon: "💬", check: (s) => s.messagesCount >= 50 },
+  { key: "active_player", name: "Aktywny gracz", description: "Zdobądź 100 punktów", icon: "🔥", check: (s) => s.totalPoints >= 100 },
+  { key: "veteran", name: "Weteran", description: "Zdobądź 500 punktów", icon: "🎖️", check: (s) => s.totalPoints >= 500 },
+  { key: "applicant", name: "Łowca okazji", description: "Wyślij 10 zgłoszeń", icon: "🎯", check: (s) => s.applicationsCount >= 10 },
+];

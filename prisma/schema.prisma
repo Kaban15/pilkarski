@@ -21,6 +21,7 @@ model Region {
   players      Player[]
   sparingOffers SparingOffer[]
   events       Event[]
+  transfers    Transfer[]
 
   @@map("regions")
 }
@@ -74,6 +75,10 @@ model User {
   sentMessages             Message[]
   notifications            Notification[]
   favorites                Favorite[]
+  transfers                Transfer[]
+  points                   UserPoints[]
+  badges                   UserBadge[]
+  pushSubscriptions        PushSubscription[]
 
   @@map("users")
 }
@@ -103,6 +108,8 @@ model Club {
   sparingOffers        SparingOffer[]
   sparingApplications  SparingApplication[]
   events               Event[]
+  reviewsGiven         Review[]              @relation("ReviewsGiven")
+  reviewsReceived      Review[]              @relation("ReviewsReceived")
 
   @@map("clubs")
 }
@@ -203,6 +210,7 @@ model SparingOffer {
   region       Region?              @relation(fields: [regionId], references: [id])
   applications SparingApplication[]
   favorites    Favorite[]
+  reviews      Review[]
 
   @@index([regionId, status])
   @@index([matchDate])
@@ -286,6 +294,7 @@ enum NotificationType {
   EVENT_ACCEPTED         // Twoje zgłoszenie zaakceptowane
   EVENT_REJECTED         // Twoje zgłoszenie odrzucone
   NEW_MESSAGE            // nowa wiadomość
+  NEW_REVIEW             // nowa recenzja po sparingu
 }
 
 model Notification {
@@ -344,6 +353,114 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("messages")
+}
+
+// ============================================================
+// PUSH SUBSCRIPTIONS
+// ============================================================
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @db.VarChar(500)
+  p256dh    String   @db.VarChar(200)
+  auth      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+  @@map("push_subscriptions")
+}
+
+// ============================================================
+// GAMIFIKACJA
+// ============================================================
+
+model UserPoints {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  points    Int      @default(0)
+  action    String   @db.VarChar(50) // np. "sparing_created", "review_given"
+  refId     String?  @map("ref_id") @db.Uuid // ID powiązanego obiektu
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_points")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  badge     String   @db.VarChar(50) // klucz odznaki
+  awardedAt DateTime @default(now()) @map("awarded_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badge])
+  @@map("user_badges")
+}
+
+// ============================================================
+// TRANSFERY / OGŁOSZENIA
+// ============================================================
+
+enum TransferType {
+  LOOKING_FOR_CLUB    // zawodnik szuka klubu
+  LOOKING_FOR_PLAYER  // klub szuka zawodnika
+  FREE_AGENT          // wolny agent
+}
+
+enum TransferStatus {
+  ACTIVE
+  CLOSED
+}
+
+model Transfer {
+  id          String         @id @default(uuid()) @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  type        TransferType
+  status      TransferStatus @default(ACTIVE)
+  title       String         @db.VarChar(300)
+  description String?
+  position    PlayerPosition? // szukana/oferowana pozycja
+  regionId    Int?           @map("region_id")
+  minAge      Int?           @map("min_age")
+  maxAge      Int?           @map("max_age")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region Region? @relation(fields: [regionId], references: [id])
+
+  @@index([type, status])
+  @@index([regionId])
+  @@index([position])
+  @@map("transfers")
+}
+
+// ============================================================
+// RECENZJE
+// ============================================================
+
+model Review {
+  id              String       @id @default(uuid()) @db.Uuid
+  sparingOfferId  String       @map("sparing_offer_id") @db.Uuid
+  reviewerClubId  String       @map("reviewer_club_id") @db.Uuid
+  reviewedClubId  String       @map("reviewed_club_id") @db.Uuid
+  rating          Int          // 1-5
+  comment         String?
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  sparingOffer SparingOffer @relation(fields: [sparingOfferId], references: [id], onDelete: Cascade)
+  reviewerClub Club         @relation("ReviewsGiven", fields: [reviewerClubId], references: [id], onDelete: Cascade)
+  reviewedClub Club         @relation("ReviewsReceived", fields: [reviewedClubId], references: [id], onDelete: Cascade)
+
+  @@unique([sparingOfferId, reviewerClubId])
+  @@index([reviewedClubId])
+  @@map("reviews")
 }
 
 // ============================================================

@@ -7,6 +7,7 @@ import {
   respondEventApplicationSchema,
 } from "@/lib/validators/event";
 import { TRPCError } from "@trpc/server";
+import { awardPoints } from "@/server/award-points";
 
 export const eventRouter = router({
   // Create event (club only)
@@ -18,7 +19,7 @@ export const eventRouter = router({
       });
       if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą tworzyć wydarzenia" });
 
-      return ctx.db.event.create({
+      const event = await ctx.db.event.create({
         data: {
           clubId: club.id,
           type: input.type,
@@ -32,6 +33,10 @@ export const eventRouter = router({
           regionId: input.regionId ?? club.regionId,
         },
       });
+
+      awardPoints(ctx.db, ctx.session.user.id, "event_created", event.id).catch(() => {});
+
+      return event;
     }),
 
   update: protectedProcedure
