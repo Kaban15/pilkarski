@@ -136,7 +136,7 @@ export const sparingRouter = router({
       return { items, nextCursor };
     }),
 
-  // Get single sparing with applications
+  // Get single sparing with applications (applications filtered by auth)
   getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
@@ -154,6 +154,16 @@ export const sparingRouter = router({
         },
       });
       if (!sparing) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Filter applications: owner sees all, applicant sees only own, others see none
+      const userId = ctx.session?.user?.id;
+      const isOwner = userId === sparing.club.userId;
+      if (!isOwner) {
+        sparing.applications = sparing.applications.filter(
+          (a) => a.applicantClub.userId === userId
+        );
+      }
+
       return sparing;
     }),
 
@@ -283,6 +293,28 @@ export const sparingRouter = router({
       return ctx.db.sparingOffer.update({
         where: { id: input.id },
         data: { status: "CANCELLED" },
+      });
+    }),
+
+  // Mark matched sparing as completed (owner only)
+  complete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const offer = await ctx.db.sparingOffer.findUnique({ where: { id: input.id } });
+      if (!offer) throw new TRPCError({ code: "NOT_FOUND" });
+      if (offer.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+      if (offer.status !== "MATCHED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Tylko dopasowane sparingi można oznaczyć jako zakończone" });
+      }
+
+      return ctx.db.sparingOffer.update({
+        where: { id: input.id },
+        data: { status: "COMPLETED" },
       });
     }),
 

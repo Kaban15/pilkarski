@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (DO ZROBIENIA)
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 DO ZROBIENIA)
 **Ostatnia sesja:** 2026-03-23
 
 ---
@@ -546,46 +546,46 @@
 - Fix: matchDate validator — odrzuca daty w przeszłości i nieprawidłowe formaty
 - Fix: isParticipant — sprawdza `applicantClub.userId === session.user.id` (nie "jakikolwiek accepted")
 
-### Redesign Etap 4: Sparing Flow UX/UI Overhaul (DO ZROBIENIA)
+### Redesign Etap 4: Sparing Flow UX/UI Overhaul (W TRAKCIE)
 
 **Cel:** Znacząca poprawa UX/UI i jakości kodu wokół sparingów — od tworzenia, przez zarządzanie, po widok piłkarza. Estetyka: Transfermarkt + Sofascore + nowoczesny SaaS.
 
 #### Code Review — Issue List (2026-03-23)
 
 **P0 — Krytyczne:**
-1. Detail page to god-component (436 linii, 12 useState) — niemożliwe do testowania
-2. Brak stanu "already applied" — klub widzi formularz Apply nawet po aplikacji
-3. `getById` to publicProcedure — zgłoszenia z danymi widoczne dla anonimowych
-4. Brak mutacji `complete` — MATCHED wisi wiecznie, canReview sprawdza COMPLETED
+1. ~~Detail page to god-component (436 linii, 12 useState)~~ → rozbity na 4 sub-components (I1-2) ✅
+2. ~~Brak stanu "already applied"~~ → badge z aktualnym statusem zgłoszenia (I1-4) ✅
+3. ~~`getById` to publicProcedure — zgłoszenia widoczne dla anonimowych~~ → filtrowanie po auth (I1-6) ✅
+4. ~~Brak mutacji `complete`~~ → dodana mutacja MATCHED → COMPLETED (I1-5) ✅
 
 **P1 — Ważne UX:**
-1. Formularz create/edit to "jeden ekran na wszystko" — brak multi-step wizard
-2. Raw `<select>` zamiast shadcn Select na 3 stronach — brak dark mode support
-3. Karta sparingu nie komunikuje wartości — brak poziomu, kategorii, godzin
-4. "Dodaj sparing" widoczne dla PLAYER — error dopiero po wypełnieniu formularza
-5. Zero feedback po accept/reject — brak next-step CTA
-6. Endpoint `sparing.my` nieużywany w UI — brak panelu "Moje sparingi"
-7. Brak error handling na liście sparingów (`.catch()`)
-8. Niespójne kolory błędów (`border-red-500` vs `border-destructive`)
+1. Formularz create/edit to "jeden ekran na wszystko" — brak multi-step wizard → **Zaplanowane I2-1**
+2. ~~Raw `<select>` zamiast shadcn Select~~ → shadcn Select w SparingForm + liście sparingów (I1-1) ✅
+3. Karta sparingu nie komunikuje wartości — brak poziomu, kategorii, godzin → **Zaplanowane I2-2**
+4. ~~"Dodaj sparing" widoczne dla PLAYER~~ → ukryte dla roli PLAYER (I1-4) ✅
+5. Zero feedback po accept/reject — brak next-step CTA → **Zaplanowane I2-3**
+6. ~~Endpoint `sparing.my` nieużywany w UI~~ → panel "Moje sparingi" z tabs (I1-3) ✅
+7. ~~Brak error handling na liście sparingów~~ → error state + retry (I1-6) ✅
+8. ~~Niespójne kolory błędów~~ → `border-destructive` wszędzie (I1-1) ✅
 
 **P2 — Refaktoryzacja:**
-1. `any` wszędzie na froncie (9 wystąpień w plikach sparingowych)
-2. Duplikacja kodu create/edit — brak shared `<SparingForm>`
+1. `any` wszędzie na froncie (9 wystąpień w plikach sparingowych) — częściowo zmniejszone
+2. ~~Duplikacja kodu create/edit~~ → shared `<SparingForm>` (I1-1) ✅
 3. Ręczny deleteMany przed delete — redundantne (Prisma onDelete: Cascade)
-4. Region fetch bez `.catch()` na 3 stronach
+4. ~~Region fetch bez `.catch()` na 3 stronach~~ → dodane `.catch()` (I1-1, I1-6) ✅
 5. Brak a11y (StarRating bez aria-label, select focus ring)
-6. Brak kontr-propozycji (flow binarny: accept/reject)
+6. Brak kontr-propozycji (flow binarny: accept/reject) → **Zaplanowane I2-4**
 
-#### Plan: Iteracja 1 — Foundation
+#### Plan: Iteracja 1 — Foundation ✅
 
 | # | Zadanie | Pliki | Status |
 |---|---------|-------|--------|
-| I1-1 | **Wydziel `<SparingForm>`** — shared create/edit, shadcn Select zamiast raw, semantic error colors | `src/components/sparings/sparing-form.tsx` (NEW), `sparings/new/page.tsx`, `sparings/[id]/edit/page.tsx` | ⬜ |
-| I1-2 | **Rozdziel detail page na sekcje** — 4 sub-components (~80 linii page.tsx zamiast 436) | `sparings/[id]/page.tsx` → `_components/sparing-info.tsx`, `sparing-applications.tsx`, `sparing-reviews.tsx`, `apply-form.tsx` | ⬜ |
-| I1-3 | **Dodaj "Moje sparingi" panel** — tabs "Szukaj" / "Moje", endpoint `sparing.my` z podziałem na statusy | `sparings/page.tsx` | ⬜ |
-| I1-4 | **Ukryj "Dodaj" dla PLAYER + "already applied" state** — badge "Twoje zgłoszenie: Oczekuje" zamiast formularza | `sparings/page.tsx`, `apply-form.tsx` | ⬜ |
-| I1-5 | **Dodaj mutację `complete`** — owner: MATCHED → COMPLETED, przycisk "Oznacz jako zakończony" | `routers/sparing.ts`, `sparing-info.tsx` | ⬜ |
-| I1-6 | **Error handling na liście + ograniczenie getById** — `.catch()`, error+retry, zgłoszenia widoczne tylko ownerowi | `sparings/page.tsx`, `routers/sparing.ts` | ⬜ |
+| I1-1 | **Wydziel `<SparingForm>`** — shared create/edit, shadcn Select zamiast raw, semantic error colors | `src/components/sparings/sparing-form.tsx` (NEW), `sparings/new/page.tsx`, `sparings/[id]/edit/page.tsx` | ✅ |
+| I1-2 | **Rozdziel detail page na sekcje** — 4 sub-components (~120 linii page.tsx zamiast 436) | `sparings/[id]/page.tsx` → `_components/sparing-info.tsx`, `sparing-applications.tsx`, `sparing-reviews.tsx`, `apply-form.tsx` | ✅ |
+| I1-3 | **Dodaj "Moje sparingi" panel** — tabs "Szukaj" / "Moje", endpoint `sparing.my` z podziałem na statusy | `sparings/page.tsx` | ✅ |
+| I1-4 | **Ukryj "Dodaj" dla PLAYER + "already applied" state** — badge "Twoje zgłoszenie: Oczekuje" zamiast formularza | `sparings/page.tsx`, `apply-form.tsx` | ✅ |
+| I1-5 | **Dodaj mutację `complete`** — owner: MATCHED → COMPLETED, przycisk "Oznacz jako zakończony" | `routers/sparing.ts`, `sparing-info.tsx` | ✅ |
+| I1-6 | **Error handling na liście + ograniczenie getById** — `.catch()`, error+retry, zgłoszenia widoczne tylko ownerowi/aplikantowi | `sparings/page.tsx`, `routers/sparing.ts` | ✅ |
 
 #### Plan: Iteracja 2 — UX Uplift (Footinho vibe)
 
