@@ -22,7 +22,7 @@ export const feedRouter = router({
       const now = new Date();
 
       // Fetch recent items in parallel
-      const [sparings, events, clubs, players] = await Promise.all([
+      const [sparings, events, transfers, clubs, players] = await Promise.all([
         ctx.db.sparingOffer.findMany({
           where: {
             status: "OPEN",
@@ -48,6 +48,18 @@ export const feedRouter = router({
           orderBy: { createdAt: "desc" },
           take: input.limit,
         }),
+        ctx.db.transfer.findMany({
+          where: {
+            status: "ACTIVE",
+            ...(regionId ? { regionId } : {}),
+          },
+          include: {
+            user: { select: { id: true, club: { select: { name: true, city: true } }, player: { select: { firstName: true, lastName: true, city: true } } } },
+            region: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+        }),
         ctx.db.club.findMany({
           where: regionId ? { regionId } : {},
           include: { region: { select: { name: true } } },
@@ -66,12 +78,14 @@ export const feedRouter = router({
       type FeedItem =
         | { type: "sparing"; data: (typeof sparings)[0]; createdAt: Date }
         | { type: "event"; data: (typeof events)[0]; createdAt: Date }
+        | { type: "transfer"; data: (typeof transfers)[0]; createdAt: Date }
         | { type: "club"; data: (typeof clubs)[0]; createdAt: Date }
         | { type: "player"; data: (typeof players)[0]; createdAt: Date };
 
       const items: FeedItem[] = [
         ...sparings.map((s) => ({ type: "sparing" as const, data: s, createdAt: s.createdAt })),
         ...events.map((e) => ({ type: "event" as const, data: e, createdAt: e.createdAt })),
+        ...transfers.map((t) => ({ type: "transfer" as const, data: t, createdAt: t.createdAt })),
         ...clubs.map((c) => ({ type: "club" as const, data: c, createdAt: c.createdAt })),
         ...players.map((p) => ({ type: "player" as const, data: p, createdAt: p.createdAt })),
       ];

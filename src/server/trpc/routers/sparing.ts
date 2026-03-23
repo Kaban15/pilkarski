@@ -147,7 +147,7 @@ export const sparingRouter = router({
           region: true,
           applications: {
             include: {
-              applicantClub: { select: { id: true, name: true, city: true, logoUrl: true } },
+              applicantClub: { select: { id: true, name: true, city: true, logoUrl: true, userId: true } },
             },
             orderBy: { createdAt: "desc" },
           },
@@ -176,6 +176,13 @@ export const sparingRouter = router({
       }
       if (offer.status !== "OPEN") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest już otwarty" });
+      }
+
+      const existing = await ctx.db.sparingApplication.findUnique({
+        where: { sparingOfferId_applicantClubId: { sparingOfferId: input.sparingOfferId, applicantClubId: club.id } },
+      });
+      if (existing) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Już aplikowałeś na ten sparing" });
       }
 
       const application = await ctx.db.sparingApplication.create({

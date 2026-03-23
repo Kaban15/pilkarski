@@ -3,7 +3,13 @@ import { z } from "zod/v4";
 export const createSparingSchema = z.object({
   title: z.string().min(3, "Tytuł musi mieć min. 3 znaki").max(300),
   description: z.string().max(2000).optional(),
-  matchDate: z.string().min(1, "Data meczu jest wymagana"),
+  matchDate: z.string().min(1, "Data meczu jest wymagana").refine(
+    (s) => {
+      const d = Date.parse(s);
+      return !isNaN(d) && d > Date.now();
+    },
+    { message: "Data meczu musi być w przyszłości" }
+  ),
   location: z.string().max(300).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
@@ -23,6 +29,10 @@ export const respondApplicationSchema = z.object({
 
 export const updateSparingSchema = createSparingSchema.extend({
   id: z.string().uuid(),
+  matchDate: z.string().min(1, "Data meczu jest wymagana").refine(
+    (s) => !isNaN(Date.parse(s)),
+    { message: "Nieprawidłowa data" }
+  ),
 });
 
 export type CreateSparingInput = z.infer<typeof createSparingSchema>;

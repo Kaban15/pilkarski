@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
 import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
@@ -13,6 +14,7 @@ import {
   Trophy,
   Shield,
   UserPlus,
+  ArrowRightLeft,
   Calendar,
   MapPin,
   MessageSquare,
@@ -22,7 +24,7 @@ import {
 } from "lucide-react";
 
 type FeedItem = {
-  type: "sparing" | "event" | "club" | "player";
+  type: "sparing" | "event" | "transfer" | "club" | "player";
   data: any;
   createdAt: string;
 };
@@ -46,6 +48,12 @@ const FEED_CONFIG = {
     border: "border-l-blue-500",
     badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
   },
+  transfer: {
+    icon: ArrowRightLeft,
+    label: "Transfer",
+    border: "border-l-cyan-500",
+    badge: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
+  },
   player: {
     icon: UserPlus,
     label: "Nowy zawodnik",
@@ -64,6 +72,8 @@ function FeedCard({ item }: { item: FeedItem }) {
         return `/sparings/${item.data.id}`;
       case "event":
         return `/events/${item.data.id}`;
+      case "transfer":
+        return `/transfers/${item.data.id}`;
       case "club":
         return `/clubs/${item.data.id}`;
       case "player":
@@ -76,6 +86,8 @@ function FeedCard({ item }: { item: FeedItem }) {
       case "sparing":
         return item.data.title;
       case "event":
+        return item.data.title;
+      case "transfer":
         return item.data.title;
       case "club":
         return item.data.name;
@@ -94,6 +106,12 @@ function FeedCard({ item }: { item: FeedItem }) {
           " · " +
           item.data.club.name
         );
+      case "transfer": {
+        const u = item.data.user;
+        const name = u?.club?.name ?? (u?.player ? `${u.player.firstName} ${u.player.lastName}` : "");
+        const city = u?.club?.city ?? u?.player?.city ?? "";
+        return name + (city ? ` · ${city}` : "") + (item.data.region ? ` · ${item.data.region.name}` : "");
+      }
       case "club":
         return (
           (item.data.city ?? "") +
@@ -226,18 +244,26 @@ export default function FeedPage() {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [regionName, setRegionName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
-  useEffect(() => {
+  function loadFeed() {
+    setLoading(true);
+    setError(null);
     trpc.feed.get
       .query({ limit: 30 })
       .then((data) => {
         setItems(data.items as any);
         setRegionName(data.regionName);
       })
+      .catch(() => setError("Nie udało się załadować feedu"))
       .finally(() => setLoading(false));
 
     trpc.stats.dashboard.query().then(setStats).catch(() => {});
+  }
+
+  useEffect(() => {
+    loadFeed();
   }, []);
 
   return (
@@ -263,6 +289,15 @@ export default function FeedPage() {
             <FeedCardSkeleton key={i} />
           ))}
         </div>
+      ) : error ? (
+        <Card className="border-destructive/20">
+          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-sm text-destructive">{error}</p>
+            <Button variant="outline" size="sm" onClick={loadFeed}>
+              Spróbuj ponownie
+            </Button>
+          </CardContent>
+        </Card>
       ) : items.length === 0 ? (
         <EmptyState
           icon={Swords}

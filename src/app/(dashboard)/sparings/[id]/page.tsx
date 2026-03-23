@@ -49,11 +49,12 @@ export default function SparingDetailPage() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      trpc.sparing.getById.query({ id }).then(setSparing);
-      trpc.review.getForSparing.query({ sparingOfferId: id }).then(setReviews);
+      trpc.sparing.getById.query({ id }).then(setSparing).catch(() => setError("Nie znaleziono sparingu"));
+      trpc.review.getForSparing.query({ sparingOfferId: id }).then(setReviews).catch(() => {});
       trpc.review.myReview.query({ sparingOfferId: id }).then(setMyReview).catch(() => {});
     }
   }, [id]);
@@ -132,13 +133,27 @@ export default function SparingDetailPage() {
     }
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <Swords className="h-12 w-12 text-muted-foreground" />
+        <p className="text-lg font-medium">{error}</p>
+        <Button variant="outline" onClick={() => router.push("/sparings")}>
+          Wróć do listy
+        </Button>
+      </div>
+    );
+  }
+
   if (!sparing) return <DetailPageSkeleton />;
 
   const isOwner = session?.user?.id === sparing.club.userId;
+  const isClub = session?.user?.role === "CLUB";
   const acceptedApp = sparing.applications.find((a: any) => a.status === "ACCEPTED");
-  const isParticipant = isOwner || (acceptedApp && session?.user?.id && sparing.applications.some(
-    (a: any) => a.status === "ACCEPTED" && a.applicantClub
-  ));
+  const isAcceptedApplicant = acceptedApp && session?.user?.id && sparing.applications.some(
+    (a: any) => a.status === "ACCEPTED" && a.applicantClub?.userId === session.user.id
+  );
+  const isParticipant = isOwner || isAcceptedApplicant;
   const canReview = (sparing.status === "MATCHED" || sparing.status === "COMPLETED") && isParticipant && !myReview && session?.user;
 
   return (
@@ -265,7 +280,7 @@ export default function SparingDetailPage() {
       </Card>
 
       {/* Apply section (for other clubs) */}
-      {sparing.status === "OPEN" && !isOwner && (
+      {sparing.status === "OPEN" && !isOwner && isClub && (
         <Card className="mb-6 border-primary/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
