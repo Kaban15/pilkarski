@@ -15,6 +15,7 @@ import {
   TRANSFER_TYPE_COLORS,
   POSITION_LABELS,
 } from "@/lib/labels";
+import type { TransferType, TransferPosition } from "@/lib/validators/transfer";
 import {
   ArrowRightLeft,
   Plus,
@@ -37,8 +38,8 @@ export default function TransfersPage() {
   const hasActiveFilters = !!typeFilter || !!positionFilter || !!regionId;
 
   const queryInput = {
-    type: (typeFilter as any) || undefined,
-    position: (positionFilter as any) || undefined,
+    type: (typeFilter || undefined) as TransferType | undefined,
+    position: (positionFilter || undefined) as TransferPosition | undefined,
     regionId,
     limit: 20,
   };

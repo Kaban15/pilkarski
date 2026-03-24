@@ -124,7 +124,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                   setLeagueLevelId(null);
                   setLeagueGroupId(null);
                 }}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">Wybierz region</option>
                 {regions.map((r) => (
@@ -146,7 +146,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                   setLeagueGroupId(null);
                 }}
                 disabled={!regionId || hierarchy.length === 0}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50"
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">Wybierz szczebel</option>
                 {hierarchy.map((l) => (
@@ -166,7 +166,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                   setLeagueGroupId(e.target.value ? Number(e.target.value) : null)
                 }
                 disabled={!selectedLevel}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50"
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">Wybierz grupę</option>
                 {selectedLevel?.groups.map((g) => (

@@ -93,9 +93,9 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
       heightCm: fd.get("heightCm") ? Number(fd.get("heightCm")) : undefined,
       weightKg: fd.get("weightKg") ? Number(fd.get("weightKg")) : undefined,
-      preferredFoot: (fd.get("preferredFoot") as any) || undefined,
-      primaryPosition: (fd.get("primaryPosition") as any) || undefined,
-      secondaryPosition: (fd.get("secondaryPosition") as any) || undefined,
+      preferredFoot: (fd.get("preferredFoot") as string || undefined) as "LEFT" | "RIGHT" | "BOTH" | undefined,
+      primaryPosition: (fd.get("primaryPosition") as string || undefined) as "GK" | "CB" | "LB" | "RB" | "CDM" | "CM" | "CAM" | "LM" | "RM" | "LW" | "RW" | "ST" | undefined,
+      secondaryPosition: (fd.get("secondaryPosition") as string || undefined) as "GK" | "CB" | "LB" | "RB" | "CDM" | "CM" | "CAM" | "LM" | "RM" | "LW" | "RW" | "ST" | undefined,
       bio: (fd.get("bio") as string) || undefined,
     });
   }
@@ -155,7 +155,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                   id="regionId"
                   name="regionId"
                   defaultValue={player.regionId ?? ""}
-                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Wybierz region</option>
                   {regions.map((r) => (
@@ -193,7 +193,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                   id="preferredFoot"
                   name="preferredFoot"
                   defaultValue={player.preferredFoot ?? ""}
-                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Wybierz</option>
                   <option value="LEFT">Lewa</option>
@@ -207,7 +207,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                   id="primaryPosition"
                   name="primaryPosition"
                   defaultValue={player.primaryPosition ?? ""}
-                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Wybierz</option>
                   {POSITIONS.map((p) => (
@@ -223,7 +223,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                   id="secondaryPosition"
                   name="secondaryPosition"
                   defaultValue={player.secondaryPosition ?? ""}
-                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                  className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Wybierz</option>
                   {POSITIONS.map((p) => (

@@ -8,6 +8,7 @@ import {
 } from "@/lib/validators/event";
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
+import { sendPushToUser } from "@/server/send-push";
 
 export const eventRouter = router({
   // Create event (club only)
@@ -97,7 +98,6 @@ export const eventRouter = router({
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
       if (event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
 
-      await ctx.db.eventApplication.deleteMany({ where: { eventId: input.id } });
       return ctx.db.event.delete({ where: { id: input.id } });
     }),
 
@@ -219,6 +219,11 @@ export const eventRouter = router({
           link: `/events/${event.id}`,
         },
       }).catch(() => {});
+      sendPushToUser(event.club.userId, {
+        title: "Nowe zgłoszenie na wydarzenie",
+        body: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
+        url: `/events/${event.id}`,
+      }).catch(() => {});
 
       return application;
     }),
@@ -248,14 +253,21 @@ export const eventRouter = router({
       });
 
       // Notify player (fire-and-forget)
+      const evtNotifTitle = input.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane!" : "Zgłoszenie odrzucone";
+      const evtNotifMsg = `Twoje zgłoszenie na "${updated.event.title}" zostało ${input.status === "ACCEPTED" ? "zaakceptowane" : "odrzucone"}`;
       ctx.db.notification.create({
         data: {
           userId: updated.player.userId,
           type: input.status === "ACCEPTED" ? "EVENT_ACCEPTED" : "EVENT_REJECTED",
-          title: input.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane!" : "Zgłoszenie odrzucone",
-          message: `Twoje zgłoszenie na "${updated.event.title}" zostało ${input.status === "ACCEPTED" ? "zaakceptowane" : "odrzucone"}`,
+          title: evtNotifTitle,
+          message: evtNotifMsg,
           link: `/events/${application.event.id}`,
         },
+      }).catch(() => {});
+      sendPushToUser(updated.player.userId, {
+        title: evtNotifTitle,
+        body: evtNotifMsg,
+        url: `/events/${application.event.id}`,
       }).catch(() => {});
 
       return updated;

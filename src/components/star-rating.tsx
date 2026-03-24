@@ -17,14 +17,16 @@ const SIZES = {
 
 export function StarRating({ value, onChange, size = "md", readonly = false }: StarRatingProps) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5" role="group" aria-label="Ocena">
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
           disabled={readonly}
           onClick={() => onChange?.(star)}
-          className={`${readonly ? "cursor-default" : "cursor-pointer transition-transform hover:scale-110"} focus:outline-none`}
+          aria-label={`${star} ${star === 1 ? "gwiazdka" : star < 5 ? "gwiazdki" : "gwiazdek"}`}
+          aria-pressed={star <= value}
+          className={`${readonly ? "cursor-default" : "cursor-pointer transition-transform hover:scale-110"} focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-sm`}
         >
           <Star
             className={`${SIZES[size]} ${

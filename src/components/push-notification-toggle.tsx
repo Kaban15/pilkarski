@@ -68,8 +68,8 @@ export function PushNotificationToggle() {
 
         toast.success("Powiadomienia push włączone!");
       }
-    } catch (err: any) {
-      toast.error("Błąd: " + (err.message || "spróbuj ponownie"));
+    } catch (err) {
+      toast.error("Błąd: " + (err instanceof Error ? err.message : "spróbuj ponownie"));
     } finally {
       setLoading(false);
     }

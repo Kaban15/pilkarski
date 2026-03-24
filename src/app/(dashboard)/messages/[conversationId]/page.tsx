@@ -54,7 +54,7 @@ export default function ConversationPage() {
   // Sync messages data from query to local state
   useEffect(() => {
     if (!messagesData) return;
-    const items = (messagesData as any).items as Message[];
+    const items = (messagesData as { items: Message[] }).items;
     const newLastId = items.length > 0 ? items[items.length - 1].id : null;
     if (newLastId !== lastMessageIdRef.current) {
       setMessages(items);
@@ -70,7 +70,7 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (!convs || !conversationId) return;
-    const conv = (convs as any[]).find((c: any) => c.id === conversationId);
+    const conv = (convs as unknown as { id: string; otherUser: { id: string; email?: string; club?: { name: string } | null; player?: { firstName: string; lastName: string } | null } | null }[]).find((c) => c.id === conversationId);
     if (conv?.otherUser) {
       setOtherUserId(conv.otherUser.id);
       setOtherUserName(getUserDisplayName(conv.otherUser));
@@ -107,7 +107,7 @@ export default function ConversationPage() {
 
   const sendMut = api.message.send.useMutation({
     onSuccess: (result) => {
-      setMessages((prev) => [...prev, result.message as any]);
+      setMessages((prev) => [...prev, result.message as unknown as Message]);
       setNewMessage("");
       channelRef.current?.send({
         type: "broadcast",

@@ -13,7 +13,7 @@ import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { POSITION_LABELS } from "@/lib/labels";
 import { getFieldErrors } from "@/lib/form-errors";
-import { updateTransferSchema } from "@/lib/validators/transfer";
+import { updateTransferSchema, type TransferType, type TransferPosition } from "@/lib/validators/transfer";
 import { ArrowRightLeft } from "lucide-react";
 
 export default function EditTransferPage() {
@@ -74,10 +74,10 @@ export default function EditTransferPage() {
 
     const data = {
       id,
-      type: form.type as any,
+      type: form.type as TransferType,
       title: form.title,
       description: form.description || undefined,
-      position: form.position as any || undefined,
+      position: (form.position || undefined) as TransferPosition | undefined,
       regionId: form.regionId ? Number(form.regionId) : undefined,
       minAge: form.minAge ? Number(form.minAge) : undefined,
       maxAge: form.maxAge ? Number(form.maxAge) : undefined,

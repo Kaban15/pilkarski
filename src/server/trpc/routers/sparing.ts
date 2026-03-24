@@ -8,6 +8,7 @@ import {
 } from "@/lib/validators/sparing";
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
+import { sendPushToUser } from "@/server/send-push";
 
 export const sparingRouter = router({
   create: rateLimitedProcedure({ maxAttempts: 5 })
@@ -105,7 +106,6 @@ export const sparingRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Można usunąć tylko otwarte sparingi" });
       }
 
-      await ctx.db.sparingApplication.deleteMany({ where: { sparingOfferId: input.id } });
       return ctx.db.sparingOffer.delete({ where: { id: input.id } });
     }),
 
@@ -242,6 +242,11 @@ export const sparingRouter = router({
           link: `/sparings/${offer.id}`,
         },
       }).catch(() => {});
+      sendPushToUser(offer.club.userId, {
+        title: "Nowe zgłoszenie na sparing",
+        body: `${club.name} chce zagrać sparing`,
+        url: `/sparings/${offer.id}`,
+      }).catch(() => {});
 
       awardPoints(ctx.db, ctx.session.user.id, "application_sent", application.id).catch(() => {});
 
@@ -302,14 +307,21 @@ export const sparingRouter = router({
       }
 
       // Notify applicant (fire-and-forget)
+      const notifTitle = input.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane!" : "Zgłoszenie odrzucone";
+      const notifMessage = `Twoje zgłoszenie na sparing "${updated.sparingOffer.title}" zostało ${input.status === "ACCEPTED" ? "zaakceptowane" : "odrzucone"}`;
       ctx.db.notification.create({
         data: {
           userId: updated.applicantClub.userId,
           type: input.status === "ACCEPTED" ? "SPARING_ACCEPTED" : "SPARING_REJECTED",
-          title: input.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane!" : "Zgłoszenie odrzucone",
-          message: `Twoje zgłoszenie na sparing "${updated.sparingOffer.title}" zostało ${input.status === "ACCEPTED" ? "zaakceptowane" : "odrzucone"}`,
+          title: notifTitle,
+          message: notifMessage,
           link: `/sparings/${application.sparingOfferId}`,
         },
+      }).catch(() => {});
+      sendPushToUser(updated.applicantClub.userId, {
+        title: notifTitle,
+        body: notifMessage,
+        url: `/sparings/${application.sparingOfferId}`,
       }).catch(() => {});
 
       return updated;

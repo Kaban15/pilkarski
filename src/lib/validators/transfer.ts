@@ -13,3 +13,6 @@ export const createTransferSchema = z.object({
 export const updateTransferSchema = createTransferSchema.extend({
   id: z.string().uuid(),
 });
+
+export type TransferType = "LOOKING_FOR_CLUB" | "LOOKING_FOR_PLAYER" | "FREE_AGENT";
+export type TransferPosition = "GK" | "CB" | "LB" | "RB" | "CDM" | "CM" | "CAM" | "LM" | "RM" | "LW" | "RW" | "ST";

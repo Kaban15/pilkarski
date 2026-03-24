@@ -140,7 +140,7 @@ export default function EventsPage() {
           </select>
           <select
             value={type ?? ""}
-            onChange={(e) => setType((e.target.value || undefined) as any)}
+            onChange={(e) => setType((e.target.value || undefined) as "OPEN_TRAINING" | "RECRUITMENT" | undefined)}
             className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Wszystkie typy</option>
@@ -151,8 +151,8 @@ export default function EventsPage() {
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [sb, so] = e.target.value.split("-");
-              setSortBy(sb as any);
-              setSortOrder(so as any);
+              setSortBy(sb as "eventDate" | "createdAt" | "title");
+              setSortOrder(so as "asc" | "desc");
             }}
             className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
           >

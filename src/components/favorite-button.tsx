@@ -39,6 +39,7 @@ export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = fal
       disabled={toggle.isPending}
       className="rounded-full p-1.5 transition hover:bg-secondary disabled:opacity-50"
       title={favorited ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+      aria-label={favorited ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

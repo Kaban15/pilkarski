@@ -230,7 +230,7 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {(stats as any)[c.key] ?? 0}
+                  {(stats as unknown as Record<string, number>)[c.key] ?? 0}
                 </p>
                 <p className="text-xs text-muted-foreground">{c.label}</p>
               </div>

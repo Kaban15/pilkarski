@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { POSITION_LABELS } from "@/lib/labels";
 import { getFieldErrors } from "@/lib/form-errors";
-import { createTransferSchema } from "@/lib/validators/transfer";
+import { createTransferSchema, type TransferType, type TransferPosition } from "@/lib/validators/transfer";
 import { ArrowRightLeft } from "lucide-react";
 
 export default function NewTransferPage() {
@@ -67,10 +67,10 @@ export default function NewTransferPage() {
     setErrors({});
 
     const data = {
-      type: form.type as any,
+      type: form.type as TransferType,
       title: form.title,
       description: form.description || undefined,
-      position: form.position as any || undefined,
+      position: (form.position || undefined) as TransferPosition | undefined,
       regionId: form.regionId ? Number(form.regionId) : undefined,
       minAge: form.minAge ? Number(form.minAge) : undefined,
       maxAge: form.maxAge ? Number(form.maxAge) : undefined,
