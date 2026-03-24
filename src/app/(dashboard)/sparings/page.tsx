@@ -176,9 +176,9 @@ function SearchTab() {
   return (
     <>
       <div className="mb-6 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <Select value={regionId} onValueChange={setRegionId}>
-            <SelectTrigger className="h-9 w-auto min-w-[180px]">
+            <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
               <SelectValue placeholder="Wszystkie regiony" />
             </SelectTrigger>
             <SelectContent>
@@ -191,7 +191,7 @@ function SearchTab() {
             </SelectContent>
           </Select>
           <Select value={sortValue} onValueChange={setSortValue}>
-            <SelectTrigger className="h-9 w-auto min-w-[180px]">
+            <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -207,7 +207,7 @@ function SearchTab() {
             variant={showFilters ? "secondary" : "outline"}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="gap-1.5"
+            className="shrink-0 gap-1.5"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filtry

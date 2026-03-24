@@ -30,6 +30,7 @@ import {
 type SparingInfoProps = {
   sparing: any;
   isOwner: boolean;
+  acceptedApp?: any;
   showDeleteConfirm: boolean;
   setShowDeleteConfirm: (v: boolean) => void;
   showCompleteConfirm: boolean;
@@ -43,6 +44,7 @@ type SparingInfoProps = {
 export function SparingInfo({
   sparing,
   isOwner,
+  acceptedApp,
   showDeleteConfirm,
   setShowDeleteConfirm,
   showCompleteConfirm,
@@ -52,6 +54,7 @@ export function SparingInfo({
   deleting,
   completing,
 }: SparingInfoProps) {
+  const opponent = acceptedApp?.applicantClub;
   return (
     <>
       {/* Header */}
@@ -71,6 +74,26 @@ export function SparingInfo({
             {sparing.club.name}
             {sparing.club.city && ` · ${sparing.club.city}`}
           </p>
+          {opponent && (sparing.status === "MATCHED" || sparing.status === "COMPLETED") && (
+            <div className="mt-3 flex items-center gap-2.5 rounded-lg border bg-muted/40 px-3 py-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                {opponent.logoUrl ? (
+                  <img src={opponent.logoUrl} alt={opponent.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-xs font-bold text-muted-foreground">
+                    {(opponent.name ?? "?").slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm">
+                <span className="text-muted-foreground">Przeciwnik: </span>
+                <span className="font-medium">{opponent.name}</span>
+                {opponent.city && (
+                  <span className="text-muted-foreground"> · {opponent.city}</span>
+                )}
+              </div>
+            </div>
+          )}
           <div className="mt-3">
             <SendMessageButton recipientUserId={sparing.club.userId} />
           </div>

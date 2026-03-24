@@ -31,6 +31,19 @@ import {
   Trophy,
 } from "lucide-react";
 
+type EventApplication = {
+  id: string;
+  status: string;
+  message: string | null;
+  player: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    primaryPosition: string | null;
+    photoUrl: string | null;
+  };
+};
+
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -70,7 +83,7 @@ export default function EventDetailPage() {
   if (!event) return <DetailPageSkeleton />;
 
   const isOwner = session?.user?.id === event.club.userId;
-  const acceptedCount = event.applications.filter((a: any) => a.status === "ACCEPTED").length;
+  const acceptedCount = event.applications.filter((a: EventApplication) => a.status === "ACCEPTED").length;
 
   return (
     <div className="animate-fade-in">
@@ -234,7 +247,7 @@ export default function EventDetailPage() {
             <p className="py-4 text-center text-sm text-muted-foreground">Brak zgłoszeń</p>
           ) : (
             <ul className="divide-y divide-border">
-              {event.applications.map((app: any) => (
+              {event.applications.map((app: EventApplication) => (
                 <li key={app.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="font-medium">

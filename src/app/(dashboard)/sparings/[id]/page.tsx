@@ -10,6 +10,20 @@ import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Swords } from "lucide-react";
 
+type SparingApplication = {
+  id: string;
+  status: string;
+  message: string | null;
+  counterProposedDate: Date | null;
+  applicantClub: {
+    id: string;
+    name: string;
+    city: string | null;
+    logoUrl: string | null;
+    userId: string;
+  };
+};
+
 import { SparingInfo } from "./_components/sparing-info";
 import { SparingTimeline } from "./_components/sparing-timeline";
 import { ApplyForm } from "./_components/apply-form";
@@ -92,12 +106,12 @@ export default function SparingDetailPage() {
 
   const isOwner = session?.user?.id === sparing.club.userId;
   const isClub = session?.user?.role === "CLUB";
-  const acceptedApp = sparing.applications?.find((a: any) => a.status === "ACCEPTED");
+  const acceptedApp = sparing.applications?.find((a: SparingApplication) => a.status === "ACCEPTED");
   const isAcceptedApplicant =
     acceptedApp &&
     session?.user?.id &&
     sparing.applications?.some(
-      (a: any) => a.status === "ACCEPTED" && a.applicantClub?.userId === session.user.id
+      (a: SparingApplication) => a.status === "ACCEPTED" && a.applicantClub?.userId === session.user.id
     );
   const isParticipant = !!(isOwner || isAcceptedApplicant);
   const canReview = !!(
@@ -109,7 +123,7 @@ export default function SparingDetailPage() {
 
   // Find current user's existing application
   const myApplication = isClub && !isOwner && session?.user?.id
-    ? sparing.applications?.find((a: any) => a.applicantClub?.userId === session.user.id)
+    ? sparing.applications?.find((a: SparingApplication) => a.applicantClub?.userId === session.user.id)
     : null;
 
   // Determine opponent userId for messaging CTA
@@ -131,6 +145,7 @@ export default function SparingDetailPage() {
       <SparingInfo
         sparing={sparing}
         isOwner={isOwner}
+        acceptedApp={acceptedApp}
         showDeleteConfirm={showDeleteConfirm}
         setShowDeleteConfirm={setShowDeleteConfirm}
         showCompleteConfirm={showCompleteConfirm}

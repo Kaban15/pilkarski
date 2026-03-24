@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import {
   Home,
@@ -21,12 +22,19 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isClub = session?.user?.role === "CLUB";
 
   const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
   });
   const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
+  });
+  const { data: pendingApplications = 0 } = api.stats.clubDashboard.useQuery(undefined, {
+    enabled: isClub,
+    staleTime: 30_000,
+    select: (data) => data?.pendingApplications?.length ?? 0,
   });
 
   return (
@@ -41,7 +49,9 @@ export function BottomNav() {
               ? unreadMessages
               : item.href === "/notifications" && unreadNotifs > 0
                 ? unreadNotifs
-                : 0;
+                : item.href === "/sparings" && pendingApplications > 0
+                  ? pendingApplications
+                  : 0;
 
           return (
             <Link
