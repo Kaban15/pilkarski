@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul ✅ → Rate Limiting + tRPC Migration ✅ → Etap 5: UX Hotfixes + Club Followers + Player Recruitments ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4 ✅ → Etap 5 ✅ → Etap 6: Backlog Cleanup + Push Notifications + Infra Fixes ✅
 **Ostatnia sesja:** 2026-03-24
 
 ---
@@ -569,12 +569,12 @@
 8. ~~Niespójne kolory błędów~~ → `border-destructive` wszędzie (I1-1) ✅
 
 **P2 — Refaktoryzacja:**
-1. `any` wszędzie na froncie (9 wystąpień w plikach sparingowych) — częściowo zmniejszone
+1. ~~`any` wszędzie na froncie (9 wystąpień w plikach sparingowych)~~ → 13 `as any` zastąpionych typami (Etap 6) ✅
 2. ~~Duplikacja kodu create/edit~~ → shared `<SparingForm>` (I1-1) ✅
-3. Ręczny deleteMany przed delete — redundantne (Prisma onDelete: Cascade)
+3. ~~Ręczny deleteMany przed delete~~ → usunięte, Prisma onDelete: Cascade obsługuje (Etap 6) ✅
 4. ~~Region fetch bez `.catch()` na 3 stronach~~ → dodane `.catch()` (I1-1, I1-6) ✅
-5. Brak a11y (StarRating bez aria-label, select focus ring)
-6. Brak kontr-propozycji (flow binarny: accept/reject) → **Zaplanowane I2-4**
+5. ~~Brak a11y (StarRating bez aria-label, select focus ring)~~ → aria-labels + focus-visible rings (Etap 6) ✅
+6. ~~Brak kontr-propozycji (flow binarny: accept/reject)~~ → **I2-4** ✅
 
 #### Plan: Iteracja 1 — Foundation ✅
 
@@ -613,7 +613,7 @@
   npm run build              # successful build
   ```
 - **Istniejące E2E:** `e2e/sparing.spec.ts` (4 testy: create → list → apply → accept)
-- **E2E do dodania:** create wizard, already-applied state, complete flow, PLAYER permissions
+- **Nowe E2E:** `e2e/sparing-advanced.spec.ts` — wizard, already-applied, complete flow, PLAYER permissions ✅
 
 ### Etap 5: UX Hotfixes + Club Followers + Player Recruitments ✅
 
@@ -646,16 +646,60 @@
 | K | **Club dashboard sections** — pending applications, active sparings (3), upcoming events (3). Endpoint `stats.clubDashboard` | `club-sections.tsx` (NEW), `routers/stats.ts`, `feed/page.tsx` | ✅ |
 | L | **Player recruitments feed** — "Nabory dla Ciebie" section. Endpoint `feed.recruitments`. Badge "Dopasowane" na kartach wydarzeń gdy region zgadza się z profilem zawodnika | `player-recruitments.tsx` (NEW), `routers/feed.ts`, `events/page.tsx`, `feed/page.tsx` | ✅ |
 
-### Naprawy z code review (starsze — osobny backlog)
-- Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6
-- Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory w trpc.ts, zastosowane na 6 routerach (message.send 20/min, sparing/event create 5/min, review.create 5/min, transfer.create 5/min, favorite.toggle 30/min)
-- Fix #5: ~~Migracja na tRPC React Query hooks~~ → ✅ Pełna migracja z vanilla `trpc.xxx.query()/mutate()` na `api.xxx.useQuery()/useMutation()`. Provider (`QueryClientProvider` + `api.Provider`) w `providers.tsx`. Wszystkie pliki używają `@/lib/trpc-react`. Zero pozostałych importów z `@/lib/trpc`. Korzyści: automatyczny cache, deduplication, `refetchInterval` zamiast `setInterval`, `invalidate()` zamiast ręcznego refetch, `isPending` zamiast `useState(loading)`.
-- Fix #6: Wyeliminować `as any` — użyć Prisma types (częściowo w I1-2)
+### Etap 6: Backlog Cleanup + Push Notifications + Infra Fixes ✅
 
-### Konfiguracja push (opcjonalna)
-1. `npx web-push generate-vapid-keys`
-2. Dodaj `NEXT_PUBLIC_VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY` do env vars
-3. Zainstaluj `web-push` i dodaj API endpoint do wysyłania push
+**Cel:** Wyczyszczenie backlogu (type safety, a11y, redundancje), push notifications, fix connection pool.
+
+#### Infra Fixes
+
+| # | Zadanie | Status |
+|---|---------|--------|
+| 1 | **Transaction Pooler** — przełączenie z Session Pooler (port 5432) na Transaction Pooler (port 6543). Fix "MaxClientsInSessionMode". Pool `max: 1`, `idleTimeout: 10s` | ✅ |
+| 2 | **Server-side image upload** — przeniesienie uploadu zdjęć z client-side (anon key + RLS) na `/api/upload` (service_role key). Fix "row-level security policy" | ✅ |
+| 3 | **SUPABASE_SERVICE_ROLE_KEY** — dodany na Vercel (production + preview) | ✅ |
+| 4 | **Polling 30s → 60s** — zmniejszenie obciążenia DB z navbar queries | ✅ |
+
+#### Type Safety — `as any` elimination ✅
+
+13 instancji `as any` zastąpionych typami w 8 plikach:
+- `auth/config.ts` — `(user as { role: string }).role`
+- `player-profile-form.tsx` — enum casts (`"LEFT" | "RIGHT" | "BOTH"`, position enums)
+- `transfers/page.tsx`, `new/page.tsx`, `edit/page.tsx` — `TransferType`, `TransferPosition`
+- `events/page.tsx` — `"OPEN_TRAINING" | "RECRUITMENT"`, sort enums
+- `feed/page.tsx` — `Record<string, number>`
+- `messages/[conversationId]/page.tsx` — typed message/conversation casts
+- `push-notification-toggle.tsx` — `err instanceof Error`
+
+#### Redundant Code Removal ✅
+- Usunięte `deleteMany` przed `delete` w `sparing.ts` i `event.ts` (Prisma Cascade obsługuje)
+
+#### A11y ✅
+- `star-rating.tsx` — `role="group"`, `aria-label`, `aria-pressed`, `focus-visible:ring-2`
+- `favorite-button.tsx` — `aria-label`
+- `form-tooltip.tsx` — `aria-label="Pomoc"`
+- `theme-toggle.tsx` — `aria-label`
+- `club-profile-form.tsx`, `player-profile-form.tsx` — `focus:ring-2 focus:ring-ring` na wszystkich `<select>`
+
+#### Push Notifications ✅
+- `web-push` + VAPID keys wygenerowane i dodane na Vercel
+- `sendPushToUser()` helper z auto-cleanup expired subscriptions (status 410)
+- Push fire-and-forget przy: sparing apply/respond, event apply/respond
+
+#### E2E Tests ✅
+- `e2e/sparing-advanced.spec.ts` — 4 testy: wizard flow, already-applied, complete flow, player permissions
+
+### Naprawy z code review (starsze — osobny backlog) ✅
+- Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6 ✅
+- Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory
+- Fix #5: ~~Migracja na tRPC React Query hooks~~ → ✅ Pełna migracja
+- Fix #6: ~~Wyeliminować `as any`~~ → ✅ 13 instancji zastąpionych typami (Etap 6)
+
+### Push Notifications ✅
+- `web-push` zainstalowany, VAPID keys wygenerowane
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY` na Vercel
+- `src/server/send-push.ts` — helper `sendPushToUser()` z auto-cleanup expired subscriptions
+- Push wysyłany przy: sparing apply, sparing respond, event apply, event respond
+- Service Worker `public/sw.js` — obsługuje push event + notificationclick
 
 ---
 
@@ -685,11 +729,12 @@
 | Font        | Inter (next/font/google)               |
 | API         | tRPC v11 (fetch adapter)               |
 | ORM         | Prisma 7 + @prisma/adapter-pg          |
-| Baza danych | PostgreSQL (Supabase — Session Pooler) |
-| Storage     | Supabase Storage (bucket `avatars`)    |
+| Baza danych | PostgreSQL (Supabase — Transaction Pooler, port 6543) |
+| Storage     | Supabase Storage (bucket `avatars`, server-side upload) |
+| Push        | web-push (VAPID, Service Worker)        |
 | Auth        | Auth.js v5 (next-auth@beta)            |
 | Walidacja   | Zod v4                                 |
-| Testy       | Playwright (E2E, 22 testy)             |
+| Testy       | Playwright (E2E, 26 testów)            |
 | Hosting     | Vercel (`pilkarski.vercel.app`)         |
 
 ---
@@ -703,7 +748,7 @@ prisma/seed.ts                        — seed regionów/lig/grup
 
 src/middleware.ts                      — ochrona tras (JWT, Edge-compatible, public prefixes)
 src/server/auth/config.ts             — Auth.js config (credentials)
-src/server/db/client.ts               — Prisma client singleton (PrismaPg adapter)
+src/server/db/client.ts               — Prisma client singleton (PrismaPg adapter, Transaction Pooler, max:1)
 src/server/trpc/trpc.ts               — tRPC init + publicProcedure + protectedProcedure
 src/server/trpc/router.ts             — root router (health, auth, club, player, region, sparing, event, message, feed, search, notification)
 src/server/trpc/routers/auth.ts       — rejestracja
@@ -723,9 +768,11 @@ src/server/trpc/routers/transfer.ts    — transfery (create, update, delete, cl
 src/server/trpc/routers/gamification.ts — punkty, odznaki, leaderboard
 src/server/trpc/routers/push.ts        — push subscriptions (subscribe, unsubscribe, status)
 src/server/award-points.ts             — helper awardPoints() (fire-and-forget)
+src/server/send-push.ts                — helper sendPushToUser() (web-push + auto-cleanup)
+src/app/api/upload/route.ts            — server-side image upload (service_role key)
 
 src/lib/trpc.ts                       — tRPC vanilla client (frontend)
-src/lib/supabase.ts                   — Supabase client (storage)
+src/lib/supabase.ts                   — Supabase client (realtime)
 src/lib/format.ts                     — formatDate (pl-PL)
 src/lib/labels.ts                     — wspólne stałe (labels, statusy, FOOT_LABELS, notification types, getUserDisplayName)
 src/lib/rate-limit.ts                 — in-memory rate limiter z auto-cleanup
@@ -810,6 +857,7 @@ e2e/event.spec.ts                     — testy wydarzeń (tworzenie → zgłosz
 e2e/messages.spec.ts                  — testy wiadomości (przycisk, konwersacje)
 e2e/notifications.spec.ts             — testy powiadomień (strona, bell icon)
 e2e/public-profiles.spec.ts           — testy publicznych profili i landing page
+e2e/sparing-advanced.spec.ts          — testy: wizard, already-applied, complete, player permissions
 ```
 
 ---
@@ -870,13 +918,14 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 | R3   | Redesign Etap 3: Rozbudowa       | ✅ Gotowe |
 | E4   | Etap 4: Sparing Flow Overhaul    | ✅ Gotowe |
 | E5   | Etap 5: UX + Followers + Recruitments | ✅ Gotowe |
+| E6   | Etap 6: Backlog + Push + Infra Fixes  | ✅ Gotowe |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. **Następny krok:** Backlog — patrz sekcja "Naprawy z code review" i P2 issues (a11y, pozostałe `any`, Prisma onDelete:Cascade cleanup).
+3. **Następny krok:** Backlog wyczyszczony. Wszystkie P0/P1/P2 issues rozwiązane. Platforma gotowa do dalszego rozwoju (nowe moduły, SEO, i18n, testy integracyjne).
 4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
 5. Przed instalacją nowych zależności — pytaj o zgodę.
 6. Po zakończeniu prac — zaktualizuj ten plik.
