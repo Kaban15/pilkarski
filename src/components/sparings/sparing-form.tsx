@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { createSparingSchema, updateSparingSchema, SPARING_LEVELS, AGE_CATEGORIES } from "@/lib/validators/sparing";
 import { SPARING_LEVEL_LABELS, AGE_CATEGORY_LABELS } from "@/lib/labels";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
@@ -68,8 +68,11 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
   const [step, setStep] = useState(0);
+
+  const { data: regions = [] } = api.region.list.useQuery();
+  const createMutation = api.sparing.create.useMutation();
+  const updateMutation = api.sparing.update.useMutation();
 
   const matchDateLocal = defaultValues?.matchDate
     ? new Date(defaultValues.matchDate).toISOString().slice(0, 16)
@@ -86,10 +89,6 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     ageCategory: defaultValues?.ageCategory ?? "",
     regionId: defaultValues?.regionId ? String(defaultValues.regionId) : "",
   });
-
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions).catch(() => {});
-  }, []);
 
   function updateField(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -160,11 +159,11 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
 
     try {
       if (mode === "edit") {
-        await trpc.sparing.update.mutate(data as any);
+        await updateMutation.mutateAsync(data as any);
         toast.success("Sparing zaktualizowany");
         onSuccess?.(defaultValues!.id!);
       } else {
-        const result = await trpc.sparing.create.mutate(data);
+        const result = await createMutation.mutateAsync(data);
         toast.success("Sparing utworzony!");
         onSuccess?.(result.id);
       }

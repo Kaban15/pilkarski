@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,41 +40,37 @@ export default function TransferDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
-  const [transfer, setTransfer] = useState<any>(null);
-  const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [closing, setClosing] = useState(false);
 
-  useEffect(() => {
-    if (id) trpc.transfer.getById.query({ id }).then(setTransfer);
-  }, [id]);
+  const utils = api.useUtils();
 
-  async function handleDelete() {
-    setDeleting(true);
-    try {
-      await trpc.transfer.delete.mutate({ id });
+  const { data: transfer } = api.transfer.getById.useQuery(
+    { id },
+    { enabled: !!id }
+  );
+
+  const deleteMutation = api.transfer.delete.useMutation({
+    onSuccess: () => {
       toast.success("Ogłoszenie usunięte");
       router.push("/transfers");
-    } catch (err: any) {
+    },
+    onError: (err) => {
       toast.error(err.message);
-    } finally {
-      setDeleting(false);
+    },
+    onSettled: () => {
       setShowDeleteConfirm(false);
-    }
-  }
+    },
+  });
 
-  async function handleClose() {
-    setClosing(true);
-    try {
-      await trpc.transfer.close.mutate({ id });
-      setTransfer((prev: any) => ({ ...prev, status: "CLOSED" }));
+  const closeMutation = api.transfer.close.useMutation({
+    onSuccess: () => {
       toast.success("Ogłoszenie zamknięte");
-    } catch (err: any) {
+      utils.transfer.getById.invalidate({ id });
+    },
+    onError: (err) => {
       toast.error(err.message);
-    } finally {
-      setClosing(false);
-    }
-  }
+    },
+  });
 
   if (!transfer) return <DetailPageSkeleton />;
 
@@ -136,11 +132,11 @@ export default function TransferDetailPage() {
               size="sm"
               variant="outline"
               className="gap-1.5"
-              onClick={handleClose}
-              disabled={closing}
+              onClick={() => closeMutation.mutate({ id })}
+              disabled={closeMutation.isPending}
             >
               <XCircle className="h-3.5 w-3.5" />
-              {closing ? "Zamykanie..." : "Zamknij"}
+              {closeMutation.isPending ? "Zamykanie..." : "Zamknij"}
             </Button>
             <Button
               size="sm"
@@ -161,8 +157,8 @@ export default function TransferDetailPage() {
         title="Usuń ogłoszenie"
         description="Czy na pewno chcesz usunąć to ogłoszenie transferowe? Ta operacja jest nieodwracalna."
         confirmLabel="Tak, usuń"
-        onConfirm={handleDelete}
-        loading={deleting}
+        onConfirm={() => deleteMutation.mutate({ id })}
+        loading={deleteMutation.isPending}
       />
 
       {/* Info grid */}

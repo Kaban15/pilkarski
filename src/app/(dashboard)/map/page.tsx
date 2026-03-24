@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
-import { CardSkeleton } from "@/components/card-skeleton";
 import type { MapMarker } from "@/components/map-view";
 import { MapPin, Swords, Trophy } from "lucide-react";
 
@@ -15,49 +14,43 @@ const MapView = dynamic(() => import("@/components/map-view").then((m) => m.MapV
 });
 
 export default function MapPage() {
-  const [markers, setMarkers] = useState<MapMarker[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showSparings, setShowSparings] = useState(true);
   const [showEvents, setShowEvents] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      const [sparings, events] = await Promise.all([
-        trpc.sparing.list.query({ limit: 50, status: "OPEN" }),
-        trpc.event.list.query({ limit: 50 }),
-      ]);
+  const { data: sparingsData, isLoading: sparingsLoading } = api.sparing.list.useQuery({ limit: 50, status: "OPEN" });
+  const { data: eventsData, isLoading: eventsLoading } = api.event.list.useQuery({ limit: 50 });
 
-      const sparingMarkers: MapMarker[] = sparings.items
-        .filter((s: any) => s.lat && s.lng)
-        .map((s: any) => ({
-          id: s.id,
-          lat: Number(s.lat),
-          lng: Number(s.lng),
-          title: s.title,
-          type: "sparing" as const,
-          location: s.location,
-          date: formatDate(s.matchDate),
-          href: `/sparings/${s.id}`,
-        }));
+  const loading = sparingsLoading || eventsLoading;
 
-      const eventMarkers: MapMarker[] = events.items
-        .filter((e: any) => e.lat && e.lng)
-        .map((e: any) => ({
-          id: e.id,
-          lat: Number(e.lat),
-          lng: Number(e.lng),
-          title: e.title,
-          type: "event" as const,
-          location: e.location,
-          date: formatDate(e.eventDate),
-          href: `/events/${e.id}`,
-        }));
+  const markers = useMemo(() => {
+    const sparingMarkers: MapMarker[] = (sparingsData?.items ?? [])
+      .filter((s: any) => s.lat && s.lng)
+      .map((s: any) => ({
+        id: s.id,
+        lat: Number(s.lat),
+        lng: Number(s.lng),
+        title: s.title,
+        type: "sparing" as const,
+        location: s.location,
+        date: formatDate(s.matchDate),
+        href: `/sparings/${s.id}`,
+      }));
 
-      setMarkers([...sparingMarkers, ...eventMarkers]);
-      setLoading(false);
-    }
-    load();
-  }, []);
+    const eventMarkers: MapMarker[] = (eventsData?.items ?? [])
+      .filter((e: any) => e.lat && e.lng)
+      .map((e: any) => ({
+        id: e.id,
+        lat: Number(e.lat),
+        lng: Number(e.lng),
+        title: e.title,
+        type: "event" as const,
+        location: e.location,
+        date: formatDate(e.eventDate),
+        href: `/events/${e.id}`,
+      }));
+
+    return [...sparingMarkers, ...eventMarkers];
+  }, [sparingsData, eventsData]);
 
   const filtered = markers.filter((m) =>
     (m.type === "sparing" && showSparings) || (m.type === "event" && showEvents)
@@ -73,7 +66,6 @@ export default function MapPage() {
         <p className="mt-1 text-muted-foreground">Sparingi i wydarzenia na mapie Polski</p>
       </div>
 
-      {/* Filters */}
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => setShowSparings(!showSparings)}

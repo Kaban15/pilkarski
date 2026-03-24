@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +18,6 @@ import {
 import {
   ArrowRightLeft,
   Plus,
-  MapPin,
   Globe,
   Calendar,
   User,
@@ -29,52 +27,39 @@ import {
 } from "lucide-react";
 
 export default function TransfersPage() {
-  const { data: session } = useSession();
-  const [items, setItems] = useState<any[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | undefined>();
-  const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [positionFilter, setPositionFilter] = useState<string>("");
   const [regionId, setRegionId] = useState<number | undefined>();
-  const [regions, setRegions] = useState<any[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+
+  const { data: regions } = api.region.list.useQuery(undefined, { staleTime: Infinity });
 
   const hasActiveFilters = !!typeFilter || !!positionFilter || !!regionId;
 
-  const fetchData = useCallback(async (cursor?: string) => {
-    setLoading(true);
-    try {
-      const res = await trpc.transfer.list.query({
-        type: typeFilter as any || undefined,
-        position: positionFilter as any || undefined,
-        regionId,
-        cursor,
-        limit: 20,
-      });
-      if (cursor) {
-        setItems((prev) => [...prev, ...res.items]);
-      } else {
-        setItems(res.items);
-      }
-      setNextCursor(res.nextCursor);
-    } finally {
-      setLoading(false);
-    }
-  }, [typeFilter, positionFilter, regionId]);
+  const queryInput = {
+    type: (typeFilter as any) || undefined,
+    position: (positionFilter as any) || undefined,
+    regionId,
+    limit: 20,
+  };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = api.transfer.list.useInfiniteQuery(queryInput, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
 
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions);
-  }, []);
+  const items = data?.pages.flatMap((p) => p.items) ?? [];
 
-  const loadMore = useCallback(() => {
-    if (nextCursor && !loading) fetchData(nextCursor);
-  }, [nextCursor, loading, fetchData]);
-
-  const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loading);
+  const sentinelRef = useInfiniteScroll(
+    () => { fetchNextPage(); },
+    !!hasNextPage,
+    isFetchingNextPage,
+  );
 
   function clearFilters() {
     setTypeFilter("");
@@ -97,7 +82,6 @@ export default function TransfersPage() {
         </Link>
       </div>
 
-      {/* Filters */}
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <select
           value={typeFilter}
@@ -156,7 +140,7 @@ export default function TransfersPage() {
                 className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
               >
                 <option value="">Wszystkie regiony</option>
-                {regions.map((r: any) => (
+                {(regions ?? []).map((r: any) => (
                   <option key={r.id} value={r.id}>{r.name}</option>
                 ))}
               </select>
@@ -165,8 +149,7 @@ export default function TransfersPage() {
         </Card>
       )}
 
-      {/* List */}
-      {loading && items.length === 0 ? (
+      {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {[...Array(4)].map((_, i) => <CardSkeleton key={i} />)}
         </div>
@@ -231,7 +214,7 @@ export default function TransfersPage() {
             </Link>
           ))}
           <div ref={sentinelRef} />
-          {loading && <CardSkeleton />}
+          {isFetchingNextPage && <CardSkeleton />}
         </div>
       )}
     </div>

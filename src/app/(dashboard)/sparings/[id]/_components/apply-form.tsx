@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,22 @@ export function ApplyForm({
   const [message, setMessage] = useState("");
   const [counterDate, setCounterDate] = useState("");
   const [showCounterDate, setShowCounterDate] = useState(false);
-  const [applying, setApplying] = useState(false);
+
+  const applyMutation = api.sparing.applyFor.useMutation({
+    onSuccess: () => {
+      setMessage("");
+      setCounterDate("");
+      toast.success(
+        counterDate
+          ? "Zgłoszenie z kontr-propozycją terminu wysłane"
+          : "Zgłoszenie wysłane"
+      );
+      onApplied();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
 
   if (status !== "OPEN" || isOwner) return null;
 
@@ -63,27 +78,12 @@ export function ApplyForm({
   // Only clubs can apply
   if (!isClub) return null;
 
-  async function handleApply() {
-    setApplying(true);
-    try {
-      await trpc.sparing.applyFor.mutate({
-        sparingOfferId: sparingId,
-        message: message || undefined,
-        counterProposedDate: counterDate || undefined,
-      });
-      setMessage("");
-      setCounterDate("");
-      toast.success(
-        counterDate
-          ? "Zgłoszenie z kontr-propozycją terminu wysłane"
-          : "Zgłoszenie wysłane"
-      );
-      onApplied();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setApplying(false);
-    }
+  function handleApply() {
+    applyMutation.mutate({
+      sparingOfferId: sparingId,
+      message: message || undefined,
+      counterProposedDate: counterDate || undefined,
+    });
   }
 
   // Minimum date for counter-proposal (tomorrow)
@@ -106,9 +106,9 @@ export function ApplyForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-          <Button onClick={handleApply} disabled={applying} className="gap-1.5">
+          <Button onClick={handleApply} disabled={applyMutation.isPending} className="gap-1.5">
             <Send className="h-4 w-4" />
-            {applying ? "Wysyłanie..." : "Aplikuj"}
+            {applyMutation.isPending ? "Wysyłanie..." : "Aplikuj"}
           </Button>
         </div>
 

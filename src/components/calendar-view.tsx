@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
-import { Card, CardContent } from "@/components/ui/card";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
-import { EVENT_TYPE_LABELS } from "@/lib/labels";
 
 type CalendarItem = {
   id: string;
@@ -36,38 +34,37 @@ export function CalendarView() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-  const [items, setItems] = useState<CalendarItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const dateFrom = `${year}-${String(month + 1).padStart(2, "0")}-01`;
   const dateTo = `${year}-${String(month + 1).padStart(2, "0")}-${getDaysInMonth(year, month)}`;
 
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      trpc.sparing.list.query({ dateFrom, dateTo, limit: 50, sortBy: "matchDate", sortOrder: "asc" }),
-      trpc.event.list.query({ dateFrom, dateTo, limit: 50, sortBy: "eventDate", sortOrder: "asc" }),
-    ]).then(([sparings, events]) => {
-      const mapped: CalendarItem[] = [
-        ...sparings.items.map((s: any) => ({
-          id: s.id,
-          type: "sparing" as const,
-          title: s.title,
-          date: s.matchDate,
-          clubName: s.club?.name ?? "",
-        })),
-        ...events.items.map((e: any) => ({
-          id: e.id,
-          type: "event" as const,
-          title: e.title,
-          date: e.eventDate,
-          clubName: e.club?.name ?? "",
-          eventType: e.type,
-        })),
-      ];
-      setItems(mapped);
-    }).finally(() => setLoading(false));
-  }, [dateFrom, dateTo]);
+  const { data: sparingsData, isLoading: sparingsLoading } = api.sparing.list.useQuery(
+    { dateFrom, dateTo, limit: 50, sortBy: "matchDate", sortOrder: "asc" },
+  );
+  const { data: eventsData, isLoading: eventsLoading } = api.event.list.useQuery(
+    { dateFrom, dateTo, limit: 50, sortBy: "eventDate", sortOrder: "asc" },
+  );
+
+  const loading = sparingsLoading || eventsLoading;
+
+  const items = useMemo<CalendarItem[]>(() => {
+    const sparings = (sparingsData?.items ?? []).map((s: any) => ({
+      id: s.id,
+      type: "sparing" as const,
+      title: s.title,
+      date: s.matchDate,
+      clubName: s.club?.name ?? "",
+    }));
+    const events = (eventsData?.items ?? []).map((e: any) => ({
+      id: e.id,
+      type: "event" as const,
+      title: e.title,
+      date: e.eventDate,
+      clubName: e.club?.name ?? "",
+      eventType: e.type,
+    }));
+    return [...sparings, ...events];
+  }, [sparingsData, eventsData]);
 
   const itemsByDay = useMemo(() => {
     const map = new Map<number, CalendarItem[]>();

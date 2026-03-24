@@ -1,23 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 
 export function PushNotificationToggle() {
   const [supported, setSupported] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { data: statusData, refetch } = api.push.status.useQuery(undefined, {
+    enabled: supported,
+  });
+  const subscribed = statusData?.subscribed ?? false;
+
+  const subscribeMut = api.push.subscribe.useMutation({ onSuccess: () => refetch() });
+  const unsubscribeMut = api.push.unsubscribe.useMutation({ onSuccess: () => refetch() });
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
       setSupported(true);
-      // Register service worker
       navigator.serviceWorker.register("/sw.js").catch(() => {});
-      // Check current status
-      trpc.push.status.query().then((res) => setSubscribed(res.subscribed)).catch(() => {});
     }
   }, []);
 
@@ -29,16 +33,13 @@ export function PushNotificationToggle() {
       const registration = await navigator.serviceWorker.ready;
 
       if (subscribed) {
-        // Unsubscribe
         const sub = await registration.pushManager.getSubscription();
         if (sub) {
-          await trpc.push.unsubscribe.mutate({ endpoint: sub.endpoint });
+          await unsubscribeMut.mutateAsync({ endpoint: sub.endpoint });
           await sub.unsubscribe();
         }
-        setSubscribed(false);
         toast.success("Powiadomienia push wyłączone");
       } else {
-        // Subscribe
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
           toast.error("Brak zgody na powiadomienia");
@@ -59,13 +60,12 @@ export function PushNotificationToggle() {
         });
 
         const keys = sub.toJSON().keys!;
-        await trpc.push.subscribe.mutate({
+        await subscribeMut.mutateAsync({
           endpoint: sub.endpoint,
           p256dh: keys.p256dh!,
           auth: keys.auth!,
         });
 
-        setSubscribed(true);
         toast.success("Powiadomienia push włączone!");
       }
     } catch (err: any) {

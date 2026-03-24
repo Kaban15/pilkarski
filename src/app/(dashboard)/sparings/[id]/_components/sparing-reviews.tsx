@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,29 +26,29 @@ export function SparingReviews({
 }: SparingReviewsProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit() {
-    if (rating === 0) {
-      toast.error("Wybierz ocenę (1-5 gwiazdek)");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await trpc.review.create.mutate({
-        sparingOfferId: sparingId,
-        rating,
-        comment: comment || undefined,
-      });
+  const createReview = api.review.create.useMutation({
+    onSuccess: () => {
       setRating(0);
       setComment("");
       toast.success("Recenzja wystawiona");
       onReviewSubmitted();
-    } catch (err: any) {
+    },
+    onError: (err) => {
       toast.error(err.message);
-    } finally {
-      setSubmitting(false);
+    },
+  });
+
+  function handleSubmit() {
+    if (rating === 0) {
+      toast.error("Wybierz ocenę (1-5 gwiazdek)");
+      return;
     }
+    createReview.mutate({
+      sparingOfferId: sparingId,
+      rating,
+      comment: comment || undefined,
+    });
   }
 
   return (
@@ -75,11 +75,11 @@ export function SparingReviews({
             />
             <Button
               onClick={handleSubmit}
-              disabled={submitting || rating === 0}
+              disabled={createReview.isPending || rating === 0}
               className="gap-1.5"
             >
               <Star className="h-4 w-4" />
-              {submitting ? "Wysyłanie..." : "Wystaw recenzję"}
+              {createReview.isPending ? "Wysyłanie..." : "Wystaw recenzję"}
             </Button>
           </CardContent>
         </Card>

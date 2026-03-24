@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { EmptyState } from "@/components/empty-state";
-import { BADGES } from "@/lib/gamification";
-import { POINTS_LABELS } from "@/lib/gamification";
+import { BADGES, POINTS_LABELS } from "@/lib/gamification";
 import { formatDate } from "@/lib/format";
 import {
   Trophy,
@@ -24,24 +23,16 @@ const BADGE_MAP = Object.fromEntries(BADGES.map((b) => [b.key, b]));
 
 export default function RankingPage() {
   const { data: session } = useSession();
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [myPoints, setMyPoints] = useState<any>(null);
-  const [myBadges, setMyBadges] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: leaderboard, isLoading: lbLoading } = api.gamification.leaderboard.useQuery({ limit: 20 });
+  const { data: myPoints, isLoading: ptsLoading } = api.gamification.myPoints.useQuery();
+  const { data: myBadges, isLoading: badgesLoading } = api.gamification.myBadges.useQuery();
+  const checkBadges = api.gamification.checkBadges.useMutation();
 
   useEffect(() => {
-    Promise.all([
-      trpc.gamification.leaderboard.query({ limit: 20 }),
-      trpc.gamification.myPoints.query(),
-      trpc.gamification.myBadges.query(),
-      trpc.gamification.checkBadges.mutate(),
-    ]).then(([lb, pts, badges]) => {
-      setLeaderboard(lb);
-      setMyPoints(pts);
-      setMyBadges(badges);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
+    checkBadges.mutate();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loading = lbLoading || ptsLoading || badgesLoading;
 
   if (loading) {
     return (
@@ -81,7 +72,7 @@ export default function RankingPage() {
                 <Medal className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{myBadges.length}</p>
+                <p className="text-2xl font-bold">{myBadges?.length ?? 0}</p>
                 <p className="text-xs text-muted-foreground">Odznaki</p>
               </div>
             </CardContent>
@@ -93,7 +84,7 @@ export default function RankingPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  #{leaderboard.findIndex((l) => l.userId === session?.user?.id) + 1 || "–"}
+                  #{(leaderboard?.findIndex((l) => l.userId === session?.user?.id) ?? -1) + 1 || "–"}
                 </p>
                 <p className="text-xs text-muted-foreground">Pozycja w rankingu</p>
               </div>
@@ -103,7 +94,7 @@ export default function RankingPage() {
       )}
 
       {/* My badges */}
-      {myBadges.length > 0 && (
+      {(myBadges?.length ?? 0) > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -113,7 +104,7 @@ export default function RankingPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              {myBadges.map((b: any) => {
+              {myBadges!.map((b: any) => {
                 const def = BADGE_MAP[b.badge];
                 return (
                   <div
@@ -145,7 +136,7 @@ export default function RankingPage() {
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {BADGES.map((badge) => {
-              const earned = myBadges.some((b: any) => b.badge === badge.key);
+              const earned = myBadges?.some((b: any) => b.badge === badge.key);
               return (
                 <div
                   key={badge.key}
@@ -175,7 +166,7 @@ export default function RankingPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {leaderboard.length === 0 ? (
+          {(leaderboard?.length ?? 0) === 0 ? (
             <EmptyState
               icon={Trophy}
               title="Brak danych"
@@ -183,7 +174,7 @@ export default function RankingPage() {
             />
           ) : (
             <ul className="divide-y divide-border">
-              {leaderboard.map((entry: any, i: number) => {
+              {leaderboard!.map((entry: any, i: number) => {
                 const isMe = entry.userId === session?.user?.id;
                 return (
                   <li

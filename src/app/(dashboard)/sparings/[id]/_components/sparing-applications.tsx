@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,21 +23,25 @@ export function SparingApplications({
   isOwner,
   onResponded,
 }: SparingApplicationsProps) {
-  async function handleRespond(
-    applicationId: string,
-    status: "ACCEPTED" | "REJECTED"
-  ) {
-    try {
-      await trpc.sparing.respond.mutate({ applicationId, status });
+  const respondMutation = api.sparing.respond.useMutation({
+    onSuccess: (_data, variables) => {
       toast.success(
-        status === "ACCEPTED"
+        variables.status === "ACCEPTED"
           ? "Zgłoszenie zaakceptowane"
           : "Zgłoszenie odrzucone"
       );
       onResponded();
-    } catch (err: any) {
+    },
+    onError: (err) => {
       toast.error(err.message);
-    }
+    },
+  });
+
+  function handleRespond(
+    applicationId: string,
+    status: "ACCEPTED" | "REJECTED"
+  ) {
+    respondMutation.mutate({ applicationId, status });
   }
 
   return (

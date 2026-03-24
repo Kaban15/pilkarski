@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
 import {
@@ -70,24 +69,13 @@ const NAV_SECTIONS = [
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
-  const [unreadNotifs, setUnreadNotifs] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
 
-  useEffect(() => {
-    const fetchCounts = () => {
-      trpc.notification.unreadCount
-        .query()
-        .then((c) => setUnreadNotifs((prev) => (prev !== c ? c : prev)))
-        .catch(() => {});
-      trpc.message.unreadCount
-        .query()
-        .then((c) => setUnreadMessages((prev) => (prev !== c ? c : prev)))
-        .catch(() => {});
-    };
-    fetchCounts();
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
+    refetchInterval: 30_000,
+  });
+  const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
+    refetchInterval: 30_000,
+  });
 
   const getBadge = (href: string) => {
     if (href === "/notifications" && unreadNotifs > 0) return unreadNotifs;

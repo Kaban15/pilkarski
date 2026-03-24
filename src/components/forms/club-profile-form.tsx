@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +45,6 @@ interface ClubProfileFormProps {
 }
 
 export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
-  const [saving, setSaving] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(club.logoUrl);
 
   // Cascading state
@@ -54,45 +53,41 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     club.leagueGroup?.leagueLevel.id ?? null
   );
   const [leagueGroupId, setLeagueGroupId] = useState<number | null>(club.leagueGroupId);
-  const [hierarchy, setHierarchy] = useState<LeagueLevel[]>([]);
 
-  // Load hierarchy when region changes
+  const { data: hierarchy = [] } = api.region.hierarchy.useQuery(
+    { regionId: regionId! },
+    { enabled: !!regionId }
+  );
+
+  // Reset cascading fields when region changes
   useEffect(() => {
     if (!regionId) {
-      setHierarchy([]);
       setLeagueLevelId(null);
       setLeagueGroupId(null);
-      return;
     }
-    trpc.region.hierarchy.query({ regionId }).then(setHierarchy);
   }, [regionId]);
 
   const selectedLevel = hierarchy.find((l) => l.id === leagueLevelId);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const updateMut = api.club.update.useMutation({
+    onSuccess: () => toast.success("Profil klubu zapisany"),
+    onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
+  });
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSaving(true);
-
     const fd = new FormData(e.currentTarget);
-
-    try {
-      await trpc.club.update.mutate({
-        name: fd.get("name") as string,
-        logoUrl: logoUrl ?? undefined,
-        description: (fd.get("description") as string) || undefined,
-        city: (fd.get("city") as string) || undefined,
-        regionId: regionId ?? undefined,
-        leagueGroupId: leagueGroupId ?? undefined,
-        contactEmail: (fd.get("contactEmail") as string) || undefined,
-        contactPhone: (fd.get("contactPhone") as string) || undefined,
-        website: (fd.get("website") as string) || undefined,
-      });
-      toast.success("Profil klubu zapisany");
-    } catch (err: any) {
-      toast.error(err.message || "Nie udało się zapisać");
-    } finally {
-      setSaving(false);
-    }
+    updateMut.mutate({
+      name: fd.get("name") as string,
+      logoUrl: logoUrl ?? undefined,
+      description: (fd.get("description") as string) || undefined,
+      city: (fd.get("city") as string) || undefined,
+      regionId: regionId ?? undefined,
+      leagueGroupId: leagueGroupId ?? undefined,
+      contactEmail: (fd.get("contactEmail") as string) || undefined,
+      contactPhone: (fd.get("contactPhone") as string) || undefined,
+      website: (fd.get("website") as string) || undefined,
+    });
   }
 
   return (
@@ -218,8 +213,8 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
             />
           </div>
 
-          <Button type="submit" disabled={saving}>
-            {saving ? "Zapisywanie..." : "Zapisz profil"}
+          <Button type="submit" disabled={updateMut.isPending}>
+            {updateMut.isPending ? "Zapisywanie..." : "Zapisz profil"}
           </Button>
         </form>
       </CardContent>

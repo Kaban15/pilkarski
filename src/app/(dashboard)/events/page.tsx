@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ type EventItem = {
   id: string;
   type: string;
   title: string;
-  eventDate: string;
+  eventDate: string | Date;
   location: string | null;
   maxParticipants: number | null;
   club: { id: string; name: string; city: string | null };
@@ -43,7 +43,6 @@ const EVENT_BADGE_STYLES: Record<string, string> = {
 };
 
 export default function EventsPage() {
-  const [items, setItems] = useState<EventItem[]>([]);
   const [regionId, setRegionId] = useState<number | undefined>();
   const [type, setType] = useState<"OPEN_TRAINING" | "RECRUITMENT" | undefined>();
   const [cityInput, setCityInput] = useState("");
@@ -52,75 +51,54 @@ export default function EventsPage() {
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useState<"eventDate" | "createdAt" | "title">("eventDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | undefined>();
   const [showFilters, setShowFilters] = useState(false);
-  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions);
-  }, []);
+  const { data: regions } = api.region.list.useQuery(undefined, { staleTime: Infinity });
 
   useEffect(() => {
     const t = setTimeout(() => setCity(cityInput), 400);
     return () => clearTimeout(t);
   }, [cityInput]);
 
-  useEffect(() => {
-    setLoading(true);
-    setNextCursor(undefined);
-    trpc.event.list
-      .query({
-        regionId, type,
-        city: city || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        sortBy, sortOrder,
-      })
-      .then((res) => {
-        setItems(res.items as any);
-        setNextCursor(res.nextCursor);
-        const ids = (res.items as any[]).map((i: any) => i.id);
-        if (ids.length) {
-          trpc.favorite.check.query({ eventIds: ids }).then((favs) => setFavoritedIds(new Set(favs)));
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [regionId, type, city, dateFrom, dateTo, sortBy, sortOrder]);
+  const queryInput = {
+    regionId,
+    type,
+    city: city || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    sortBy,
+    sortOrder,
+  };
 
-  const loadMore = useCallback(() => {
-    if (!nextCursor || loadingMore) return;
-    setLoadingMore(true);
-    trpc.event.list
-      .query({
-        regionId, type, cursor: nextCursor,
-        city: city || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        sortBy, sortOrder,
-      })
-      .then((res) => {
-        const newItems = res.items as any[];
-        setItems((prev) => [...prev, ...newItems]);
-        setNextCursor(res.nextCursor);
-        const newIds = newItems.map((i) => i.id);
-        if (newIds.length) {
-          trpc.favorite.check.query({ eventIds: newIds }).then((favs) =>
-            setFavoritedIds((prev) => new Set([...prev, ...favs]))
-          );
-        }
-      })
-      .finally(() => setLoadingMore(false));
-  }, [nextCursor, loadingMore, regionId, type, city, dateFrom, dateTo, sortBy, sortOrder]);
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = api.event.list.useInfiniteQuery(queryInput, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
 
-  const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
+  const items = (data?.pages.flatMap((p) => p.items) ?? []) as EventItem[];
+  const itemIds = items.map((i) => i.id);
+
+  const { data: favIds } = api.favorite.check.useQuery(
+    { eventIds: itemIds },
+    { enabled: itemIds.length > 0 },
+  );
+  const favoritedIds = new Set(favIds ?? []);
+
+  const sentinelRef = useInfiniteScroll(
+    () => { fetchNextPage(); },
+    !!hasNextPage,
+    isFetchingNextPage,
+  );
+
   const hasActiveFilters = cityInput || dateFrom || dateTo;
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Wydarzenia</h1>
@@ -137,7 +115,6 @@ export default function EventsPage() {
         </Link>
       </div>
 
-      {/* Filters */}
       <div className="mb-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -146,7 +123,7 @@ export default function EventsPage() {
             className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Wszystkie regiony</option>
-            {regions.map((r) => (
+            {(regions ?? []).map((r) => (
               <option key={r.id} value={r.id}>{r.name}</option>
             ))}
           </select>
@@ -240,8 +217,7 @@ export default function EventsPage() {
         )}
       </div>
 
-      {/* List */}
-      {loading ? (
+      {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
@@ -303,7 +279,7 @@ export default function EventsPage() {
               </Card>
             </Link>
           ))}
-          {loadingMore && (
+          {isFetchingNextPage && (
             <>
               <CardSkeleton />
               <CardSkeleton />

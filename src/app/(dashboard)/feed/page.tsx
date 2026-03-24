@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +25,7 @@ import {
 type FeedItem = {
   type: "sparing" | "event" | "transfer" | "club" | "player";
   data: any;
-  createdAt: string;
+  createdAt: string | Date;
 };
 
 const FEED_CONFIG = {
@@ -241,64 +240,40 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
 }
 
 export default function FeedPage() {
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [regionName, setRegionName] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-
-  function loadFeed() {
-    setLoading(true);
-    setError(null);
-    trpc.feed.get
-      .query({ limit: 30 })
-      .then((data) => {
-        setItems(data.items as any);
-        setRegionName(data.regionName);
-      })
-      .catch(() => setError("Nie udało się załadować feedu"))
-      .finally(() => setLoading(false));
-
-    trpc.stats.dashboard.query().then(setStats).catch(() => {});
-  }
-
-  useEffect(() => {
-    loadFeed();
-  }, []);
+  const feed = api.feed.get.useQuery({ limit: 30 });
+  const stats = api.stats.dashboard.useQuery(undefined, { staleTime: 60_000 });
 
   return (
     <div className="animate-fade-in">
-      {/* Welcome header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           Feed
         </h1>
-        {regionName && (
+        {feed.data?.regionName && (
           <p className="mt-1 text-sm text-muted-foreground">
-            Aktywności z regionu: <span className="font-medium text-foreground">{regionName}</span>
+            Aktywności z regionu: <span className="font-medium text-foreground">{feed.data.regionName}</span>
           </p>
         )}
       </div>
 
-      <StatsBar stats={stats} />
+      <StatsBar stats={(stats.data as DashboardStats) ?? null} />
 
-      {/* Feed */}
-      {loading ? (
+      {feed.isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <FeedCardSkeleton key={i} />
           ))}
         </div>
-      ) : error ? (
+      ) : feed.error ? (
         <Card className="border-destructive/20">
           <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-sm text-destructive">{error}</p>
-            <Button variant="outline" size="sm" onClick={loadFeed}>
+            <p className="text-sm text-destructive">Nie udało się załadować feedu</p>
+            <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
               Spróbuj ponownie
             </Button>
           </CardContent>
         </Card>
-      ) : items.length === 0 ? (
+      ) : (feed.data?.items?.length ?? 0) === 0 ? (
         <EmptyState
           icon={Swords}
           title="Brak aktywności"
@@ -308,7 +283,7 @@ export default function FeedPage() {
         />
       ) : (
         <div className="stagger-children space-y-3">
-          {items.map((item) => (
+          {(feed.data!.items as FeedItem[]).map((item) => (
             <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
           ))}
         </div>

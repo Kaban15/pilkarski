@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import { router, protectedProcedure, publicProcedure, rateLimitedProcedure } from "../trpc";
 import {
   createEventSchema,
   updateEventSchema,
@@ -11,7 +11,7 @@ import { awardPoints } from "@/server/award-points";
 
 export const eventRouter = router({
   // Create event (club only)
-  create: protectedProcedure
+  create: rateLimitedProcedure({ maxAttempts: 5 })
     .input(createEventSchema)
     .mutation(async ({ ctx, input }) => {
       const club = await ctx.db.club.findUnique({
@@ -159,7 +159,7 @@ export const eventRouter = router({
     }),
 
   // Apply for event (player only)
-  applyFor: protectedProcedure
+  applyFor: rateLimitedProcedure({ maxAttempts: 10 })
     .input(applyEventSchema)
     .mutation(async ({ ctx, input }) => {
       const player = await ctx.db.player.findUnique({

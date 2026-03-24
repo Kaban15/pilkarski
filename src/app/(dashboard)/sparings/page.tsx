@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import {
   SPARING_LEVEL_LABELS,
   AGE_CATEGORY_LABELS,
@@ -42,7 +42,6 @@ export default function SparingsPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Sparingi</h1>
@@ -63,7 +62,6 @@ export default function SparingsPage() {
         )}
       </div>
 
-      {/* Player info banner */}
       {isPlayer && (
         <Card className="mb-6 border-l-[3px] border-l-violet-500">
           <CardContent className="flex items-center gap-3 py-3">
@@ -95,104 +93,67 @@ export default function SparingsPage() {
 }
 
 function SearchTab() {
-  const [items, setItems] = useState<SparingCardItem[]>([]);
   const [regionId, setRegionId] = useState<string>("");
   const [cityInput, setCityInput] = useState("");
   const [city, setCity] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortValue, setSortValue] = useState("matchDate-asc");
-  const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | undefined>();
   const [levelFilter, setLevelFilter] = useState("");
   const [ageCategoryFilter, setAgeCategoryFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
-  const [error, setError] = useState(false);
 
   const [sortBy, sortOrder] = sortValue.split("-") as [string, string];
 
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions).catch(() => {});
-  }, []);
+  const { data: regions } = api.region.list.useQuery(undefined, { staleTime: Infinity });
 
   useEffect(() => {
     const t = setTimeout(() => setCity(cityInput), 400);
     return () => clearTimeout(t);
   }, [cityInput]);
 
-  useEffect(() => {
-    setLoading(true);
-    setNextCursor(undefined);
-    trpc.sparing.list
-      .query({
-        regionId: regionId ? Number(regionId) : undefined,
-        status: "OPEN",
-        level: (levelFilter || undefined) as any,
-        ageCategory: (ageCategoryFilter || undefined) as any,
-        city: city || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        sortBy: sortBy as any,
-        sortOrder: sortOrder as any,
-      })
-      .then((res) => {
-        setItems(res.items as any);
-        setNextCursor(res.nextCursor);
-        setError(false);
-        const ids = (res.items as any[]).map((i: any) => i.id);
-        if (ids.length) {
-          trpc.favorite.check
-            .query({ sparingOfferIds: ids })
-            .then((favs) => setFavoritedIds(new Set(favs)))
-            .catch(() => {});
-        }
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [regionId, city, dateFrom, dateTo, sortBy, sortOrder, levelFilter, ageCategoryFilter]);
+  const queryInput = {
+    regionId: regionId ? Number(regionId) : undefined,
+    status: "OPEN" as const,
+    level: (levelFilter || undefined) as any,
+    ageCategory: (ageCategoryFilter || undefined) as any,
+    city: city || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    sortBy: sortBy as any,
+    sortOrder: sortOrder as any,
+  };
 
-  const loadMore = useCallback(() => {
-    if (!nextCursor || loadingMore) return;
-    setLoadingMore(true);
-    trpc.sparing.list
-      .query({
-        regionId: regionId ? Number(regionId) : undefined,
-        status: "OPEN",
-        cursor: nextCursor,
-        level: (levelFilter || undefined) as any,
-        ageCategory: (ageCategoryFilter || undefined) as any,
-        city: city || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        sortBy: sortBy as any,
-        sortOrder: sortOrder as any,
-      })
-      .then((res) => {
-        const newItems = res.items as any[];
-        setItems((prev) => [...prev, ...newItems]);
-        setNextCursor(res.nextCursor);
-        const newIds = newItems.map((i) => i.id);
-        if (newIds.length) {
-          trpc.favorite.check
-            .query({ sparingOfferIds: newIds })
-            .then((favs) =>
-              setFavoritedIds((prev) => new Set([...prev, ...favs]))
-            )
-            .catch(() => {});
-        }
-      })
-      .finally(() => setLoadingMore(false));
-  }, [nextCursor, loadingMore, regionId, city, dateFrom, dateTo, sortBy, sortOrder, levelFilter, ageCategoryFilter]);
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = api.sparing.list.useInfiniteQuery(queryInput, {
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
 
-  const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
+  const items = (data?.pages.flatMap((p) => p.items) ?? []) as SparingCardItem[];
+  const itemIds = items.map((i) => i.id);
+
+  const { data: favIds } = api.favorite.check.useQuery(
+    { sparingOfferIds: itemIds },
+    { enabled: itemIds.length > 0 },
+  );
+  const favoritedIds = new Set(favIds ?? []);
+
+  const sentinelRef = useInfiniteScroll(
+    () => { fetchNextPage(); },
+    !!hasNextPage,
+    isFetchingNextPage,
+  );
+
   const hasActiveFilters = cityInput || dateFrom || dateTo || levelFilter || ageCategoryFilter;
 
   return (
     <>
-      {/* Filters */}
       <div className="mb-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={regionId} onValueChange={setRegionId}>
@@ -201,7 +162,7 @@ function SearchTab() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Wszystkie regiony</SelectItem>
-              {regions.map((r) => (
+              {(regions ?? []).map((r) => (
                 <SelectItem key={r.id} value={String(r.id)}>
                   {r.name}
                 </SelectItem>
@@ -325,14 +286,13 @@ function SearchTab() {
         )}
       </div>
 
-      {/* List */}
-      {error ? (
+      {isError ? (
         <EmptyState
           icon={Swords}
           title="Błąd ładowania"
           description="Nie udało się pobrać sparingów. Spróbuj odświeżyć stronę."
         />
-      ) : loading ? (
+      ) : isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
@@ -349,7 +309,7 @@ function SearchTab() {
           {items.map((s) => (
             <SparingCard key={s.id} sparing={s} favorited={favoritedIds.has(s.id)} />
           ))}
-          {loadingMore && (
+          {isFetchingNextPage && (
             <>
               <CardSkeleton />
               <CardSkeleton />
@@ -363,19 +323,9 @@ function SearchTab() {
 }
 
 function MySparingsTab() {
-  const [sparings, setSparings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { data: sparings, isLoading, isError } = api.sparing.my.useQuery();
 
-  useEffect(() => {
-    trpc.sparing.my
-      .query()
-      .then(setSparings)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -385,7 +335,7 @@ function MySparingsTab() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <EmptyState
         icon={Swords}
@@ -395,7 +345,7 @@ function MySparingsTab() {
     );
   }
 
-  if (sparings.length === 0) {
+  if (!sparings || sparings.length === 0) {
     return (
       <EmptyState
         icon={Swords}
@@ -407,7 +357,6 @@ function MySparingsTab() {
     );
   }
 
-  // Group by status
   const open = sparings.filter((s: any) => s.status === "OPEN");
   const matched = sparings.filter((s: any) => s.status === "MATCHED");
   const completed = sparings.filter((s: any) => s.status === "COMPLETED");
@@ -435,4 +384,3 @@ function MySparingsTab() {
     </div>
   );
 }
-

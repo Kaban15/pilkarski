@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -43,18 +43,10 @@ function NotifBell({ count }: { count: number }) {
 
 export function DashboardNav({ user }: DashboardNavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
-  useEffect(() => {
-    const fetchCount = () => {
-      trpc.notification.unreadCount.query()
-        .then((count) => setUnreadNotifs((prev) => (prev !== count ? count : prev)))
-        .catch(() => {});
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
+    refetchInterval: 30_000,
+  });
 
   return (
     <header className="border-b border-border bg-background">

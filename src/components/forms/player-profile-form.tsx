@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,6 @@ interface PlayerProfileFormProps {
 }
 
 export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
-  const [saving, setSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(player.photoUrl);
   const [careers, setCareers] = useState(player.careerEntries);
 
@@ -59,59 +58,55 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
   const [newClub, setNewClub] = useState("");
   const [newSeason, setNewSeason] = useState("");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setSaving(true);
+  const updateMut = api.player.update.useMutation({
+    onSuccess: () => toast.success("Profil zawodnika zapisany"),
+    onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
+  });
 
-    const fd = new FormData(e.currentTarget);
-
-    try {
-      await trpc.player.update.mutate({
-        firstName: fd.get("firstName") as string,
-        lastName: fd.get("lastName") as string,
-        photoUrl: photoUrl ?? undefined,
-        dateOfBirth: (fd.get("dateOfBirth") as string) || undefined,
-        city: (fd.get("city") as string) || undefined,
-        regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
-        heightCm: fd.get("heightCm") ? Number(fd.get("heightCm")) : undefined,
-        weightKg: fd.get("weightKg") ? Number(fd.get("weightKg")) : undefined,
-        preferredFoot: (fd.get("preferredFoot") as any) || undefined,
-        primaryPosition: (fd.get("primaryPosition") as any) || undefined,
-        secondaryPosition: (fd.get("secondaryPosition") as any) || undefined,
-        bio: (fd.get("bio") as string) || undefined,
-      });
-      toast.success("Profil zawodnika zapisany");
-    } catch (err: any) {
-      toast.error(err.message || "Nie udało się zapisać");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function addCareer() {
-    if (!newClub || !newSeason) return;
-    try {
-      const entry = await trpc.player.addCareer.mutate({
-        clubName: newClub,
-        season: newSeason,
-      });
+  const addCareerMut = api.player.addCareer.useMutation({
+    onSuccess: (entry) => {
       setCareers([entry, ...careers]);
       setNewClub("");
       setNewSeason("");
       toast.success("Wpis dodany");
-    } catch {
-      toast.error("Nie udało się dodać wpisu");
-    }
+    },
+    onError: () => toast.error("Nie udało się dodać wpisu"),
+  });
+
+  const deleteCareerMut = api.player.deleteCareer.useMutation({
+    onSuccess: (_, variables) => {
+      setCareers(careers.filter((c) => c.id !== variables.id));
+      toast.success("Wpis usunięty");
+    },
+    onError: () => toast.error("Nie udało się usunąć wpisu"),
+  });
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    updateMut.mutate({
+      firstName: fd.get("firstName") as string,
+      lastName: fd.get("lastName") as string,
+      photoUrl: photoUrl ?? undefined,
+      dateOfBirth: (fd.get("dateOfBirth") as string) || undefined,
+      city: (fd.get("city") as string) || undefined,
+      regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+      heightCm: fd.get("heightCm") ? Number(fd.get("heightCm")) : undefined,
+      weightKg: fd.get("weightKg") ? Number(fd.get("weightKg")) : undefined,
+      preferredFoot: (fd.get("preferredFoot") as any) || undefined,
+      primaryPosition: (fd.get("primaryPosition") as any) || undefined,
+      secondaryPosition: (fd.get("secondaryPosition") as any) || undefined,
+      bio: (fd.get("bio") as string) || undefined,
+    });
   }
 
-  async function deleteCareer(id: string) {
-    try {
-      await trpc.player.deleteCareer.mutate({ id });
-      setCareers(careers.filter((c) => c.id !== id));
-      toast.success("Wpis usunięty");
-    } catch {
-      toast.error("Nie udało się usunąć wpisu");
-    }
+  function addCareer() {
+    if (!newClub || !newSeason) return;
+    addCareerMut.mutate({ clubName: newClub, season: newSeason });
+  }
+
+  function deleteCareer(id: string) {
+    deleteCareerMut.mutate({ id });
   }
 
   return (
@@ -249,8 +244,8 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
               />
             </div>
 
-            <Button type="submit" disabled={saving}>
-              {saving ? "Zapisywanie..." : "Zapisz profil"}
+            <Button type="submit" disabled={updateMut.isPending}>
+              {updateMut.isPending ? "Zapisywanie..." : "Zapisz profil"}
             </Button>
           </form>
         </CardContent>

@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import { router, protectedProcedure, publicProcedure, rateLimitedProcedure } from "../trpc";
 import { createReviewSchema } from "@/lib/validators/review";
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 
 export const reviewRouter = router({
   // Create review after a matched/completed sparing
-  create: protectedProcedure
+  create: rateLimitedProcedure({ maxAttempts: 5 })
     .input(createReviewSchema)
     .mutation(async ({ ctx, input }) => {
       const club = await ctx.db.club.findUnique({

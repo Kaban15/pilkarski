@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/card-skeleton";
@@ -12,40 +11,35 @@ import { NOTIFICATION_TYPE_LABELS, NOTIFICATION_TYPE_COLORS } from "@/lib/labels
 import { Bell } from "lucide-react";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const utils = api.useUtils();
+  const { data, isLoading } = api.notification.list.useQuery({ limit: 50 });
+  const notifications = data?.notifications ?? [];
 
-  useEffect(() => {
-    trpc.notification.list
-      .query({ limit: 50 })
-      .then((data) => setNotifications(data.notifications))
-      .finally(() => setLoading(false));
-  }, []);
+  const markAsRead = api.notification.markAsRead.useMutation({
+    onSuccess: () => utils.notification.list.invalidate(),
+  });
 
-  async function markAsRead(id: string) {
-    await trpc.notification.markAsRead.mutate({ id });
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  }
-
-  async function markAllAsRead() {
-    await trpc.notification.markAllAsRead.mutate();
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }
+  const markAllAsRead = api.notification.markAllAsRead.useMutation({
+    onSuccess: () => utils.notification.list.invalidate(),
+  });
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Powiadomienia</h1>
         {notifications.some((n) => !n.read) && (
-          <Button variant="outline" size="sm" onClick={markAllAsRead}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => markAllAsRead.mutate()}
+            disabled={markAllAsRead.isPending}
+          >
             Oznacz wszystkie jako przeczytane
           </Button>
         )}
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <NotificationSkeleton key={i} />
@@ -69,7 +63,7 @@ export default function NotificationsPage() {
                   {n.link ? (
                     <Link
                       href={n.link}
-                      onClick={() => !n.read && markAsRead(n.id)}
+                      onClick={() => !n.read && markAsRead.mutate({ id: n.id })}
                       className="block"
                     >
                       <p className="font-medium">{n.title}</p>
@@ -94,7 +88,7 @@ export default function NotificationsPage() {
                 </div>
                 {!n.read && (
                   <button
-                    onClick={() => markAsRead(n.id)}
+                    onClick={() => markAsRead.mutate({ id: n.id })}
                     className="mt-1 h-3 w-3 shrink-0 rounded-full bg-blue-500"
                     title="Oznacz jako przeczytane"
                   />

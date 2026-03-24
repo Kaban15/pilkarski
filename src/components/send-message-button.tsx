@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -15,22 +15,19 @@ export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
 
-  async function handleSend() {
-    if (!message.trim()) return;
-    setSending(true);
-    try {
-      const result = await trpc.message.send.mutate({
-        recipientUserId,
-        content: message.trim(),
-      });
+  const send = api.message.send.useMutation({
+    onSuccess: (result) => {
       router.push(`/messages/${result.conversationId}`);
-    } catch (err: any) {
+    },
+    onError: (err) => {
       toast.error(err.message);
-    } finally {
-      setSending(false);
-    }
+    },
+  });
+
+  function handleSend() {
+    if (!message.trim()) return;
+    send.mutate({ recipientUserId, content: message.trim() });
   }
 
   if (!open) {
@@ -55,8 +52,8 @@ export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
           }
         }}
       />
-      <Button onClick={handleSend} disabled={sending || !message.trim()} size="sm">
-        {sending ? "..." : "Wyślij"}
+      <Button onClick={handleSend} disabled={send.isPending || !message.trim()} size="sm">
+        {send.isPending ? "..." : "Wyślij"}
       </Button>
       <Button variant="ghost" size="sm" onClick={() => { setOpen(false); setMessage(""); }}>
         Anuluj

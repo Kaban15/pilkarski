@@ -1,9 +1,9 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, rateLimitedProcedure } from "../trpc";
 
 export const favoriteRouter = router({
   // Toggle favorite for a sparing or event
-  toggle: protectedProcedure
+  toggle: rateLimitedProcedure({ maxAttempts: 30 })
     .input(
       z.object({
         sparingOfferId: z.string().uuid().optional(),

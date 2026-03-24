@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import { router, protectedProcedure, publicProcedure, rateLimitedProcedure } from "../trpc";
 import { createTransferSchema, updateTransferSchema } from "@/lib/validators/transfer";
 import { TRPCError } from "@trpc/server";
 
 export const transferRouter = router({
-  create: protectedProcedure
+  create: rateLimitedProcedure({ maxAttempts: 5 })
     .input(createTransferSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;

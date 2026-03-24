@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { registerSchema } from "@/lib/validators/auth";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,22 @@ export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"CLUB" | "PLAYER">("CLUB");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const registerMut = api.auth.register.useMutation({
+    onSuccess: () => {
+      toast.success("Rejestracja udana! Zaloguj się.");
+      router.push("/login?registered=true");
+    },
+    onError: (err) => {
+      setError(err.message || "Wystąpił błąd podczas rejestracji");
+    },
+  });
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setFieldErrors({});
-    setLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const data = {
@@ -45,19 +53,10 @@ export default function RegisterPage() {
     const result = registerSchema.safeParse(data);
     if (!result.success) {
       setFieldErrors(getFieldErrors(result.error));
-      setLoading(false);
       return;
     }
 
-    try {
-      await trpc.auth.register.mutate(data);
-      toast.success("Rejestracja udana! Zaloguj się.");
-      router.push("/login?registered=true");
-    } catch (err: any) {
-      setError(err.message || "Wystąpił błąd podczas rejestracji");
-    } finally {
-      setLoading(false);
-    }
+    registerMut.mutate(data);
   }
 
   return (
@@ -192,9 +191,9 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <Button type="submit" className="w-full gap-2" disabled={registerMut.isPending}>
                 <UserPlus className="h-4 w-4" />
-                {loading ? "Rejestracja..." : "Zarejestruj się"}
+                {registerMut.isPending ? "Rejestracja..." : "Zarejestruj się"}
               </Button>
             </form>
 

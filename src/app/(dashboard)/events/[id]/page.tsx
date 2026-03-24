@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,55 +35,37 @@ export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
-  const [event, setEvent] = useState<any>(null);
   const [message, setMessage] = useState("");
-  const [applying, setApplying] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  useEffect(() => {
-    if (id) trpc.event.getById.query({ id }).then(setEvent);
-  }, [id]);
+  const utils = api.useUtils();
+  const { data: event } = api.event.getById.useQuery({ id }, { enabled: !!id });
 
-  async function handleApply() {
-    setApplying(true);
-    try {
-      await trpc.event.applyFor.mutate({ eventId: id, message: message || undefined });
-      const updated = await trpc.event.getById.query({ id });
-      setEvent(updated);
+  const applyMut = api.event.applyFor.useMutation({
+    onSuccess: () => {
+      utils.event.getById.invalidate({ id });
       setMessage("");
       toast.success("Zgłoszenie wysłane");
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setApplying(false);
-    }
-  }
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  async function handleRespond(applicationId: string, status: "ACCEPTED" | "REJECTED") {
-    try {
-      await trpc.event.respond.mutate({ applicationId, status });
-      const updated = await trpc.event.getById.query({ id });
-      setEvent(updated);
-      toast.success(status === "ACCEPTED" ? "Zgłoszenie zaakceptowane" : "Zgłoszenie odrzucone");
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  }
+  const respondMut = api.event.respond.useMutation({
+    onSuccess: (_, variables) => {
+      utils.event.getById.invalidate({ id });
+      toast.success(variables.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane" : "Zgłoszenie odrzucone");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  async function handleDelete() {
-    setDeleting(true);
-    try {
-      await trpc.event.delete.mutate({ id });
+  const deleteMut = api.event.delete.useMutation({
+    onSuccess: () => {
       toast.success("Wydarzenie usunięte");
       router.push("/events");
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setDeleting(false);
-      setShowDeleteConfirm(false);
-    }
-  }
+    },
+    onError: (err) => toast.error(err.message),
+    onSettled: () => setShowDeleteConfirm(false),
+  });
 
   if (!event) return <DetailPageSkeleton />;
 
@@ -145,8 +127,8 @@ export default function EventDetailPage() {
         title="Usuń wydarzenie"
         description="Czy na pewno chcesz usunąć to wydarzenie? Ta operacja jest nieodwracalna."
         confirmLabel="Tak, usuń"
-        onConfirm={handleDelete}
-        loading={deleting}
+        onConfirm={() => deleteMut.mutate({ id })}
+        loading={deleteMut.isPending}
       />
 
       {/* Info grid */}
@@ -230,9 +212,9 @@ export default function EventDetailPage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
-              <Button onClick={handleApply} disabled={applying} className="gap-1.5">
+              <Button onClick={() => applyMut.mutate({ eventId: id, message: message || undefined })} disabled={applyMut.isPending} className="gap-1.5">
                 <Send className="h-4 w-4" />
-                {applying ? "Wysyłanie..." : "Zgłoś się"}
+                {applyMut.isPending ? "Wysyłanie..." : "Zgłoś się"}
               </Button>
             </div>
           </CardContent>
@@ -276,7 +258,7 @@ export default function EventDetailPage() {
                         <Button
                           size="sm"
                           className="gap-1"
-                          onClick={() => handleRespond(app.id, "ACCEPTED")}
+                          onClick={() => respondMut.mutate({ applicationId: app.id, status: "ACCEPTED" })}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           Akceptuj
@@ -285,7 +267,7 @@ export default function EventDetailPage() {
                           size="sm"
                           variant="outline"
                           className="gap-1"
-                          onClick={() => handleRespond(app.id, "REJECTED")}
+                          onClick={() => respondMut.mutate({ applicationId: app.id, status: "REJECTED" })}
                         >
                           <XCircle className="h-3.5 w-3.5" />
                           Odrzuć

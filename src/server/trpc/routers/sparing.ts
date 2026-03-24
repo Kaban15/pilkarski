@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import { router, protectedProcedure, publicProcedure, rateLimitedProcedure } from "../trpc";
 import {
   createSparingSchema,
   updateSparingSchema,
@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 
 export const sparingRouter = router({
-  create: protectedProcedure
+  create: rateLimitedProcedure({ maxAttempts: 5 })
     .input(createSparingSchema)
     .mutation(async ({ ctx, input }) => {
       const club = await ctx.db.club.findUnique({
@@ -178,7 +178,7 @@ export const sparingRouter = router({
     }),
 
   // Apply for a sparing (club only)
-  applyFor: protectedProcedure
+  applyFor: rateLimitedProcedure({ maxAttempts: 10 })
     .input(applySparingSchema)
     .mutation(async ({ ctx, input }) => {
       const club = await ctx.db.club.findUnique({

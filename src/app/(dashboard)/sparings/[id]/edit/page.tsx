@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -11,11 +10,11 @@ import { SparingForm } from "@/components/sparings/sparing-form";
 export default function EditSparingPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [sparing, setSparing] = useState<any>(null);
 
-  useEffect(() => {
-    trpc.sparing.getById.query({ id }).then(setSparing);
-  }, [id]);
+  const { data: sparing } = api.sparing.getById.useQuery(
+    { id },
+    { enabled: !!id }
+  );
 
   if (!sparing) return <DetailPageSkeleton />;
 
@@ -39,7 +38,7 @@ export default function EditSparingPage() {
               id,
               title: sparing.title,
               description: sparing.description,
-              matchDate: sparing.matchDate,
+              matchDate: sparing.matchDate as unknown as string,
               location: sparing.location,
               costSplitInfo: sparing.costSplitInfo,
               level: sparing.level,

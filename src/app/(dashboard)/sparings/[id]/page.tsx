@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -20,57 +20,66 @@ export default function SparingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
-  const [sparing, setSparing] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [myReview, setMyReview] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [completing, setCompleting] = useState(false);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
 
-  const reload = useCallback(() => {
-    trpc.sparing.getById.query({ id }).then(setSparing).catch(() => setError("Nie znaleziono sparingu"));
-    trpc.review.getForSparing.query({ sparingOfferId: id }).then(setReviews).catch(() => {});
-    trpc.review.myReview.query({ sparingOfferId: id }).then(setMyReview).catch(() => {});
-  }, [id]);
+  const utils = api.useUtils();
 
-  useEffect(() => {
-    if (id) reload();
-  }, [id, reload]);
+  const { data: sparing, error: sparingError } = api.sparing.getById.useQuery(
+    { id },
+    { enabled: !!id }
+  );
+  const { data: reviews = [] } = api.review.getForSparing.useQuery(
+    { sparingOfferId: id },
+    { enabled: !!id }
+  );
+  const { data: myReview = null } = api.review.myReview.useQuery(
+    { sparingOfferId: id },
+    { enabled: !!id }
+  );
 
-  async function handleDelete() {
-    setDeleting(true);
-    try {
-      await trpc.sparing.delete.mutate({ id });
+  function reload() {
+    utils.sparing.getById.invalidate({ id });
+    utils.review.getForSparing.invalidate({ sparingOfferId: id });
+    utils.review.myReview.invalidate({ sparingOfferId: id });
+  }
+
+  const deleteMutation = api.sparing.delete.useMutation({
+    onSuccess: () => {
       toast.success("Sparing usunięty");
       router.push("/sparings");
-    } catch (err: any) {
+    },
+    onError: (err) => {
       toast.error(err.message);
-    } finally {
-      setDeleting(false);
+    },
+    onSettled: () => {
       setShowDeleteConfirm(false);
-    }
-  }
+    },
+  });
 
-  async function handleComplete() {
-    setCompleting(true);
-    try {
-      await trpc.sparing.complete.mutate({ id });
+  const completeMutation = api.sparing.complete.useMutation({
+    onSuccess: () => {
       toast.success("Sparing oznaczony jako zakończony");
       reload();
-    } catch (err: any) {
+    },
+    onError: (err) => {
       toast.error(err.message);
-    } finally {
-      setCompleting(false);
-    }
+    },
+  });
+
+  function handleDelete() {
+    deleteMutation.mutate({ id });
   }
 
-  if (error) {
+  function handleComplete() {
+    completeMutation.mutate({ id });
+  }
+
+  if (sparingError) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <Swords className="h-12 w-12 text-muted-foreground" />
-        <p className="text-lg font-medium">{error}</p>
+        <p className="text-lg font-medium">Nie znaleziono sparingu</p>
         <Button variant="outline" onClick={() => router.push("/sparings")}>
           Wróć do listy
         </Button>
@@ -89,12 +98,13 @@ export default function SparingDetailPage() {
     sparing.applications?.some(
       (a: any) => a.status === "ACCEPTED" && a.applicantClub?.userId === session.user.id
     );
-  const isParticipant = isOwner || isAcceptedApplicant;
-  const canReview =
+  const isParticipant = !!(isOwner || isAcceptedApplicant);
+  const canReview = !!(
     (sparing.status === "MATCHED" || sparing.status === "COMPLETED") &&
     isParticipant &&
     !myReview &&
-    !!session?.user;
+    session?.user
+  );
 
   // Find current user's existing application
   const myApplication = isClub && !isOwner && session?.user?.id
@@ -124,8 +134,8 @@ export default function SparingDetailPage() {
         setShowDeleteConfirm={setShowDeleteConfirm}
         onDelete={handleDelete}
         onComplete={handleComplete}
-        deleting={deleting}
-        completing={completing}
+        deleting={deleteMutation.isPending}
+        completing={completeMutation.isPending}
       />
 
       <SparingTimeline

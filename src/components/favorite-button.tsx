@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { toast } from "sonner";
 
 interface FavoriteButtonProps {
@@ -12,31 +12,31 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = false }: FavoriteButtonProps) {
   const [favorited, setFavorited] = useState(initialFavorited);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setFavorited(initialFavorited);
   }, [initialFavorited]);
 
-  async function handleToggle(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoading(true);
-    try {
-      const result = await trpc.favorite.toggle.mutate({ sparingOfferId, eventId });
+  const toggle = api.favorite.toggle.useMutation({
+    onSuccess: (result) => {
       setFavorited(result.favorited);
       toast.success(result.favorited ? "Dodano do ulubionych" : "Usunięto z ulubionych");
-    } catch {
+    },
+    onError: () => {
       toast.error("Nie udało się zaktualizować ulubionych");
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  function handleToggle(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle.mutate({ sparingOfferId, eventId });
   }
 
   return (
     <button
       onClick={handleToggle}
-      disabled={loading}
+      disabled={toggle.isPending}
       className="rounded-full p-1.5 transition hover:bg-secondary disabled:opacity-50"
       title={favorited ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
     >

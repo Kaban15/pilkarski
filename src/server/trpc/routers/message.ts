@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, rateLimitedProcedure } from "../trpc";
 import {
   sendMessageSchema,
   getMessagesSchema,
@@ -113,7 +113,7 @@ export const messageRouter = router({
     }),
 
   // Send a message (create conversation if needed)
-  send: protectedProcedure
+  send: rateLimitedProcedure({ maxAttempts: 20 })
     .input(sendMessageSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;

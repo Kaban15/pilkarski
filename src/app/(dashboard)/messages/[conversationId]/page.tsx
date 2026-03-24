@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { supabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
 import { getUserDisplayName } from "@/lib/labels";
@@ -31,38 +31,51 @@ export default function ConversationPage() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [otherUserName, setOtherUserName] = useState("");
   const [otherUserId, setOtherUserId] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  const { data: messagesData, isLoading: loading } = api.message.getMessages.useQuery(
+    { conversationId },
+    {
+      enabled: !!conversationId,
+      refetchInterval: 30_000,
+    }
+  );
+
+  const markAsReadMut = api.message.markAsRead.useMutation();
+
+  const { data: convs } = api.message.getConversations.useQuery(undefined, {
+    enabled: !!conversationId,
+  });
+
+  // Sync messages data from query to local state
+  useEffect(() => {
+    if (!messagesData) return;
+    const items = (messagesData as any).items as Message[];
+    const newLastId = items.length > 0 ? items[items.length - 1].id : null;
+    if (newLastId !== lastMessageIdRef.current) {
+      setMessages(items);
+      lastMessageIdRef.current = newLastId;
+      if (conversationId) markAsReadMut.mutate({ conversationId });
+    }
+  }, [messagesData]);
+
   useEffect(() => {
     if (!conversationId) return;
-
-    trpc.message.getMessages
-      .query({ conversationId })
-      .then((data) => {
-        const items = data.items as Message[];
-        setMessages(items);
-        if (items.length > 0) {
-          lastMessageIdRef.current = items[items.length - 1].id;
-        }
-      })
-      .finally(() => setLoading(false));
-
-    trpc.message.markAsRead.mutate({ conversationId });
-
-    trpc.message.getConversations.query().then((convs: any[]) => {
-      const conv = convs.find((c: any) => c.id === conversationId);
-      if (conv?.otherUser) {
-        setOtherUserId(conv.otherUser.id);
-        setOtherUserName(getUserDisplayName(conv.otherUser));
-      }
-    });
+    markAsReadMut.mutate({ conversationId });
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!convs || !conversationId) return;
+    const conv = (convs as any[]).find((c: any) => c.id === conversationId);
+    if (conv?.otherUser) {
+      setOtherUserId(conv.otherUser.id);
+      setOtherUserName(getUserDisplayName(conv.otherUser));
+    }
+  }, [convs, conversationId]);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -76,7 +89,7 @@ export default function ConversationPage() {
           lastMessageIdRef.current = msg.id;
           return [...prev, msg];
         });
-        trpc.message.markAsRead.mutate({ conversationId }).catch(() => {});
+        markAsReadMut.mutate({ conversationId });
       })
       .subscribe();
 
@@ -92,52 +105,24 @@ export default function ConversationPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newMessage.trim() || !otherUserId) return;
-
-    setSending(true);
-    try {
-      const result = await trpc.message.send.mutate({
-        recipientUserId: otherUserId,
-        content: newMessage.trim(),
-      });
+  const sendMut = api.message.send.useMutation({
+    onSuccess: (result) => {
       setMessages((prev) => [...prev, result.message as any]);
       setNewMessage("");
-
       channelRef.current?.send({
         type: "broadcast",
         event: "new_message",
         payload: result.message,
       });
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSending(false);
-    }
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newMessage.trim() || !otherUserId) return;
+    sendMut.mutate({ recipientUserId: otherUserId, content: newMessage.trim() });
   }
-
-  useEffect(() => {
-    if (!conversationId) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const data = await trpc.message.getMessages.query({ conversationId });
-        const items = data.items as Message[];
-        const newLastId = items.length > 0 ? items[items.length - 1].id : null;
-
-        if (newLastId !== lastMessageIdRef.current) {
-          setMessages(items);
-          lastMessageIdRef.current = newLastId;
-          await trpc.message.markAsRead.mutate({ conversationId });
-        }
-      } catch {
-        // ignore polling errors
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [conversationId]);
 
   return (
     <div className="flex h-[calc(100vh-theme(spacing.6)*2)] flex-col overflow-hidden rounded-xl border border-border bg-card md:h-[calc(100vh-theme(spacing.6)*2)]">
@@ -218,12 +203,12 @@ export default function ConversationPage() {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Napisz wiadomość..."
             maxLength={2000}
-            disabled={sending}
+            disabled={sendMut.isPending}
             className="flex-1"
           />
           <Button
             type="submit"
-            disabled={sending || !newMessage.trim()}
+            disabled={sendMut.isPending || !newMessage.trim()}
             size="icon"
             className="shrink-0"
           >

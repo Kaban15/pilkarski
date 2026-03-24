@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import {
   Home,
   Swords,
   Trophy,
   MessageSquare,
   Bell,
-  User,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -23,24 +21,13 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
-  useEffect(() => {
-    const fetchCounts = () => {
-      trpc.message.unreadCount
-        .query()
-        .then((c) => setUnreadMessages((prev) => (prev !== c ? c : prev)))
-        .catch(() => {});
-      trpc.notification.unreadCount
-        .query()
-        .then((c) => setUnreadNotifs((prev) => (prev !== c ? c : prev)))
-        .catch(() => {});
-    };
-    fetchCounts();
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
+    refetchInterval: 30_000,
+  });
+  const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
+    refetchInterval: 30_000,
+  });
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-sm md:hidden">

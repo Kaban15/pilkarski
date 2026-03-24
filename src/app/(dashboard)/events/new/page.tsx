@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { createEventSchema } from "@/lib/validators/event";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
@@ -16,18 +16,23 @@ import { EVENT_TYPE_LABELS } from "@/lib/labels";
 
 export default function NewEventPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
 
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions);
-  }, []);
+  const { data: regions = [] } = api.region.list.useQuery();
+
+  const createMut = api.event.create.useMutation({
+    onSuccess: (result) => {
+      toast.success("Wydarzenie utworzone");
+      router.push(`/events/${result.id}`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Nie udało się utworzyć wydarzenia");
+    },
+  });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFieldErrors({});
-    setLoading(true);
 
     const fd = new FormData(e.currentTarget);
     const data = {
@@ -43,19 +48,10 @@ export default function NewEventPage() {
     const validation = createEventSchema.safeParse(data);
     if (!validation.success) {
       setFieldErrors(getFieldErrors(validation.error));
-      setLoading(false);
       return;
     }
 
-    try {
-      const result = await trpc.event.create.mutate(data);
-      toast.success("Wydarzenie utworzone");
-      router.push(`/events/${result.id}`);
-    } catch (err: any) {
-      toast.error(err.message || "Nie udało się utworzyć wydarzenia");
-    } finally {
-      setLoading(false);
-    }
+    createMut.mutate(data);
   }
 
   return (
@@ -144,8 +140,8 @@ export default function NewEventPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Tworzenie..." : "Utwórz wydarzenie"}
+            <Button type="submit" disabled={createMut.isPending}>
+              {createMut.isPending ? "Tworzenie..." : "Utwórz wydarzenie"}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Anuluj

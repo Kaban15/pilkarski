@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConversationSkeleton } from "@/components/card-skeleton";
@@ -29,15 +28,9 @@ type Conversation = {
 };
 
 export default function MessagesPage() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    trpc.message.getConversations
-      .query()
-      .then((data) => setConversations(data as any))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: conversations = [] as Conversation[], isLoading: loading } = api.message.getConversations.useQuery(undefined, {
+    select: (data) => data as unknown as Conversation[],
+  });
 
   return (
     <div className="animate-fade-in">

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,6 @@ import { ArrowRightLeft } from "lucide-react";
 export default function NewTransferPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [submitting, setSubmitting] = useState(false);
-  const [regions, setRegions] = useState<any[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
@@ -33,9 +31,17 @@ export default function NewTransferPage() {
     maxAge: "",
   });
 
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions);
-  }, []);
+  const { data: regions = [] } = api.region.list.useQuery();
+
+  const createMut = api.transfer.create.useMutation({
+    onSuccess: (result) => {
+      toast.success("Ogłoszenie transferowe utworzone");
+      router.push(`/transfers/${result.id}`);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
 
   const isClub = session?.user?.role === "CLUB";
   const isPlayer = session?.user?.role === "PLAYER";
@@ -76,16 +82,7 @@ export default function NewTransferPage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const result = await trpc.transfer.create.mutate(data);
-      toast.success("Ogłoszenie transferowe utworzone");
-      router.push(`/transfers/${result.id}`);
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+    createMut.mutate(data);
   }
 
   return (
@@ -202,9 +199,9 @@ export default function NewTransferPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={submitting} className="w-full gap-1.5">
+            <Button type="submit" disabled={createMut.isPending} className="w-full gap-1.5">
               <ArrowRightLeft className="h-4 w-4" />
-              {submitting ? "Tworzenie..." : "Utwórz ogłoszenie"}
+              {createMut.isPending ? "Tworzenie..." : "Utwórz ogłoszenie"}
             </Button>
           </form>
         </CardContent>

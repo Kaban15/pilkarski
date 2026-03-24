@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/card-skeleton";
 import {
@@ -15,7 +14,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import {
   BarChart3,
@@ -27,23 +25,14 @@ import {
   Star,
   TrendingUp,
   Target,
-  CheckCircle2,
 } from "lucide-react";
 
 const CHART_COLORS = ["#10b981", "#8b5cf6", "#06b6d4", "#f59e0b", "#ef4444"];
 
 export default function StatsPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = api.stats.detailed.useQuery();
 
-  useEffect(() => {
-    trpc.stats.detailed.query().then((res) => {
-      setData(res);
-      setLoading(false);
-    });
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="animate-fade-in space-y-6">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Statystyki</h1>
@@ -75,7 +64,6 @@ export default function StatsPage() {
 
       {/* Charts row */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Monthly activity */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -106,7 +94,6 @@ export default function StatsPage() {
           </CardContent>
         </Card>
 
-        {/* Top regions */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">

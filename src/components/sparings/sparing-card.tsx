@@ -21,7 +21,7 @@ import {
 export type SparingCardItem = {
   id: string;
   title: string;
-  matchDate: string;
+  matchDate: string | Date;
   location: string | null;
   status: string;
   level?: string | null;
@@ -37,7 +37,7 @@ export type SparingCardItem = {
   _count: { applications: number };
 };
 
-function getCountdown(dateStr: string): string | null {
+function getCountdown(dateStr: string | Date): string | null {
   const diff = new Date(dateStr).getTime() - Date.now();
   if (diff <= 0) return null;
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));

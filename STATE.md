@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 ✅)
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 ✅) → Rate Limiting + tRPC React Query Migration ✅
 **Ostatnia sesja:** 2026-03-24
 
 ---
@@ -376,13 +376,13 @@
 ## Code Review — Znane Problemy
 
 ### Krytyczne (bezpieczeństwo)
-1. **`sparing.getById` i `event.getById` to `publicProcedure`** — zwracają WSZYSTKIE aplikacje z danymi osobowymi. → **Zaplanowane w Etap 4, I1-6**
-2. **Brak rate limitingu na mutacjach** — tylko login/register mają rate limit. Wiadomości, aplikacje, favorites — brak.
+1. ~~**`sparing.getById` i `event.getById` to `publicProcedure`**~~ → ✅ Filtrowanie po auth (Etap 4, I1-6)
+2. ~~**Brak rate limitingu na mutacjach**~~ → ✅ `rateLimitedProcedure` na 6 routerach (message, sparing, event, review, transfer, favorite)
 3. **Cookie `__Secure-` w middleware** — nie działa na localhost (HTTP). Dev auth może być zepsuty.
 4. **Upload bez walidacji server-side** — Supabase anon key pozwala wrzucić cokolwiek do bucketa.
 
 ### Ważne (architektura)
-5. **Nie używa tRPC React Query hooks** — imperywne `trpc.xxx.query()` z `useState/useEffect`. Brak cache invalidation, optimistic updates.
+5. ~~**Nie używa tRPC React Query hooks**~~ → ✅ Pełna migracja na `createTRPCReact` + React Query hooks. Cache, deduplication, `refetchInterval`, `invalidate()`.
 6. **20+ `as any`** — w auth callbacks, Prisma where, listach. → **Częściowo w Etap 4, I1-2**
 7. **Fire-and-forget notifications `.catch(() => {})`** — ciche połykanie błędów.
 
@@ -617,8 +617,8 @@
 
 ### Naprawy z code review (starsze — osobny backlog)
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6
-- Fix #2: Dodać rate limiting na mutacje tRPC
-- Fix #5: Migracja na tRPC React Query hooks (największy impact)
+- Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory w trpc.ts, zastosowane na 6 routerach (message.send 20/min, sparing/event create 5/min, review.create 5/min, transfer.create 5/min, favorite.toggle 30/min)
+- Fix #5: ~~Migracja na tRPC React Query hooks~~ → ✅ Pełna migracja z vanilla `trpc.xxx.query()/mutate()` na `api.xxx.useQuery()/useMutation()`. Provider (`QueryClientProvider` + `api.Provider`) w `providers.tsx`. Wszystkie pliki używają `@/lib/trpc-react`. Zero pozostałych importów z `@/lib/trpc`. Korzyści: automatyczny cache, deduplication, `refetchInterval` zamiast `setInterval`, `invalidate()` zamiast ręcznego refetch, `isPending` zamiast `useState(loading)`.
 - Fix #6: Wyeliminować `as any` — użyć Prisma types (częściowo w I1-2)
 
 ### Konfiguracja push (opcjonalna)

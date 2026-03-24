@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/card-skeleton";
@@ -13,44 +12,27 @@ import { EmptyState } from "@/components/empty-state";
 import { Heart } from "lucide-react";
 
 export default function FavoritesPage() {
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | undefined>();
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    api.favorite.list.useInfiniteQuery(
+      {},
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      },
+    );
 
-  useEffect(() => {
-    trpc.favorite.list
-      .query({})
-      .then((res) => {
-        setItems(res.items);
-        setNextCursor(res.nextCursor);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const items = data?.pages.flatMap((p) => p.items) ?? [];
 
-  const loadMore = useCallback(() => {
-    if (!nextCursor || loadingMore) return;
-    setLoadingMore(true);
-    trpc.favorite.list
-      .query({ cursor: nextCursor })
-      .then((res) => {
-        setItems((prev) => [...prev, ...res.items]);
-        setNextCursor(res.nextCursor);
-      })
-      .finally(() => setLoadingMore(false));
-  }, [nextCursor, loadingMore]);
-
-  const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
-
-  function handleRemoved(favId: string) {
-    setItems((prev) => prev.filter((i) => i.id !== favId));
-  }
+  const sentinelRef = useInfiniteScroll(
+    () => { fetchNextPage(); },
+    !!hasNextPage,
+    isFetchingNextPage,
+  );
 
   return (
     <div>
       <h1 className="mb-6 text-2xl font-bold">Ulubione</h1>
 
-      {loading ? (
+      {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />
@@ -124,7 +106,7 @@ export default function FavoritesPage() {
 
             return null;
           })}
-          {loadingMore && (
+          {isFetchingNextPage && (
             <>
               <CardSkeleton />
               <CardSkeleton />

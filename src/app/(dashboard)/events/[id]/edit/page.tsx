@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { updateEventSchema } from "@/lib/validators/event";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
@@ -18,15 +18,20 @@ import { EVENT_TYPE_LABELS } from "@/lib/labels";
 export default function EditEventPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
-  const [event, setEvent] = useState<any>(null);
 
-  useEffect(() => {
-    trpc.region.list.query().then(setRegions);
-    trpc.event.getById.query({ id }).then(setEvent);
-  }, [id]);
+  const { data: regions = [] } = api.region.list.useQuery();
+  const { data: event } = api.event.getById.useQuery({ id }, { enabled: !!id });
+
+  const updateMut = api.event.update.useMutation({
+    onSuccess: () => {
+      toast.success("Wydarzenie zaktualizowane");
+      router.push(`/events/${id}`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Nie udało się zaktualizować wydarzenia");
+    },
+  });
 
   if (!event) return <DetailPageSkeleton />;
 
@@ -35,7 +40,6 @@ export default function EditEventPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFieldErrors({});
-    setLoading(true);
 
     const fd = new FormData(e.currentTarget);
     const data = {
@@ -52,19 +56,10 @@ export default function EditEventPage() {
     const validation = updateEventSchema.safeParse(data);
     if (!validation.success) {
       setFieldErrors(getFieldErrors(validation.error));
-      setLoading(false);
       return;
     }
 
-    try {
-      await trpc.event.update.mutate(data);
-      toast.success("Wydarzenie zaktualizowane");
-      router.push(`/events/${id}`);
-    } catch (err: any) {
-      toast.error(err.message || "Nie udało się zaktualizować wydarzenia");
-    } finally {
-      setLoading(false);
-    }
+    updateMut.mutate(data);
   }
 
   return (
@@ -167,8 +162,8 @@ export default function EditEventPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Zapisywanie..." : "Zapisz zmiany"}
+            <Button type="submit" disabled={updateMut.isPending}>
+              {updateMut.isPending ? "Zapisywanie..." : "Zapisz zmiany"}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Anuluj

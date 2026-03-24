@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,6 @@ import { ArrowRightLeft } from "lucide-react";
 export default function EditTransferPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [regions, setRegions] = useState<any[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
 
@@ -34,21 +32,36 @@ export default function EditTransferPage() {
     maxAge: "",
   });
 
+  const { data: regions = [] } = api.region.list.useQuery();
+  const { data: transfer } = api.transfer.getById.useQuery(
+    { id },
+    { enabled: !!id }
+  );
+
+  const updateMutation = api.transfer.update.useMutation({
+    onSuccess: () => {
+      toast.success("Ogłoszenie zaktualizowane");
+      router.push(`/transfers/${id}`);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
   useEffect(() => {
-    trpc.region.list.query().then(setRegions);
-    trpc.transfer.getById.query({ id }).then((t) => {
+    if (transfer && !loaded) {
       setForm({
-        type: t.type,
-        title: t.title,
-        description: t.description ?? "",
-        position: t.position ?? "",
-        regionId: t.regionId?.toString() ?? "",
-        minAge: t.minAge?.toString() ?? "",
-        maxAge: t.maxAge?.toString() ?? "",
+        type: transfer.type,
+        title: transfer.title,
+        description: transfer.description ?? "",
+        position: transfer.position ?? "",
+        regionId: transfer.regionId?.toString() ?? "",
+        minAge: transfer.minAge?.toString() ?? "",
+        maxAge: transfer.maxAge?.toString() ?? "",
       });
       setLoaded(true);
-    });
-  }, [id]);
+    }
+  }, [transfer, loaded]);
 
   function updateField(key: string, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -76,16 +89,7 @@ export default function EditTransferPage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      await trpc.transfer.update.mutate(data);
-      toast.success("Ogłoszenie zaktualizowane");
-      router.push(`/transfers/${id}`);
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+    updateMutation.mutate(data);
   }
 
   if (!loaded) return <DetailPageSkeleton />;
@@ -184,9 +188,9 @@ export default function EditTransferPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={submitting} className="w-full gap-1.5">
+            <Button type="submit" disabled={updateMutation.isPending} className="w-full gap-1.5">
               <ArrowRightLeft className="h-4 w-4" />
-              {submitting ? "Zapisywanie..." : "Zapisz zmiany"}
+              {updateMutation.isPending ? "Zapisywanie..." : "Zapisz zmiany"}
             </Button>
           </form>
         </CardContent>
