@@ -197,7 +197,7 @@ export default function EventDetailPage() {
       </Card>
 
       {/* Apply section (for players) */}
-      {!isOwner && (
+      {!isOwner && session?.user?.role === "PLAYER" && (
         <Card className="mb-6 border-primary/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">

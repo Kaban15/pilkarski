@@ -7,6 +7,13 @@ import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
@@ -47,6 +54,7 @@ const EVENT_BADGE_STYLES: Record<string, string> = {
 export default function EventsPage() {
   const { data: session } = useSession();
   const isPlayer = session?.user?.role === "PLAYER";
+  const isClub = session?.user?.role === "CLUB";
 
   // Fetch player profile for matching badge (only for PLAYER)
   const { data: playerProfile } = api.player.me.useQuery(undefined, {
@@ -84,6 +92,8 @@ export default function EventsPage() {
   const {
     data,
     isLoading,
+    isError,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -117,52 +127,53 @@ export default function EventsPage() {
             Treningi otwarte i nabory w Twoim regionie
           </p>
         </div>
-        <Link href="/events/new">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Dodaj wydarzenie</span>
-            <span className="sm:hidden">Dodaj</span>
-          </Button>
-        </Link>
+        {isClub && (
+          <Link href="/events/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Dodaj wydarzenie</span>
+              <span className="sm:hidden">Dodaj</span>
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="mb-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={regionId ?? ""}
-            onChange={(e) => setRegionId(e.target.value ? Number(e.target.value) : undefined)}
-            className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Wszystkie regiony</option>
-            {(regions ?? []).map((r) => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
-          <select
-            value={type ?? ""}
-            onChange={(e) => setType((e.target.value || undefined) as "OPEN_TRAINING" | "RECRUITMENT" | undefined)}
-            className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Wszystkie typy</option>
-            <option value="OPEN_TRAINING">Treningi otwarte</option>
-            <option value="RECRUITMENT">Nabory</option>
-          </select>
-          <select
-            value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [sb, so] = e.target.value.split("-");
-              setSortBy(sb as "eventDate" | "createdAt" | "title");
-              setSortOrder(so as "asc" | "desc");
-            }}
-            className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="eventDate-asc">Data (rosnąco)</option>
-            <option value="eventDate-desc">Data (malejąco)</option>
-            <option value="createdAt-desc">Najnowsze</option>
-            <option value="createdAt-asc">Najstarsze</option>
-            <option value="title-asc">Tytuł A-Z</option>
-            <option value="title-desc">Tytuł Z-A</option>
-          </select>
+          <Select value={regionId !== undefined ? String(regionId) : ""} onValueChange={(v) => setRegionId(v ? Number(v) : undefined)}>
+            <SelectTrigger className="h-9 w-auto min-w-[180px]">
+              <SelectValue placeholder="Wszystkie regiony" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Wszystkie regiony</SelectItem>
+              {(regions ?? []).map((r) => (
+                <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={type ?? ""} onValueChange={(v) => setType((v || undefined) as "OPEN_TRAINING" | "RECRUITMENT" | undefined)}>
+            <SelectTrigger className="h-9 w-auto min-w-[180px]">
+              <SelectValue placeholder="Wszystkie typy" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Wszystkie typy</SelectItem>
+              <SelectItem value="OPEN_TRAINING">Treningi otwarte</SelectItem>
+              <SelectItem value="RECRUITMENT">Nabory</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => { const [sb, so] = v.split("-"); setSortBy(sb as "eventDate" | "createdAt" | "title"); setSortOrder(so as "asc" | "desc"); }}>
+            <SelectTrigger className="h-9 w-auto min-w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="eventDate-asc">Data (rosnąco)</SelectItem>
+              <SelectItem value="eventDate-desc">Data (malejąco)</SelectItem>
+              <SelectItem value="createdAt-desc">Najnowsze</SelectItem>
+              <SelectItem value="createdAt-asc">Najstarsze</SelectItem>
+              <SelectItem value="title-asc">Tytuł A-Z</SelectItem>
+              <SelectItem value="title-desc">Tytuł Z-A</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             variant={showFilters ? "secondary" : "outline"}
             size="sm"
@@ -228,7 +239,15 @@ export default function EventsPage() {
         )}
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon={Trophy}
+          title="Błąd ładowania"
+          description="Nie udało się pobrać wydarzeń."
+          actionLabel="Spróbuj ponownie"
+          actionOnClick={() => refetch()}
+        />
+      ) : isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <CardSkeleton key={i} />

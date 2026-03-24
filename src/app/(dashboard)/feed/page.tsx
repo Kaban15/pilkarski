@@ -23,6 +23,8 @@ import {
   FileText,
   TrendingUp,
   ArrowRight,
+  Plus,
+  Search,
 } from "lucide-react";
 
 type FeedItem = {
@@ -193,23 +195,23 @@ function FeedCard({ item }: { item: FeedItem }) {
 
 type DashboardStats = {
   role: "CLUB" | "PLAYER";
-  sparings?: number;
-  applications?: number;
-  events?: number;
+  activeSparings?: number;
+  pendingApplications?: number;
+  upcomingEvents?: number;
   eventApps?: number;
-  messages: number;
+  unreadMessages: number;
 };
 
 const STAT_CONFIG_CLUB = [
-  { key: "sparings", label: "Moje sparingi", icon: Swords, href: "/sparings", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { key: "applications", label: "Aplikacje", icon: FileText, href: "/sparings", color: "text-blue-500", bg: "bg-blue-500/10" },
-  { key: "events", label: "Wydarzenia", icon: Trophy, href: "/events", color: "text-violet-500", bg: "bg-violet-500/10" },
-  { key: "messages", label: "Wiadomości", icon: MessageSquare, href: "/messages", color: "text-amber-500", bg: "bg-amber-500/10" },
+  { key: "activeSparings", label: "Aktywne sparingi", icon: Swords, href: "/sparings", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { key: "pendingApplications", label: "Oczekujące zgłoszenia", icon: FileText, href: "/sparings", color: "text-amber-500", bg: "bg-amber-500/10" },
+  { key: "upcomingEvents", label: "Nadchodzące wydarzenia", icon: Trophy, href: "/events", color: "text-violet-500", bg: "bg-violet-500/10" },
+  { key: "unreadMessages", label: "Nowe wiadomości", icon: MessageSquare, href: "/messages", color: "text-blue-500", bg: "bg-blue-500/10" },
 ] as const;
 
 const STAT_CONFIG_PLAYER = [
   { key: "eventApps", label: "Zgłoszenia", icon: TrendingUp, href: "/events", color: "text-violet-500", bg: "bg-violet-500/10" },
-  { key: "messages", label: "Wiadomości", icon: MessageSquare, href: "/messages", color: "text-amber-500", bg: "bg-amber-500/10" },
+  { key: "unreadMessages", label: "Nowe wiadomości", icon: MessageSquare, href: "/messages", color: "text-amber-500", bg: "bg-amber-500/10" },
 ] as const;
 
 function StatsBar({ stats }: { stats: DashboardStats | null }) {
@@ -242,6 +244,37 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
   );
 }
 
+function ClubQuickActions() {
+  return (
+    <div className="mb-8 flex flex-wrap gap-3">
+      <Link href="/sparings/new">
+        <Button variant="outline" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Dodaj sparing
+        </Button>
+      </Link>
+      <Link href="/events/new">
+        <Button variant="outline" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Dodaj wydarzenie
+        </Button>
+      </Link>
+      <Link href="/calendar">
+        <Button variant="ghost" className="gap-2">
+          <Calendar className="h-4 w-4" />
+          Kalendarz
+        </Button>
+      </Link>
+      <Link href="/search">
+        <Button variant="ghost" className="gap-2">
+          <Search className="h-4 w-4" />
+          Szukaj rywala
+        </Button>
+      </Link>
+    </div>
+  );
+}
+
 export default function FeedPage() {
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
@@ -253,7 +286,7 @@ export default function FeedPage() {
     <div className="animate-fade-in">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Feed
+          {isClub ? "Pulpit" : "Feed"}
         </h1>
         {feed.data?.regionName && (
           <p className="mt-1 text-sm text-muted-foreground">
@@ -264,6 +297,7 @@ export default function FeedPage() {
 
       <StatsBar stats={(stats.data as DashboardStats) ?? null} />
 
+      {isClub && <ClubQuickActions />}
       {isClub && <ClubDashboardSections />}
       {isPlayer && <PlayerRecruitments />}
 

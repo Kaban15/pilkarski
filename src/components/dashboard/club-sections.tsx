@@ -31,7 +31,39 @@ export function ClubDashboardSections() {
     upcomingEvents.length > 0 ||
     pendingApplications.length > 0;
 
-  if (!hasContent) return null;
+  if (!hasContent) {
+    return (
+      <div className="mb-8">
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+              <Swords className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold">Zacznij korzystać z PilkaSport</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Dodaj pierwszy sparing lub wydarzenie, aby przyciągnąć rywali i zawodników.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/sparings/new">
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Dodaj sparing
+                </Button>
+              </Link>
+              <Link href="/events/new">
+                <Button variant="outline" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Dodaj wydarzenie
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8 space-y-6">

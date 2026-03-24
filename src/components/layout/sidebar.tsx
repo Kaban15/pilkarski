@@ -35,7 +35,7 @@ const NAV_SECTIONS = [
   {
     label: "Główne",
     items: [
-      { href: "/feed", icon: Home, label: "Feed" },
+      { href: "/feed", icon: Home, label: "Pulpit" },
       { href: "/search", icon: Search, label: "Szukaj" },
     ],
   },
