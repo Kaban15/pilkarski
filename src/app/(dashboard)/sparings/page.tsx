@@ -8,7 +8,14 @@ import {
   SPARING_LEVEL_LABELS,
   AGE_CATEGORY_LABELS,
 } from "@/lib/labels";
-import { SPARING_LEVELS, AGE_CATEGORIES } from "@/lib/validators/sparing";
+import {
+  SPARING_LEVELS,
+  AGE_CATEGORIES,
+  type SparingLevel,
+  type AgeCategory,
+  type SparingSortBy,
+  type SparingSortOrder,
+} from "@/lib/validators/sparing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -103,7 +110,7 @@ function SearchTab() {
   const [ageCategoryFilter, setAgeCategoryFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const [sortBy, sortOrder] = sortValue.split("-") as [string, string];
+  const [sortBy, sortOrder] = sortValue.split("-") as [SparingSortBy, SparingSortOrder];
 
   const { data: regions } = api.region.list.useQuery(undefined, { staleTime: Infinity });
 
@@ -115,19 +122,20 @@ function SearchTab() {
   const queryInput = {
     regionId: regionId ? Number(regionId) : undefined,
     status: "OPEN" as const,
-    level: (levelFilter || undefined) as any,
-    ageCategory: (ageCategoryFilter || undefined) as any,
+    level: (levelFilter || undefined) as SparingLevel | undefined,
+    ageCategory: (ageCategoryFilter || undefined) as AgeCategory | undefined,
     city: city || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
-    sortBy: sortBy as any,
-    sortOrder: sortOrder as any,
+    sortBy,
+    sortOrder,
   };
 
   const {
     data,
     isLoading,
     isError,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -290,7 +298,9 @@ function SearchTab() {
         <EmptyState
           icon={Swords}
           title="Błąd ładowania"
-          description="Nie udało się pobrać sparingów. Spróbuj odświeżyć stronę."
+          description="Nie udało się pobrać sparingów."
+          actionLabel="Spróbuj ponownie"
+          actionOnClick={() => refetch()}
         />
       ) : isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -323,7 +333,7 @@ function SearchTab() {
 }
 
 function MySparingsTab() {
-  const { data: sparings, isLoading, isError } = api.sparing.my.useQuery();
+  const { data: sparings, isLoading, isError, refetch } = api.sparing.my.useQuery();
 
   if (isLoading) {
     return (
@@ -340,7 +350,9 @@ function MySparingsTab() {
       <EmptyState
         icon={Swords}
         title="Błąd ładowania"
-        description="Nie udało się pobrać Twoich sparingów. Spróbuj odświeżyć stronę."
+        description="Nie udało się pobrać Twoich sparingów."
+        actionLabel="Spróbuj ponownie"
+        actionOnClick={() => refetch()}
       />
     );
   }
@@ -357,10 +369,10 @@ function MySparingsTab() {
     );
   }
 
-  const open = sparings.filter((s: any) => s.status === "OPEN");
-  const matched = sparings.filter((s: any) => s.status === "MATCHED");
-  const completed = sparings.filter((s: any) => s.status === "COMPLETED");
-  const cancelled = sparings.filter((s: any) => s.status === "CANCELLED");
+  const open = sparings.filter((s) => s.status === "OPEN");
+  const matched = sparings.filter((s) => s.status === "MATCHED");
+  const completed = sparings.filter((s) => s.status === "COMPLETED");
+  const cancelled = sparings.filter((s) => s.status === "CANCELLED");
 
   const groups = [
     { label: "Otwarte", items: open },
@@ -375,8 +387,8 @@ function MySparingsTab() {
         <div key={group.label}>
           <h2 className="mb-3 text-lg font-semibold">{group.label} ({group.items.length})</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {group.items.map((s: any) => (
-              <SparingCard key={s.id} sparing={s} showFavorite={false} />
+            {group.items.map((s) => (
+              <SparingCard key={s.id} sparing={s as SparingCardItem} showFavorite={false} />
             ))}
           </div>
         </div>

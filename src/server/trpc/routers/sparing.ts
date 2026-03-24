@@ -37,6 +37,23 @@ export const sparingRouter = router({
 
       awardPoints(ctx.db, ctx.session.user.id, "sparing_created", sparing.id).catch(() => {});
 
+      // Notify club followers (fire-and-forget)
+      ctx.db.clubFollower.findMany({
+        where: { clubId: club.id },
+        select: { userId: true },
+      }).then((followers: { userId: string }[]) => {
+        if (followers.length === 0) return;
+        ctx.db.notification.createMany({
+          data: followers.map((f: { userId: string }) => ({
+            userId: f.userId,
+            type: "SPARING_APPLICATION" as const,
+            title: "Nowy sparing od obserwowanego klubu",
+            message: `${club.name} szuka sparingpartnera: ${input.title}`,
+            link: `/sparings/${sparing.id}`,
+          })),
+        }).catch(() => {});
+      }).catch(() => {});
+
       return sparing;
     }),
 
@@ -249,6 +266,11 @@ export const sparingRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Tylko właściciel sparingu może odpowiadać" });
       }
 
+      // Guard: prevent accepting if sparing is already matched (race condition)
+      if (input.status === "ACCEPTED" && application.sparingOffer.status !== "OPEN") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing został już dopasowany" });
+      }
+
       const updated = await ctx.db.sparingApplication.update({
         where: { id: input.applicationId },
         include: { applicantClub: true, sparingOffer: true },
@@ -344,6 +366,7 @@ export const sparingRouter = router({
     return ctx.db.sparingOffer.findMany({
       where: { clubId: club.id },
       include: {
+        club: { select: { id: true, name: true, city: true, logoUrl: true } },
         region: true,
         _count: { select: { applications: true } },
       },

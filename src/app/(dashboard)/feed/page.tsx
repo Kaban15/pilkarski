@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
 import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 import { EmptyState } from "@/components/empty-state";
+import { ClubDashboardSections } from "@/components/dashboard/club-sections";
+import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
 import {
   Swords,
   Trophy,
@@ -240,6 +243,9 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
 }
 
 export default function FeedPage() {
+  const { data: session } = useSession();
+  const isClub = session?.user?.role === "CLUB";
+  const isPlayer = session?.user?.role === "PLAYER";
   const feed = api.feed.get.useQuery({ limit: 30 });
   const stats = api.stats.dashboard.useQuery(undefined, { staleTime: 60_000 });
 
@@ -257,6 +263,9 @@ export default function FeedPage() {
       </div>
 
       <StatsBar stats={(stats.data as DashboardStats) ?? null} />
+
+      {isClub && <ClubDashboardSections />}
+      {isPlayer && <PlayerRecruitments />}
 
       {feed.isLoading ? (
         <div className="space-y-3">

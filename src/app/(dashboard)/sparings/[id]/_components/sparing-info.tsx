@@ -32,6 +32,8 @@ type SparingInfoProps = {
   isOwner: boolean;
   showDeleteConfirm: boolean;
   setShowDeleteConfirm: (v: boolean) => void;
+  showCompleteConfirm: boolean;
+  setShowCompleteConfirm: (v: boolean) => void;
   onDelete: () => void;
   onComplete: () => void;
   deleting: boolean;
@@ -43,6 +45,8 @@ export function SparingInfo({
   isOwner,
   showDeleteConfirm,
   setShowDeleteConfirm,
+  showCompleteConfirm,
+  setShowCompleteConfirm,
   onDelete,
   onComplete,
   deleting,
@@ -96,7 +100,7 @@ export function SparingInfo({
               <Button
                 size="sm"
                 className="gap-1.5"
-                onClick={onComplete}
+                onClick={() => setShowCompleteConfirm(true)}
                 disabled={completing}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -115,6 +119,17 @@ export function SparingInfo({
         confirmLabel="Tak, usuń"
         onConfirm={onDelete}
         loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={showCompleteConfirm}
+        onOpenChange={setShowCompleteConfirm}
+        title="Zakończ sparing"
+        description="Czy na pewno chcesz oznaczyć ten sparing jako zakończony? Po zakończeniu uczestnicy będą mogli wystawić recenzje."
+        confirmLabel="Tak, zakończ"
+        onConfirm={onComplete}
+        loading={completing}
+        variant="default"
       />
 
       {/* Info grid */}

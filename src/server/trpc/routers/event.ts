@@ -36,6 +36,24 @@ export const eventRouter = router({
 
       awardPoints(ctx.db, ctx.session.user.id, "event_created", event.id).catch(() => {});
 
+      // Notify club followers (fire-and-forget)
+      ctx.db.clubFollower.findMany({
+        where: { clubId: club.id },
+        select: { userId: true },
+      }).then((followers: { userId: string }[]) => {
+        if (followers.length === 0) return;
+        const typeLabel = input.type === "RECRUITMENT" ? "nabór" : "wydarzenie";
+        ctx.db.notification.createMany({
+          data: followers.map((f: { userId: string }) => ({
+            userId: f.userId,
+            type: "EVENT_APPLICATION" as const,
+            title: `Nowy ${typeLabel} od obserwowanego klubu`,
+            message: `${club.name} dodał ${typeLabel}: ${input.title}`,
+            link: `/events/${event.id}`,
+          })),
+        }).catch(() => {});
+      }).catch(() => {});
+
       return event;
     }),
 

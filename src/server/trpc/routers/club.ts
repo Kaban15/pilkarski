@@ -67,4 +67,77 @@ export const clubRouter = router({
 
       return { clubs, nextCursor };
     }),
+
+  // Follow a club
+  follow: protectedProcedure
+    .input(z.object({ clubId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Prevent following own club
+      const ownClub = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      if (ownClub?.id === input.clubId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Nie możesz obserwować własnego klubu" });
+      }
+
+      // Check club exists
+      const club = await ctx.db.club.findUnique({ where: { id: input.clubId } });
+      if (!club) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Upsert — idempotent
+      await ctx.db.clubFollower.upsert({
+        where: {
+          userId_clubId: {
+            userId: ctx.session.user.id,
+            clubId: input.clubId,
+          },
+        },
+        create: {
+          userId: ctx.session.user.id,
+          clubId: input.clubId,
+        },
+        update: {},
+      });
+
+      return { following: true };
+    }),
+
+  // Unfollow a club
+  unfollow: protectedProcedure
+    .input(z.object({ clubId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.clubFollower.deleteMany({
+        where: {
+          userId: ctx.session.user.id,
+          clubId: input.clubId,
+        },
+      });
+
+      return { following: false };
+    }),
+
+  // Check if following a club
+  isFollowing: protectedProcedure
+    .input(z.object({ clubId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const record = await ctx.db.clubFollower.findUnique({
+        where: {
+          userId_clubId: {
+            userId: ctx.session.user.id,
+            clubId: input.clubId,
+          },
+        },
+      });
+      return !!record;
+    }),
+
+  // Get follower count for a club
+  followerCount: publicProcedure
+    .input(z.object({ clubId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.clubFollower.count({
+        where: { clubId: input.clubId },
+      });
+    }),
 });

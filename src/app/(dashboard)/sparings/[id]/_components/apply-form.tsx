@@ -86,10 +86,10 @@ export function ApplyForm({
     });
   }
 
-  // Minimum date for counter-proposal (tomorrow)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  // Minimum datetime for counter-proposal (1 hour from now)
+  const minDatetime = new Date(Date.now() + 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 16);
 
   return (
     <Card className="mb-6 border-primary/20">
@@ -129,8 +129,8 @@ export function ApplyForm({
           {showCounterDate && (
             <div className="mt-2 flex items-center gap-2">
               <Input
-                type="date"
-                min={minDate}
+                type="datetime-local"
+                min={minDatetime}
                 value={counterDate}
                 onChange={(e) => setCounterDate(e.target.value)}
                 className="w-auto"

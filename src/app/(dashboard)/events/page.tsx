@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   X,
   Trophy,
   Search,
+  Target,
 } from "lucide-react";
 
 type EventItem = {
@@ -43,6 +45,15 @@ const EVENT_BADGE_STYLES: Record<string, string> = {
 };
 
 export default function EventsPage() {
+  const { data: session } = useSession();
+  const isPlayer = session?.user?.role === "PLAYER";
+
+  // Fetch player profile for matching badge (only for PLAYER)
+  const { data: playerProfile } = api.player.me.useQuery(undefined, {
+    enabled: isPlayer,
+    staleTime: Infinity,
+  });
+
   const [regionId, setRegionId] = useState<number | undefined>();
   const [type, setType] = useState<"OPEN_TRAINING" | "RECRUITMENT" | undefined>();
   const [cityInput, setCityInput] = useState("");
@@ -237,10 +248,16 @@ export default function EventsPage() {
                 <CardContent className="py-4">
                   <div className="mb-3 flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="mb-1.5">
+                      <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
                         <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
                           {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
                         </span>
+                        {isPlayer && ev.type === "RECRUITMENT" && playerProfile?.region && ev.region && playerProfile.region.name === ev.region.name && (
+                          <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
+                            <Target className="h-2.5 w-2.5" />
+                            Dopasowane
+                          </span>
+                        )}
                       </div>
                       <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                         {ev.title}

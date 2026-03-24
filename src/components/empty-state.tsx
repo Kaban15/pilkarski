@@ -8,6 +8,7 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  actionOnClick?: () => void;
 }
 
 export function EmptyState({
@@ -16,6 +17,7 @@ export function EmptyState({
   description,
   actionLabel,
   actionHref,
+  actionOnClick,
 }: EmptyStateProps) {
   return (
     <Card className="py-16 text-center animate-fade-in">
@@ -34,6 +36,15 @@ export function EmptyState({
           >
             {actionLabel}
           </Link>
+        )}
+        {actionLabel && actionOnClick && !actionHref && (
+          <button
+            type="button"
+            onClick={actionOnClick}
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            {actionLabel}
+          </button>
         )}
       </CardContent>
     </Card>

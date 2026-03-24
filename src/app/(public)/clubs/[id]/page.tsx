@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PublicProfileCTA } from "@/components/public-profile-cta";
+import { FollowClubButton } from "@/components/follow-club-button";
 import { formatShortDate, formatDate } from "@/lib/format";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 import {
@@ -145,6 +146,9 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                     {club.leagueGroup.leagueLevel.name}
                   </Badge>
                 )}
+              </div>
+              <div className="mt-3">
+                <FollowClubButton clubId={id} />
               </div>
             </div>
           </div>

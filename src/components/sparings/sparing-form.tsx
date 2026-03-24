@@ -4,7 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
-import { createSparingSchema, updateSparingSchema, SPARING_LEVELS, AGE_CATEGORIES } from "@/lib/validators/sparing";
+import {
+  createSparingSchema,
+  updateSparingSchema,
+  SPARING_LEVELS,
+  AGE_CATEGORIES,
+  type SparingLevel,
+  type AgeCategory,
+} from "@/lib/validators/sparing";
 import { SPARING_LEVEL_LABELS, AGE_CATEGORY_LABELS } from "@/lib/labels";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
@@ -102,8 +109,8 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
       matchDate: form.matchDate,
       location: form.location || undefined,
       costSplitInfo: form.costSplitInfo || undefined,
-      level: (form.level || undefined) as any,
-      ageCategory: (form.ageCategory || undefined) as any,
+      level: (form.level || undefined) as SparingLevel | undefined,
+      ageCategory: (form.ageCategory || undefined) as AgeCategory | undefined,
       preferredTime: form.preferredTime || undefined,
       regionId: form.regionId ? Number(form.regionId) : undefined,
     };
@@ -159,7 +166,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
 
     try {
       if (mode === "edit") {
-        await updateMutation.mutateAsync(data as any);
+        await updateMutation.mutateAsync(data as Parameters<typeof updateMutation.mutateAsync>[0]);
         toast.success("Sparing zaktualizowany");
         onSuccess?.(defaultValues!.id!);
       } else {

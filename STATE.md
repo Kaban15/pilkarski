@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 ✅) → Rate Limiting + tRPC React Query Migration ✅
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul ✅ → Rate Limiting + tRPC Migration ✅ → Etap 5: UX Hotfixes + Club Followers + Player Recruitments ✅
 **Ostatnia sesja:** 2026-03-24
 
 ---
@@ -615,6 +615,37 @@
 - **Istniejące E2E:** `e2e/sparing.spec.ts` (4 testy: create → list → apply → accept)
 - **E2E do dodania:** create wizard, already-applied state, complete flow, PLAYER permissions
 
+### Etap 5: UX Hotfixes + Club Followers + Player Recruitments ✅
+
+**Cel:** Poprawa UX (hotfixy), system obserwowania klubów, sekcje dashboardowe, dopasowane nabory dla zawodników.
+
+#### Hotfixy (A–C)
+
+| # | Zadanie | Status |
+|---|---------|--------|
+| A | **ConfirmDialog na "Zakończ sparing"** — dodano `showCompleteConfirm` state + ConfirmDialog z `variant="default"`. Loading text zmieniony z "Usuwanie..." na "Proszę czekać..." | ✅ |
+| B | **Counter-proposal datetime** — zmiana z `type="date"` na `type="datetime-local"`, min = teraz + 1h | ✅ |
+| C | **Race condition guard w `respond`** — `if (input.status === "ACCEPTED" && offer.status !== "OPEN")` throw BAD_REQUEST | ✅ |
+
+#### Iteracja 1 — Type Safety + Error Handling ✅
+
+| # | Zadanie | Pliki | Status |
+|---|---------|-------|--------|
+| D | **Typy zamiast `as any`** — eksport `SparingLevel`, `AgeCategory`, `SparingSortBy`, `SparingSortOrder` z validatorów. Użycie w `sparings/page.tsx` i `sparing-form.tsx` | `validators/sparing.ts`, `sparings/page.tsx`, `sparing-form.tsx` | ✅ |
+| E | **EmptyState z `actionOnClick`** — opcjonalny prop do retry buttonów (bez linku) | `empty-state.tsx` | ✅ |
+| F | **Error retry na listach** — `refetch()` z useInfiniteQuery/useQuery, retry button na error states | `sparings/page.tsx` | ✅ |
+
+#### Iteracja 2 — Club Followers + Dashboard Sections + Player Recruitments ✅
+
+| # | Zadanie | Pliki | Status |
+|---|---------|-------|--------|
+| G | **Model `ClubFollower`** — `@@unique([userId, clubId])`, `@@index([clubId])`. Migracja `20260324110435_add_club_followers` | `schema.prisma`, migration | ✅ |
+| H | **Club follow endpoints** — `club.follow` (upsert), `club.unfollow` (deleteMany), `club.isFollowing`, `club.followerCount` | `routers/club.ts` | ✅ |
+| I | **FollowClubButton** — toggle z UserPlus/UserCheck, zintegrowany w `/clubs/[id]` hero | `follow-club-button.tsx` (NEW), `clubs/[id]/page.tsx` | ✅ |
+| J | **Follower notifications** — fire-and-forget notyfikacje do obserwujących przy tworzeniu sparingu/wydarzenia | `routers/sparing.ts`, `routers/event.ts` | ✅ |
+| K | **Club dashboard sections** — pending applications, active sparings (3), upcoming events (3). Endpoint `stats.clubDashboard` | `club-sections.tsx` (NEW), `routers/stats.ts`, `feed/page.tsx` | ✅ |
+| L | **Player recruitments feed** — "Nabory dla Ciebie" section. Endpoint `feed.recruitments`. Badge "Dopasowane" na kartach wydarzeń gdy region zgadza się z profilem zawodnika | `player-recruitments.tsx` (NEW), `routers/feed.ts`, `events/page.tsx`, `feed/page.tsx` | ✅ |
+
 ### Naprawy z code review (starsze — osobny backlog)
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6
 - Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory w trpc.ts, zastosowane na 6 routerach (message.send 20/min, sparing/event create 5/min, review.create 5/min, transfer.create 5/min, favorite.toggle 30/min)
@@ -633,6 +664,7 @@
 - Migration `20260323201350_add_reviews_transfers_gamification_push` — zastosowana
 - Migration `20260324055816_add_sparing_level_category` — zastosowana (enumy SparingLevel, AgeCategory + pola level, ageCategory, preferredTime w SparingOffer)
 - Migration `20260324062139_add_counter_proposal` — zastosowana (COUNTER_PROPOSED w ApplicationStatus + counterProposedDate w SparingApplication)
+- Migration `20260324110435_add_club_followers` — zastosowana (model ClubFollower z @@unique([userId, clubId]))
 - `vercel-build` script: `prisma generate && next build` (migrate deploy usunięte — migracje aplikowane ręcznie przed deploy)
 - `prisma.config.ts` używa `process.env.DATABASE_URL!` (nie `env()` — nie działa na Vercel ani Windows)
 - Workflow zmian schematu:
@@ -664,7 +696,7 @@
 
 ## Kluczowe Pliki
 ```
-prisma/schema.prisma                  — schemat BD (26 modeli)
+prisma/schema.prisma                  — schemat BD (27 modeli, +ClubFollower)
 prisma/prisma.config.ts               — konfiguracja Prisma 7 (env() helper)
 prisma/migrations/                    — migracje BD (baseline 0_init + przyszłe zmiany)
 prisma/seed.ts                        — seed regionów/lig/grup
@@ -675,17 +707,17 @@ src/server/db/client.ts               — Prisma client singleton (PrismaPg adap
 src/server/trpc/trpc.ts               — tRPC init + publicProcedure + protectedProcedure
 src/server/trpc/router.ts             — root router (health, auth, club, player, region, sparing, event, message, feed, search, notification)
 src/server/trpc/routers/auth.ts       — rejestracja
-src/server/trpc/routers/club.ts       — CRUD klubu + lista
+src/server/trpc/routers/club.ts       — CRUD klubu + lista + follow/unfollow
 src/server/trpc/routers/player.ts     — CRUD zawodnika + kariera + lista
 src/server/trpc/routers/region.ts     — regiony, ligi, grupy, hierarchy
 src/server/trpc/routers/sparing.ts    — CRUD sparingów + aplikacje + notyfikacje
 src/server/trpc/routers/event.ts      — CRUD wydarzeń + zgłoszenia + notyfikacje
 src/server/trpc/routers/message.ts    — system wiadomości (konwersacje, czat) + notyfikacje
-src/server/trpc/routers/feed.ts       — feed z regionu użytkownika
+src/server/trpc/routers/feed.ts       — feed z regionu użytkownika + recruitments (dopasowane nabory)
 src/server/trpc/routers/search.ts     — globalna wyszukiwarka
 src/server/trpc/routers/notification.ts — powiadomienia (list, unreadCount, markAsRead)
 src/server/trpc/routers/favorite.ts    — ulubione (toggle, check, list)
-src/server/trpc/routers/stats.ts       — statystyki dashboardu (counts per role)
+src/server/trpc/routers/stats.ts       — statystyki dashboardu (counts per role) + clubDashboard (pending apps, active sparings, upcoming events)
 src/server/trpc/routers/review.ts      — recenzje (create, getForSparing, listByClub, averageByClub, myReview)
 src/server/trpc/routers/transfer.ts    — transfery (create, update, delete, close, list, getById, my)
 src/server/trpc/routers/gamification.ts — punkty, odznaki, leaderboard
@@ -751,6 +783,9 @@ src/components/form-tooltip.tsx            — tooltip help przy polach formular
 src/components/star-rating.tsx            — interaktywne gwiazdki 1-5 (sm/md/lg, readonly mode)
 src/components/map-view.tsx              — Leaflet mapa z markerami (dynamic import, SSR-safe)
 src/components/push-notification-toggle.tsx — toggle push notifications (SW + PushManager)
+src/components/follow-club-button.tsx      — przycisk obserwowania klubu (toggle follow/unfollow)
+src/components/dashboard/club-sections.tsx — sekcje dashboardu klubu (pending apps, active sparings, upcoming events)
+src/components/dashboard/player-recruitments.tsx — sekcja "Nabory dla Ciebie" (region-matched recruitment events)
 
 src/app/(dashboard)/transfers/           — lista, nowy, szczegóły, edycja ogłoszeń transferowych
 src/app/(dashboard)/stats/               — statystyki z wykresami (Recharts)
@@ -833,13 +868,15 @@ e2e/public-profiles.spec.ts           — testy publicznych profili i landing pa
 | R1   | Redesign Etap 1: UI/Design       | ✅ Gotowe |
 | R2   | Redesign Etap 2: UX/Funkcjonalności | ✅ Gotowe |
 | R3   | Redesign Etap 3: Rozbudowa       | ✅ Gotowe |
+| E4   | Etap 4: Sparing Flow Overhaul    | ✅ Gotowe |
+| E5   | Etap 5: UX + Followers + Recruitments | ✅ Gotowe |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. **Następny krok: Redesign Etap 3** — Rozbudowa Platformy (system ocen, ogłoszenia transferowe, statystyki, mapa, gamifikacja, PWA). Plan w `docs/superpowers/plans/2026-03-23-pilkasport-redesign.md` (Task 3.1–3.6).
+3. **Następny krok:** Backlog — patrz sekcja "Naprawy z code review" i P2 issues (a11y, pozostałe `any`, Prisma onDelete:Cascade cleanup).
 4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
 5. Przed instalacją nowych zależności — pytaj o zgodę.
 6. Po zakończeniu prac — zaktualizuj ten plik.

@@ -79,6 +79,7 @@ model User {
   points                   UserPoints[]
   badges                   UserBadge[]
   pushSubscriptions        PushSubscription[]
+  followedClubs            ClubFollower[]
 
   @@map("users")
 }
@@ -110,6 +111,7 @@ model Club {
   events               Event[]
   reviewsGiven         Review[]              @relation("ReviewsGiven")
   reviewsReceived      Review[]              @relation("ReviewsReceived")
+  followers            ClubFollower[]
 
   @@map("clubs")
 }
@@ -505,4 +507,22 @@ model Favorite {
   @@unique([userId, eventId])
   @@index([userId])
   @@map("favorites")
+}
+
+// ============================================================
+// OBSERWOWANIE KLUBÓW
+// ============================================================
+
+model ClubFollower {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  clubId    String   @map("club_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+  @@index([clubId])
+  @@map("club_followers")
 }

@@ -21,6 +21,7 @@ export default function SparingDetailPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   const utils = api.useUtils();
@@ -132,6 +133,8 @@ export default function SparingDetailPage() {
         isOwner={isOwner}
         showDeleteConfirm={showDeleteConfirm}
         setShowDeleteConfirm={setShowDeleteConfirm}
+        showCompleteConfirm={showCompleteConfirm}
+        setShowCompleteConfirm={setShowCompleteConfirm}
         onDelete={handleDelete}
         onComplete={handleComplete}
         deleting={deleteMutation.isPending}

@@ -144,6 +144,52 @@ export const statsRouter = router({
 
     return { role: "PLAYER" as const, eventApps, messages };
   }),
+
+  // Club dashboard sections: active sparings, upcoming events, pending applications
+  clubDashboard: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    if (ctx.session.user.role !== "CLUB") return null;
+
+    const club = await ctx.db.club.findUnique({ where: { userId } });
+    if (!club) return null;
+
+    const now = new Date();
+
+    const [activeSparings, upcomingEvents, pendingApplications] = await Promise.all([
+      ctx.db.sparingOffer.findMany({
+        where: { clubId: club.id, status: "OPEN" },
+        include: {
+          region: { select: { name: true } },
+          _count: { select: { applications: true } },
+        },
+        orderBy: { matchDate: "asc" },
+        take: 3,
+      }),
+      ctx.db.event.findMany({
+        where: { clubId: club.id, eventDate: { gte: now } },
+        include: {
+          region: { select: { name: true } },
+          _count: { select: { applications: true } },
+        },
+        orderBy: { eventDate: "asc" },
+        take: 3,
+      }),
+      ctx.db.sparingApplication.findMany({
+        where: {
+          sparingOffer: { clubId: club.id, status: "OPEN" },
+          status: { in: ["PENDING", "COUNTER_PROPOSED"] },
+        },
+        include: {
+          applicantClub: { select: { id: true, name: true, city: true, logoUrl: true } },
+          sparingOffer: { select: { id: true, title: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+    ]);
+
+    return { activeSparings, upcomingEvents, pendingApplications };
+  }),
 });
 
 // Helper: aggregate grouped records by YYYY-MM

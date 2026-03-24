@@ -104,4 +104,51 @@ export const feedRouter = router({
         regionName,
       };
     }),
+
+  // Recruitment events matched to player's profile
+  recruitments: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(20).default(5),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      if (ctx.session.user.role !== "PLAYER") return { items: [], matched: false };
+
+      const player = await ctx.db.player.findUnique({
+        where: { userId },
+        select: { regionId: true, primaryPosition: true },
+      });
+      if (!player) return { items: [], matched: false };
+
+      const now = new Date();
+
+      const where: any = {
+        type: "RECRUITMENT",
+        eventDate: { gte: now },
+      };
+
+      // Filter by player's region if available
+      if (player.regionId) {
+        where.regionId = player.regionId;
+      }
+
+      const items = await ctx.db.event.findMany({
+        where,
+        include: {
+          club: { select: { id: true, name: true, city: true, logoUrl: true } },
+          region: { select: { name: true } },
+          _count: { select: { applications: true } },
+        },
+        orderBy: { eventDate: "asc" },
+        take: input.limit,
+      });
+
+      return {
+        items,
+        matched: !!player.regionId,
+        playerPosition: player.primaryPosition,
+      };
+    }),
 });

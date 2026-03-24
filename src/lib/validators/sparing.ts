@@ -53,3 +53,8 @@ export const updateSparingSchema = createSparingSchema.extend({
 
 export type CreateSparingInput = z.infer<typeof createSparingSchema>;
 export type UpdateSparingInput = z.infer<typeof updateSparingSchema>;
+
+export type SparingLevel = (typeof SPARING_LEVELS)[number];
+export type AgeCategory = (typeof AGE_CATEGORIES)[number];
+export type SparingSortBy = "matchDate" | "createdAt" | "title";
+export type SparingSortOrder = "asc" | "desc";
