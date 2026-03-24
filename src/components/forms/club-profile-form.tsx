@@ -74,6 +74,17 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
   });
 
+  const profileFields = [
+    { key: "regionId", label: "Region", filled: !!club.regionId },
+    { key: "city", label: "Miasto", filled: !!club.city },
+    { key: "logoUrl", label: "Logo", filled: !!club.logoUrl },
+    { key: "description", label: "Opis", filled: !!club.description },
+    { key: "contactEmail", label: "E-mail kontaktowy", filled: !!club.contactEmail },
+    { key: "leagueGroupId", label: "Liga", filled: !!club.leagueGroupId },
+  ];
+  const filledCount = profileFields.filter((f) => f.filled).length;
+  const progress = Math.round((filledCount / profileFields.length) * 100);
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -91,7 +102,40 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   }
 
   return (
-    <Card>
+    <>
+      {progress < 100 && (
+        <Card className="mb-6 border-primary/20">
+          <CardContent className="py-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-medium">
+                Profil uzupełniony w {progress}%
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {filledCount} z {profileFields.length}
+              </p>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {profileFields
+                .filter((f) => !f.filled)
+                .map((f) => (
+                  <span
+                    key={f.key}
+                    className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+                  >
+                    {f.label}
+                  </span>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      <Card>
       <CardHeader>
         <CardTitle>Profil klubu</CardTitle>
       </CardHeader>
@@ -116,6 +160,9 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
             {/* Region */}
             <div className="space-y-2">
               <Label>Region (ZPN)</Label>
+              <p className="text-[11px] text-muted-foreground">
+                Feed i sparingi filtrują po regionie
+              </p>
               <select
                 value={regionId ?? ""}
                 onChange={(e) => {
@@ -219,5 +266,6 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         </form>
       </CardContent>
     </Card>
+    </>
   );
 }

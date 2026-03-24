@@ -1,3 +1,4 @@
+import { db } from "@/server/db/client";
 import Link from "next/link";
 import {
   Swords,
@@ -75,14 +76,12 @@ const FEATURES = [
   },
 ];
 
-const STATS = [
-  { label: "Województw", value: "16" },
-  { label: "Szczebli ligowych", value: "80" },
-  { label: "Grup ligowych", value: "272" },
-  { label: "Darmowa platforma", value: "100%" },
-];
-
-export default function LandingPage() {
+export default async function LandingPage() {
+  const [clubs, sparings, events] = await Promise.all([
+    db.club.count(),
+    db.sparingOffer.count(),
+    db.event.count(),
+  ]).catch(() => [0, 0, 0]);
   return (
     <div className="min-h-screen">
       {/* Nav */}
@@ -158,7 +157,12 @@ export default function LandingPage() {
       {/* Stats bar */}
       <section className="border-y border-border bg-card">
         <div className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-border px-4 sm:grid-cols-4 sm:px-6">
-          {STATS.map((stat) => (
+          {[
+            { value: String(clubs || "0"), label: "Klubów" },
+            { value: String(sparings || "0"), label: "Sparingów" },
+            { value: String(events || "0"), label: "Wydarzeń" },
+            { value: "100%", label: "Darmowa platforma" },
+          ].map((stat) => (
             <div key={stat.label} className="px-4 py-8 text-center sm:px-8">
               <p className="text-3xl font-extrabold text-primary sm:text-4xl">
                 {stat.value}

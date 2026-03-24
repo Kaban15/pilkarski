@@ -27,6 +27,7 @@ import {
   ArrowRight,
   Plus,
   Search,
+  CheckCircle2,
 } from "lucide-react";
 
 type FeedItem = {
@@ -297,11 +298,18 @@ export default function FeedPage() {
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           {isClub ? "Pulpit" : "Feed"}
         </h1>
-        {feed.data?.regionName && (
+        {isClub && clubProfile.data ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Witaj, <span className="font-medium text-foreground">{clubProfile.data.name}</span>
+            {feed.data?.regionName && (
+              <span> · {feed.data.regionName}</span>
+            )}
+          </p>
+        ) : feed.data?.regionName ? (
           <p className="mt-1 text-sm text-muted-foreground">
             Aktywności z regionu: <span className="font-medium text-foreground">{feed.data.regionName}</span>
           </p>
-        )}
+        ) : null}
       </div>
 
       {showOnboarding && (
@@ -309,6 +317,41 @@ export default function FeedPage() {
           setOnboardingDismissed(true);
           clubProfile.refetch();
         }} />
+      )}
+
+      {isClub && !showOnboarding && stats.data &&
+        (stats.data as DashboardStats).activeSparings === 0 &&
+        (stats.data as DashboardStats).upcomingEvents === 0 && (
+        <Card className="mb-8 border-dashed border-primary/20">
+          <CardContent className="py-5">
+            <p className="mb-3 text-sm font-semibold">Pierwsze kroki</p>
+            <div className="space-y-2">
+              {[
+                { done: true, label: "Zarejestruj konto" },
+                { done: !!clubProfile.data?.regionId, label: "Uzupełnij profil klubu", href: "/profile" },
+                { done: false, label: "Dodaj pierwszy sparing", href: "/sparings/new" },
+                { done: false, label: "Dodaj pierwsze wydarzenie", href: "/events/new" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-2.5">
+                  {item.done ? (
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                  ) : (
+                    <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
+                  )}
+                  {item.href && !item.done ? (
+                    <Link href={item.href} className="text-sm text-primary hover:underline">
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <span className={`text-sm ${item.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                      {item.label}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <StatsBar stats={(stats.data as DashboardStats) ?? null} />

@@ -111,6 +111,16 @@ export const statsRouter = router({
     };
   }),
 
+  platform: publicProcedure.query(async ({ ctx }) => {
+    const [clubs, sparings, events, players] = await Promise.all([
+      ctx.db.club.count(),
+      ctx.db.sparingOffer.count(),
+      ctx.db.event.count(),
+      ctx.db.player.count(),
+    ]);
+    return { clubs, sparings, events, players };
+  }),
+
   dashboard: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const role = ctx.session.user.role;
