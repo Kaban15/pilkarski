@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 W TRAKCIE)
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 ✅)
 **Ostatnia sesja:** 2026-03-24
 
 ---
@@ -587,15 +587,15 @@
 | I1-5 | **Dodaj mutację `complete`** — owner: MATCHED → COMPLETED, przycisk "Oznacz jako zakończony" | `routers/sparing.ts`, `sparing-info.tsx` | ✅ |
 | I1-6 | **Error handling na liście + ograniczenie getById** — `.catch()`, error+retry, zgłoszenia widoczne tylko ownerowi/aplikantowi | `sparings/page.tsx`, `routers/sparing.ts` | ✅ |
 
-#### Plan: Iteracja 2 — UX Uplift (Footinho vibe)
+#### Plan: Iteracja 2 — UX Uplift (Footinho vibe) ✅
 
 | # | Zadanie | Pliki | Status |
 |---|---------|-------|--------|
 | I2-1 | **Multi-step wizard (3 kroki)** — (1) Dane sparingu: tytuł, region, poziom, kategoria (2) Termin + lokalizacja (3) Podsumowanie + "Opublikuj" | `sparing-form.tsx` | ✅ |
 | I2-2 | **Redesign karty sparingu** — avatar klubu, pill-badges (poziom, kategoria, region), countdown "za 3 dni", arrow on hover | `src/components/sparings/sparing-card.tsx` (NEW) | ✅ |
-| I2-3 | **Post-match flow** — timeline (Utworzony → Dopasowany → Rozegrany), CTA "Wyślij wiadomość rywalowi", CTA "Oceń sparing" | `sparing-info.tsx` | ⬜ |
-| I2-4 | **Kontr-propozycja terminu** — nowy status COUNTER_PROPOSED, date picker w apply form | `routers/sparing.ts`, `apply-form.tsx`, schema migration | ⬜ |
-| I2-5 | **Widok piłkarza** — bez "Dodaj", CTA "Obserwuj sparing", feed-style lista | `sparings/page.tsx` | ⬜ |
+| I2-3 | **Post-match flow** — timeline (Utworzony → Dopasowany → Rozegrany), CTA "Wyślij wiadomość rywalowi", CTA "Oceń sparing" | `_components/sparing-timeline.tsx` (NEW), `sparings/[id]/page.tsx` | ✅ |
+| I2-4 | **Kontr-propozycja terminu** — nowy status COUNTER_PROPOSED, date picker w apply form, accept aktualizuje matchDate | `schema.prisma`, `validators/sparing.ts`, `routers/sparing.ts`, `apply-form.tsx`, `sparing-applications.tsx`, `labels.ts` | ✅ |
+| I2-5 | **Widok piłkarza** — bez "Dodaj", info banner "Obserwuj", feed-style lista z serduszkami | `sparings/page.tsx` | ✅ |
 | I2-6 | **Wzbogać model danych** — pola: `level` (enum), `ageCategory` (enum), `preferredTime` | `schema.prisma`, `validators/sparing.ts`, migration | ✅ |
 
 #### Verification Checklist
@@ -632,6 +632,7 @@
 - Baseline migration: `prisma/migrations/0_init/migration.sql` (336 linii, wygenerowane z live DB)
 - Migration `20260323201350_add_reviews_transfers_gamification_push` — zastosowana
 - Migration `20260324055816_add_sparing_level_category` — zastosowana (enumy SparingLevel, AgeCategory + pola level, ageCategory, preferredTime w SparingOffer)
+- Migration `20260324062139_add_counter_proposal` — zastosowana (COUNTER_PROPOSED w ApplicationStatus + counterProposedDate w SparingApplication)
 - `vercel-build` script: `prisma generate && next build` (migrate deploy usunięte — migracje aplikowane ręcznie przed deploy)
 - `prisma.config.ts` używa `process.env.DATABASE_URL!` (nie `env()` — nie działa na Vercel ani Windows)
 - Workflow zmian schematu:

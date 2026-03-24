@@ -70,12 +70,14 @@ export const SPARING_STATUS_COLORS: Record<string, string> = {
 
 export const APPLICATION_STATUS_LABELS: Record<string, string> = {
   PENDING: "Oczekuje",
+  COUNTER_PROPOSED: "Kontr-propozycja",
   ACCEPTED: "Zaakceptowany",
   REJECTED: "Odrzucony",
 };
 
 export const APPLICATION_STATUS_COLORS: Record<string, string> = {
   PENDING: "text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-950",
+  COUNTER_PROPOSED: "text-orange-800 dark:text-orange-200 bg-orange-50 dark:bg-orange-950",
   ACCEPTED: "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950",
   REJECTED: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950",
 };

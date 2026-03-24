@@ -30,11 +30,14 @@ import {
   X,
   Swords,
   Search,
+  Eye,
+  Heart,
 } from "lucide-react";
 
 export default function SparingsPage() {
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
+  const isPlayer = session?.user?.role === "PLAYER";
   const [tab, setTab] = useState<"search" | "my">("search");
 
   return (
@@ -44,7 +47,9 @@ export default function SparingsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Sparingi</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Znajdź rywala na mecz sparingowy
+            {isPlayer
+              ? "Przeglądaj sparingi i obserwuj interesujące mecze"
+              : "Znajdź rywala na mecz sparingowy"}
           </p>
         </div>
         {isClub && (
@@ -58,6 +63,23 @@ export default function SparingsPage() {
         )}
       </div>
 
+      {/* Player info banner */}
+      {isPlayer && (
+        <Card className="mb-6 border-l-[3px] border-l-violet-500">
+          <CardContent className="flex items-center gap-3 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+              <Eye className="h-4 w-4 text-violet-500" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Obserwuj sparingi klikając <Heart className="inline h-3.5 w-3.5 text-rose-500" /> — znajdziesz je potem w{" "}
+              <Link href="/favorites" className="font-medium text-primary hover:underline">
+                Ulubionych
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {isClub && (
         <Tabs value={tab} onValueChange={(v) => setTab(v as "search" | "my")} className="mb-6">
           <TabsList>
@@ -67,7 +89,7 @@ export default function SparingsPage() {
         </Tabs>
       )}
 
-      {tab === "search" ? <SearchTab /> : <MySparingsTab />}
+      {tab === "search" || !isClub ? <SearchTab /> : <MySparingsTab />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Swords } from "lucide-react";
 
 import { SparingInfo } from "./_components/sparing-info";
+import { SparingTimeline } from "./_components/sparing-timeline";
 import { ApplyForm } from "./_components/apply-form";
 import { SparingApplications } from "./_components/sparing-applications";
 import { SparingReviews } from "./_components/sparing-reviews";
@@ -26,6 +27,7 @@ export default function SparingDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   const reload = useCallback(() => {
     trpc.sparing.getById.query({ id }).then(setSparing).catch(() => setError("Nie znaleziono sparingu"));
@@ -99,6 +101,13 @@ export default function SparingDetailPage() {
     ? sparing.applications?.find((a: any) => a.applicantClub?.userId === session.user.id)
     : null;
 
+  // Determine opponent userId for messaging CTA
+  const opponentUserId = isParticipant
+    ? isOwner
+      ? acceptedApp?.applicantClub?.userId
+      : sparing.club.userId
+    : undefined;
+
   return (
     <div className="animate-fade-in">
       <Breadcrumbs
@@ -119,6 +128,16 @@ export default function SparingDetailPage() {
         completing={completing}
       />
 
+      <SparingTimeline
+        status={sparing.status}
+        isParticipant={isParticipant}
+        canReview={canReview}
+        opponentUserId={opponentUserId}
+        onScrollToReview={() =>
+          reviewSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+        }
+      />
+
       <ApplyForm
         sparingId={id}
         status={sparing.status}
@@ -136,13 +155,15 @@ export default function SparingDetailPage() {
         />
       )}
 
-      <SparingReviews
-        sparingId={id}
-        reviews={reviews}
-        myReview={myReview}
-        canReview={canReview}
-        onReviewSubmitted={reload}
-      />
+      <div ref={reviewSectionRef}>
+        <SparingReviews
+          sparingId={id}
+          reviews={reviews}
+          myReview={myReview}
+          canReview={canReview}
+          onReviewSubmitted={reload}
+        />
+      </div>
     </div>
   );
 }

@@ -205,6 +205,7 @@ enum SparingStatus {
 
 enum ApplicationStatus {
   PENDING
+  COUNTER_PROPOSED
   ACCEPTED
   REJECTED
 }
@@ -239,11 +240,12 @@ model SparingOffer {
 }
 
 model SparingApplication {
-  id              String            @id @default(uuid()) @db.Uuid
-  sparingOfferId  String            @map("sparing_offer_id") @db.Uuid
-  applicantClubId String            @map("applicant_club_id") @db.Uuid
-  message         String?
-  status          ApplicationStatus @default(PENDING)
+  id                   String            @id @default(uuid()) @db.Uuid
+  sparingOfferId       String            @map("sparing_offer_id") @db.Uuid
+  applicantClubId      String            @map("applicant_club_id") @db.Uuid
+  message              String?
+  counterProposedDate  DateTime?         @map("counter_proposed_date") @db.Timestamptz
+  status               ApplicationStatus @default(PENDING)
   createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz
 

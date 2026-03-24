@@ -29,6 +29,13 @@ export const createSparingSchema = z.object({
 export const applySparingSchema = z.object({
   sparingOfferId: z.string().uuid(),
   message: z.string().max(500).optional(),
+  counterProposedDate: z.string().refine(
+    (s) => {
+      const d = Date.parse(s);
+      return !isNaN(d) && d > Date.now();
+    },
+    { message: "Proponowana data musi być w przyszłości" }
+  ).optional(),
 });
 
 export const respondApplicationSchema = z.object({

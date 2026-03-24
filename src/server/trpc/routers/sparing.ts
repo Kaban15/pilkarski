@@ -210,6 +210,8 @@ export const sparingRouter = router({
           sparingOfferId: input.sparingOfferId,
           applicantClubId: club.id,
           message: input.message,
+          counterProposedDate: input.counterProposedDate ? new Date(input.counterProposedDate) : undefined,
+          status: input.counterProposedDate ? "COUNTER_PROPOSED" : "PENDING",
         },
       });
 
@@ -253,17 +255,21 @@ export const sparingRouter = router({
         data: { status: input.status },
       });
 
-      // If accepted, mark offer as MATCHED and reject other applications
+      // If accepted, mark offer as MATCHED (and update matchDate if counter-proposed)
       if (input.status === "ACCEPTED") {
+        const updateData: { status: "MATCHED"; matchDate?: Date } = { status: "MATCHED" };
+        if (updated.counterProposedDate) {
+          updateData.matchDate = updated.counterProposedDate;
+        }
         await ctx.db.sparingOffer.update({
           where: { id: application.sparingOfferId },
-          data: { status: "MATCHED" },
+          data: updateData,
         });
         await ctx.db.sparingApplication.updateMany({
           where: {
             sparingOfferId: application.sparingOfferId,
             id: { not: input.applicationId },
-            status: "PENDING",
+            status: { in: ["PENDING", "COUNTER_PROPOSED"] },
           },
           data: { status: "REJECTED" },
         });

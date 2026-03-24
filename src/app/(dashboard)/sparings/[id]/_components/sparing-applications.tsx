@@ -9,7 +9,8 @@ import {
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUS_COLORS,
 } from "@/lib/labels";
-import { Users, CheckCircle2, XCircle } from "lucide-react";
+import { formatDate } from "@/lib/format";
+import { Users, CheckCircle2, XCircle, CalendarClock } from "lucide-react";
 
 type SparingApplicationsProps = {
   applications: any[];
@@ -74,6 +75,12 @@ export function SparingApplications({
                       {app.message}
                     </p>
                   )}
+                  {app.counterProposedDate && (
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                      <CalendarClock className="h-3 w-3" />
+                      Proponowany termin: {formatDate(app.counterProposedDate)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge
@@ -82,7 +89,7 @@ export function SparingApplications({
                   >
                     {APPLICATION_STATUS_LABELS[app.status]}
                   </Badge>
-                  {isOwner && app.status === "PENDING" && (
+                  {isOwner && (app.status === "PENDING" || app.status === "COUNTER_PROPOSED") && (
                     <>
                       <Button
                         size="sm"
