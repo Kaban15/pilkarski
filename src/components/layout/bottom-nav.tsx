@@ -23,10 +23,10 @@ export function BottomNav() {
   const pathname = usePathname();
 
   const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
   const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 
   return (
