@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4 ✅ → Etap 5 ✅ → Etap 6: Backlog Cleanup + Push Notifications + Infra Fixes ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4 ✅ → Etap 5 ✅ → Etap 6 ✅ → Etap 7: Club UX Week 1 ✅
 **Ostatnia sesja:** 2026-03-24
 
 ---
@@ -687,6 +687,59 @@
 
 #### E2E Tests ✅
 - `e2e/sparing-advanced.spec.ts` — 4 testy: wizard flow, already-applied, complete flow, player permissions
+
+### Etap 7: Club UX Week 1 — Dashboard & Flow ✅
+
+**Cel:** Dopieszczenie UX klubu w dashboardzie, sparingach, wydarzeniach i kalendarzu. 8 tasków, 17 plików, ~650 linii zmian.
+
+#### T1: Redesign dashboardu klubu ✅
+- **Akcyjne metryki** — `stats.dashboard` zwraca: aktywne sparingi, oczekujące zgłoszenia, nadchodzące wydarzenia, nieprzeczytane wiadomości (zamiast total all-time)
+- **Quick actions** — przyciski „Dodaj sparing", „Dodaj wydarzenie", „Kalendarz", „Szukaj rywala"
+- **Empty state** — zachęcające CTA gdy klub nie ma jeszcze contentu (zamiast `return null`)
+- **Sidebar** — „Feed" → „Pulpit", tytuł strony warunkowy per rola
+- Pliki: `feed/page.tsx`, `club-sections.tsx`, `stats.ts`, `sidebar.tsx`
+
+#### T2: Fix kontroli ról — events ✅
+- „Dodaj wydarzenie" ukryte dla nie-klubów (P0)
+- Formularz „Zgłoś się" tylko dla PLAYER (P0)
+- Natywne `<select>` → shadcn `<Select>` (spójność z sparingami)
+- Dodany brakujący error state na liście wydarzeń
+- Pliki: `events/page.tsx`, `events/[id]/page.tsx`
+
+#### T3: UX „Moje sparingi" ✅
+- Badge z liczbą oczekujących zgłoszeń na tab „Moje sparingi"
+- Sekcja „Nadchodzące mecze" (MATCHED + przyszła data) wyróżniona na górze
+- Podział: Nadchodzące mecze → Otwarte → Dopasowane (rozegrane) → Zakończone → Anulowane
+- Plik: `sparings/page.tsx`
+
+#### T4: UX detail page sparingu ✅
+- Sortowanie zgłoszeń: PENDING/COUNTER_PROPOSED na górze
+- Avatary klubów w liście zgłoszeń (logo lub 2-literowy fallback)
+- Amber banner „Masz X zgłoszeń do rozpatrzenia" + wyróżnienie pendingowych wierszy
+- Wyświetlanie rywala (nazwa + avatar) w headerze gdy sparing MATCHED
+- Pliki: `sparing-applications.tsx`, `sparing-info.tsx`, `sparings/[id]/page.tsx`
+
+#### T5: „Moje wydarzenia" tab ✅
+- Tab „Moje wydarzenia" dla klubów (analogicznie do „Moje sparingi")
+- Grupy: Nadchodzące / Przeszłe
+- Skeleton, error state, empty state z CTA
+- Plik: `events/page.tsx`
+
+#### T6: Kalendarz — czytelność ✅
+- Toggle „Tylko moje" (server-side filtr `clubId`) dla klubów
+- Widok listy/agendy jako alternatywa dla siatki (przydatny na mobile)
+- Plik: `calendar-view.tsx`
+
+#### T7: Mobile polish ✅
+- Filtry na sparingach i wydarzeniach: `overflow-x-auto` + `shrink-0` (scroll zamiast wrap)
+- Bottom nav: badge z liczbą pending zgłoszeń na ikonie Sparingów
+- Pliki: `sparings/page.tsx`, `events/page.tsx`, `bottom-nav.tsx`
+
+#### T8: Typowanie ✅
+- Usunięcie `any` z event detail (`EventApplication` type) i sparing detail (`SparingApplication` type)
+- Pliki: `events/[id]/page.tsx`, `sparings/[id]/page.tsx`
+
+---
 
 ### Naprawy z code review (starsze — osobny backlog) ✅
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6 ✅
