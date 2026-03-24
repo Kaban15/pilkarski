@@ -34,6 +34,8 @@ import {
   FileText,
   Calendar,
   MapPin,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
 
 type SparingFormProps = {
@@ -73,11 +75,22 @@ const STEPS = [
 
 export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps) {
   const router = useRouter();
+  const isEdit = mode === "edit";
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [step, setStep] = useState(0);
 
+  // Quick mode state
+  const [quickMode, setQuickMode] = useState(false);
+  const [quickDate, setQuickDate] = useState("");
+  const [quickLocation, setQuickLocation] = useState("");
+  const [quickCreatePending, setQuickCreatePending] = useState(false);
+
   const { data: regions = [] } = api.region.list.useQuery();
+  const { data: clubProfile } = api.club.me.useQuery(undefined, {
+    staleTime: Infinity,
+    enabled: !isEdit,
+  });
   const createMutation = api.sparing.create.useMutation();
   const updateMutation = api.sparing.update.useMutation();
 
@@ -181,6 +194,39 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     }
   }
 
+  async function handleQuickCreate() {
+    if (!quickDate) return;
+    setQuickCreatePending(true);
+
+    const date = new Date(quickDate);
+    const title = `Sparing ${date.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}`;
+
+    const data = {
+      title,
+      matchDate: quickDate,
+      location: quickLocation || undefined,
+      regionId: clubProfile?.regionId ?? undefined,
+    };
+
+    const validation = createSparingSchema.safeParse(data);
+    if (!validation.success) {
+      const errors = getFieldErrors(validation.error);
+      toast.error(Object.values(errors).join(", ") || "Sprawdź formularz");
+      setQuickCreatePending(false);
+      return;
+    }
+
+    try {
+      const result = await createMutation.mutateAsync(data);
+      toast.success("Sparing utworzony!");
+      onSuccess?.(result.id);
+    } catch (err: any) {
+      toast.error(err.message || "Nie udało się utworzyć sparingu");
+    } finally {
+      setQuickCreatePending(false);
+    }
+  }
+
   // Edit mode — flat form (no wizard)
   if (mode === "edit") {
     return (
@@ -218,82 +264,152 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
   // Create mode — wizard
   return (
     <div className="space-y-6">
-      {/* Stepper */}
-      <div className="flex items-center justify-between">
-        {STEPS.map((s, i) => {
-          const Icon = s.icon;
-          const isActive = i === step;
-          const isDone = i < step;
-          return (
-            <div key={i} className="flex flex-1 items-center">
-              <div className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
-                    isActive
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : isDone
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-muted-foreground/30 text-muted-foreground"
-                  }`}
-                >
-                  {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                </div>
-                <span
-                  className={`text-xs font-medium ${
-                    isActive ? "text-primary" : isDone ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {s.label}
-                </span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div
-                  className={`mx-2 h-0.5 flex-1 rounded transition-colors ${
-                    isDone ? "bg-primary" : "bg-muted-foreground/20"
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Step content */}
-      <div className="animate-fade-in">
-        {step === 0 && (
-          <StepOneFields form={form} updateField={updateField} fieldErrors={fieldErrors} regions={regions} />
-        )}
-        {step === 1 && (
-          <StepTwoFields form={form} updateField={updateField} fieldErrors={fieldErrors} />
-        )}
-        {step === 2 && (
-          <StepThreeSummary form={form} regions={regions} updateField={updateField} />
-        )}
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between border-t pt-4">
+      {/* Mode toggle */}
+      <div className="mb-6 flex gap-2">
         <Button
           type="button"
-          variant="outline"
-          onClick={step === 0 ? () => router.back() : handleBack}
-          className="gap-1.5"
+          variant={!quickMode ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => setQuickMode(false)}
         >
-          <ChevronLeft className="h-4 w-4" />
-          {step === 0 ? "Anuluj" : "Wstecz"}
+          Pełny formularz
         </Button>
-        {step < 2 ? (
-          <Button type="button" onClick={handleNext} className="gap-1.5">
-            Dalej
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button onClick={handleSubmit} disabled={loading} className="gap-1.5">
-            {loading ? "Tworzenie..." : "Opublikuj sparing"}
-            <Check className="h-4 w-4" />
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant={quickMode ? "secondary" : "ghost"}
+          size="sm"
+          className="gap-1.5"
+          onClick={() => setQuickMode(true)}
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Szybki sparing
+        </Button>
       </div>
+
+      {/* Quick mode form */}
+      {quickMode && (
+        <Card>
+          <CardContent className="py-6">
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <p className="text-sm font-semibold">Szybki sparing</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Tytuł wygenerujemy automatycznie. Podaj tylko termin i miejsce.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Data i godzina <span className="text-destructive">*</span></Label>
+                <Input
+                  type="datetime-local"
+                  value={quickDate}
+                  onChange={(e) => setQuickDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Miejsce</Label>
+                <Input
+                  value={quickLocation}
+                  onChange={(e) => setQuickLocation(e.target.value)}
+                  placeholder="np. Stadion Miejski, ul. Sportowa 1"
+                />
+              </div>
+            </div>
+            <Button
+              className="mt-4 w-full gap-2"
+              onClick={handleQuickCreate}
+              disabled={!quickDate || quickCreatePending}
+            >
+              {quickCreatePending ? "Tworzenie..." : "Opublikuj sparing"}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stepper */}
+      {!quickMode && (
+        <>
+          <div className="flex items-center justify-between">
+            {STEPS.map((s, i) => {
+              const Icon = s.icon;
+              const isActive = i === step;
+              const isDone = i < step;
+              return (
+                <div key={i} className="flex flex-1 items-center">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
+                        isActive
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : isDone
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-muted-foreground/30 text-muted-foreground"
+                      }`}
+                    >
+                      {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                    </div>
+                    <span
+                      className={`text-xs font-medium ${
+                        isActive ? "text-primary" : isDone ? "text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div
+                      className={`mx-2 h-0.5 flex-1 rounded transition-colors ${
+                        isDone ? "bg-primary" : "bg-muted-foreground/20"
+                      }`}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Step content */}
+          <div className="animate-fade-in">
+            {step === 0 && (
+              <StepOneFields form={form} updateField={updateField} fieldErrors={fieldErrors} regions={regions} />
+            )}
+            {step === 1 && (
+              <StepTwoFields form={form} updateField={updateField} fieldErrors={fieldErrors} />
+            )}
+            {step === 2 && (
+              <StepThreeSummary form={form} regions={regions} updateField={updateField} />
+            )}
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between border-t pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={step === 0 ? () => router.back() : handleBack}
+              className="gap-1.5"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {step === 0 ? "Anuluj" : "Wstecz"}
+            </Button>
+            {step < 2 ? (
+              <Button type="button" onClick={handleNext} className="gap-1.5">
+                Dalej
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={loading} className="gap-1.5">
+                {loading ? "Tworzenie..." : "Opublikuj sparing"}
+                <Check className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
