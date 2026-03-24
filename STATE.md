@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4 ✅ → Etap 5 ✅ → Etap 6 ✅ → Etap 7: Club UX Week 1 ✅
-**Ostatnia sesja:** 2026-03-24
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4 ✅ → Etap 5 ✅ → Etap 6 ✅ → Etap 7 ✅ → Etap 8: Club Onboarding Week 2 ✅
+**Ostatnia sesja:** 2026-03-25
 
 ---
 
@@ -738,6 +738,67 @@
 #### T8: Typowanie ✅
 - Usunięcie `any` z event detail (`EventApplication` type) i sparing detail (`SparingApplication` type)
 - Pliki: `events/[id]/page.tsx`, `sparings/[id]/page.tsx`
+
+---
+
+### Etap 8: Club Onboarding Week 2 — Przygotowanie pod realne kluby ✅
+
+**Cel:** Klub, który pierwszy raz wchodzi na stronę, ma jasny komunikat na landing, prosty onboarding po rejestracji i płynne demo tworzenia sparingu/naboru. 8 tasków, 11 plików (2 nowe), ~800 linii zmian.
+
+#### T1: Landing — copy pod kluby ✅
+- Hero: „Umów sparing w 2 minuty" (zamiast ogólnego „Łączymy kluby")
+- Nowa sekcja „Jak to działa?" — 3 kroki: zarejestruj klub → dodaj sparing → odbieraj zgłoszenia
+- „Dla klubów": konkretniejsze punkty (ogłoszenie sparingowe, nabory z limitem, profil publiczny, push)
+- CTA: „Szukasz rywala na sparing?"
+- Plik: `src/app/page.tsx`
+
+#### T2: Landing — dynamiczne statystyki ✅
+- Stats bar ciągnie live dane z DB (liczba klubów, sparingów, wydarzeń) via server-side Prisma
+- Fallback `.catch(() => [0, 0, 0])` gdy DB niedostępna
+- Nowy `stats.platform` publicProcedure w routerze
+- Pliki: `src/app/page.tsx`, `src/server/trpc/routers/stats.ts`
+
+#### T3: Auto-login po rejestracji ✅
+- Po rejestracji → `signIn("credentials", ...)` → redirect do `/feed` (bez przeskoku przez login)
+- Credentials przechowywane w `useRef` przed mutacją
+- Fallback do `/login?registered=true` jeśli auto-login zawiedzie
+- Plik: `src/app/(auth)/register/page.tsx`
+
+#### T4: Onboarding wizard klubu ✅
+- Nowy komponent `ClubOnboarding` — 3-krokowy inline wizard na dashboardzie
+- Krok 1: miasto + region + liga (kaskadowe dropdowny) → `club.update`
+- Krok 2: CTA „Dodaj sparing" / „Dodaj wydarzenie" (lub Pomiń)
+- Krok 3: „Klub gotowy!" + przejście do pulpitu
+- Step indicator z progress line, przycisk „Pomiń na razie"
+- Wyświetlany gdy `club.me.regionId === null` (nowy klub)
+- Pliki: `src/components/onboarding/club-onboarding.tsx` (NEW), `src/app/(dashboard)/feed/page.tsx`
+
+#### T5: Profil klubu — progress bar ✅
+- Pasek postępu „Profil uzupełniony w X%" (6 pól: region, miasto, logo, opis, email, liga)
+- Amber badge'e z brakującymi polami
+- Hint pod regionem: „Feed i sparingi filtrują po regionie"
+- Plik: `src/components/forms/club-profile-form.tsx`
+
+#### T6: Dashboard — kontekstowe powitanie ✅
+- „Witaj, [Nazwa Klubu] · [Region]" zamiast ogólnego subtitle
+- Checklist „Pierwsze kroki" dla klubów z zerową aktywnością: ✓ Konto, ○ Profil, ○ Sparing, ○ Wydarzenie
+- Linki do odpowiednich stron przy nieukończonych krokach
+- Plik: `src/app/(dashboard)/feed/page.tsx`
+
+#### T7: Szybki sparing ✅
+- Toggle „Pełny formularz" / „Szybki sparing" (z ikoną Zap) na formularzu tworzenia
+- Szybki tryb: jedno pole daty + opcjonalne miejsce, auto-generowany tytuł z daty
+- Region auto-pobierany z profilu klubu (`club.me`)
+- Ta sama mutacja `sparing.create` co pełny wizard
+- Plik: `src/components/sparings/sparing-form.tsx`
+
+#### T8: E2E testy onboardingu ✅
+- 5 testów w `e2e/onboarding.spec.ts` (NEW):
+  - Nowy klub widzi kreator onboardingu
+  - Uzupełnienie profilu w kroku 1 → przejście do kroku 2
+  - Pominięcie onboardingu
+  - Pełne przejście przez 3 kroki
+  - Redirect po rejestracji
 
 ---
 
