@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 
 function compressImage(file: File, maxSize: number, quality: number): Promise<Blob> {
@@ -62,23 +61,25 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
 
     // Client-side resize & compress (max 800x800, WebP quality 0.8)
     const compressed = await compressImage(file, 800, 0.8);
-    const path = `${folder}/${entityId}.webp`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, compressed, { upsert: true, contentType: "image/webp" });
+    const formData = new FormData();
+    formData.append("file", compressed, `${entityId}.webp`);
+    formData.append("folder", folder);
+    formData.append("entityId", entityId);
 
-    if (uploadError) {
-      setError("Błąd uploadu: " + uploadError.message);
-      setUploading(false);
-      return;
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setError("Błąd uploadu: " + (data.error ?? "Nieznany błąd"));
+        setUploading(false);
+        return;
+      }
+      setPreview(data.url);
+      onUploaded(data.url);
+    } catch {
+      setError("Błąd połączenia z serwerem");
     }
-
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    const publicUrl = data.publicUrl + "?t=" + Date.now();
-
-    setPreview(publicUrl);
-    onUploaded(publicUrl);
     setUploading(false);
   }
 
