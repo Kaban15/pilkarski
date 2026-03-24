@@ -126,13 +126,13 @@ export default function LandingPage() {
               Platforma dla polskiego futbolu
             </div>
             <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Łączymy kluby
-              <span className="text-primary"> piłkarskie</span>
-              <br />z zawodnikami
+              Umów sparing
+              <span className="text-primary"> w 2 minuty</span>
             </h1>
             <p className="mb-10 text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              Organizuj sparingi, przeglądaj wydarzenia, szukaj talentów.
-              Wszystko w jednym miejscu — za darmo.
+              PilkaSport to darmowa platforma, na której kluby piłkarskie umawiają
+              mecze sparingowe i organizują nabory. Wybierz region, dodaj ogłoszenie
+              — reszta dzieje się sama.
             </p>
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Link
@@ -201,6 +201,61 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How it works */}
+      <section className="border-t border-border bg-card">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mb-14 text-center">
+            <h2 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Jak to działa?
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              Trzy kroki dzielą Cię od pierwszego sparingu.
+            </p>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-3">
+            {[
+              {
+                step: "1",
+                title: "Zarejestruj klub",
+                description: "Podaj nazwę, wybierz region i ligę. Zajmie Ci to 30 sekund.",
+                color: "bg-emerald-500",
+              },
+              {
+                step: "2",
+                title: "Dodaj sparing lub nabór",
+                description: "Ustal termin, miejsce i poziom. Ogłoszenie trafi do klubów w Twoim regionie.",
+                color: "bg-violet-500",
+              },
+              {
+                step: "3",
+                title: "Odbieraj zgłoszenia",
+                description: "Kluby aplikują na Twój sparing — Ty wybierasz rywala. Powiadomienia przychodzą na bieżąco.",
+                color: "bg-blue-500",
+              },
+            ].map((item) => (
+              <div key={item.step} className="relative text-center">
+                <div className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${item.color} text-xl font-bold text-white`}>
+                  {item.step}
+                </div>
+                <h3 className="mb-2 text-lg font-semibold">{item.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12 text-center">
+            <Link
+              href="/register"
+              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90 hover:shadow-xl"
+            >
+              Zarejestruj klub za darmo
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* For whom */}
       <section className="border-t border-border bg-card">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-20 sm:grid-cols-2 sm:px-6 sm:py-28">
@@ -212,19 +267,19 @@ export default function LandingPage() {
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                Szukaj rywali na sparingi w swoim regionie
+                Dodaj ogłoszenie sparingowe — rywale z regionu zgłoszą się sami
               </li>
               <li className="flex items-start gap-2">
                 <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                Organizuj nabory i treningi otwarte
+                Organizuj nabory i treningi otwarte z limitem miejsc
               </li>
               <li className="flex items-start gap-2">
                 <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                Zarządzaj profilem klubu z logo i informacjami
+                Profil klubu widoczny publicznie — z logo, ligą i kontaktem
               </li>
               <li className="flex items-start gap-2">
                 <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                Komunikuj się bezpośrednio z zawodnikami
+                Powiadomienia push o nowych zgłoszeniach i wiadomościach
               </li>
             </ul>
             <Link
@@ -275,11 +330,11 @@ export default function LandingPage() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-primary/5 via-background to-background" />
         <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 sm:py-28">
           <h2 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Gotowy na grę?
+            Szukasz rywala na sparing?
           </h2>
           <p className="mx-auto mb-10 max-w-xl text-lg text-muted-foreground">
-            Dołącz do PilkaSport i połącz się z piłkarską społecznością w swoim regionie.
-            Rejestracja jest darmowa i zajmuje mniej niż minutę.
+            Zarejestruj klub, dodaj ogłoszenie i czekaj na zgłoszenia.
+            Pierwsze kluby już korzystają — dołącz za darmo.
           </p>
           <Link
             href="/register"

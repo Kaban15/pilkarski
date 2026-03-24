@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { registerSchema } from "@/lib/validators/auth";
@@ -24,10 +25,24 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [role, setRole] = useState<"CLUB" | "PLAYER">("CLUB");
+  const credentialsRef = useRef<{ email: string; password: string } | null>(null);
 
   const registerMut = api.auth.register.useMutation({
-    onSuccess: () => {
-      toast.success("Rejestracja udana! Zaloguj się.");
+    onSuccess: async () => {
+      toast.success("Rejestracja udana! Logowanie...");
+      const creds = credentialsRef.current;
+      if (creds) {
+        const result = await signIn("credentials", {
+          email: creds.email,
+          password: creds.password,
+          redirect: false,
+        });
+        if (result?.ok) {
+          router.push("/feed");
+          return;
+        }
+      }
+      // Fallback if auto-login fails
       router.push("/login?registered=true");
     },
     onError: (err) => {
@@ -56,6 +71,7 @@ export default function RegisterPage() {
       return;
     }
 
+    credentialsRef.current = { email: data.email, password: data.password };
     registerMut.mutate(data);
   }
 

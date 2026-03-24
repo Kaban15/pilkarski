@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
@@ -11,6 +12,7 @@ import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 import { EmptyState } from "@/components/empty-state";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
+import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
 import {
   Swords,
   Trophy,
@@ -281,6 +283,13 @@ export default function FeedPage() {
   const isPlayer = session?.user?.role === "PLAYER";
   const feed = api.feed.get.useQuery({ limit: 30 });
   const stats = api.stats.dashboard.useQuery(undefined, { staleTime: 60_000 });
+  const clubProfile = api.club.me.useQuery(undefined, {
+    enabled: isClub,
+    staleTime: Infinity,
+  });
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+
+  const showOnboarding = isClub && !onboardingDismissed && clubProfile.data && !clubProfile.data.regionId;
 
   return (
     <div className="animate-fade-in">
@@ -295,9 +304,16 @@ export default function FeedPage() {
         )}
       </div>
 
+      {showOnboarding && (
+        <ClubOnboarding onComplete={() => {
+          setOnboardingDismissed(true);
+          clubProfile.refetch();
+        }} />
+      )}
+
       <StatsBar stats={(stats.data as DashboardStats) ?? null} />
 
-      {isClub && <ClubQuickActions />}
+      {isClub && !showOnboarding && <ClubQuickActions />}
       {isClub && <ClubDashboardSections />}
       {isPlayer && <PlayerRecruitments />}
 
