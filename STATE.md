@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4 ✅ → Etap 5 ✅ → Etap 6 ✅ → Etap 7 ✅ → Etap 8: Club Onboarding Week 2 ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–8 ✅ → Etap 9: Visual Redesign "Sexy & Simple" ✅
 **Ostatnia sesja:** 2026-03-25
 
 ---
@@ -802,6 +802,52 @@
 
 ---
 
+### Etap 9: Visual Redesign "Sexy & Simple" ✅
+
+**Cel:** Redesign wizualny inspirowany Linear/Vercel + Sofascore — mniej noise, więcej whitespace, wyraźniejsza hierarchia. Bez zmian logiki biznesowej. 6 tasków, 8 plików, ~300 linii zmian.
+
+#### T1: Design tokens — dark mode overhaul ✅
+- Dark mode: navy (#0b0f1a) → Vercel-style neutral (#0a0a0a)
+- Card: #111827 → #141414, borders: #1e293b → #222222
+- Muted foreground: blue-gray → neutral gray (#888888)
+- Sidebar dark bg dopasowany do nowego schematu
+- Plik: `src/styles/globals.css`
+
+#### T2: Sparing card redesign ✅
+- Usunięty border-left-[3px] accent → czysta karta z hover:border-primary/40
+- Avatar 40x40 → inline 20x20 obok nazwy klubu
+- Usunięty ArrowRight hover, usunięty border-t separator
+- Date/location/countdown/applications count w jednym wierszu
+- Badges: text-[10px] → text-[11px], region inline zamiast pill
+- Plik: `src/components/sparings/sparing-card.tsx`
+
+#### T3: Landing redesign ✅
+- Hero: font-extrabold → font-bold, usunięty blur gradient, tighter copy
+- Features: 6 → 4 kart, lg:grid-cols-3 → lg:grid-cols-4, mniejsze ikony
+- Stats bar: usunięty "100% Darmowa", flex zamiast grid, text-foreground
+- "Jak to działa?": kolorowe kwadraty → neutralne kółka z border
+- "Dla kogo": gradient backgrounds → czyste border cards
+- CTA: usunięte shadow-lg, mniejszy padding
+- Plik: `src/app/page.tsx`
+
+#### T4: Dashboard feed redesign ✅
+- FeedCard: usunięty lewy icon 40x40 i ArrowRight, date/location na prawo
+- StatsBar: grid cards → flex inline pills z border
+- Plik: `src/app/(dashboard)/feed/page.tsx`
+
+#### T5: Sidebar cleanup ✅
+- 14 pozycji → 10 (usunięte: Mapa, Statystyki, Ranking)
+- 4 sekcje → 3 (Główne, Więcej, Konto)
+- Plik: `src/components/layout/sidebar.tsx`
+
+#### T6: Event cards unification ✅
+- Search tab + My events tab: border-left-[3px] → hover:border-primary/40, p-5
+- Usunięty border-t separator, info w jednym wierszu
+- Dashboard club-sections: sparings + events cards dopasowane
+- Pliki: `src/app/(dashboard)/events/page.tsx`, `src/components/dashboard/club-sections.tsx`
+
+---
+
 ### Naprawy z code review (starsze — osobny backlog) ✅
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6 ✅
 - Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory
@@ -1033,13 +1079,16 @@ e2e/sparing-advanced.spec.ts          — testy: wizard, already-applied, comple
 | E4   | Etap 4: Sparing Flow Overhaul    | ✅ Gotowe |
 | E5   | Etap 5: UX + Followers + Recruitments | ✅ Gotowe |
 | E6   | Etap 6: Backlog + Push + Infra Fixes  | ✅ Gotowe |
+| E7   | Etap 7: Club UX Week 1                | ✅ Gotowe |
+| E8   | Etap 8: Club Onboarding Week 2        | ✅ Gotowe |
+| E9   | Etap 9: Visual Redesign "Sexy & Simple" | ✅ Gotowe |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. **Następny krok:** Backlog wyczyszczony. Wszystkie P0/P1/P2 issues rozwiązane. Platforma gotowa do dalszego rozwoju (nowe moduły, SEO, i18n, testy integracyjne).
+3. **Następny krok:** Visual redesign "Sexy & Simple" ukończony (dark mode tokens, karty bez border-left, uproszczony landing, sidebar 10 items). Platforma gotowa do dalszego rozwoju (nowe moduły, SEO, i18n, testy integracyjne).
 4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
 5. Przed instalacją nowych zależności — pytaj o zgodę.
 6. Po zakończeniu prac — zaktualizuj ten plik.

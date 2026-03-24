@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -26,7 +25,6 @@ import {
   Plus,
   Calendar,
   MapPin,
-  Globe,
   Users,
   SlidersHorizontal,
   X,
@@ -276,53 +274,50 @@ export default function EventsPage() {
         <div className="stagger-children grid gap-4 sm:grid-cols-2">
           {items.map((ev) => (
             <Link key={ev.id} href={`/events/${ev.id}`} className="group">
-              <Card className="h-full border-l-[3px] border-l-violet-500 transition-all hover:shadow-md hover:-translate-y-0.5">
-                <CardContent className="py-4">
-                  <div className="mb-3 flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
-                          {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
-                        </span>
-                        {isPlayer && ev.type === "RECRUITMENT" && playerProfile?.region && ev.region && playerProfile.region.name === ev.region.name && (
-                          <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
-                            <Target className="h-2.5 w-2.5" />
-                            Dopasowane
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                        {ev.title}
-                      </h3>
-                    </div>
+              <Card className="h-full transition-colors hover:border-primary/40">
+                <CardContent className="p-5">
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <h3 className="font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                      {ev.title}
+                    </h3>
                     <FavoriteButton eventId={ev.id} initialFavorited={favoritedIds.has(ev.id)} />
                   </div>
-                  <p className="mb-3 text-sm font-medium">
-                    {ev.club.name}
-                    {ev.club.city && <span className="text-muted-foreground"> · {ev.club.city}</span>}
-                  </p>
-                  <div className="space-y-1.5 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(ev.eventDate)}
-                    </div>
-                    {ev.location && (
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {ev.location}
-                      </div>
+
+                  <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
+                      {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
+                    </span>
+                    {isPlayer && ev.type === "RECRUITMENT" && playerProfile?.region && ev.region && playerProfile.region.name === ev.region.name && (
+                      <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
+                        <Target className="h-2.5 w-2.5" />
+                        Dopasowane
+                      </span>
+                    )}
+                    <span className="truncate">
+                      {ev.club.name}
+                      {ev.club.city && ` · ${ev.club.city}`}
+                    </span>
+                    {ev.region && (
+                      <span className="ml-auto shrink-0 text-xs">{ev.region.name}</span>
                     )}
                   </div>
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Globe className="h-3 w-3" />
-                      {ev.region?.name}
-                    </div>
-                    <Badge variant="secondary" className="gap-1 text-xs">
+
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 shrink-0" />
+                      {formatDate(ev.eventDate)}
+                    </span>
+                    {ev.location && (
+                      <span className="flex items-center gap-1.5 truncate">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{ev.location}</span>
+                      </span>
+                    )}
+                    <span className="ml-auto flex items-center gap-1 shrink-0">
                       <Users className="h-3 w-3" />
                       {ev._count.applications}
                       {ev.maxParticipants && ` / ${ev.maxParticipants}`}
-                    </Badge>
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -399,32 +394,32 @@ function MyEventsTab() {
           <div className="grid gap-4 sm:grid-cols-2">
             {group.items.map((ev) => (
               <Link key={ev.id} href={`/events/${ev.id}`} className="group">
-                <Card className="h-full border-l-[3px] border-l-violet-500 transition-all hover:shadow-md hover:-translate-y-0.5">
-                  <CardContent className="py-4">
-                    <div className="mb-2 flex items-center gap-1.5">
-                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
+                <Card className="h-full transition-colors hover:border-primary/40">
+                  <CardContent className="p-5">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
                         {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                    <h3 className="font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-1">
                       {ev.title}
                     </h3>
-                    <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
+                    <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
                         {formatDate(ev.eventDate)}
-                      </div>
+                      </span>
                       {ev.location && (
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {ev.location}
-                        </div>
+                        <span className="flex items-center gap-1.5 truncate">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{ev.location}</span>
+                        </span>
                       )}
-                    </div>
-                    <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      {ev._count?.applications ?? 0} zgłoszeń
-                      {ev.maxParticipants && ` / ${ev.maxParticipants}`}
+                      <span className="ml-auto flex items-center gap-1 shrink-0">
+                        <Users className="h-3 w-3" />
+                        {ev._count?.applications ?? 0}
+                        {ev.maxParticipants && ` / ${ev.maxParticipants}`}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>

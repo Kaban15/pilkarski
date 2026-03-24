@@ -13,9 +13,6 @@ import {
   CalendarDays,
   Trophy,
   ArrowRightLeft,
-  MapPin,
-  BarChart3,
-  Medal,
   MessageSquare,
   Bell,
   Heart,
@@ -36,33 +33,25 @@ const NAV_SECTIONS = [
     label: "Główne",
     items: [
       { href: "/feed", icon: Home, label: "Pulpit" },
-      { href: "/search", icon: Search, label: "Szukaj" },
-    ],
-  },
-  {
-    label: "Aktywność",
-    items: [
       { href: "/sparings", icon: Swords, label: "Sparingi" },
       { href: "/events", icon: Trophy, label: "Wydarzenia" },
-      { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
-      { href: "/map", icon: MapPin, label: "Mapa" },
       { href: "/calendar", icon: CalendarDays, label: "Kalendarz" },
     ],
   },
   {
-    label: "Komunikacja",
+    label: "Więcej",
     items: [
+      { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
+      { href: "/search", icon: Search, label: "Szukaj" },
       { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
       { href: "/notifications", icon: Bell, label: "Powiadomienia" },
     ],
   },
   {
-    label: "Moje",
+    label: "Konto",
     items: [
       { href: "/profile", icon: User, label: "Profil" },
       { href: "/favorites", icon: Heart, label: "Ulubione" },
-      { href: "/stats", icon: BarChart3, label: "Statystyki" },
-      { href: "/ranking", icon: Medal, label: "Ranking" },
     ],
   },
 ];

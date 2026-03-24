@@ -137,20 +137,20 @@ export function ClubDashboardSections() {
           <div className="grid gap-3 sm:grid-cols-3">
             {activeSparings.map((s) => (
               <Link key={s.id} href={`/sparings/${s.id}`} className="group block">
-                <Card className="h-full border-l-[3px] border-l-emerald-500 transition-all hover:shadow-md hover:-translate-y-0.5">
-                  <CardContent className="py-3">
+                <Card className="h-full transition-colors hover:border-primary/40">
+                  <CardContent className="p-4">
                     <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
                       {s.title}
                     </h3>
-                    <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
+                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {formatDate(s.matchDate)}
-                      </div>
-                      <div className="flex items-center gap-1.5">
+                      </span>
+                      <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {s._count.applications} zgłoszeń
-                      </div>
+                        {s._count.applications}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -183,21 +183,21 @@ export function ClubDashboardSections() {
           <div className="grid gap-3 sm:grid-cols-3">
             {upcomingEvents.map((e) => (
               <Link key={e.id} href={`/events/${e.id}`} className="group block">
-                <Card className="h-full border-l-[3px] border-l-violet-500 transition-all hover:shadow-md hover:-translate-y-0.5">
-                  <CardContent className="py-3">
+                <Card className="h-full transition-colors hover:border-primary/40">
+                  <CardContent className="p-4">
                     <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
                       {e.title}
                     </h3>
-                    <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
+                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
                         <CalendarClock className="h-3 w-3" />
                         {formatDate(e.eventDate)}
-                      </div>
-                      <div className="flex items-center gap-1.5">
+                      </span>
+                      <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {e._count.applications} zapisanych
+                        {e._count.applications}
                         {e.maxParticipants && ` / ${e.maxParticipants}`}
-                      </div>
+                      </span>
                     </div>
                   </CardContent>
                 </Card>

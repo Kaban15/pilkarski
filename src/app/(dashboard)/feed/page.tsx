@@ -16,15 +16,11 @@ import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
 import {
   Swords,
   Trophy,
-  Shield,
-  UserPlus,
-  ArrowRightLeft,
   Calendar,
   MapPin,
   MessageSquare,
   FileText,
   TrendingUp,
-  ArrowRight,
   Plus,
   Search,
   CheckCircle2,
@@ -38,40 +34,29 @@ type FeedItem = {
 
 const FEED_CONFIG = {
   sparing: {
-    icon: Swords,
     label: "Sparing",
-    border: "border-l-emerald-500",
     badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   },
   event: {
-    icon: Trophy,
     label: "Wydarzenie",
-    border: "border-l-violet-500",
     badge: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
   },
   club: {
-    icon: Shield,
     label: "Nowy klub",
-    border: "border-l-blue-500",
     badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
   },
   transfer: {
-    icon: ArrowRightLeft,
     label: "Transfer",
-    border: "border-l-cyan-500",
     badge: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
   },
   player: {
-    icon: UserPlus,
     label: "Nowy zawodnik",
-    border: "border-l-orange-500",
     badge: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
   },
 };
 
 function FeedCard({ item }: { item: FeedItem }) {
   const config = FEED_CONFIG[item.type];
-  const Icon = config.icon;
 
   const getHref = () => {
     switch (item.type) {
@@ -91,9 +76,7 @@ function FeedCard({ item }: { item: FeedItem }) {
   const getTitle = () => {
     switch (item.type) {
       case "sparing":
-        return item.data.title;
       case "event":
-        return item.data.title;
       case "transfer":
         return item.data.title;
       case "club":
@@ -133,63 +116,44 @@ function FeedCard({ item }: { item: FeedItem }) {
     }
   };
 
-  const getDateInfo = () => {
-    switch (item.type) {
-      case "sparing":
-        return formatDate(item.data.matchDate) + (item.data.location ? ` · ${item.data.location}` : "");
-      case "event":
-        return formatDate(item.data.eventDate) + (item.data.location ? ` · ${item.data.location}` : "");
-      default:
-        return formatDate(item.createdAt);
-    }
-  };
-
   return (
     <Link href={getHref()} className="group block">
-      <Card
-        className={`border-l-[3px] ${config.border} transition-all hover:shadow-md hover:-translate-y-0.5`}
-      >
-        <CardContent className="flex items-start gap-4 py-4">
-          <div
-            className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${config.badge}`}
-          >
-            <Icon className="h-5 w-5" />
-          </div>
+      <Card className="transition-colors hover:border-primary/40">
+        <CardContent className="flex items-center gap-4 p-4">
           <div className="min-w-0 flex-1">
-            <div className="mb-1 flex items-center gap-2">
+            <div className="mb-0.5 flex items-center gap-2">
               <span
-                className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${config.badge}`}
+                className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${config.badge}`}
               >
                 {item.type === "event"
                   ? (EVENT_TYPE_LABELS[item.data.type] ?? config.label)
                   : config.label}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {formatDate(item.createdAt)}
               </span>
             </div>
-            <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
+            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
               {getTitle()}
             </p>
-            <p className="text-sm text-muted-foreground">{getSubtitle()}</p>
-            {(item.type === "sparing" || item.type === "event") && (
-              <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {item.type === "sparing"
-                    ? formatDate(item.data.matchDate)
-                    : formatDate(item.data.eventDate)}
-                </span>
-                {item.data.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {item.data.location}
-                  </span>
-                )}
-              </div>
-            )}
+            <p className="text-xs text-muted-foreground line-clamp-1">{getSubtitle()}</p>
           </div>
-          <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+          {(item.type === "sparing" || item.type === "event") && (
+            <div className="shrink-0 text-right text-xs text-muted-foreground">
+              <div className="flex items-center gap-1 justify-end">
+                <Calendar className="h-3 w-3" />
+                {item.type === "sparing"
+                  ? formatDate(item.data.matchDate)
+                  : formatDate(item.data.eventDate)}
+              </div>
+              {item.data.location && (
+                <div className="mt-0.5 flex items-center gap-1 justify-end">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate max-w-[120px]">{item.data.location}</span>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </Link>
@@ -223,26 +187,19 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
   const config = stats.role === "CLUB" ? STAT_CONFIG_CLUB : STAT_CONFIG_PLAYER;
 
   return (
-    <div className="stagger-children mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {config.map((c) => (
-        <Link key={c.key} href={c.href}>
-          <Card className="transition-all hover:shadow-md hover:-translate-y-0.5">
-            <CardContent className="flex items-center gap-3 py-4">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${c.bg}`}
-              >
-                <c.icon className={`h-5 w-5 ${c.color}`} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {(stats as unknown as Record<string, number>)[c.key] ?? 0}
-                </p>
-                <p className="text-xs text-muted-foreground">{c.label}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      ))}
+    <div className="mb-8 flex flex-wrap gap-3">
+      {config.map((c) => {
+        const value = (stats as unknown as Record<string, number>)[c.key] ?? 0;
+        return (
+          <Link key={c.key} href={c.href}>
+            <div className="flex items-center gap-2.5 rounded-lg border border-border px-4 py-2.5 transition-colors hover:border-primary/40">
+              <c.icon className={`h-4 w-4 ${c.color}`} />
+              <span className="text-lg font-bold tabular-nums text-foreground">{value}</span>
+              <span className="text-xs text-muted-foreground">{c.label}</span>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
