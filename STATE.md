@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 DO ZROBIENIA)
-**Ostatnia sesja:** 2026-03-23
+## Aktualny etap: Fazy 1–15 + UI Redesign (Etap 1–3) ✅ → Etap 4: Sparing Flow Overhaul (Iteracja 1 ✅, Iteracja 2 W TRAKCIE)
+**Ostatnia sesja:** 2026-03-24
 
 ---
 
@@ -559,9 +559,9 @@
 4. ~~Brak mutacji `complete`~~ → dodana mutacja MATCHED → COMPLETED (I1-5) ✅
 
 **P1 — Ważne UX:**
-1. Formularz create/edit to "jeden ekran na wszystko" — brak multi-step wizard → **Zaplanowane I2-1**
+1. ~~Formularz create/edit to "jeden ekran na wszystko"~~ → 3-krokowy wizard w create mode (I2-1) ✅
 2. ~~Raw `<select>` zamiast shadcn Select~~ → shadcn Select w SparingForm + liście sparingów (I1-1) ✅
-3. Karta sparingu nie komunikuje wartości — brak poziomu, kategorii, godzin → **Zaplanowane I2-2**
+3. ~~Karta sparingu nie komunikuje wartości~~ → pill-badges (poziom, kategoria, region), avatar klubu, countdown (I2-2) ✅
 4. ~~"Dodaj sparing" widoczne dla PLAYER~~ → ukryte dla roli PLAYER (I1-4) ✅
 5. Zero feedback po accept/reject — brak next-step CTA → **Zaplanowane I2-3**
 6. ~~Endpoint `sparing.my` nieużywany w UI~~ → panel "Moje sparingi" z tabs (I1-3) ✅
@@ -591,12 +591,12 @@
 
 | # | Zadanie | Pliki | Status |
 |---|---------|-------|--------|
-| I2-1 | **Multi-step wizard (3 kroki)** — (1) Dane sparingu: tytuł, region, poziom, kategoria (2) Termin + lokalizacja (3) Podsumowanie + "Opublikuj" | `sparings/new/page.tsx`, `sparing-form.tsx` | ⬜ |
-| I2-2 | **Redesign karty sparingu** — avatar klubu, pill-badges (poziom, kategoria, region), countdown "za 3 dni" | `src/components/sparings/sparing-card.tsx` (NEW) | ⬜ |
+| I2-1 | **Multi-step wizard (3 kroki)** — (1) Dane sparingu: tytuł, region, poziom, kategoria (2) Termin + lokalizacja (3) Podsumowanie + "Opublikuj" | `sparing-form.tsx` | ✅ |
+| I2-2 | **Redesign karty sparingu** — avatar klubu, pill-badges (poziom, kategoria, region), countdown "za 3 dni", arrow on hover | `src/components/sparings/sparing-card.tsx` (NEW) | ✅ |
 | I2-3 | **Post-match flow** — timeline (Utworzony → Dopasowany → Rozegrany), CTA "Wyślij wiadomość rywalowi", CTA "Oceń sparing" | `sparing-info.tsx` | ⬜ |
 | I2-4 | **Kontr-propozycja terminu** — nowy status COUNTER_PROPOSED, date picker w apply form | `routers/sparing.ts`, `apply-form.tsx`, schema migration | ⬜ |
 | I2-5 | **Widok piłkarza** — bez "Dodaj", CTA "Obserwuj sparing", feed-style lista | `sparings/page.tsx` | ⬜ |
-| I2-6 | **Wzbogać model danych** — pola: `level` (enum), `ageCategory` (enum), `preferredTime` | `schema.prisma`, `validators/sparing.ts`, migration | ⬜ |
+| I2-6 | **Wzbogać model danych** — pola: `level` (enum), `ageCategory` (enum), `preferredTime` | `schema.prisma`, `validators/sparing.ts`, migration | ✅ |
 
 #### Verification Checklist
 - **Testy ręczne:**
@@ -631,6 +631,7 @@
 ### Prisma Migrations ✅
 - Baseline migration: `prisma/migrations/0_init/migration.sql` (336 linii, wygenerowane z live DB)
 - Migration `20260323201350_add_reviews_transfers_gamification_push` — zastosowana
+- Migration `20260324055816_add_sparing_level_category` — zastosowana (enumy SparingLevel, AgeCategory + pola level, ageCategory, preferredTime w SparingOffer)
 - `vercel-build` script: `prisma generate && next build` (migrate deploy usunięte — migracje aplikowane ręcznie przed deploy)
 - `prisma.config.ts` używa `process.env.DATABASE_URL!` (nie `env()` — nie działa na Vercel ani Windows)
 - Workflow zmian schematu:

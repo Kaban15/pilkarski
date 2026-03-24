@@ -1,5 +1,11 @@
 import { z } from "zod/v4";
 
+export const SPARING_LEVELS = ["YOUTH", "AMATEUR", "SEMI_PRO", "PRO"] as const;
+export const AGE_CATEGORIES = [
+  "JUNIOR_E", "JUNIOR_D", "JUNIOR_C", "JUNIOR_B",
+  "JUNIOR_A", "SENIOR_JR", "SENIOR", "VETERAN",
+] as const;
+
 export const createSparingSchema = z.object({
   title: z.string().min(3, "Tytuł musi mieć min. 3 znaki").max(300),
   description: z.string().max(2000).optional(),
@@ -14,6 +20,9 @@ export const createSparingSchema = z.object({
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
   costSplitInfo: z.string().max(500).optional(),
+  level: z.enum(SPARING_LEVELS).optional(),
+  ageCategory: z.enum(AGE_CATEGORIES).optional(),
+  preferredTime: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),
 });
 

@@ -178,6 +178,24 @@ model CareerEntry {
 // SPARINGI
 // ============================================================
 
+enum SparingLevel {
+  YOUTH       // Młodzieżowy
+  AMATEUR     // Amatorski
+  SEMI_PRO    // Półprofesjonalny
+  PRO         // Profesjonalny
+}
+
+enum AgeCategory {
+  JUNIOR_E    // Żak (U-8/U-9)
+  JUNIOR_D    // Orlik (U-10/U-11)
+  JUNIOR_C    // Młodzik (U-12/U-13)
+  JUNIOR_B    // Trampkarz (U-14/U-15)
+  JUNIOR_A    // Junior młodszy (U-16/U-17)
+  SENIOR_JR   // Junior (U-18/U-19)
+  SENIOR      // Senior
+  VETERAN     // Oldboj (35+)
+}
+
 enum SparingStatus {
   OPEN
   MATCHED
@@ -201,6 +219,9 @@ model SparingOffer {
   lat           Decimal?      @db.Decimal(9, 6)
   lng           Decimal?      @db.Decimal(9, 6)
   costSplitInfo String?       @map("cost_split_info") @db.VarChar(500)
+  level         SparingLevel? @map("level")
+  ageCategory   AgeCategory?  @map("age_category")
+  preferredTime String?       @map("preferred_time") @db.VarChar(100)
   status        SparingStatus @default(OPEN)
   regionId      Int?          @map("region_id")
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz

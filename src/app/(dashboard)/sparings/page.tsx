@@ -4,17 +4,19 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { trpc } from "@/lib/trpc";
-import { formatDate } from "@/lib/format";
-import { SPARING_STATUS_LABELS, SPARING_STATUS_COLORS } from "@/lib/labels";
+import {
+  SPARING_LEVEL_LABELS,
+  AGE_CATEGORY_LABELS,
+} from "@/lib/labels";
+import { SPARING_LEVELS, AGE_CATEGORIES } from "@/lib/validators/sparing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
-import { FavoriteButton } from "@/components/favorite-button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { EmptyState } from "@/components/empty-state";
+import { SparingCard, type SparingCardItem } from "@/components/sparings/sparing-card";
 import {
   Select,
   SelectContent,
@@ -24,26 +26,11 @@ import {
 } from "@/components/ui/select";
 import {
   Plus,
-  Calendar,
-  MapPin,
-  Globe,
-  Users,
   SlidersHorizontal,
   X,
   Swords,
   Search,
 } from "lucide-react";
-
-type SparingItem = {
-  id: string;
-  title: string;
-  matchDate: string;
-  location: string | null;
-  status: string;
-  club: { id: string; name: string; city: string | null };
-  region: { name: string } | null;
-  _count: { applications: number };
-};
 
 export default function SparingsPage() {
   const { data: session } = useSession();
@@ -86,7 +73,7 @@ export default function SparingsPage() {
 }
 
 function SearchTab() {
-  const [items, setItems] = useState<SparingItem[]>([]);
+  const [items, setItems] = useState<SparingCardItem[]>([]);
   const [regionId, setRegionId] = useState<string>("");
   const [cityInput, setCityInput] = useState("");
   const [city, setCity] = useState("");
@@ -97,6 +84,8 @@ function SearchTab() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
+  const [levelFilter, setLevelFilter] = useState("");
+  const [ageCategoryFilter, setAgeCategoryFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState(false);
@@ -119,6 +108,8 @@ function SearchTab() {
       .query({
         regionId: regionId ? Number(regionId) : undefined,
         status: "OPEN",
+        level: (levelFilter || undefined) as any,
+        ageCategory: (ageCategoryFilter || undefined) as any,
         city: city || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -139,7 +130,7 @@ function SearchTab() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [regionId, city, dateFrom, dateTo, sortBy, sortOrder]);
+  }, [regionId, city, dateFrom, dateTo, sortBy, sortOrder, levelFilter, ageCategoryFilter]);
 
   const loadMore = useCallback(() => {
     if (!nextCursor || loadingMore) return;
@@ -149,6 +140,8 @@ function SearchTab() {
         regionId: regionId ? Number(regionId) : undefined,
         status: "OPEN",
         cursor: nextCursor,
+        level: (levelFilter || undefined) as any,
+        ageCategory: (ageCategoryFilter || undefined) as any,
         city: city || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -170,10 +163,10 @@ function SearchTab() {
         }
       })
       .finally(() => setLoadingMore(false));
-  }, [nextCursor, loadingMore, regionId, city, dateFrom, dateTo, sortBy, sortOrder]);
+  }, [nextCursor, loadingMore, regionId, city, dateFrom, dateTo, sortBy, sortOrder, levelFilter, ageCategoryFilter]);
 
   const sentinelRef = useInfiniteScroll(loadMore, !!nextCursor, loadingMore);
-  const hasActiveFilters = cityInput || dateFrom || dateTo;
+  const hasActiveFilters = cityInput || dateFrom || dateTo || levelFilter || ageCategoryFilter;
 
   return (
     <>
@@ -255,6 +248,38 @@ function SearchTab() {
                   className="h-9 w-40 text-sm"
                 />
               </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Poziom</label>
+                <Select value={levelFilter} onValueChange={setLevelFilter}>
+                  <SelectTrigger className="h-9 w-44 text-sm">
+                    <SelectValue placeholder="Wszystkie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Wszystkie</SelectItem>
+                    {SPARING_LEVELS.map((l) => (
+                      <SelectItem key={l} value={l}>
+                        {SPARING_LEVEL_LABELS[l]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Kategoria wiekowa</label>
+                <Select value={ageCategoryFilter} onValueChange={setAgeCategoryFilter}>
+                  <SelectTrigger className="h-9 w-48 text-sm">
+                    <SelectValue placeholder="Wszystkie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Wszystkie</SelectItem>
+                    {AGE_CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {AGE_CATEGORY_LABELS[c]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {hasActiveFilters && (
                 <Button
                   variant="ghost"
@@ -265,6 +290,8 @@ function SearchTab() {
                     setCity("");
                     setDateFrom("");
                     setDateTo("");
+                    setLevelFilter("");
+                    setAgeCategoryFilter("");
                   }}
                 >
                   <X className="h-3.5 w-3.5" />
@@ -378,39 +405,7 @@ function MySparingsTab() {
           <h2 className="mb-3 text-lg font-semibold">{group.label} ({group.items.length})</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {group.items.map((s: any) => (
-              <Link key={s.id} href={`/sparings/${s.id}`} className="group">
-                <Card className="h-full border-l-[3px] border-l-emerald-500 transition-all hover:shadow-md hover:-translate-y-0.5">
-                  <CardContent className="py-4">
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                        {s.title}
-                      </h3>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${SPARING_STATUS_COLORS[s.status]}`}
-                      >
-                        {SPARING_STATUS_LABELS[s.status]}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1.5 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {formatDate(s.matchDate)}
-                      </div>
-                      {s.region && (
-                        <div className="flex items-center gap-1.5">
-                          <Globe className="h-3 w-3" />
-                          {s.region.name}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      {s._count.applications} zgłoszeń
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <SparingCard key={s.id} sparing={s} showFavorite={false} />
             ))}
           </div>
         </div>
@@ -419,47 +414,3 @@ function MySparingsTab() {
   );
 }
 
-function SparingCard({ sparing, favorited }: { sparing: SparingItem; favorited: boolean }) {
-  return (
-    <Link href={`/sparings/${sparing.id}`} className="group">
-      <Card className="h-full border-l-[3px] border-l-emerald-500 transition-all hover:shadow-md hover:-translate-y-0.5">
-        <CardContent className="py-4">
-          <div className="mb-3 flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-              {sparing.title}
-            </h3>
-            <FavoriteButton sparingOfferId={sparing.id} initialFavorited={favorited} />
-          </div>
-          <p className="mb-3 text-sm font-medium">
-            {sparing.club.name}
-            {sparing.club.city && (
-              <span className="text-muted-foreground"> · {sparing.club.city}</span>
-            )}
-          </p>
-          <div className="space-y-1.5 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
-              {formatDate(sparing.matchDate)}
-            </div>
-            {sparing.location && (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                {sparing.location}
-              </div>
-            )}
-          </div>
-          <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Globe className="h-3 w-3" />
-              {sparing.region?.name}
-            </div>
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <Users className="h-3 w-3" />
-              {sparing._count.applications}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}

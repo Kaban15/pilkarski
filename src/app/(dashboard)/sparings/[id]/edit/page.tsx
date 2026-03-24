@@ -42,6 +42,9 @@ export default function EditSparingPage() {
               matchDate: sparing.matchDate,
               location: sparing.location,
               costSplitInfo: sparing.costSplitInfo,
+              level: sparing.level,
+              ageCategory: sparing.ageCategory,
+              preferredTime: sparing.preferredTime,
               regionId: sparing.regionId,
             }}
             onSuccess={(sparingId) => router.push(`/sparings/${sparingId}`)}

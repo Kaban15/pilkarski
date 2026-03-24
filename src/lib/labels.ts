@@ -29,6 +29,31 @@ export const EVENT_TYPE_COLORS: Record<string, string> = {
   RECRUITMENT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
 };
 
+export const SPARING_LEVEL_LABELS: Record<string, string> = {
+  YOUTH: "Młodzieżowy",
+  AMATEUR: "Amatorski",
+  SEMI_PRO: "Półprofesjonalny",
+  PRO: "Profesjonalny",
+};
+
+export const SPARING_LEVEL_COLORS: Record<string, string> = {
+  YOUTH: "bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300",
+  AMATEUR: "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300",
+  SEMI_PRO: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  PRO: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
+};
+
+export const AGE_CATEGORY_LABELS: Record<string, string> = {
+  JUNIOR_E: "Żak (U-8/U-9)",
+  JUNIOR_D: "Orlik (U-10/U-11)",
+  JUNIOR_C: "Młodzik (U-12/U-13)",
+  JUNIOR_B: "Trampkarz (U-14/U-15)",
+  JUNIOR_A: "Junior mł. (U-16/U-17)",
+  SENIOR_JR: "Junior (U-18/U-19)",
+  SENIOR: "Senior",
+  VETERAN: "Oldboj (35+)",
+};
+
 export const SPARING_STATUS_LABELS: Record<string, string> = {
   OPEN: "Otwarty",
   MATCHED: "Dopasowany",

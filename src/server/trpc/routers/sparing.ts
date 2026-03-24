@@ -28,6 +28,9 @@ export const sparingRouter = router({
           lat: input.lat,
           lng: input.lng,
           costSplitInfo: input.costSplitInfo,
+          level: input.level,
+          ageCategory: input.ageCategory,
+          preferredTime: input.preferredTime,
           regionId: input.regionId ?? club.regionId,
         },
       });
@@ -62,6 +65,9 @@ export const sparingRouter = router({
           lat: input.lat,
           lng: input.lng,
           costSplitInfo: input.costSplitInfo,
+          level: input.level,
+          ageCategory: input.ageCategory,
+          preferredTime: input.preferredTime,
           regionId: input.regionId,
         },
       });
@@ -92,6 +98,8 @@ export const sparingRouter = router({
         clubId: z.string().uuid().optional(),
         regionId: z.number().int().optional(),
         status: z.enum(["OPEN", "MATCHED", "CANCELLED", "COMPLETED"]).optional(),
+        level: z.enum(["YOUTH", "AMATEUR", "SEMI_PRO", "PRO"]).optional(),
+        ageCategory: z.enum(["JUNIOR_E", "JUNIOR_D", "JUNIOR_C", "JUNIOR_B", "JUNIOR_A", "SENIOR_JR", "SENIOR", "VETERAN"]).optional(),
         city: z.string().max(100).optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
@@ -107,6 +115,8 @@ export const sparingRouter = router({
       if (input.regionId) where.regionId = input.regionId;
       if (input.status) where.status = input.status;
       else where.status = "OPEN";
+      if (input.level) where.level = input.level;
+      if (input.ageCategory) where.ageCategory = input.ageCategory;
       if (input.city) {
         where.club = { city: { contains: input.city, mode: "insensitive" } };
       }

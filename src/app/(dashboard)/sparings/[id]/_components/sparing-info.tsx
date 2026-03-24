@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
-import { SPARING_STATUS_LABELS, SPARING_STATUS_COLORS } from "@/lib/labels";
+import {
+  SPARING_STATUS_LABELS,
+  SPARING_STATUS_COLORS,
+  SPARING_LEVEL_LABELS,
+  AGE_CATEGORY_LABELS,
+} from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -17,6 +22,9 @@ import {
   Pencil,
   Trash2,
   CheckCircle2,
+  Trophy,
+  Users,
+  Clock,
 } from "lucide-react";
 
 type SparingInfoProps = {
@@ -154,6 +162,39 @@ export function SparingInfo({
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Region</p>
                   <p className="font-medium">{sparing.region.name}</p>
+                </div>
+              </div>
+            )}
+            {sparing.level && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple-500/10">
+                  <Trophy className="h-4 w-4 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Poziom</p>
+                  <p className="font-medium">{SPARING_LEVEL_LABELS[sparing.level] ?? sparing.level}</p>
+                </div>
+              </div>
+            )}
+            {sparing.ageCategory && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10">
+                  <Users className="h-4 w-4 text-cyan-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Kategoria wiekowa</p>
+                  <p className="font-medium">{AGE_CATEGORY_LABELS[sparing.ageCategory] ?? sparing.ageCategory}</p>
+                </div>
+              </div>
+            )}
+            {sparing.preferredTime && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10">
+                  <Clock className="h-4 w-4 text-indigo-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Preferowane godziny</p>
+                  <p className="font-medium">{sparing.preferredTime}</p>
                 </div>
               </div>
             )}
