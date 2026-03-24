@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -55,6 +56,7 @@ export default function EventsPage() {
   const { data: session } = useSession();
   const isPlayer = session?.user?.role === "PLAYER";
   const isClub = session?.user?.role === "CLUB";
+  const [eventsTab, setEventsTab] = useState<"search" | "my">("search");
 
   // Fetch player profile for matching badge (only for PLAYER)
   const { data: playerProfile } = api.player.me.useQuery(undefined, {
@@ -138,6 +140,17 @@ export default function EventsPage() {
         )}
       </div>
 
+      {isClub && (
+        <Tabs value={eventsTab} onValueChange={(v) => setEventsTab(v as "search" | "my")} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="search">Szukaj</TabsTrigger>
+            <TabsTrigger value="my">Moje wydarzenia</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
+      {eventsTab === "search" || !isClub ? (
+      <>
       <div className="mb-6 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={regionId !== undefined ? String(regionId) : ""} onValueChange={(v) => setRegionId(v ? Number(v) : undefined)}>
@@ -324,6 +337,102 @@ export default function EventsPage() {
           <div ref={sentinelRef} />
         </div>
       )}
+      </>
+      ) : (
+        <MyEventsTab />
+      )}
+    </div>
+  );
+}
+
+function MyEventsTab() {
+  const { data: events, isLoading, isError, refetch } = api.event.my.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        icon={Trophy}
+        title="Błąd ładowania"
+        description="Nie udało się pobrać Twoich wydarzeń."
+        actionLabel="Spróbuj ponownie"
+        actionOnClick={() => refetch()}
+      />
+    );
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <EmptyState
+        icon={Trophy}
+        title="Brak wydarzeń"
+        description="Nie masz jeszcze żadnych wydarzeń. Utwórz pierwszy!"
+        actionLabel="Dodaj wydarzenie"
+        actionHref="/events/new"
+      />
+    );
+  }
+
+  const now = new Date();
+  const upcoming = events.filter((e) => new Date(e.eventDate) >= now);
+  const past = events.filter((e) => new Date(e.eventDate) < now);
+
+  const groups = [
+    { label: "Nadchodzące", items: upcoming },
+    { label: "Przeszłe", items: past },
+  ].filter((g) => g.items.length > 0);
+
+  return (
+    <div className="space-y-8">
+      {groups.map((group) => (
+        <div key={group.label}>
+          <h2 className="mb-3 text-lg font-semibold">{group.label} ({group.items.length})</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {group.items.map((ev) => (
+              <Link key={ev.id} href={`/events/${ev.id}`} className="group">
+                <Card className="h-full border-l-[3px] border-l-violet-500 transition-all hover:shadow-md hover:-translate-y-0.5">
+                  <CardContent className="py-4">
+                    <div className="mb-2 flex items-center gap-1.5">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
+                        {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                      {ev.title}
+                    </h3>
+                    <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {formatDate(ev.eventDate)}
+                      </div>
+                      {ev.location && (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {ev.location}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      {ev._count?.applications ?? 0} zgłoszeń
+                      {ev.maxParticipants && ` / ${ev.maxParticipants}`}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -47,6 +47,12 @@ export default function SparingsPage() {
   const isPlayer = session?.user?.role === "PLAYER";
   const [tab, setTab] = useState<"search" | "my">("search");
 
+  const pendingCount = api.stats.clubDashboard.useQuery(undefined, {
+    enabled: isClub,
+    staleTime: 30_000,
+    select: (data) => data?.pendingApplications?.length ?? 0,
+  });
+
   return (
     <div className="animate-fade-in">
       <div className="mb-6 flex items-center justify-between">
@@ -89,7 +95,14 @@ export default function SparingsPage() {
         <Tabs value={tab} onValueChange={(v) => setTab(v as "search" | "my")} className="mb-6">
           <TabsList>
             <TabsTrigger value="search">Szukaj</TabsTrigger>
-            <TabsTrigger value="my">Moje sparingi</TabsTrigger>
+            <TabsTrigger value="my">
+              Moje sparingi
+              {(pendingCount.data ?? 0) > 0 && (
+                <span className="ml-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                  {pendingCount.data}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       )}
@@ -374,18 +387,23 @@ function MySparingsTab() {
   const completed = sparings.filter((s) => s.status === "COMPLETED");
   const cancelled = sparings.filter((s) => s.status === "CANCELLED");
 
+  const now = new Date();
+  const upcomingMatched = matched.filter((s) => new Date(s.matchDate) >= now);
+  const pastMatched = matched.filter((s) => new Date(s.matchDate) < now);
+
   const groups = [
-    { label: "Otwarte", items: open },
-    { label: "Dopasowane", items: matched },
-    { label: "Zakończone", items: completed },
-    { label: "Anulowane", items: cancelled },
+    { label: "Nadchodzące mecze", items: upcomingMatched, highlight: true },
+    { label: "Otwarte", items: open, highlight: false },
+    { label: "Dopasowane (rozegrane)", items: pastMatched, highlight: false },
+    { label: "Zakończone", items: completed, highlight: false },
+    { label: "Anulowane", items: cancelled, highlight: false },
   ].filter((g) => g.items.length > 0);
 
   return (
     <div className="space-y-8">
       {groups.map((group) => (
         <div key={group.label}>
-          <h2 className="mb-3 text-lg font-semibold">{group.label} ({group.items.length})</h2>
+          <h2 className={`mb-3 text-lg font-semibold ${group.highlight ? "text-primary" : ""}`}>{group.label} ({group.items.length})</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {group.items.map((s) => (
               <SparingCard key={s.id} sparing={s as SparingCardItem} showFavorite={false} />

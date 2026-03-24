@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,16 +35,37 @@ export function CalendarView() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [view, setView] = useState<"calendar" | "list">("calendar");
+
+  const { data: session } = useSession();
+  const { data: clubProfile } = api.club.me.useQuery(undefined, {
+    staleTime: Infinity,
+    enabled: session?.user?.role === "CLUB",
+  });
 
   const dateFrom = `${year}-${String(month + 1).padStart(2, "0")}-01`;
   const dateTo = `${year}-${String(month + 1).padStart(2, "0")}-${getDaysInMonth(year, month)}`;
 
-  const { data: sparingsData, isLoading: sparingsLoading } = api.sparing.list.useQuery(
-    { dateFrom, dateTo, limit: 50, sortBy: "matchDate", sortOrder: "asc" },
-  );
-  const { data: eventsData, isLoading: eventsLoading } = api.event.list.useQuery(
-    { dateFrom, dateTo, limit: 50, sortBy: "eventDate", sortOrder: "asc" },
-  );
+  const sparingQuery = {
+    dateFrom,
+    dateTo,
+    limit: 50,
+    sortBy: "matchDate" as const,
+    sortOrder: "asc" as const,
+    ...(onlyMine && clubProfile?.id ? { clubId: clubProfile.id } : {}),
+  };
+  const eventQuery = {
+    dateFrom,
+    dateTo,
+    limit: 50,
+    sortBy: "eventDate" as const,
+    sortOrder: "asc" as const,
+    ...(onlyMine && clubProfile?.id ? { clubId: clubProfile.id } : {}),
+  };
+
+  const { data: sparingsData, isLoading: sparingsLoading } = api.sparing.list.useQuery(sparingQuery);
+  const { data: eventsData, isLoading: eventsLoading } = api.event.list.useQuery(eventQuery);
 
   const loading = sparingsLoading || eventsLoading;
 
@@ -96,7 +118,7 @@ export function CalendarView() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={prev}>&larr;</Button>
           <h2 className="text-lg font-semibold min-w-[180px] text-center">
@@ -104,57 +126,116 @@ export function CalendarView() {
           </h2>
           <Button variant="outline" size="sm" onClick={next}>&rarr;</Button>
         </div>
-        <Button variant="ghost" size="sm" onClick={goToday}>Dziś</Button>
-      </div>
-
-      <div className="grid grid-cols-7 gap-px rounded-lg border border-border bg-border overflow-hidden">
-        {DAY_NAMES.map((d) => (
-          <div key={d} className="bg-muted px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
-            {d}
-          </div>
-        ))}
-
-        {Array.from({ length: firstDay }).map((_, i) => (
-          <div key={`empty-${i}`} className="bg-background min-h-[80px] p-1" />
-        ))}
-
-        {Array.from({ length: daysInMonth }).map((_, i) => {
-          const day = i + 1;
-          const dayItems = itemsByDay.get(day) ?? [];
-          const isToday = isCurrentMonth && day === today;
-          return (
-            <div
-              key={day}
-              className={`bg-background min-h-[80px] p-1 ${isToday ? "ring-2 ring-primary ring-inset" : ""}`}
+        <div className="flex items-center gap-3">
+          {session?.user?.role === "CLUB" && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={onlyMine}
+                onChange={(e) => setOnlyMine(e.target.checked)}
+                className="rounded border-input"
+              />
+              Tylko moje
+            </label>
+          )}
+          <div className="flex gap-1">
+            <Button
+              variant={view === "calendar" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("calendar")}
             >
-              <div className={`text-xs font-medium mb-0.5 ${isToday ? "text-primary font-bold" : "text-muted-foreground"}`}>
-                {day}
-              </div>
-              <div className="space-y-0.5">
-                {dayItems.slice(0, 3).map((item) => (
-                  <Link
-                    key={item.id}
-                    href={item.type === "sparing" ? `/sparings/${item.id}` : `/events/${item.id}`}
-                    className={`block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium ${
-                      item.type === "sparing"
-                        ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                        : "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
-                    }`}
-                    title={`${item.title} — ${item.clubName}`}
-                  >
-                    {item.title}
-                  </Link>
-                ))}
-                {dayItems.length > 3 && (
-                  <span className="block text-[10px] text-muted-foreground px-1">
-                    +{dayItems.length - 3} więcej
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+              Siatka
+            </Button>
+            <Button
+              variant={view === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("list")}
+            >
+              Lista
+            </Button>
+          </div>
+          <Button variant="ghost" size="sm" onClick={goToday}>Dziś</Button>
+        </div>
       </div>
+
+      {view === "list" ? (
+        <div className="space-y-2">
+          {items.length === 0 && !loading ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Brak sparingów i wydarzeń w tym miesiącu.
+            </p>
+          ) : (
+            items
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.type === "sparing" ? `/sparings/${item.id}` : `/events/${item.id}`}
+                  className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                >
+                  <div className={`h-2 w-2 rounded-full shrink-0 ${
+                    item.type === "sparing" ? "bg-emerald-500" : "bg-violet-500"
+                  }`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.clubName} · {new Date(item.date).toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                </Link>
+              ))
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-7 gap-px rounded-lg border border-border bg-border overflow-hidden">
+          {DAY_NAMES.map((d) => (
+            <div key={d} className="bg-muted px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
+              {d}
+            </div>
+          ))}
+
+          {Array.from({ length: firstDay }).map((_, i) => (
+            <div key={`empty-${i}`} className="bg-background min-h-[80px] p-1" />
+          ))}
+
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const dayItems = itemsByDay.get(day) ?? [];
+            const isToday = isCurrentMonth && day === today;
+            return (
+              <div
+                key={day}
+                className={`bg-background min-h-[80px] p-1 ${isToday ? "ring-2 ring-primary ring-inset" : ""}`}
+              >
+                <div className={`text-xs font-medium mb-0.5 ${isToday ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                  {day}
+                </div>
+                <div className="space-y-0.5">
+                  {dayItems.slice(0, 3).map((item) => (
+                    <Link
+                      key={item.id}
+                      href={item.type === "sparing" ? `/sparings/${item.id}` : `/events/${item.id}`}
+                      className={`block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium ${
+                        item.type === "sparing"
+                          ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
+                          : "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                      }`}
+                      title={`${item.title} — ${item.clubName}`}
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                  {dayItems.length > 3 && (
+                    <span className="block text-[10px] text-muted-foreground px-1">
+                      +{dayItems.length - 3} więcej
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {loading && (
         <p className="mt-3 text-sm text-muted-foreground text-center">Ładowanie...</p>
