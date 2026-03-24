@@ -17,6 +17,7 @@ export function FormTooltip({ text }: FormTooltipProps) {
         <TooltipTrigger asChild>
           <button
             type="button"
+            aria-label="Pomoc"
             className="inline-flex text-muted-foreground hover:text-foreground transition-colors"
           >
             <HelpCircle className="h-3.5 w-3.5" />
