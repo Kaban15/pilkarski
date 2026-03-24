@@ -1,11 +1,17 @@
 import webpush from "web-push";
 import { db } from "@/server/db/client";
 
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
+const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.replace(/=+$/, "");
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY?.replace(/=+$/, "");
 
+let vapidConfigured = false;
 if (VAPID_PUBLIC && VAPID_PRIVATE) {
-  webpush.setVapidDetails("mailto:kontakt@pilkasport.pl", VAPID_PUBLIC, VAPID_PRIVATE);
+  try {
+    webpush.setVapidDetails("mailto:kontakt@pilkasport.pl", VAPID_PUBLIC, VAPID_PRIVATE);
+    vapidConfigured = true;
+  } catch {
+    console.warn("web-push: invalid VAPID keys, push disabled");
+  }
 }
 
 interface PushPayload {
@@ -15,7 +21,7 @@ interface PushPayload {
 }
 
 export async function sendPushToUser(userId: string, payload: PushPayload) {
-  if (!VAPID_PUBLIC || !VAPID_PRIVATE) return;
+  if (!vapidConfigured) return;
 
   const subscriptions = await db.pushSubscription.findMany({
     where: { userId },
