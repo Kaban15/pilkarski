@@ -180,7 +180,6 @@ export const eventRouter = router({
         include: {
           club: { select: { id: true, name: true, city: true, logoUrl: true } },
           region: true,
-          _count: { select: { applications: true } },
         },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
@@ -195,7 +194,7 @@ export const eventRouter = router({
       return { items, nextCursor };
     }),
 
-  // Get single event with applications
+  // Get single event with applications (filtered by auth)
   getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
@@ -207,7 +206,7 @@ export const eventRouter = router({
           applications: {
             include: {
               player: {
-                select: { id: true, firstName: true, lastName: true, primaryPosition: true, photoUrl: true },
+                select: { id: true, firstName: true, lastName: true, primaryPosition: true, photoUrl: true, userId: true },
               },
             },
             orderBy: { createdAt: "desc" },
@@ -215,6 +214,16 @@ export const eventRouter = router({
         },
       });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Filter applications: owner sees all, applicant sees only own, others see none
+      const userId = ctx.session?.user?.id;
+      const isOwner = userId === event.club.userId;
+      if (!isOwner) {
+        event.applications = event.applications.filter(
+          (a) => a.player.userId === userId
+        );
+      }
+
       return event;
     }),
 

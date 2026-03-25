@@ -43,7 +43,6 @@ type EventItem = {
   maxParticipants: number | null;
   club: { id: string; name: string; city: string | null };
   region: { name: string } | null;
-  _count: { applications: number };
 };
 
 const EVENT_BADGE_STYLES: Record<string, string> = {
@@ -320,11 +319,12 @@ export default function EventsPage() {
                         <span className="truncate">{ev.location}</span>
                       </span>
                     )}
-                    <span className="ml-auto flex items-center gap-1 shrink-0">
-                      <Users className="h-3 w-3" />
-                      {ev._count.applications}
-                      {ev.maxParticipants && ` / ${ev.maxParticipants}`}
-                    </span>
+                    {ev.maxParticipants && (
+                      <span className="ml-auto flex items-center gap-1 shrink-0">
+                        <Users className="h-3 w-3" />
+                        {ev.maxParticipants} miejsc
+                      </span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -424,7 +424,7 @@ function MyEventsTab() {
                       )}
                       <span className="ml-auto flex items-center gap-1 shrink-0">
                         <Users className="h-3 w-3" />
-                        {ev._count?.applications ?? 0}
+                        {ev._count?.applications ?? 0} zgł.
                         {ev.maxParticipants && ` / ${ev.maxParticipants}`}
                       </span>
                     </div>

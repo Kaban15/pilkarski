@@ -152,7 +152,6 @@ export const feedRouter = router({
         include: {
           club: { select: { id: true, name: true, city: true, logoUrl: true } },
           region: { select: { name: true } },
-          _count: { select: { applications: true } },
         },
         orderBy: { eventDate: "asc" },
         take: input.limit,

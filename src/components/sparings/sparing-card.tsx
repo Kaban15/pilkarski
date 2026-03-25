@@ -13,7 +13,6 @@ import { FavoriteButton } from "@/components/favorite-button";
 import {
   Calendar,
   MapPin,
-  Users,
 } from "lucide-react";
 
 export type SparingCardItem = {
@@ -32,7 +31,6 @@ export type SparingCardItem = {
     logoUrl?: string | null;
   };
   region: { name: string } | null;
-  _count: { applications: number };
 };
 
 function getCountdown(dateStr: string | Date): string | null {
@@ -128,19 +126,11 @@ export function SparingCard({
                 <span className="truncate">{sparing.location}</span>
               </span>
             )}
-            <span className="ml-auto flex items-center gap-1.5 shrink-0">
-              {countdown && (
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                  {countdown}
-                </span>
-              )}
-              {sparing._count.applications > 0 && (
-                <span className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {sparing._count.applications}
-                </span>
-              )}
-            </span>
+            {countdown && (
+              <span className="ml-auto shrink-0 text-emerald-600 dark:text-emerald-400 font-medium">
+                {countdown}
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
-import { Target, ArrowRight, Calendar, Users } from "lucide-react";
+import { Target, ArrowRight, Calendar } from "lucide-react";
 
 const RECRUITMENT_TYPES = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
@@ -66,18 +66,12 @@ export function ClubRecruitment() {
                           {formatDate(event.eventDate)}
                         </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1">
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px]"
-                        >
-                          {EVENT_TYPE_LABELS[event.type]}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px]">
-                          <Users className="mr-0.5 h-3 w-3" />
-                          {event._count.applications}
-                        </Badge>
-                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 text-[10px]"
+                      >
+                        {EVENT_TYPE_LABELS[event.type]}
+                      </Badge>
                     </div>
                   </CardContent>
                 </Card>

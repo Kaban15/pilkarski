@@ -76,12 +76,13 @@ export function PlayerRecruitments() {
                     </div>
                   )}
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <Users className="h-3 w-3" />
-                      {event._count.applications} zapisanych
-                      {event.maxParticipants && ` / ${event.maxParticipants}`}
-                    </div>
-                    <ArrowRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                    {event.maxParticipants && (
+                      <div className="flex items-center gap-1.5">
+                        <Users className="h-3 w-3" />
+                        {event.maxParticipants} miejsc
+                      </div>
+                    )}
+                    <ArrowRight className="ml-auto h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
                   </div>
                 </div>
               </CardContent>

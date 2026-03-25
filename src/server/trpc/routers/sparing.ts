@@ -148,7 +148,6 @@ export const sparingRouter = router({
         include: {
           club: { select: { id: true, name: true, city: true, logoUrl: true } },
           region: true,
-          _count: { select: { applications: true } },
         },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
@@ -380,7 +379,6 @@ export const sparingRouter = router({
       include: {
         club: { select: { id: true, name: true, city: true, logoUrl: true } },
         region: true,
-        _count: { select: { applications: true } },
       },
       orderBy: { createdAt: "desc" },
     });

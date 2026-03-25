@@ -397,6 +397,9 @@
 ### Naprawione (sesja 2026-03-25)
 - ~~Hero SVG overlay blokuje kliknięcia~~ → `pointer-events-none` na profilach publicznych (clubs + players)
 - ~~Crash strony sparingów i wydarzeń~~ → Radix Select nie obsługuje `value=""` w `SelectItem`. Zamieniono na sentinel `"__all__"` z mapowaniem w `onValueChange`
+- ~~Widoczność liczby zgłoszeń na listach~~ → usunięto `_count.applications` z listingów sparingów, wydarzeń, feeda i dashboardu — liczba zgłoszeń nie jest publiczna
+- ~~Wszystkie zgłoszenia widoczne w event detail~~ → `event.getById` filtruje applications po auth: owner widzi wszystkie, zawodnik widzi tylko swoje, inni nie widzą nic
+- ~~"0 zaakceptowanych" przy eventach bez limitu~~ → sekcja "Limit miejsc" widoczna tylko gdy `maxParticipants` jest ustawiony
 
 ### Sugestie (backlog)
 8. Zduplikowane patterny list (sparingi/wydarzenia) — wyekstrahować shared hook
@@ -1179,7 +1182,7 @@ e2e/sparing-advanced.spec.ts          — testy: wizard, already-applied, comple
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. **Następny krok:** Rekrutacja + Marketplace + Community ukończone. Wymaga migracji DB (`recruitment_community_marketplace`). Platforma gotowa do dalszego rozwoju (SEO, i18n, testy integracyjne, mobile app).
+3. **Następny krok:** Rekrutacja + Marketplace + Community ukończone. Wymaga migracji DB (`recruitment_community_marketplace`). Poprawki bezpieczeństwa (ukrycie zgłoszeń, filtrowanie po auth) wdrożone. Platforma gotowa do dalszego rozwoju (SEO, i18n, testy integracyjne, mobile app).
 4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
 5. Przed instalacją nowych zależności — pytaj o zgodę.
 6. Po zakończeniu prac — zaktualizuj ten plik.

@@ -84,7 +84,8 @@ export default function EventDetailPage() {
   if (!event) return <DetailPageSkeleton />;
 
   const isOwner = session?.user?.id === event.club.userId;
-  const acceptedCount = event.applications.filter((a: EventApplication) => a.status === "ACCEPTED").length;
+  const hasApplications = event.applications.length > 0;
+  const myApplication = !isOwner && hasApplications ? event.applications[0] : null;
 
   return (
     <div className="animate-fade-in">
@@ -180,18 +181,17 @@ export default function EventDetailPage() {
                 </div>
               </div>
             )}
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                <Users className="h-4 w-4 text-emerald-500" />
+            {event.maxParticipants && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                  <Users className="h-4 w-4 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Limit miejsc</p>
+                  <p className="font-medium">{event.maxParticipants}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">Miejsca</p>
-                <p className="font-medium">
-                  {acceptedCount} zaakceptowanych
-                  {event.maxParticipants && ` / ${event.maxParticipants} miejsc`}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
           {event.description && (
             <>
@@ -264,66 +264,85 @@ export default function EventDetailPage() {
         </Card>
       )}
 
-      {/* Applications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Users className="h-5 w-5 text-muted-foreground" />
-            Zgłoszenia ({event.applications.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {event.applications.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">Brak zgłoszeń</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {event.applications.map((app: EventApplication) => (
-                <li key={app.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="font-medium">
-                      {app.player.firstName} {app.player.lastName}
-                      {app.player.primaryPosition && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          {POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition}
-                        </Badge>
+      {/* Applications — owner sees full list, applicant sees own status */}
+      {isOwner && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Users className="h-5 w-5 text-muted-foreground" />
+              Zgłoszenia ({event.applications.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {event.applications.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">Brak zgłoszeń</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {event.applications.map((app: EventApplication) => (
+                  <li key={app.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        {app.player.firstName} {app.player.lastName}
+                        {app.player.primaryPosition && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition}
+                          </Badge>
+                        )}
+                      </p>
+                      {app.message && (
+                        <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">{app.message}</p>
                       )}
-                    </p>
-                    {app.message && (
-                      <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">{app.message}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[app.status]}>
-                      {APPLICATION_STATUS_LABELS[app.status]}
-                    </Badge>
-                    {isOwner && app.status === "PENDING" && (
-                      <>
-                        <Button
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => respondMut.mutate({ applicationId: app.id, status: "ACCEPTED" })}
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Akceptuj
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1"
-                          onClick={() => respondMut.mutate({ applicationId: app.id, status: "REJECTED" })}
-                        >
-                          <XCircle className="h-3.5 w-3.5" />
-                          Odrzuć
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[app.status]}>
+                        {APPLICATION_STATUS_LABELS[app.status]}
+                      </Badge>
+                      {app.status === "PENDING" && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => respondMut.mutate({ applicationId: app.id, status: "ACCEPTED" })}
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Akceptuj
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => respondMut.mutate({ applicationId: app.id, status: "REJECTED" })}
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            Odrzuć
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Applicant sees only their own application status */}
+      {myApplication && (
+        <Card className="border-primary/20">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Twoje zgłoszenie</p>
+              <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[myApplication.status]}>
+                {APPLICATION_STATUS_LABELS[myApplication.status]}
+              </Badge>
+            </div>
+            {myApplication.message && (
+              <p className="mt-1.5 text-sm text-muted-foreground">{myApplication.message}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
