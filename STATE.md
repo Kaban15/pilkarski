@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–8 ✅ → Etap 9: Visual Redesign "Sexy & Simple" ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–9 ✅ → Etap 10: Wiadomości z publicznych profili ✅
 **Ostatnia sesja:** 2026-03-25
 
 ---
@@ -848,6 +848,21 @@
 
 ---
 
+### Etap 10: Wiadomości z publicznych profili ✅
+
+**Cel:** Umożliwienie wysyłania wiadomości bezpośrednio z publicznych profili — klub→zawodnik, zawodnik→klub, klub→klub.
+
+- **Nowy komponent `ProfileMessageButton`** (`src/components/profile-message-button.tsx`):
+  - Client component z `useSession()` — ukrywa się gdy niezalogowany lub własny profil
+  - Przycisk "Napisz wiadomość" z ikoną MessageSquare, stylizowany pod hero (bg-white/10, tekst biały)
+  - Po kliknięciu: inline pole tekstowe + Wyślij/Anuluj (Input z przezroczystym tłem)
+  - Po wysłaniu: redirect do `/messages/${conversationId}` via `api.message.send`
+- **Profil klubu `/clubs/[id]`:** przycisk wiadomości obok "Obserwuj" w hero (`club.userId`)
+- **Profil zawodnika `/players/[id]`:** przycisk wiadomości pod miastem w hero (`player.userId`)
+- Pliki: `profile-message-button.tsx` (NEW), `clubs/[id]/page.tsx`, `players/[id]/page.tsx`
+
+---
+
 ### Naprawy z code review (starsze — osobny backlog) ✅
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6 ✅
 - Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory
@@ -991,6 +1006,7 @@ src/components/star-rating.tsx            — interaktywne gwiazdki 1-5 (sm/md/l
 src/components/map-view.tsx              — Leaflet mapa z markerami (dynamic import, SSR-safe)
 src/components/push-notification-toggle.tsx — toggle push notifications (SW + PushManager)
 src/components/follow-club-button.tsx      — przycisk obserwowania klubu (toggle follow/unfollow)
+src/components/profile-message-button.tsx  — przycisk wiadomości na publicznych profilach (session-aware, hero-styled)
 src/components/dashboard/club-sections.tsx — sekcje dashboardu klubu (pending apps, active sparings, upcoming events)
 src/components/dashboard/player-recruitments.tsx — sekcja "Nabory dla Ciebie" (region-matched recruitment events)
 
@@ -1082,13 +1098,14 @@ e2e/sparing-advanced.spec.ts          — testy: wizard, already-applied, comple
 | E7   | Etap 7: Club UX Week 1                | ✅ Gotowe |
 | E8   | Etap 8: Club Onboarding Week 2        | ✅ Gotowe |
 | E9   | Etap 9: Visual Redesign "Sexy & Simple" | ✅ Gotowe |
+| E10  | Etap 10: Wiadomości z publicznych profili | ✅ Gotowe |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. **Następny krok:** Visual redesign "Sexy & Simple" ukończony (dark mode tokens, karty bez border-left, uproszczony landing, sidebar 10 items). Platforma gotowa do dalszego rozwoju (nowe moduły, SEO, i18n, testy integracyjne).
+3. **Następny krok:** Wiadomości z publicznych profili ukończone. Platforma gotowa do dalszego rozwoju (nowe moduły, SEO, i18n, testy integracyjne).
 4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
 5. Przed instalacją nowych zależności — pytaj o zgodę.
 6. Po zakończeniu prac — zaktualizuj ten plik.

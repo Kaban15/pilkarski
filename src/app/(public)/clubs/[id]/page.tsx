@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PublicProfileCTA } from "@/components/public-profile-cta";
 import { FollowClubButton } from "@/components/follow-club-button";
+import { ProfileMessageButton } from "@/components/profile-message-button";
 import { formatShortDate, formatDate } from "@/lib/format";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 import {
@@ -147,8 +148,9 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                   </Badge>
                 )}
               </div>
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <FollowClubButton clubId={id} />
+                <ProfileMessageButton recipientUserId={club.userId} />
               </div>
             </div>
           </div>

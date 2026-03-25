@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PublicProfileCTA } from "@/components/public-profile-cta";
 import { POSITION_LABELS, FOOT_LABELS } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
+import { ProfileMessageButton } from "@/components/profile-message-button";
 import {
   MapPin,
   Globe,
@@ -125,6 +126,9 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
                   {player.city}
                 </p>
               )}
+              <div className="mt-3">
+                <ProfileMessageButton recipientUserId={player.userId} />
+              </div>
             </div>
           </div>
         </div>
