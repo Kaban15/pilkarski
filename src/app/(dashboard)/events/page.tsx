@@ -151,23 +151,23 @@ export default function EventsPage() {
       <>
       <div className="mb-6 space-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <Select value={regionId !== undefined ? String(regionId) : ""} onValueChange={(v) => setRegionId(v ? Number(v) : undefined)}>
+          <Select value={regionId !== undefined ? String(regionId) : "__all__"} onValueChange={(v) => setRegionId(v === "__all__" ? undefined : Number(v))}>
             <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
               <SelectValue placeholder="Wszystkie regiony" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie regiony</SelectItem>
+              <SelectItem value="__all__">Wszystkie regiony</SelectItem>
               {(regions ?? []).map((r) => (
                 <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={type ?? ""} onValueChange={(v) => setType((v || undefined) as "OPEN_TRAINING" | "RECRUITMENT" | undefined)}>
+          <Select value={type ?? "__all__"} onValueChange={(v) => setType(v === "__all__" ? undefined : v as "OPEN_TRAINING" | "RECRUITMENT")}>
             <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
               <SelectValue placeholder="Wszystkie typy" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie typy</SelectItem>
+              <SelectItem value="__all__">Wszystkie typy</SelectItem>
               <SelectItem value="OPEN_TRAINING">Treningi otwarte</SelectItem>
               <SelectItem value="RECRUITMENT">Nabory</SelectItem>
             </SelectContent>

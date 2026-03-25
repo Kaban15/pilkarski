@@ -177,12 +177,12 @@ function SearchTab() {
     <>
       <div className="mb-6 space-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <Select value={regionId} onValueChange={setRegionId}>
+          <Select value={regionId || "__all__"} onValueChange={(v) => setRegionId(v === "__all__" ? "" : v)}>
             <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
               <SelectValue placeholder="Wszystkie regiony" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Wszystkie regiony</SelectItem>
+              <SelectItem value="__all__">Wszystkie regiony</SelectItem>
               {(regions ?? []).map((r) => (
                 <SelectItem key={r.id} value={String(r.id)}>
                   {r.name}
@@ -254,12 +254,12 @@ function SearchTab() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Poziom</label>
-                <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <Select value={levelFilter || "__all__"} onValueChange={(v) => setLevelFilter(v === "__all__" ? "" : v)}>
                   <SelectTrigger className="h-9 w-44 text-sm">
                     <SelectValue placeholder="Wszystkie" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Wszystkie</SelectItem>
+                    <SelectItem value="__all__">Wszystkie</SelectItem>
                     {SPARING_LEVELS.map((l) => (
                       <SelectItem key={l} value={l}>
                         {SPARING_LEVEL_LABELS[l]}
@@ -270,12 +270,12 @@ function SearchTab() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Kategoria wiekowa</label>
-                <Select value={ageCategoryFilter} onValueChange={setAgeCategoryFilter}>
+                <Select value={ageCategoryFilter || "__all__"} onValueChange={(v) => setAgeCategoryFilter(v === "__all__" ? "" : v)}>
                   <SelectTrigger className="h-9 w-48 text-sm">
                     <SelectValue placeholder="Wszystkie" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Wszystkie</SelectItem>
+                    <SelectItem value="__all__">Wszystkie</SelectItem>
                     {AGE_CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>
                         {AGE_CATEGORY_LABELS[c]}
