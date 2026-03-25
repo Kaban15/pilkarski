@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { POSITION_LABELS } from "@/lib/labels";
+import { POSITION_LABELS, SPARING_LEVEL_LABELS } from "@/lib/labels";
 import { getFieldErrors } from "@/lib/form-errors";
 import { updateTransferSchema, type TransferType, type TransferPosition } from "@/lib/validators/transfer";
 import { ArrowRightLeft } from "lucide-react";
@@ -30,6 +30,8 @@ export default function EditTransferPage() {
     regionId: "",
     minAge: "",
     maxAge: "",
+    availableFrom: "",
+    preferredLevel: "",
   });
 
   const { data: regions = [] } = api.region.list.useQuery();
@@ -58,6 +60,8 @@ export default function EditTransferPage() {
         regionId: transfer.regionId?.toString() ?? "",
         minAge: transfer.minAge?.toString() ?? "",
         maxAge: transfer.maxAge?.toString() ?? "",
+        availableFrom: transfer.availableFrom ? new Date(transfer.availableFrom).toISOString().slice(0, 10) : "",
+        preferredLevel: transfer.preferredLevel ?? "",
       });
       setLoaded(true);
     }
@@ -81,6 +85,8 @@ export default function EditTransferPage() {
       regionId: form.regionId ? Number(form.regionId) : undefined,
       minAge: form.minAge ? Number(form.minAge) : undefined,
       maxAge: form.maxAge ? Number(form.maxAge) : undefined,
+      availableFrom: form.availableFrom || undefined,
+      preferredLevel: (form.preferredLevel || undefined) as "YOUTH" | "AMATEUR" | "SEMI_PRO" | "PRO" | undefined,
     };
 
     const parsed = updateTransferSchema.safeParse(data);
@@ -162,6 +168,33 @@ export default function EditTransferPage() {
                 </select>
               </div>
             </div>
+
+            {(form.type === "LOOKING_FOR_CLUB" || form.type === "FREE_AGENT") && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Dostępny od</Label>
+                  <Input
+                    type="date"
+                    value={form.availableFrom}
+                    onChange={(e) => updateField("availableFrom", e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label>Preferowany poziom</Label>
+                  <select
+                    value={form.preferredLevel}
+                    onChange={(e) => updateField("preferredLevel", e.target.value)}
+                    className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Dowolny</option>
+                    {Object.entries(SPARING_LEVEL_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             {form.type === "LOOKING_FOR_PLAYER" && (
               <div className="grid gap-4 sm:grid-cols-2">

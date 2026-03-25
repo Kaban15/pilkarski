@@ -8,6 +8,8 @@ export const createTransferSchema = z.object({
   regionId: z.number().int().optional(),
   minAge: z.number().int().min(10).max(60).optional(),
   maxAge: z.number().int().min(10).max(60).optional(),
+  availableFrom: z.string().optional(),
+  preferredLevel: z.enum(["YOUTH", "AMATEUR", "SEMI_PRO", "PRO"]).optional(),
 });
 
 export const updateTransferSchema = createTransferSchema.extend({

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
-import { createEventSchema } from "@/lib/validators/event";
+import { createEventSchema, type EventTypeValue } from "@/lib/validators/event";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormTooltip } from "@/components/form-tooltip";
-import { EVENT_TYPE_LABELS } from "@/lib/labels";
+import {
+  EVENT_TYPE_LABELS,
+  POSITION_LABELS,
+  SPARING_LEVEL_LABELS,
+} from "@/lib/labels";
+
+const RECRUITMENT_TYPES: EventTypeValue[] = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
 export default function NewEventPage() {
   const router = useRouter();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [selectedType, setSelectedType] = useState<EventTypeValue>("OPEN_TRAINING");
 
   const { data: regions = [] } = api.region.list.useQuery();
 
@@ -30,13 +37,16 @@ export default function NewEventPage() {
     },
   });
 
+  const isRecruitment = RECRUITMENT_TYPES.includes(selectedType);
+  const isTraining = selectedType === "INDIVIDUAL_TRAINING" || selectedType === "GROUP_TRAINING";
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFieldErrors({});
 
     const fd = new FormData(e.currentTarget);
-    const data = {
-      type: fd.get("type") as "OPEN_TRAINING" | "RECRUITMENT",
+    const data: Record<string, unknown> = {
+      type: selectedType,
       title: fd.get("title") as string,
       description: (fd.get("description") as string) || undefined,
       eventDate: fd.get("eventDate") as string,
@@ -45,13 +55,25 @@ export default function NewEventPage() {
       regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
     };
 
+    if (isRecruitment) {
+      const pos = fd.get("targetPosition") as string;
+      const level = fd.get("targetLevel") as string;
+      if (pos) data.targetPosition = pos;
+      if (level) data.targetLevel = level;
+      if (fd.get("targetAgeMin")) data.targetAgeMin = Number(fd.get("targetAgeMin"));
+      if (fd.get("targetAgeMax")) data.targetAgeMax = Number(fd.get("targetAgeMax"));
+    }
+
+    const price = fd.get("priceInfo") as string;
+    if (price) data.priceInfo = price;
+
     const validation = createEventSchema.safeParse(data);
     if (!validation.success) {
       setFieldErrors(getFieldErrors(validation.error));
       return;
     }
 
-    createMut.mutate(data);
+    createMut.mutate(validation.data);
   }
 
   return (
@@ -67,6 +89,8 @@ export default function NewEventPage() {
               id="type"
               name="type"
               required
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as EventTypeValue)}
               className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
             >
               {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
@@ -128,6 +152,60 @@ export default function NewEventPage() {
               <Input id="maxParticipants" name="maxParticipants" type="number" min={1} placeholder="np. 30" />
             </div>
           </div>
+
+          {isRecruitment && (
+            <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <h3 className="text-sm font-semibold">Szczegóły rekrutacyjne</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="targetPosition">Szukana pozycja</Label>
+                  <select
+                    id="targetPosition"
+                    name="targetPosition"
+                    className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                  >
+                    <option value="">Dowolna</option>
+                    {Object.entries(POSITION_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="targetLevel">Wymagany poziom</Label>
+                  <select
+                    id="targetLevel"
+                    name="targetLevel"
+                    className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
+                  >
+                    <option value="">Dowolny</option>
+                    {Object.entries(SPARING_LEVEL_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="targetAgeMin">Wiek od</Label>
+                  <Input id="targetAgeMin" name="targetAgeMin" type="number" min={5} max={60} placeholder="np. 16" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="targetAgeMax">Wiek do</Label>
+                  <Input id="targetAgeMax" name="targetAgeMax" type="number" min={5} max={60} placeholder="np. 23" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isTraining && (
+            <div className="space-y-2 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-4">
+              <Label htmlFor="priceInfo">Cena</Label>
+              <Input
+                id="priceInfo"
+                name="priceInfo"
+                placeholder="np. 120 zł/h, 200 zł za sesję"
+                maxLength={200}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">Opis</Label>

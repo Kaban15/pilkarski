@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -25,13 +27,21 @@ import {
   Shield,
   SlidersHorizontal,
   X,
+  Eye,
 } from "lucide-react";
 
 export default function TransfersPage() {
+  const { data: session } = useSession();
+  const isClub = session?.user?.role === "CLUB";
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [positionFilter, setPositionFilter] = useState<string>("");
   const [regionId, setRegionId] = useState<number | undefined>();
   const [showFilters, setShowFilters] = useState(false);
+
+  const addToRadar = api.recruitment.addToRadar.useMutation({
+    onSuccess: () => toast.success("Dodano na radar"),
+    onError: (err) => toast.error(err.message),
+  });
 
   const { data: regions } = api.region.list.useQuery(undefined, { staleTime: Infinity });
 
@@ -209,6 +219,20 @@ export default function TransfersPage() {
                         </span>
                       </div>
                     </div>
+                    {isClub && (t.type === "LOOKING_FOR_CLUB" || t.type === "FREE_AGENT") && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0"
+                        title="Dodaj na radar"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToRadar.mutate({ transferId: t.id });
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

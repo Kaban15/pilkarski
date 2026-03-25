@@ -20,6 +20,7 @@ import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
+import type { EventTypeValue } from "@/lib/validators/event";
 import { EmptyState } from "@/components/empty-state";
 import {
   Plus,
@@ -48,6 +49,11 @@ type EventItem = {
 const EVENT_BADGE_STYLES: Record<string, string> = {
   OPEN_TRAINING: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
   RECRUITMENT: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  TRYOUT: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
+  CAMP: "bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  CONTINUOUS_RECRUITMENT: "bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  INDIVIDUAL_TRAINING: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
+  GROUP_TRAINING: "bg-teal-500/10 text-teal-700 dark:text-teal-400",
 };
 
 export default function EventsPage() {
@@ -63,7 +69,7 @@ export default function EventsPage() {
   });
 
   const [regionId, setRegionId] = useState<number | undefined>();
-  const [type, setType] = useState<"OPEN_TRAINING" | "RECRUITMENT" | undefined>();
+  const [type, setType] = useState<EventTypeValue | undefined>();
   const [cityInput, setCityInput] = useState("");
   const [city, setCity] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -162,14 +168,15 @@ export default function EventsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={type ?? "__all__"} onValueChange={(v) => setType(v === "__all__" ? undefined : v as "OPEN_TRAINING" | "RECRUITMENT")}>
+          <Select value={type ?? "__all__"} onValueChange={(v) => setType(v === "__all__" ? undefined : v as EventTypeValue)}>
             <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
               <SelectValue placeholder="Wszystkie typy" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">Wszystkie typy</SelectItem>
-              <SelectItem value="OPEN_TRAINING">Treningi otwarte</SelectItem>
-              <SelectItem value="RECRUITMENT">Nabory</SelectItem>
+              {Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => { const [sb, so] = v.split("-"); setSortBy(sb as "eventDate" | "createdAt" | "title"); setSortOrder(so as "asc" | "desc"); }}>

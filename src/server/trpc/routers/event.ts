@@ -32,10 +32,18 @@ export const eventRouter = router({
           lng: input.lng,
           maxParticipants: input.maxParticipants,
           regionId: input.regionId ?? club.regionId,
+          targetPosition: input.targetPosition,
+          targetAgeMin: input.targetAgeMin,
+          targetAgeMax: input.targetAgeMax,
+          targetLevel: input.targetLevel,
+          priceInfo: input.priceInfo,
         },
       });
 
-      awardPoints(ctx.db, ctx.session.user.id, "event_created", event.id).catch(() => {});
+      const recruitTypes = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
+      const isRecruitment = recruitTypes.includes(input.type);
+
+      awardPoints(ctx.db, ctx.session.user.id, isRecruitment ? "recruitment_created" : "event_created", event.id).catch(() => {});
 
       // Notify club followers (fire-and-forget)
       ctx.db.clubFollower.findMany({
@@ -43,17 +51,46 @@ export const eventRouter = router({
         select: { userId: true },
       }).then((followers: { userId: string }[]) => {
         if (followers.length === 0) return;
-        const typeLabel = input.type === "RECRUITMENT" ? "nabór" : "wydarzenie";
+        const typeLabel = isRecruitment ? "nabór" : "wydarzenie";
+        const notifType = isRecruitment ? "RECRUITMENT_NEW" as const : "EVENT_APPLICATION" as const;
         ctx.db.notification.createMany({
           data: followers.map((f: { userId: string }) => ({
             userId: f.userId,
-            type: "EVENT_APPLICATION" as const,
+            type: notifType,
             title: `Nowy ${typeLabel} od obserwowanego klubu`,
             message: `${club.name} dodał ${typeLabel}: ${input.title}`,
             link: `/events/${event.id}`,
           })),
         }).catch(() => {});
       }).catch(() => {});
+
+      // Notify matching players in region (fire-and-forget, recruitment only)
+      if (isRecruitment) {
+        const targetRegionId = input.regionId ?? club.regionId;
+        if (targetRegionId) {
+          const playerWhere: Record<string, unknown> = { regionId: targetRegionId };
+          if (input.targetPosition) {
+            playerWhere.primaryPosition = input.targetPosition;
+          }
+
+          ctx.db.player.findMany({
+            where: playerWhere,
+            select: { userId: true },
+            take: 100,
+          }).then((players: { userId: string }[]) => {
+            if (players.length === 0) return;
+            ctx.db.notification.createMany({
+              data: players.map((p: { userId: string }) => ({
+                userId: p.userId,
+                type: "RECRUITMENT_MATCH" as const,
+                title: "Nabór w Twoim regionie",
+                message: `${club.name} szuka zawodników: ${input.title}`,
+                link: `/events/${event.id}`,
+              })),
+            }).catch(() => {});
+          }).catch(() => {});
+        }
+      }
 
       return event;
     }),
@@ -82,6 +119,11 @@ export const eventRouter = router({
           lng: input.lng,
           maxParticipants: input.maxParticipants,
           regionId: input.regionId,
+          targetPosition: input.targetPosition,
+          targetAgeMin: input.targetAgeMin,
+          targetAgeMax: input.targetAgeMax,
+          targetLevel: input.targetLevel,
+          priceInfo: input.priceInfo,
         },
       });
     }),
@@ -106,7 +148,7 @@ export const eventRouter = router({
       z.object({
         clubId: z.string().uuid().optional(),
         regionId: z.number().int().optional(),
-        type: z.enum(["OPEN_TRAINING", "RECRUITMENT"]).optional(),
+        type: z.enum(["OPEN_TRAINING", "RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT", "INDIVIDUAL_TRAINING", "GROUP_TRAINING"]).optional(),
         city: z.string().max(100).optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),

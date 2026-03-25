@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–9 ✅ → Etap 10: Wiadomości z publicznych profili ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–10 ✅ → Etap 11: Rekrutacja, Marketplace, Community ✅
 **Ostatnia sesja:** 2026-03-25
 
 ---
@@ -867,6 +867,75 @@
 
 ---
 
+### Etap 11: Rekrutacja, Marketplace Treningów, Community ✅
+
+**Cel:** 3-etapowy rozwój platformy — wzmocnienie naborów, pasywne ogłoszenia zawodników z pipeline, marketplace treningów + tablica społeczności.
+
+**Stage 1 — Wzmocnione nabory/rekrutacja:**
+- Rozszerzony `EventType` o: `TRYOUT`, `CAMP`, `CONTINUOUS_RECRUITMENT`, `INDIVIDUAL_TRAINING`, `GROUP_TRAINING`
+- Nowe pola Event: `targetPosition`, `targetAgeMin`, `targetAgeMax`, `targetLevel`, `priceInfo`
+- Warunkowe sekcje w formularzach wydarzeń (new/edit): rekrutacyjne pola, cennik treningów
+- Sekcja "Wymagania" na stronie szczegółów wydarzenia (badge z pozycją, wiekiem, poziomem)
+- Nowe NotificationType: `RECRUITMENT_NEW`, `RECRUITMENT_MATCH`
+- Powiadomienia do obserwatorów klubu + do zawodników w regionie (RECRUITMENT_MATCH)
+- Komponent `ClubRecruitment` na dashboardzie (aktywne nabory + sugerowani zawodnicy)
+- Feed endpoint `suggestedPlayers` — transfery LOOKING_FOR_CLUB/FREE_AGENT w regionie klubu
+- Feed `recruitments` rozszerzony o nowe typy naborów
+- Dynamiczne SelectItems w liście wydarzeń (z EVENT_TYPE_LABELS)
+- Gamifikacja: `recruitment_created` = 10 pkt
+
+**Stage 2 — Pasywne ogłoszenia zawodników z pipeline rekrutacyjnym:**
+- Nowe pola Transfer: `availableFrom`, `preferredLevel`
+- Nowy model `RecruitmentPipeline` (clubId, transferId, stage, notes) + enum `RecruitmentStage` (WATCHING → SIGNED)
+- tRPC router `recruitment`: addToRadar, updateStage, remove, myPipeline, check
+- UI pipeline (`/recruitment`): taby po etapach, karty zawodników, zmiana etapu, usuwanie
+- Przycisk "Na radar" (Eye) na kartach transferów LOOKING_FOR_CLUB/FREE_AGENT
+- Transfer new/edit: pola "Dostępny od" + "Preferowany poziom"
+- Gamifikacja: `player_added_to_radar` = 3 pkt
+
+**Stage 3 — Marketplace treningów + Community:**
+- `INDIVIDUAL_TRAINING` i `GROUP_TRAINING` jako EventType z sekcją ceny
+- Nowy model `ClubPost` (clubId, category, title, content, expiresAt)
+- Enum `ClubPostCategory`: LOOKING_FOR_GOALKEEPER, LOOKING_FOR_SPARRING, LOOKING_FOR_COACH, GENERAL_NEWS, MATCH_RESULT
+- tRPC router `clubPost`: create, update, delete, list (cursor pagination, wyklucza wygasłe), my
+- Strona `/community` — taby kategorii, formularz tworzenia (tylko kluby), karty postów z badge, treścią, logo klubu
+- ClubPost w głównym feedzie (feed.get) — filtr po regionie klubu, wyklucza wygasłe
+- Labels: `CLUB_POST_CATEGORY_LABELS` + `CLUB_POST_CATEGORY_COLORS`
+- Sidebar: link "Tablica" (Megaphone icon) w sekcji "Więcej"
+- Gamifikacja: `club_post_created` = 5 pkt
+
+**Pliki nowe:**
+- `src/server/trpc/routers/recruitment.ts` — pipeline router
+- `src/server/trpc/routers/club-post.ts` — community router
+- `src/components/dashboard/club-recruitment.tsx` — dashboard widget
+- `src/app/(dashboard)/recruitment/page.tsx` — pipeline UI
+- `src/app/(dashboard)/community/page.tsx` — tablica społeczności
+- `src/lib/validators/club-post.ts` — walidacja postów
+
+**Pliki zmodyfikowane:**
+- `prisma/schema.prisma` — nowe enumy, modele, pola, relacje
+- `src/lib/labels.ts` — +EVENT_TYPE, +NOTIFICATION_TYPE, +RECRUITMENT_STAGE, +CLUB_POST_CATEGORY labels/colors
+- `src/lib/gamification.ts` — +recruitment_created, +player_added_to_radar, +club_post_created
+- `src/lib/validators/event.ts` — rozszerzony schema o nowe typy i pola
+- `src/lib/validators/transfer.ts` — +availableFrom, +preferredLevel
+- `src/server/trpc/router.ts` — +recruitmentRouter, +clubPostRouter
+- `src/server/trpc/routers/event.ts` — create/update obsługują nowe pola, powiadomienia o naborach
+- `src/server/trpc/routers/transfer.ts` — create/update obsługują nowe pola
+- `src/server/trpc/routers/feed.ts` — recruitments rozszerzony, +suggestedPlayers, +clubPost w feedzie
+- `src/app/(dashboard)/events/new/page.tsx` — warunkowe sekcje formularz
+- `src/app/(dashboard)/events/[id]/edit/page.tsx` — warunkowe sekcje formularz
+- `src/app/(dashboard)/events/[id]/page.tsx` — sekcja "Wymagania"
+- `src/app/(dashboard)/events/page.tsx` — dynamiczne typy, nowe badge styles
+- `src/app/(dashboard)/transfers/page.tsx` — przycisk "Na radar"
+- `src/app/(dashboard)/transfers/new/page.tsx` — +availableFrom, +preferredLevel
+- `src/app/(dashboard)/transfers/[id]/edit/page.tsx` — +availableFrom, +preferredLevel
+- `src/app/(dashboard)/feed/page.tsx` — +ClubRecruitment widget
+- `src/components/layout/sidebar.tsx` — +Target (Rekrutacja), +Megaphone (Tablica)
+
+**Migracja:** Wymaga `npm run db:migrate -- --url "..." --name recruitment_community_marketplace`
+
+---
+
 ### Naprawy z code review (starsze — osobny backlog) ✅
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6 ✅
 - Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory
@@ -1103,13 +1172,14 @@ e2e/sparing-advanced.spec.ts          — testy: wizard, already-applied, comple
 | E8   | Etap 8: Club Onboarding Week 2        | ✅ Gotowe |
 | E9   | Etap 9: Visual Redesign "Sexy & Simple" | ✅ Gotowe |
 | E10  | Etap 10: Wiadomości z publicznych profili | ✅ Gotowe |
+| E11  | Etap 11: Rekrutacja, Marketplace, Community | ✅ Gotowe |
 
 ---
 
 ## Instrukcje na start następnej sesji
 1. Przeczytaj ten plik (`STATE.md`).
 2. **Nie skanuj** całego repo — pliki kluczowe wymienione powyżej.
-3. **Następny krok:** Wiadomości z publicznych profili ukończone. Platforma gotowa do dalszego rozwoju (nowe moduły, SEO, i18n, testy integracyjne).
+3. **Następny krok:** Rekrutacja + Marketplace + Community ukończone. Wymaga migracji DB (`recruitment_community_marketplace`). Platforma gotowa do dalszego rozwoju (SEO, i18n, testy integracyjne, mobile app).
 4. Aplikacja live: **https://pilkarski.vercel.app** | GitHub: **https://github.com/Kaban15/pilkarski**
 5. Przed instalacją nowych zależności — pytaj o zgodę.
 6. Po zakończeniu prac — zaktualizuj ten plik.

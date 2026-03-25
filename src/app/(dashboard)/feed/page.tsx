@@ -11,6 +11,7 @@ import { FeedCardSkeleton } from "@/components/card-skeleton";
 import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 import { EmptyState } from "@/components/empty-state";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
+import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
 import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
 import {
@@ -314,6 +315,7 @@ export default function FeedPage() {
       <StatsBar stats={(stats.data as DashboardStats) ?? null} />
 
       {isClub && !showOnboarding && <ClubQuickActions />}
+      {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
       {isPlayer && <PlayerRecruitments />}
 

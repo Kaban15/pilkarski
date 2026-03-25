@@ -112,6 +112,8 @@ model Club {
   reviewsGiven         Review[]              @relation("ReviewsGiven")
   reviewsReceived      Review[]              @relation("ReviewsReceived")
   followers            ClubFollower[]
+  recruitmentPipeline  RecruitmentPipeline[]
+  posts                ClubPost[]
 
   @@map("clubs")
 }
@@ -265,6 +267,11 @@ model SparingApplication {
 enum EventType {
   OPEN_TRAINING
   RECRUITMENT
+  TRYOUT
+  CAMP
+  CONTINUOUS_RECRUITMENT
+  INDIVIDUAL_TRAINING     // Trening indywidualny
+  GROUP_TRAINING          // Trening w małej grupie
 }
 
 model Event {
@@ -277,10 +284,15 @@ model Event {
   location        String?   @db.VarChar(300)
   lat             Decimal?  @db.Decimal(9, 6)
   lng             Decimal?  @db.Decimal(9, 6)
-  maxParticipants Int?      @map("max_participants")
-  regionId        Int?      @map("region_id")
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  maxParticipants  Int?            @map("max_participants")
+  regionId         Int?            @map("region_id")
+  targetPosition   PlayerPosition? @map("target_position")
+  targetAgeMin     Int?            @map("target_age_min")
+  targetAgeMax     Int?            @map("target_age_max")
+  targetLevel      SparingLevel?   @map("target_level")
+  priceInfo        String?         @map("price_info") @db.VarChar(200)
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
   club         Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
   region       Region?            @relation(fields: [regionId], references: [id])
@@ -320,6 +332,8 @@ enum NotificationType {
   EVENT_REJECTED         // Twoje zgłoszenie odrzucone
   NEW_MESSAGE            // nowa wiadomość
   NEW_REVIEW             // nowa recenzja po sparingu
+  RECRUITMENT_NEW        // obserwowany klub otworzył nabór/testy/camp
+  RECRUITMENT_MATCH      // nabór w Twoim regionie na Twoją pozycję
 }
 
 model Notification {
@@ -444,26 +458,59 @@ enum TransferStatus {
 }
 
 model Transfer {
-  id          String         @id @default(uuid()) @db.Uuid
-  userId      String         @map("user_id") @db.Uuid
-  type        TransferType
-  status      TransferStatus @default(ACTIVE)
-  title       String         @db.VarChar(300)
-  description String?
-  position    PlayerPosition? // szukana/oferowana pozycja
-  regionId    Int?           @map("region_id")
-  minAge      Int?           @map("min_age")
-  maxAge      Int?           @map("max_age")
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @map("user_id") @db.Uuid
+  type           TransferType
+  status         TransferStatus  @default(ACTIVE)
+  title          String          @db.VarChar(300)
+  description    String?
+  position       PlayerPosition? // szukana/oferowana pozycja
+  regionId       Int?            @map("region_id")
+  minAge         Int?            @map("min_age")
+  maxAge         Int?            @map("max_age")
+  availableFrom  DateTime?       @map("available_from") @db.Date
+  preferredLevel SparingLevel?   @map("preferred_level")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  region Region? @relation(fields: [regionId], references: [id])
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region          Region?               @relation(fields: [regionId], references: [id])
+  pipelineEntries RecruitmentPipeline[]
 
   @@index([type, status])
   @@index([regionId])
   @@index([position])
   @@map("transfers")
+}
+
+// ============================================================
+// PIPELINE REKRUTACYJNY
+// ============================================================
+
+enum RecruitmentStage {
+  WATCHING           // Na radarze
+  INVITED_TO_TRYOUT  // Zaproszony na testy
+  AFTER_TRYOUT       // Po testach
+  OFFER_SENT         // Oferta wysłana
+  SIGNED             // Podpisany
+  REJECTED           // Odrzucony
+}
+
+model RecruitmentPipeline {
+  id         String           @id @default(uuid()) @db.Uuid
+  clubId     String           @map("club_id") @db.Uuid
+  transferId String           @map("transfer_id") @db.Uuid
+  stage      RecruitmentStage @default(WATCHING)
+  notes      String?
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  club     Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  transfer Transfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, transferId])
+  @@index([clubId, stage])
+  @@map("recruitment_pipeline")
 }
 
 // ============================================================
@@ -507,6 +554,35 @@ model Favorite {
   @@unique([userId, eventId])
   @@index([userId])
   @@map("favorites")
+}
+
+// ============================================================
+// AKTUALNOŚCI KLUBOWE (COMMUNITY)
+// ============================================================
+
+enum ClubPostCategory {
+  LOOKING_FOR_GOALKEEPER   // Szukamy bramkarza
+  LOOKING_FOR_SPARRING     // Szukamy sparingpartnera
+  LOOKING_FOR_COACH        // Szukamy trenera
+  GENERAL_NEWS             // Aktualność ogólna
+  MATCH_RESULT             // Wynik meczu
+}
+
+model ClubPost {
+  id        String           @id @default(uuid()) @db.Uuid
+  clubId    String           @map("club_id") @db.Uuid
+  category  ClubPostCategory
+  title     String           @db.VarChar(300)
+  content   String?
+  expiresAt DateTime?        @map("expires_at") @db.Timestamptz
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId, createdAt])
+  @@index([category])
+  @@map("club_posts")
 }
 
 // ============================================================

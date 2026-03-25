@@ -21,7 +21,7 @@ export const transferRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Tylko zawodnicy mogą szukać klubu" });
       }
 
-      return ctx.db.transfer.create({
+      const transfer = await ctx.db.transfer.create({
         data: {
           userId,
           type: input.type,
@@ -31,8 +31,33 @@ export const transferRouter = router({
           regionId: input.regionId,
           minAge: input.minAge,
           maxAge: input.maxAge,
+          availableFrom: input.availableFrom ? new Date(input.availableFrom) : undefined,
+          preferredLevel: input.preferredLevel,
         },
       });
+
+      // Notify clubs in region when player is looking for a club (fire-and-forget)
+      if ((input.type === "LOOKING_FOR_CLUB" || input.type === "FREE_AGENT") && input.regionId) {
+        const playerName = user?.player ? `${user.player.firstName} ${user.player.lastName}` : input.title;
+        ctx.db.club.findMany({
+          where: { regionId: input.regionId },
+          select: { userId: true },
+          take: 50,
+        }).then((clubs: { userId: string }[]) => {
+          if (clubs.length === 0) return;
+          ctx.db.notification.createMany({
+            data: clubs.map((c: { userId: string }) => ({
+              userId: c.userId,
+              type: "RECRUITMENT_MATCH" as const,
+              title: "Nowy zawodnik szuka klubu",
+              message: `${playerName} — szuka klubu w Twoim regionie`,
+              link: `/transfers/${transfer.id}`,
+            })),
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+
+      return transfer;
     }),
 
   update: protectedProcedure
@@ -55,6 +80,8 @@ export const transferRouter = router({
           regionId: input.regionId,
           minAge: input.minAge,
           maxAge: input.maxAge,
+          availableFrom: input.availableFrom ? new Date(input.availableFrom) : undefined,
+          preferredLevel: input.preferredLevel,
         },
       });
     }),
@@ -89,6 +116,8 @@ export const transferRouter = router({
         position: z.enum(["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LM", "RM", "LW", "RW", "ST"]).optional(),
         regionId: z.number().int().optional(),
         status: z.enum(["ACTIVE", "CLOSED"]).default("ACTIVE"),
+        availableFrom: z.string().optional(),
+        preferredLevel: z.enum(["YOUTH", "AMATEUR", "SEMI_PRO", "PRO"]).optional(),
         sortBy: z.enum(["createdAt", "title"]).default("createdAt"),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
         cursor: z.string().uuid().optional(),
@@ -100,6 +129,8 @@ export const transferRouter = router({
       if (input.type) where.type = input.type;
       if (input.position) where.position = input.position;
       if (input.regionId) where.regionId = input.regionId;
+      if (input.availableFrom) where.availableFrom = { lte: new Date(input.availableFrom) };
+      if (input.preferredLevel) where.preferredLevel = input.preferredLevel;
 
       const items = await ctx.db.transfer.findMany({
         where,

@@ -22,11 +22,21 @@ export const FOOT_LABELS: Record<string, string> = {
 export const EVENT_TYPE_LABELS: Record<string, string> = {
   OPEN_TRAINING: "Trening otwarty",
   RECRUITMENT: "Nabór",
+  TRYOUT: "Testy",
+  CAMP: "Obóz / Camp",
+  CONTINUOUS_RECRUITMENT: "Ciągły nabór",
+  INDIVIDUAL_TRAINING: "Trening indywidualny",
+  GROUP_TRAINING: "Trening grupowy",
 };
 
 export const EVENT_TYPE_COLORS: Record<string, string> = {
   OPEN_TRAINING: "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300",
   RECRUITMENT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
+  TRYOUT: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  CAMP: "bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300",
+  CONTINUOUS_RECRUITMENT: "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300",
+  INDIVIDUAL_TRAINING: "bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300",
+  GROUP_TRAINING: "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300",
 };
 
 export const SPARING_LEVEL_LABELS: Record<string, string> = {
@@ -91,6 +101,8 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   EVENT_REJECTED: "Wydarzenie odrzucone",
   NEW_MESSAGE: "Nowa wiadomość",
   NEW_REVIEW: "Nowa recenzja",
+  RECRUITMENT_NEW: "Nowy nabór",
+  RECRUITMENT_MATCH: "Nabór na Twoją pozycję",
 };
 
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
@@ -102,6 +114,8 @@ export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   EVENT_REJECTED: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
   NEW_MESSAGE: "bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300",
   NEW_REVIEW: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  RECRUITMENT_NEW: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
+  RECRUITMENT_MATCH: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
 };
 
 export const TRANSFER_TYPE_LABELS: Record<string, string> = {
@@ -124,6 +138,40 @@ export const TRANSFER_STATUS_LABELS: Record<string, string> = {
 export const TRANSFER_STATUS_COLORS: Record<string, string> = {
   ACTIVE: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
   CLOSED: "bg-secondary text-muted-foreground",
+};
+
+export const RECRUITMENT_STAGE_LABELS: Record<string, string> = {
+  WATCHING: "Na radarze",
+  INVITED_TO_TRYOUT: "Zaproszony na testy",
+  AFTER_TRYOUT: "Po testach",
+  OFFER_SENT: "Oferta wysłana",
+  SIGNED: "Podpisany",
+  REJECTED: "Odrzucony",
+};
+
+export const RECRUITMENT_STAGE_COLORS: Record<string, string> = {
+  WATCHING: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
+  INVITED_TO_TRYOUT: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  AFTER_TRYOUT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
+  OFFER_SENT: "bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300",
+  SIGNED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
+  REJECTED: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
+};
+
+export const CLUB_POST_CATEGORY_LABELS: Record<string, string> = {
+  LOOKING_FOR_GOALKEEPER: "Szukamy bramkarza",
+  LOOKING_FOR_SPARRING: "Szukamy sparingpartnera",
+  LOOKING_FOR_COACH: "Szukamy trenera",
+  GENERAL_NEWS: "Aktualność",
+  MATCH_RESULT: "Wynik meczu",
+};
+
+export const CLUB_POST_CATEGORY_COLORS: Record<string, string> = {
+  LOOKING_FOR_GOALKEEPER: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  LOOKING_FOR_SPARRING: "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300",
+  LOOKING_FOR_COACH: "bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300",
+  GENERAL_NEWS: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
+  MATCH_RESULT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
 };
 
 export function getUserDisplayName(user: {

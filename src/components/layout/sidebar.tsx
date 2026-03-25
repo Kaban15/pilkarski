@@ -18,6 +18,8 @@ import {
   Heart,
   User,
   LogOut,
+  Target,
+  Megaphone,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -41,6 +43,8 @@ const NAV_SECTIONS = [
   {
     label: "Więcej",
     items: [
+      { href: "/community", icon: Megaphone, label: "Tablica" },
+      { href: "/recruitment", icon: Target, label: "Rekrutacja" },
       { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
       { href: "/search", icon: Search, label: "Szukaj" },
       { href: "/messages", icon: MessageSquare, label: "Wiadomości" },

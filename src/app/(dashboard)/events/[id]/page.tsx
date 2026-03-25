@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { SendMessageButton } from "@/components/send-message-button";
-import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
+import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS, SPARING_LEVEL_LABELS } from "@/lib/labels";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import {
@@ -29,6 +29,7 @@ import {
   CheckCircle2,
   XCircle,
   Trophy,
+  Target,
 } from "lucide-react";
 
 type EventApplication = {
@@ -208,6 +209,35 @@ export default function EventDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Requirements section (for recruitment events) */}
+      {(event.targetPosition || event.targetAgeMin || event.targetLevel) && (
+        <Card className="mb-6 border-amber-500/20 bg-amber-500/5">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="h-4 w-4 text-amber-600" />
+              <p className="text-sm font-semibold">Wymagania</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {event.targetPosition && (
+                <Badge variant="secondary" className="bg-violet-500/10 text-violet-700 dark:text-violet-400">
+                  {POSITION_LABELS[event.targetPosition] || event.targetPosition}
+                </Badge>
+              )}
+              {(event.targetAgeMin || event.targetAgeMax) && (
+                <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 dark:text-blue-400">
+                  Wiek: {event.targetAgeMin ?? "?"}&ndash;{event.targetAgeMax ?? "?"} lat
+                </Badge>
+              )}
+              {event.targetLevel && (
+                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                  {SPARING_LEVEL_LABELS[event.targetLevel] || event.targetLevel}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Apply section (for players) */}
       {!isOwner && session?.user?.role === "PLAYER" && (

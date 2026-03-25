@@ -22,7 +22,7 @@ export const feedRouter = router({
       const now = new Date();
 
       // Fetch recent items in parallel
-      const [sparings, events, transfers, clubs, players] = await Promise.all([
+      const [sparings, events, transfers, clubs, players, clubPosts] = await Promise.all([
         ctx.db.sparingOffer.findMany({
           where: {
             status: "OPEN",
@@ -72,6 +72,17 @@ export const feedRouter = router({
           orderBy: { createdAt: "desc" },
           take: 5,
         }),
+        ctx.db.clubPost.findMany({
+          where: {
+            OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
+            ...(regionId ? { club: { regionId } } : {}),
+          },
+          include: {
+            club: { select: { id: true, name: true, city: true, logoUrl: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: input.limit,
+        }),
       ]);
 
       // Merge into unified feed sorted by createdAt
@@ -80,7 +91,8 @@ export const feedRouter = router({
         | { type: "event"; data: (typeof events)[0]; createdAt: Date }
         | { type: "transfer"; data: (typeof transfers)[0]; createdAt: Date }
         | { type: "club"; data: (typeof clubs)[0]; createdAt: Date }
-        | { type: "player"; data: (typeof players)[0]; createdAt: Date };
+        | { type: "player"; data: (typeof players)[0]; createdAt: Date }
+        | { type: "clubPost"; data: (typeof clubPosts)[0]; createdAt: Date };
 
       const items: FeedItem[] = [
         ...sparings.map((s) => ({ type: "sparing" as const, data: s, createdAt: s.createdAt })),
@@ -88,6 +100,7 @@ export const feedRouter = router({
         ...transfers.map((t) => ({ type: "transfer" as const, data: t, createdAt: t.createdAt })),
         ...clubs.map((c) => ({ type: "club" as const, data: c, createdAt: c.createdAt })),
         ...players.map((p) => ({ type: "player" as const, data: p, createdAt: p.createdAt })),
+        ...clubPosts.map((cp) => ({ type: "clubPost" as const, data: cp, createdAt: cp.createdAt })),
       ];
 
       items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -125,7 +138,7 @@ export const feedRouter = router({
       const now = new Date();
 
       const where: any = {
-        type: "RECRUITMENT",
+        type: { in: ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"] as const },
         eventDate: { gte: now },
       };
 
@@ -150,5 +163,48 @@ export const feedRouter = router({
         matched: !!player.regionId,
         playerPosition: player.primaryPosition,
       };
+    }),
+
+  // Suggested players for club (transfers LOOKING_FOR_CLUB/FREE_AGENT in club's region)
+  suggestedPlayers: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(20).default(6) }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "CLUB") return { items: [] };
+
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+        select: { regionId: true },
+      });
+      if (!club?.regionId) return { items: [] };
+
+      const items = await ctx.db.transfer.findMany({
+        where: {
+          type: { in: ["LOOKING_FOR_CLUB", "FREE_AGENT"] },
+          status: "ACTIVE",
+          regionId: club.regionId,
+        },
+        include: {
+          user: {
+            include: {
+              player: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  photoUrl: true,
+                  primaryPosition: true,
+                  dateOfBirth: true,
+                  city: true,
+                },
+              },
+            },
+          },
+          region: { select: { name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+      });
+
+      return { items };
     }),
 });
