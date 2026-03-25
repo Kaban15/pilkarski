@@ -394,6 +394,10 @@
 - ~~matchDate akceptuje dowolny string~~ → refine() rejects past dates
 - ~~isParticipant bug~~ → sprawdza `applicantClub.userId === session.user.id`
 
+### Naprawione (sesja 2026-03-25)
+- ~~Hero SVG overlay blokuje kliknięcia~~ → `pointer-events-none` na profilach publicznych (clubs + players)
+- ~~Crash strony sparingów i wydarzeń~~ → Radix Select nie obsługuje `value=""` w `SelectItem`. Zamieniono na sentinel `"__all__"` z mapowaniem w `onValueChange`
+
 ### Sugestie (backlog)
 8. Zduplikowane patterny list (sparingi/wydarzenia) — wyekstrahować shared hook
 9. ~~Native `<select>` zamiast shadcn Select~~ → **Zaplanowane w Etap 4, I1-1**
