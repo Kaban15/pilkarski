@@ -21,28 +21,29 @@ type NavItem = {
   label: string;
 };
 
+const FEED: NavItem = { href: "/feed", icon: Home, label: "Pulpit" };
+const MSGS: NavItem = { href: "/messages", icon: MessageSquare, label: "Wiadomości" };
+const NOTIFS: NavItem = { href: "/notifications", icon: Bell, label: "Powiadom." };
+
 const NAV_CLUB: NavItem[] = [
-  { href: "/feed", icon: Home, label: "Pulpit" },
+  FEED,
   { href: "/sparings", icon: Swords, label: "Sparingi" },
   { href: "/recruitment", icon: Target, label: "Rekrutacja" },
-  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
-  { href: "/notifications", icon: Bell, label: "Powiadom." },
+  MSGS, NOTIFS,
 ];
 
 const NAV_PLAYER: NavItem[] = [
-  { href: "/feed", icon: Home, label: "Pulpit" },
+  FEED,
   { href: "/events", icon: Trophy, label: "Nabory" },
   { href: "/trainings", icon: GraduationCap, label: "Treningi" },
-  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
-  { href: "/notifications", icon: Bell, label: "Powiadom." },
+  MSGS, NOTIFS,
 ];
 
 const NAV_COACH: NavItem[] = [
-  { href: "/feed", icon: Home, label: "Pulpit" },
+  FEED,
   { href: "/trainings", icon: GraduationCap, label: "Treningi" },
   { href: "/community", icon: Megaphone, label: "Tablica" },
-  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
-  { href: "/notifications", icon: Bell, label: "Powiadom." },
+  MSGS, NOTIFS,
 ];
 
 function getNavItems(role: string | undefined): NavItem[] {

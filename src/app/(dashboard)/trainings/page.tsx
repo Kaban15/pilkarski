@@ -135,7 +135,7 @@ export default function TrainingsPage() {
           groupTrainings.refetch();
           coaches.refetch();
         }}
-        loading={isLoadingTrainings || coaches.isLoading}
+        loading={tab === "trainings" ? isLoadingTrainings : coaches.isLoading}
       />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "trainings" | "coaches")}>

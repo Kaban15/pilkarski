@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -268,17 +268,22 @@ export default function RecruitmentPage() {
     staleTime: 300_000,
   });
 
+  function invalidatePipeline() {
+    utils.recruitment.myPipeline.invalidate();
+    utils.recruitment.stats.invalidate();
+  }
+
   const updateStageOrderMut = api.recruitment.updateStageAndOrder.useMutation({
     onSuccess: () => {
-      utils.recruitment.myPipeline.invalidate();
-      utils.recruitment.stats.invalidate();
+      invalidatePipeline();
+      toast.success("Przeniesiono");
     },
     onError: (err) => toast.error(err.message),
   });
 
   const updateStageMut = api.recruitment.updateStage.useMutation({
     onSuccess: () => {
-      utils.recruitment.myPipeline.invalidate();
+      invalidatePipeline();
       toast.success("Status zaktualizowany");
     },
     onError: (err) => toast.error(err.message),
@@ -286,7 +291,7 @@ export default function RecruitmentPage() {
 
   const removeMut = api.recruitment.remove.useMutation({
     onSuccess: () => {
-      utils.recruitment.myPipeline.invalidate();
+      invalidatePipeline();
       toast.success("Usunięto z pipeline");
     },
     onError: (err) => toast.error(err.message),
@@ -304,17 +309,17 @@ export default function RecruitmentPage() {
 
   function handleDrop(entryId: string, newStage: StageValue, position: number) {
     updateStageOrderMut.mutate({ id: entryId, stage: newStage, position });
-    toast.success(`Przeniesiono do: ${RECRUITMENT_STAGE_LABELS[newStage]}`);
   }
 
   const entries = (pipeline ?? []) as PipelineEntry[];
-  const entriesByStage = BOARD_COLUMNS.reduce<Record<string, PipelineEntry[]>>(
-    (acc, col) => {
-      acc[col.stage] = entries.filter((e) => e.stage === col.stage);
-      return acc;
-    },
-    {}
-  );
+  const entriesByStage = useMemo(() =>
+    BOARD_COLUMNS.reduce<Record<string, PipelineEntry[]>>(
+      (acc, col) => {
+        acc[col.stage] = entries.filter((e) => e.stage === col.stage);
+        return acc;
+      },
+      {}
+    ), [entries]);
 
   return (
     <div className="animate-fade-in">
