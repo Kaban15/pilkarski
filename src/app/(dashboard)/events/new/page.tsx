@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
@@ -17,6 +17,8 @@ import {
   POSITION_LABELS,
   SPARING_LEVEL_LABELS,
 } from "@/lib/labels";
+import { TRAINING_PRESETS, type TrainingPreset } from "@/lib/training-presets";
+import { Zap } from "lucide-react";
 
 const RECRUITMENT_TYPES: EventTypeValue[] = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
@@ -24,6 +26,7 @@ export default function NewEventPage() {
   const router = useRouter();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [selectedType, setSelectedType] = useState<EventTypeValue>("OPEN_TRAINING");
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { data: regions = [] } = api.region.list.useQuery();
 
@@ -39,6 +42,24 @@ export default function NewEventPage() {
 
   const isRecruitment = RECRUITMENT_TYPES.includes(selectedType);
   const isTraining = selectedType === "INDIVIDUAL_TRAINING" || selectedType === "GROUP_TRAINING";
+
+  function applyPreset(preset: TrainingPreset) {
+    setSelectedType(preset.type);
+    const form = formRef.current;
+    if (!form) return;
+    const setInput = (name: string, value: string) => {
+      const el = form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (el) {
+        el.value = value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    };
+    setInput("title", preset.name);
+    setInput("description", preset.description);
+    if (preset.maxParticipants) setInput("maxParticipants", String(preset.maxParticipants));
+    if (preset.priceInfo) setInput("priceInfo", preset.priceInfo);
+    toast.success(`Szablon "${preset.name}" zastosowany`);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -82,7 +103,7 @@ export default function NewEventPage() {
         <CardTitle>Nowe wydarzenie</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="type">Typ wydarzenia</Label>
             <select
@@ -98,6 +119,32 @@ export default function NewEventPage() {
               ))}
             </select>
           </div>
+
+          {/* Training presets */}
+          {isTraining && (
+            <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <p className="text-sm font-semibold">Wybierz szablon</p>
+                <span className="text-[11px] text-muted-foreground">— pre-wypełni formularz</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {TRAINING_PRESETS.filter((p) => p.type === selectedType).map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset)}
+                    className="rounded-md border border-border bg-card px-3 py-2 text-left text-[13px] transition hover:border-primary/40 hover:bg-primary/5"
+                  >
+                    <p className="font-medium">{preset.name}</p>
+                    {preset.priceInfo && (
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{preset.priceInfo}</p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="title">Tytuł</Label>

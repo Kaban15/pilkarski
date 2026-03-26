@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +15,7 @@ import {
   COACH_LEVEL_LABELS,
 } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
-import { GraduationCap, Calendar, MapPin, Users } from "lucide-react";
+import { GraduationCap, Calendar, MapPin, Users, Sparkles } from "lucide-react";
 
 type TrainingItem = {
   id: string;
@@ -39,7 +40,60 @@ type CoachItem = {
   region: { name: string } | null;
 };
 
+function RecommendedTrainings() {
+  const recommended = api.event.recommendedTrainings.useQuery({ limit: 6 });
+  const items = (recommended.data?.items ?? []) as TrainingItem[];
+
+  if (recommended.isLoading || items.length === 0) return null;
+
+  return (
+    <div className="mb-8">
+      <div className="mb-4 flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <h2 className="text-base font-semibold">Polecane dla Ciebie</h2>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((t) => (
+          <Link key={t.id} href={`/events/${t.id}`}>
+            <Card className="h-full transition-all hover:border-primary/30 hover:shadow-sm">
+              <CardContent className="p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Badge variant="secondary" className="text-[10px]">
+                    {EVENT_TYPE_LABELS[t.type] ?? t.type}
+                  </Badge>
+                  {t.priceInfo && (
+                    <span className="ml-auto text-[12px] font-semibold text-primary">{t.priceInfo}</span>
+                  )}
+                </div>
+                <p className="text-[14px] font-semibold leading-snug line-clamp-2">{t.title}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3 opacity-50" />
+                    {t.club.name}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3 opacity-50" />
+                    {new Date(t.eventDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}
+                  </span>
+                  {t.location && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3 opacity-50" />
+                      {t.location}
+                    </span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function TrainingsPage() {
+  const { data: session } = useSession();
+  const isPlayer = session?.user?.role === "PLAYER";
   const [tab, setTab] = useState<"trainings" | "coaches">("trainings");
 
   const individualTrainings = api.event.list.useQuery(
@@ -71,6 +125,8 @@ export default function TrainingsPage() {
           Znajdź trening indywidualny lub grupowy, albo przeglądaj trenerów
         </p>
       </div>
+
+      {isPlayer && <RecommendedTrainings />}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "trainings" | "coaches")}>
         <TabsList>

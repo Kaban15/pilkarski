@@ -225,6 +225,51 @@ export const statsRouter = router({
 
     return { activeSparings, upcomingEvents, pendingApplications };
   }),
+
+  coachDashboard: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "COACH") return null;
+
+    const coach = await ctx.db.coach.findUnique({
+      where: { userId: ctx.session.user.id },
+      select: { regionId: true },
+    });
+    if (!coach) return null;
+
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const trainingTypes = ["INDIVIDUAL_TRAINING", "GROUP_TRAINING"] as const;
+
+    // Count active trainings in coach's region
+    const activeTrainings = await ctx.db.event.count({
+      where: {
+        type: { in: [...trainingTypes] },
+        eventDate: { gte: now },
+        ...(coach.regionId ? { regionId: coach.regionId } : {}),
+      },
+    });
+
+    // Count applications to trainings this week in coach's region
+    const weeklySignups = await ctx.db.eventApplication.count({
+      where: {
+        createdAt: { gte: weekAgo },
+        event: {
+          type: { in: [...trainingTypes] },
+          ...(coach.regionId ? { regionId: coach.regionId } : {}),
+        },
+      },
+    });
+
+    // Average review rating for training events in region (using existing Review model on sparings — approximate)
+    // For MVP: count total trainings and signups as proxy for engagement
+    return {
+      activeTrainings,
+      weeklySignups,
+      regionName: coach.regionId
+        ? (await ctx.db.region.findUnique({ where: { id: coach.regionId }, select: { name: true } }))?.name
+        : null,
+    };
+  }),
 });
 
 // Helper: aggregate grouped records by YYYY-MM

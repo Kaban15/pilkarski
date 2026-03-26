@@ -213,6 +213,38 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
   );
 }
 
+function CoachDashboardStats() {
+  const { data: stats } = api.stats.coachDashboard.useQuery(undefined, {
+    staleTime: 60_000,
+  });
+
+  if (!stats) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="py-4">
+        <div className="mb-3 flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 text-primary" />
+          <p className="text-sm font-semibold">Statystyki treningowe</p>
+          {stats.regionName && (
+            <span className="ml-auto text-[11px] text-muted-foreground">{stats.regionName}</span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg border border-border px-3 py-2">
+            <p className="text-xl font-bold tabular-nums">{stats.activeTrainings}</p>
+            <p className="text-[11px] text-muted-foreground">Aktywne treningi</p>
+          </div>
+          <div className="rounded-lg border border-border px-3 py-2">
+            <p className="text-xl font-bold tabular-nums">{stats.weeklySignups}</p>
+            <p className="text-[11px] text-muted-foreground">Zapisy w tym tyg.</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function PlayerDevelopment() {
   const trainings = api.event.list.useQuery({
     type: "INDIVIDUAL_TRAINING",
@@ -420,6 +452,7 @@ export default function FeedPage() {
       {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
 
+      {isCoach && <CoachDashboardStats />}
       {(isPlayer || isCoach) && <PlayerRecruitments />}
       {(isPlayer || isCoach) && <PlayerDevelopment />}
 

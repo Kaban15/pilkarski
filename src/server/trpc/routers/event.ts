@@ -360,4 +360,47 @@ export const eventRouter = router({
       orderBy: { createdAt: "desc" },
     });
   }),
+
+  recommendedTrainings: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(20).default(6) }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "PLAYER") return { items: [] };
+
+      const player = await ctx.db.player.findUnique({
+        where: { userId: ctx.session.user.id },
+        select: { regionId: true, primaryPosition: true, dateOfBirth: true },
+      });
+      if (!player) return { items: [] };
+
+      const now = new Date();
+      const where: Record<string, unknown> = {
+        type: { in: ["INDIVIDUAL_TRAINING", "GROUP_TRAINING"] },
+        eventDate: { gte: now },
+      };
+
+      // Filter by player's region if available
+      if (player.regionId) {
+        where.regionId = player.regionId;
+      }
+
+      // Filter by player's position if available
+      if (player.primaryPosition) {
+        where.OR = [
+          { targetPosition: player.primaryPosition },
+          { targetPosition: null },
+        ];
+      }
+
+      const items = await ctx.db.event.findMany({
+        where,
+        include: {
+          club: { select: { id: true, name: true, city: true, logoUrl: true } },
+          region: { select: { name: true } },
+        },
+        orderBy: { eventDate: "asc" },
+        take: input.limit,
+      });
+
+      return { items };
+    }),
 });
