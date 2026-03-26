@@ -10,20 +10,51 @@ import {
   Trophy,
   MessageSquare,
   Bell,
+  GraduationCap,
+  Target,
+  Megaphone,
 } from "lucide-react";
 
-const NAV_ITEMS = [
-  { href: "/feed", icon: Home, label: "Feed" },
+type NavItem = {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+};
+
+const NAV_CLUB: NavItem[] = [
+  { href: "/feed", icon: Home, label: "Pulpit" },
   { href: "/sparings", icon: Swords, label: "Sparingi" },
-  { href: "/events", icon: Trophy, label: "Wydarzenia" },
+  { href: "/recruitment", icon: Target, label: "Rekrutacja" },
   { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
-  { href: "/notifications", icon: Bell, label: "Powiadomienia" },
+  { href: "/notifications", icon: Bell, label: "Powiadom." },
 ];
+
+const NAV_PLAYER: NavItem[] = [
+  { href: "/feed", icon: Home, label: "Pulpit" },
+  { href: "/events", icon: Trophy, label: "Nabory" },
+  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
+  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
+  { href: "/notifications", icon: Bell, label: "Powiadom." },
+];
+
+const NAV_COACH: NavItem[] = [
+  { href: "/feed", icon: Home, label: "Pulpit" },
+  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
+  { href: "/community", icon: Megaphone, label: "Tablica" },
+  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
+  { href: "/notifications", icon: Bell, label: "Powiadom." },
+];
+
+function getNavItems(role: string | undefined): NavItem[] {
+  if (role === "CLUB") return NAV_CLUB;
+  if (role === "COACH") return NAV_COACH;
+  return NAV_PLAYER;
+}
 
 export function BottomNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const isClub = session?.user?.role === "CLUB";
+  const role = session?.user?.role;
 
   const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
@@ -31,16 +62,13 @@ export function BottomNav() {
   const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
   });
-  const { data: pendingApplications = 0 } = api.stats.clubDashboard.useQuery(undefined, {
-    enabled: isClub,
-    staleTime: 30_000,
-    select: (data) => data?.pendingApplications?.length ?? 0,
-  });
+
+  const navItems = getNavItems(role);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-sm md:hidden">
       <div className="flex items-center justify-around py-2">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/feed" && pathname.startsWith(item.href));
@@ -49,9 +77,7 @@ export function BottomNav() {
               ? unreadMessages
               : item.href === "/notifications" && unreadNotifs > 0
                 ? unreadNotifs
-                : item.href === "/sparings" && pendingApplications > 0
-                  ? pendingApplications
-                  : 0;
+                : 0;
 
           return (
             <Link

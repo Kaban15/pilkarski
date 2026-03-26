@@ -21,6 +21,7 @@ import type { ClubPostCategoryValue } from "@/lib/validators/club-post";
 import { createClubPostSchema } from "@/lib/validators/club-post";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Badge } from "@/components/ui/badge";
+import { MobileRefresh } from "@/components/mobile-refresh";
 import { Plus, Trash2, Megaphone, Flag, Bookmark, Users, Zap } from "lucide-react";
 
 type CategoryFilter = ClubPostCategoryValue | "ALL";
@@ -173,6 +174,8 @@ export default function CommunityPage() {
           </CardContent>
         </Card>
       )}
+
+      <MobileRefresh onRefresh={() => utils.clubPost.list.invalidate()} loading={isLoading} />
 
       <Tabs value={category} onValueChange={(v) => setCategory(v as CategoryFilter)}>
         <TabsList className="flex-wrap">

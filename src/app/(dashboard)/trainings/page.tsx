@@ -15,6 +15,7 @@ import {
   COACH_LEVEL_LABELS,
 } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
+import { MobileRefresh } from "@/components/mobile-refresh";
 import { GraduationCap, Calendar, MapPin, Users, Sparkles } from "lucide-react";
 
 type TrainingItem = {
@@ -127,6 +128,15 @@ export default function TrainingsPage() {
       </div>
 
       {isPlayer && <RecommendedTrainings />}
+
+      <MobileRefresh
+        onRefresh={() => {
+          individualTrainings.refetch();
+          groupTrainings.refetch();
+          coaches.refetch();
+        }}
+        loading={isLoadingTrainings || coaches.isLoading}
+      />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "trainings" | "coaches")}>
         <TabsList>

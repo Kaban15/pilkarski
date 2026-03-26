@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
+import { MobileRefresh } from "@/components/mobile-refresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
@@ -359,6 +360,8 @@ export default function RecruitmentPage() {
           </div>
         </div>
       </div>
+
+      <MobileRefresh onRefresh={() => utils.recruitment.myPipeline.invalidate()} loading={isLoading} />
 
       {isLoading ? (
         <div className="grid gap-3 lg:grid-cols-3">
