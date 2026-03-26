@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import {
   GraduationCap,
   Target,
   ChevronDown,
+  Users,
 } from "lucide-react";
 
 type FeedItem = {
@@ -288,6 +290,65 @@ function PlayerDevelopment() {
   );
 }
 
+function NewClubsInRegion() {
+  const { data } = api.club.newInRegion.useQuery({ limit: 4 }, { staleTime: 300_000 });
+  const utils = api.useUtils();
+
+  const followMut = api.club.follow.useMutation({
+    onSuccess: () => {
+      utils.club.newInRegion.invalidate();
+      toast.success("Obserwujesz klub");
+    },
+  });
+
+  const items = data?.items ?? [];
+  if (items.length === 0) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="py-4">
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
+          <Users className="h-4 w-4 text-blue-500" />
+          Nowe kluby w Twoim regionie
+        </p>
+        <div className="space-y-2">
+          {items.map((club: { id: string; name: string; city: string | null; logoUrl: string | null; region: { name: string } | null; _count: { followers: number } }) => (
+            <div key={club.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                {club.logoUrl ? (
+                  <img src={club.logoUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-bold text-muted-foreground">
+                    {club.name.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <Link href={`/clubs/${club.id}`} className="text-[13px] font-semibold hover:text-primary">
+                  {club.name}
+                </Link>
+                <p className="text-[11px] text-muted-foreground">
+                  {club.city}{club.region ? ` · ${club.region.name}` : ""}
+                  {club._count.followers > 0 && ` · ${club._count.followers} obs.`}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 shrink-0 text-xs"
+                onClick={() => followMut.mutate({ clubId: club.id })}
+                disabled={followMut.isPending}
+              >
+                Obserwuj
+              </Button>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ClubQuickActions() {
   const [showMore, setShowMore] = useState(false);
 
@@ -453,6 +514,7 @@ export default function FeedPage() {
       {isClub && <ClubDashboardSections />}
 
       {isCoach && <CoachDashboardStats />}
+      {isPlayer && <NewClubsInRegion />}
       {(isPlayer || isCoach) && <PlayerRecruitments />}
       {(isPlayer || isCoach) && <PlayerDevelopment />}
 

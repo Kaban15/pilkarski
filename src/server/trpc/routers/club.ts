@@ -140,4 +140,43 @@ export const clubRouter = router({
         where: { clubId: input.clubId },
       });
     }),
+
+  newInRegion: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(10).default(4) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Get player's region
+      const player = await ctx.db.player.findUnique({
+        where: { userId },
+        select: { regionId: true },
+      });
+      if (!player?.regionId) return { items: [] };
+
+      // Get clubs player already follows
+      const following = await ctx.db.clubFollower.findMany({
+        where: { userId },
+        select: { clubId: true },
+      });
+      const followedIds = following.map((f) => f.clubId);
+
+      // Find recent clubs in region not followed
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const items = await ctx.db.club.findMany({
+        where: {
+          regionId: player.regionId,
+          createdAt: { gte: thirtyDaysAgo },
+          ...(followedIds.length > 0 ? { id: { notIn: followedIds } } : {}),
+          userId: { not: userId },
+        },
+        include: {
+          region: { select: { name: true } },
+          _count: { select: { followers: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+      });
+
+      return { items };
+    }),
 });

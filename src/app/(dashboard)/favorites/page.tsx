@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-import { EVENT_TYPE_LABELS } from "@/lib/labels";
+import { EVENT_TYPE_LABELS, CLUB_POST_CATEGORY_LABELS, CLUB_POST_CATEGORY_COLORS } from "@/lib/labels";
 import { EmptyState } from "@/components/empty-state";
-import { Heart } from "lucide-react";
+import { Heart, Bookmark } from "lucide-react";
 
 export default function FavoritesPage() {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -101,6 +101,33 @@ export default function FavoritesPage() {
                     </CardContent>
                   </Card>
                 </Link>
+              );
+            }
+
+            const clubPost = (fav as { clubPost?: { id: string; title: string; category: string; content: string | null; club: { id: string; name: string; city: string | null } } }).clubPost;
+            if (clubPost) {
+              return (
+                <Card key={fav.id} className="transition hover:shadow-md">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-lg">{clubPost.title}</CardTitle>
+                      <Bookmark className="h-4 w-4 text-primary fill-current" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-1 text-sm text-muted-foreground">
+                    <p><strong>{clubPost.club.name}</strong>{clubPost.club.city && ` · ${clubPost.club.city}`}</p>
+                    {clubPost.content && <p className="line-clamp-2">{clubPost.content}</p>}
+                    <div className="flex items-center justify-between pt-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          CLUB_POST_CATEGORY_COLORS[clubPost.category] || "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {CLUB_POST_CATEGORY_LABELS[clubPost.category] || "Post"}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
               );
             }
 

@@ -583,14 +583,17 @@ model Favorite {
   userId         String        @map("user_id") @db.Uuid
   sparingOfferId String?       @map("sparing_offer_id") @db.Uuid
   eventId        String?       @map("event_id") @db.Uuid
+  clubPostId     String?       @map("club_post_id") @db.Uuid
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   sparingOffer SparingOffer? @relation(fields: [sparingOfferId], references: [id], onDelete: Cascade)
   event        Event?        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  clubPost     ClubPost?     @relation(fields: [clubPostId], references: [id], onDelete: Cascade)
 
   @@unique([userId, sparingOfferId])
   @@unique([userId, eventId])
+  @@unique([userId, clubPostId])
   @@index([userId])
   @@map("favorites")
 }
@@ -617,7 +620,8 @@ model ClubPost {
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club      Club       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  favorites Favorite[]
 
   @@index([clubId, createdAt])
   @@index([category])

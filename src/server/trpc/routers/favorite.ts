@@ -2,13 +2,13 @@ import { z } from "zod/v4";
 import { router, protectedProcedure, rateLimitedProcedure } from "../trpc";
 
 export const favoriteRouter = router({
-  // Toggle favorite for a sparing or event
   toggle: rateLimitedProcedure({ maxAttempts: 30 })
     .input(
       z.object({
         sparingOfferId: z.string().uuid().optional(),
         eventId: z.string().uuid().optional(),
-      }).refine((d) => d.sparingOfferId || d.eventId, "Wymagane sparingOfferId lub eventId")
+        clubPostId: z.string().uuid().optional(),
+      }).refine((d) => d.sparingOfferId || d.eventId || d.clubPostId, "Wymagane sparingOfferId, eventId lub clubPostId")
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -21,31 +21,40 @@ export const favoriteRouter = router({
           await ctx.db.favorite.delete({ where: { id: existing.id } });
           return { favorited: false };
         }
-        await ctx.db.favorite.create({
-          data: { userId, sparingOfferId: input.sparingOfferId },
-        });
+        await ctx.db.favorite.create({ data: { userId, sparingOfferId: input.sparingOfferId } });
         return { favorited: true };
       }
 
+      if (input.eventId) {
+        const existing = await ctx.db.favorite.findUnique({
+          where: { userId_eventId: { userId, eventId: input.eventId } },
+        });
+        if (existing) {
+          await ctx.db.favorite.delete({ where: { id: existing.id } });
+          return { favorited: false };
+        }
+        await ctx.db.favorite.create({ data: { userId, eventId: input.eventId } });
+        return { favorited: true };
+      }
+
+      // clubPostId
       const existing = await ctx.db.favorite.findUnique({
-        where: { userId_eventId: { userId, eventId: input.eventId! } },
+        where: { userId_clubPostId: { userId, clubPostId: input.clubPostId! } },
       });
       if (existing) {
         await ctx.db.favorite.delete({ where: { id: existing.id } });
         return { favorited: false };
       }
-      await ctx.db.favorite.create({
-        data: { userId, eventId: input.eventId },
-      });
+      await ctx.db.favorite.create({ data: { userId, clubPostId: input.clubPostId } });
       return { favorited: true };
     }),
 
-  // Check if user has favorited specific items
   check: protectedProcedure
     .input(
       z.object({
         sparingOfferIds: z.array(z.string().uuid()).optional(),
         eventIds: z.array(z.string().uuid()).optional(),
+        clubPostIds: z.array(z.string().uuid()).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -68,10 +77,17 @@ export const favoriteRouter = router({
         favs.forEach((f) => f.eventId && favorited.add(f.eventId));
       }
 
+      if (input.clubPostIds?.length) {
+        const favs = await ctx.db.favorite.findMany({
+          where: { userId, clubPostId: { in: input.clubPostIds } },
+          select: { clubPostId: true },
+        });
+        favs.forEach((f) => f.clubPostId && favorited.add(f.clubPostId));
+      }
+
       return Array.from(favorited);
     }),
 
-  // List user's favorites
   list: protectedProcedure
     .input(
       z.object({
@@ -93,6 +109,11 @@ export const favoriteRouter = router({
             include: {
               club: { select: { id: true, name: true, city: true, logoUrl: true } },
               region: true,
+            },
+          },
+          clubPost: {
+            include: {
+              club: { select: { id: true, name: true, city: true, logoUrl: true } },
             },
           },
         },

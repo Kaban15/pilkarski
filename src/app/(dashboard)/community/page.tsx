@@ -20,7 +20,8 @@ import {
 import type { ClubPostCategoryValue } from "@/lib/validators/club-post";
 import { createClubPostSchema } from "@/lib/validators/club-post";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
-import { Plus, Trash2, Megaphone, Flag } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Megaphone, Flag, Bookmark, Users, Zap } from "lucide-react";
 
 type CategoryFilter = ClubPostCategoryValue | "ALL";
 
@@ -37,6 +38,16 @@ export default function CommunityPage() {
 
   const { data, isLoading } = api.clubPost.list.useQuery({
     category: category === "ALL" ? undefined : category,
+  });
+
+  const postIds = data?.items?.map((p) => p.id) ?? [];
+  const { data: savedPostIds = [] } = api.favorite.check.useQuery(
+    { clubPostIds: postIds },
+    { enabled: postIds.length > 0 && !!session }
+  );
+
+  const toggleFavMut = api.favorite.toggle.useMutation({
+    onSuccess: () => utils.favorite.check.invalidate(),
   });
 
   const createMut = api.clubPost.create.useMutation({
@@ -221,17 +232,31 @@ export default function CommunityPage() {
                     <span className="font-medium">{post.club.name}</span>
                     {post.club.city && <span>· {post.club.city}</span>}
                   </div>
-                  {isClub && session?.user?.id && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-destructive hover:text-destructive"
-                      onClick={() => deleteMut.mutate({ id: post.id })}
-                      disabled={deleteMut.isPending}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {session && (
+                      <button
+                        onClick={() => toggleFavMut.mutate({ clubPostId: post.id })}
+                        className={`p-1 transition ${
+                          savedPostIds.includes(post.id)
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-primary"
+                        }`}
+                      >
+                        <Bookmark className={`h-3.5 w-3.5 ${savedPostIds.includes(post.id) ? "fill-current" : ""}`} />
+                      </button>
+                    )}
+                    {isClub && session?.user?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-destructive hover:text-destructive"
+                        onClick={() => deleteMut.mutate({ id: post.id })}
+                        disabled={deleteMut.isPending}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-2 flex items-center justify-between">
                   <p className="text-[11px] text-muted-foreground">
