@@ -29,6 +29,7 @@ type CategoryFilter = ClubPostCategoryValue | "ALL";
 export default function CommunityPage() {
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
+  const { data: myClub } = api.club.me.useQuery(undefined, { enabled: isClub, staleTime: Infinity });
   const [category, setCategory] = useState<CategoryFilter>("ALL");
   const [showForm, setShowForm] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -248,7 +249,7 @@ export default function CommunityPage() {
                         <Bookmark className={`h-3.5 w-3.5 ${savedPostIds.includes(post.id) ? "fill-current" : ""}`} />
                       </button>
                     )}
-                    {isClub && session?.user?.id && (
+                    {myClub && post.club.id === myClub.id && (
                       <Button
                         variant="ghost"
                         size="sm"

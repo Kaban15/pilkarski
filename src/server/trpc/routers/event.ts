@@ -179,6 +179,7 @@ export const eventRouter = router({
         clubId: z.string().uuid().optional(),
         regionId: z.number().int().optional(),
         type: z.enum(["OPEN_TRAINING", "RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT", "INDIVIDUAL_TRAINING", "GROUP_TRAINING"]).optional(),
+        types: z.array(z.enum(["OPEN_TRAINING", "RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT", "INDIVIDUAL_TRAINING", "GROUP_TRAINING"])).optional(),
         city: z.string().max(100).optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
@@ -192,7 +193,11 @@ export const eventRouter = router({
       const where: any = {};
       if (input.clubId) where.clubId = input.clubId;
       if (input.regionId) where.regionId = input.regionId;
-      if (input.type) where.type = input.type;
+      if (input.types && input.types.length > 0) {
+        where.type = { in: input.types };
+      } else if (input.type) {
+        where.type = input.type;
+      }
       if (input.city) {
         where.club = { city: { contains: input.city, mode: "insensitive" } };
       }

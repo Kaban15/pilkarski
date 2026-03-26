@@ -97,12 +97,8 @@ export default function TrainingsPage() {
   const isPlayer = session?.user?.role === "PLAYER";
   const [tab, setTab] = useState<"trainings" | "coaches">("trainings");
 
-  const individualTrainings = api.event.list.useQuery(
-    { type: "INDIVIDUAL_TRAINING", sortBy: "eventDate", sortOrder: "asc", limit: 20 },
-    { enabled: tab === "trainings" }
-  );
-  const groupTrainings = api.event.list.useQuery(
-    { type: "GROUP_TRAINING", sortBy: "eventDate", sortOrder: "asc", limit: 20 },
+  const trainings = api.event.list.useQuery(
+    { types: ["INDIVIDUAL_TRAINING", "GROUP_TRAINING"], sortBy: "eventDate", sortOrder: "asc", limit: 40 },
     { enabled: tab === "trainings" }
   );
 
@@ -111,12 +107,8 @@ export default function TrainingsPage() {
     { enabled: tab === "coaches" }
   );
 
-  const allTrainings = [
-    ...(individualTrainings.data?.items ?? []),
-    ...(groupTrainings.data?.items ?? []),
-  ].sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()) as TrainingItem[];
-
-  const isLoadingTrainings = individualTrainings.isLoading || groupTrainings.isLoading;
+  const allTrainings = (trainings.data?.items ?? []) as TrainingItem[];
+  const isLoadingTrainings = trainings.isLoading;
 
   return (
     <div className="space-y-6">
@@ -131,8 +123,7 @@ export default function TrainingsPage() {
 
       <MobileRefresh
         onRefresh={() => {
-          individualTrainings.refetch();
-          groupTrainings.refetch();
+          trainings.refetch();
           coaches.refetch();
         }}
         loading={tab === "trainings" ? isLoadingTrainings : coaches.isLoading}
@@ -173,7 +164,7 @@ export default function TrainingsPage() {
                       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {t.club.name}
+                          {t.club?.name ?? "Trener"}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -210,7 +201,8 @@ export default function TrainingsPage() {
             />
           ) : (
             (coaches.data?.items ?? []).map((c: CoachItem) => (
-              <Card key={c.id} className="transition-colors hover:border-primary/40">
+              <Link key={c.id} href={`/coaches/${c.id}`}>
+              <Card className="transition-colors hover:border-primary/40">
                 <CardContent className="flex items-center gap-4 py-4">
                   {c.photoUrl ? (
                     <img
@@ -251,6 +243,7 @@ export default function TrainingsPage() {
                   </div>
                 </CardContent>
               </Card>
+              </Link>
             ))
           )}
         </div>

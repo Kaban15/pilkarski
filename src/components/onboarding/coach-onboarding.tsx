@@ -42,14 +42,17 @@ export function CoachOnboarding({ onComplete }: { onComplete: () => void }) {
           <div className="space-y-3">
             <p className="text-sm font-semibold">Zacznij działać</p>
             <p className="text-xs text-muted-foreground">
-              Przeglądaj nabory, sprawdź treningi lub napisz na tablicę społeczności.
+              Dodaj swój pierwszy trening lub przeglądaj nabory i tablicę.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" asChild>
-                <Link href="/trainings">Treningi</Link>
+              <Button size="sm" asChild>
+                <Link href="/events/new">Dodaj trening</Link>
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <Link href="/events">Nabory</Link>
+                <Link href="/trainings">Przeglądaj treningi</Link>
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/community">Tablica</Link>
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setStep(2)}>Pomiń</Button>
             </div>

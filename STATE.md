@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–13 ✅ → Etap 14: Visual Redesign ✅
-**Ostatnia sesja:** 2026-03-26
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–14 ✅ → Etap 15–19: Iteracje 1–5 ✅ → Etap 20: Backlog Cleanup ✅
+**Ostatnia sesja:** 2026-03-27
 
 ---
 
@@ -1101,6 +1101,55 @@
 - `src/components/sparings/sparing-card.tsx` — modernized card
 - `src/app/(dashboard)/feed/page.tsx` — StatsBar, FeedCard, QuickActions redesign
 - `src/components/layout/sidebar.tsx` — compact header, smaller icons
+
+---
+
+### Etap 15: Iteracja 1 — Club Happy Path & Dashboard UX ✅
+- ClubQuickActions: 3 główne CTA (sparing, nabór, pipeline) + "Więcej działań"
+- ProcessSteps: reużywalny komponent (Moje sparingi + Moje wydarzenia)
+- Coachmark: jednorazowe tooltipy na /sparings i /events (localStorage)
+
+### Etap 16: Iteracja 2 — Recruitment CRM & Pipeline Board ✅
+- Kanban board z 6 kolumnami + HTML5 drag-and-drop
+- RecruitmentEvent model — timeline zmian etapów
+- Mini-timeline na kartach (last 3 events)
+- Avg time to sign metryka
+- Board/List toggle view
+
+### Etap 17: Iteracja 3 — Trainings & COACH Development Hub ✅
+- event.recommendedTrainings — rekomendacje per player
+- stats.coachDashboard — aktywne treningi, zapisy w tygodniu
+- Training presets (6 szablonów) — pre-fill formularza
+- Sekcja "Polecane dla Ciebie" na /trainings
+
+### Etap 18: Iteracja 4 — Community & Social Layer ✅
+- Favorite rozszerzony o clubPostId — zapisywanie postów
+- Bookmark button na kartach community
+- club.newInRegion — nowe kluby w regionie gracza
+- NewClubsInRegion widget na dashboardzie PLAYER
+
+### Etap 19: Iteracja 5 — Mobile & Performance Polish ✅
+- Role-aware bottom-nav (CLUB/PLAYER/COACH — różne pozycje)
+- OfflineBanner — wykrywanie braku internetu
+- MobileRefresh — przycisk odśwież na /recruitment, /trainings, /community
+
+### Etap 20: Backlog Cleanup ✅
+- E2E testy: coach.spec, recruitment-board.spec, community.spec
+- Helpers: registerCoach, fix role buttons (nie taby), auto-login redirect
+- Publiczny profil trenera /coaches/[id] (hero, badges, bio, message)
+- COACH tworzy treningi: Event.clubId optional, Event.coachId, event.create z COACH guard
+- Powiadomienia przypominające: /api/reminders (inactive clubs, stale pipeline, incomplete profiles)
+- event.list: `types` array filter (jeden query zamiast dwóch)
+- Community: delete button tylko dla owner'a (club.me check)
+- Coach onboarding: CTA "Dodaj trening"
+- Trainings: link do /coaches/[id] z katalogu trenerów
+- Null-safety fixes po Event.clubId optional (6 plików)
+
+**Migracje sesji 2026-03-26/27:**
+- `20260326120000_add_coach_role` ✅
+- `20260326180000_recruitment_board` ✅
+- `20260326200000_favorite_club_post` ✅
+- `20260326220000_coach_creates_events` ✅
 
 ---
 
