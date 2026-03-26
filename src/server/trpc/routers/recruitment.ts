@@ -3,6 +3,24 @@ import { router, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 
+const PIPELINE_STAGES = [
+  "WATCHING",
+  "INVITED_TO_TRYOUT",
+  "AFTER_TRYOUT",
+  "OFFER_SENT",
+  "SIGNED",
+  "REJECTED",
+] as const;
+
+const stageEnum = z.enum(PIPELINE_STAGES);
+
+function csvEscape(value: string): string {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 export const recruitmentRouter = router({
   addToRadar: protectedProcedure
     .input(z.object({ transferId: z.string().uuid() }))
@@ -36,14 +54,7 @@ export const recruitmentRouter = router({
     .input(
       z.object({
         id: z.string().uuid(),
-        stage: z.enum([
-          "WATCHING",
-          "INVITED_TO_TRYOUT",
-          "AFTER_TRYOUT",
-          "OFFER_SENT",
-          "SIGNED",
-          "REJECTED",
-        ]),
+        stage: stageEnum,
         notes: z.string().max(500).optional(),
       })
     )
@@ -88,14 +99,7 @@ export const recruitmentRouter = router({
     .input(
       z.object({
         stage: z
-          .enum([
-            "WATCHING",
-            "INVITED_TO_TRYOUT",
-            "AFTER_TRYOUT",
-            "OFFER_SENT",
-            "SIGNED",
-            "REJECTED",
-          ])
+          .enum(PIPELINE_STAGES)
           .optional(),
       })
     )
@@ -216,13 +220,13 @@ export const recruitmentRouter = router({
     const rows = entries.map((e) => {
       const p = e.transfer.user.player;
       return [
-        p?.firstName ?? "",
-        p?.lastName ?? "",
-        p?.primaryPosition ?? "",
-        p?.city ?? "",
-        e.transfer.region?.name ?? "",
+        csvEscape(p?.firstName ?? ""),
+        csvEscape(p?.lastName ?? ""),
+        csvEscape(p?.primaryPosition ?? ""),
+        csvEscape(p?.city ?? ""),
+        csvEscape(e.transfer.region?.name ?? ""),
         e.stage,
-        (e.notes ?? "").replace(/,/g, ";"),
+        csvEscape(e.notes ?? ""),
         e.updatedAt.toISOString().split("T")[0],
       ].join(",");
     });

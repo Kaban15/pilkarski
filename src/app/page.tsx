@@ -259,98 +259,47 @@ export default async function LandingPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Klub */}
-            <div className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] hover:border-emerald-500/20">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <Shield className="h-4 w-4 text-emerald-400" />
+            {([
+              {
+                Icon: Shield, title: "Dla klubów", accent: "emerald",
+                items: ["Sparingi — rywale z regionu zgłoszą się sami", "Pipeline rekrutacyjny i nabory online", "Tablica społeczności i wiadomości"],
+                cta: "Zarejestruj klub", extraClass: "",
+              },
+              {
+                Icon: Users, title: "Dla zawodników", accent: "violet",
+                items: ["Nabory dopasowane do pozycji i regionu", "Profil zawodnika z historią kariery", "Bezpośredni czat z klubami"],
+                cta: "Dołącz jako zawodnik", extraClass: "",
+              },
+              {
+                Icon: GraduationCap, title: "Dla trenerów", accent: "blue",
+                items: ["Profil z licencją i specjalizacją", "Katalog treningów indywidualnych", "Dostęp do naborów i społeczności"],
+                cta: "Dołącz jako trener", extraClass: "sm:col-span-2 lg:col-span-1",
+              },
+            ] as const).map((role) => (
+              <div key={role.title} className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] hover:border-${role.accent}-500/20 ${role.extraClass}`}>
+                <div className="mb-5 flex items-center gap-3">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-${role.accent}-500/10`}>
+                    <role.Icon className={`h-4 w-4 text-${role.accent}-400`} />
+                  </div>
+                  <h3 className="text-[15px] font-semibold">{role.title}</h3>
                 </div>
-                <h3 className="text-[15px] font-semibold">Dla klubów</h3>
+                <ul className="space-y-3 text-[14px] text-white/40">
+                  {role.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <Zap className={`mt-0.5 h-3.5 w-3.5 shrink-0 text-${role.accent}-400/50`} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/register"
+                  className={`mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-${role.accent}-400 transition hover:text-${role.accent}-300`}
+                >
+                  {role.cta}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
-              <ul className="space-y-3 text-[14px] text-white/40">
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/50" />
-                  Sparingi — rywale z regionu zgłoszą się sami
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/50" />
-                  Pipeline rekrutacyjny i nabory online
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/50" />
-                  Tablica społeczności i wiadomości
-                </li>
-              </ul>
-              <Link
-                href="/register"
-                className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-emerald-400 transition hover:text-emerald-300"
-              >
-                Zarejestruj klub
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-
-            {/* Zawodnik */}
-            <div className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] hover:border-violet-500/20">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                  <Users className="h-4 w-4 text-violet-400" />
-                </div>
-                <h3 className="text-[15px] font-semibold">Dla zawodników</h3>
-              </div>
-              <ul className="space-y-3 text-[14px] text-white/40">
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400/50" />
-                  Nabory dopasowane do pozycji i regionu
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400/50" />
-                  Profil zawodnika z historią kariery
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400/50" />
-                  Bezpośredni czat z klubami
-                </li>
-              </ul>
-              <Link
-                href="/register"
-                className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet-400 transition hover:text-violet-300"
-              >
-                Dołącz jako zawodnik
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-
-            {/* Trener */}
-            <div className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] hover:border-blue-500/20 sm:col-span-2 lg:col-span-1">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                  <GraduationCap className="h-4 w-4 text-blue-400" />
-                </div>
-                <h3 className="text-[15px] font-semibold">Dla trenerów</h3>
-              </div>
-              <ul className="space-y-3 text-[14px] text-white/40">
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-400/50" />
-                  Profil z licencją i specjalizacją
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-400/50" />
-                  Katalog treningów indywidualnych
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-400/50" />
-                  Dostęp do naborów i społeczności
-                </li>
-              </ul>
-              <Link
-                href="/register"
-                className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-blue-400 transition hover:text-blue-300"
-              >
-                Dołącz jako trener
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+            ))}
           </div>
         </div>
       </section>

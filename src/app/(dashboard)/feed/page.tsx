@@ -213,7 +213,7 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
 
 function PlayerDevelopment() {
   const trainings = api.event.list.useQuery({
-    type: "INDIVIDUAL_TRAINING" as "INDIVIDUAL_TRAINING",
+    type: "INDIVIDUAL_TRAINING",
     sortBy: "eventDate",
     sortOrder: "asc",
     limit: 4,
@@ -235,7 +235,7 @@ function PlayerDevelopment() {
           </Link>
         </div>
         <div className="space-y-2">
-          {items.slice(0, 4).map((t: any) => (
+          {items.map((t: { id: string; title: string; eventDate: string | Date; club?: { name: string }; priceInfo?: string | null }) => (
             <Link key={t.id} href={`/events/${t.id}`}>
               <div className="flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors hover:border-primary/40">
                 <div className="min-w-0 flex-1">
@@ -298,8 +298,14 @@ export default function FeedPage() {
     staleTime: Infinity,
   });
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
-  const [playerOnboardingDone, setPlayerOnboardingDone] = useState(false);
-  const [coachOnboardingDone, setCoachOnboardingDone] = useState(false);
+  const [playerOnboardingDone, setPlayerOnboardingDone] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("ps_player_onboarded") === "1";
+  });
+  const [coachOnboardingDone, setCoachOnboardingDone] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("ps_coach_onboarded") === "1";
+  });
 
   const showOnboarding = isClub && !onboardingDismissed && clubProfile.data && !clubProfile.data.regionId;
   const showPlayerOnboarding = isPlayer && !playerOnboardingDone;
@@ -332,10 +338,10 @@ export default function FeedPage() {
         }} />
       )}
       {showPlayerOnboarding && (
-        <PlayerOnboarding onComplete={() => setPlayerOnboardingDone(true)} />
+        <PlayerOnboarding onComplete={() => { localStorage.setItem("ps_player_onboarded", "1"); setPlayerOnboardingDone(true); }} />
       )}
       {showCoachOnboarding && (
-        <CoachOnboarding onComplete={() => setCoachOnboardingDone(true)} />
+        <CoachOnboarding onComplete={() => { localStorage.setItem("ps_coach_onboarded", "1"); setCoachOnboardingDone(true); }} />
       )}
 
       {isClub && !showOnboarding && stats.data &&

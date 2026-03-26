@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
@@ -43,11 +43,11 @@ export default function TrainingsPage() {
   const [tab, setTab] = useState<"trainings" | "coaches">("trainings");
 
   const individualTrainings = api.event.list.useQuery(
-    { type: "INDIVIDUAL_TRAINING" as "INDIVIDUAL_TRAINING", sortBy: "eventDate", sortOrder: "asc", limit: 20 },
+    { type: "INDIVIDUAL_TRAINING", sortBy: "eventDate", sortOrder: "asc", limit: 20 },
     { enabled: tab === "trainings" }
   );
   const groupTrainings = api.event.list.useQuery(
-    { type: "GROUP_TRAINING" as "GROUP_TRAINING", sortBy: "eventDate", sortOrder: "asc", limit: 20 },
+    { type: "GROUP_TRAINING", sortBy: "eventDate", sortOrder: "asc", limit: 20 },
     { enabled: tab === "trainings" }
   );
 
@@ -143,7 +143,7 @@ export default function TrainingsPage() {
               description="Nie ma jeszcze zarejestrowanych trenerów."
             />
           ) : (
-            (coaches.data?.items as CoachItem[] ?? []).map((c) => (
+            (coaches.data?.items ?? []).map((c: CoachItem) => (
               <Card key={c.id} className="transition-colors hover:border-primary/40">
                 <CardContent className="flex items-center gap-4 py-4">
                   {c.photoUrl ? (

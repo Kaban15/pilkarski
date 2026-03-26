@@ -242,7 +242,10 @@ export default function CommunityPage() {
                       variant="ghost"
                       size="sm"
                       className="h-6 px-1.5 text-muted-foreground hover:text-destructive"
-                      onClick={() => setReportingPostId(reportingPostId === post.id ? null : post.id)}
+                      onClick={() => {
+                        setReportingPostId(reportingPostId === post.id ? null : post.id);
+                        setReportReason("");
+                      }}
                     >
                       <Flag className="h-3 w-3" />
                     </Button>

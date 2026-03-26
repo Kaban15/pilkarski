@@ -13,27 +13,29 @@ export const clubPostRouter = router({
       });
       if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą dodawać posty" });
 
-      const activeCount = await ctx.db.clubPost.count({
-        where: {
-          clubId: club.id,
-          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-        },
-      });
-      if (activeCount >= 5) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Maksymalnie 5 aktywnych postów na klub. Usuń lub poczekaj na wygaśnięcie starszych.",
+      const post = await ctx.db.$transaction(async (tx) => {
+        const activeCount = await tx.clubPost.count({
+          where: {
+            clubId: club.id,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
         });
-      }
+        if (activeCount >= 5) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Maksymalnie 5 aktywnych postów na klub. Usuń lub poczekaj na wygaśnięcie starszych.",
+          });
+        }
 
-      const post = await ctx.db.clubPost.create({
-        data: {
-          clubId: club.id,
-          category: input.category,
-          title: input.title,
-          content: input.content,
-          expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined,
-        },
+        return tx.clubPost.create({
+          data: {
+            clubId: club.id,
+            category: input.category,
+            title: input.title,
+            content: input.content,
+            expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined,
+          },
+        });
       });
 
       awardPoints(ctx.db, ctx.session.user.id, "club_post_created", post.id).catch(() => {});
