@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–10 ✅ → Etap 11: Rekrutacja, Marketplace, Community ✅
-**Ostatnia sesja:** 2026-03-25
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–11 ✅ → Etap 12: Rola Trenera (COACH) ✅
+**Ostatnia sesja:** 2026-03-26
 
 ---
 
@@ -939,6 +939,83 @@
 
 ---
 
+### Etap 12: Rola Trenera (COACH) ✅
+
+**Cel:** Dodanie trzeciej roli użytkownika — Trener — z pełnym flow: rejestracja, profil, auth, dashboard.
+
+**Schemat:**
+- `UserRole` enum rozszerzony o `COACH`
+- Nowy model `Coach` (firstName, lastName, specialization, level, city, regionId, bio, photoUrl)
+- Relacje: User → Coach, Region → Coach[]
+
+**Auth:**
+- `registerSchema` obsługuje `COACH` (wymaga firstName + lastName)
+- `auth.register` tworzy Coach profil przy rejestracji
+- `auth/config.ts` — include coach, display name z coach.firstName/lastName
+
+**UI rejestracji:**
+- Trzecia karta „Trener" z ikoną GraduationCap (grid-cols-3)
+- Pola imię/nazwisko widoczne dla PLAYER i COACH
+
+**tRPC router `coach`:**
+- `me` — profil zalogowanego trenera
+- `update` — edycja profilu (firstName, lastName, specialization, level, city, regionId, bio, photoUrl)
+- `getById` — publiczny profil trenera
+- `list` — lista trenerów (filtry: region, specjalizacja, miasto, cursor pagination)
+
+**Profil trenera:**
+- `CoachProfileForm` — formularz z upload zdjęcia, Select specjalizacji (6 opcji) i licencji (6 poziomów UEFA)
+- Zintegrowany w `/profile` page (branch per rola)
+
+**Dashboard/Layout:**
+- Sidebar: „Trener" label dla roli COACH
+- `DashboardStats` type obsługuje „COACH"
+- `stats.dashboard` zwraca wiadomości dla COACH
+- `feed.recruitments` dostępne dla COACH (widzi nabory z regionu)
+- `PlayerRecruitments` widget widoczny na dashboardzie COACH
+
+**Labels:**
+- `getUserDisplayName()` obsługuje coach profil
+- `COACH_SPECIALIZATION_LABELS`, `COACH_LEVEL_LABELS` — mapy specjalizacji i licencji trenera
+- `ROLE_LABELS` — mapa ról do polskich nazw (Klub, Zawodnik, Trener)
+
+**next-auth types:**
+- `Session.user.role` rozszerzony o „COACH"
+
+**Code review /simplify:**
+- Bug fix: `stats.ts` detailed — COACH wpadał w player branch → `else if (role === "PLAYER")`
+- Bug fix: `feed.ts` get — COACH nie miał region lookup → dodano coach do Promise.all
+- Duplikat: `validators/auth.ts` — scalone dwa identyczne refine PLAYER/COACH
+- Efektywność: `coach.ts` update — direct `update` by userId zamiast findUnique + update
+- Copy-paste: `register/page.tsx` — 3 role buttons → ROLES array + map
+- Reuse: `coach-profile-form.tsx` — SPECIALIZATIONS/LEVELS → `labels.ts`
+- Efektywność: `profile/page.tsx` — sekwencyjne queries → Promise.all
+- Spójność: `feed/page.tsx` — derived `isCoach`, `sidebar.tsx` — `ROLE_LABELS[]`
+
+**Pliki nowe:**
+- `src/server/trpc/routers/coach.ts`
+- `src/components/forms/coach-profile-form.tsx`
+- `prisma/migrations/20260326120000_add_coach_role/migration.sql`
+
+**Pliki zmodyfikowane:**
+- `prisma/schema.prisma` — Coach model, UserRole enum, relacje
+- `src/lib/validators/auth.ts` — COACH w registerSchema (scalone refine)
+- `src/server/trpc/routers/auth.ts` — COACH branch w register
+- `src/server/auth/config.ts` — include coach, name resolution
+- `src/server/trpc/router.ts` — +coachRouter
+- `src/server/trpc/routers/feed.ts` — recruitments dla COACH, coach w region lookup
+- `src/server/trpc/routers/stats.ts` — dashboard + detailed COACH branches
+- `src/app/(auth)/register/page.tsx` — role cards array + map
+- `src/app/(dashboard)/profile/page.tsx` — CoachProfileForm, Promise.all
+- `src/app/(dashboard)/feed/page.tsx` — DashboardStats type, isCoach derived
+- `src/components/layout/sidebar.tsx` — ROLE_LABELS z labels.ts
+- `src/lib/labels.ts` — getUserDisplayName, COACH_*_LABELS, ROLE_LABELS
+- `src/types/next-auth.d.ts` — COACH w Session type
+
+**Migracja:** Wymaga `prisma migrate deploy --url "..."` (migration `20260326120000_add_coach_role`)
+
+---
+
 ### Naprawy z code review (starsze — osobny backlog) ✅
 - Fix #1: ~~Ograniczyć widoczność aplikacji w getById~~ → Iteracja 1, I1-6 ✅
 - Fix #2: ~~Dodać rate limiting na mutacje tRPC~~ → ✅ `rateLimitedProcedure` factory
@@ -1018,6 +1095,7 @@ src/server/trpc/routers/review.ts      — recenzje (create, getForSparing, list
 src/server/trpc/routers/transfer.ts    — transfery (create, update, delete, close, list, getById, my)
 src/server/trpc/routers/gamification.ts — punkty, odznaki, leaderboard
 src/server/trpc/routers/push.ts        — push subscriptions (subscribe, unsubscribe, status)
+src/server/trpc/routers/coach.ts       — CRUD trenera (me, update, getById, list)
 src/server/award-points.ts             — helper awardPoints() (fire-and-forget)
 src/server/send-push.ts                — helper sendPushToUser() (web-push + auto-cleanup)
 src/app/api/upload/route.ts            — server-side image upload (service_role key)

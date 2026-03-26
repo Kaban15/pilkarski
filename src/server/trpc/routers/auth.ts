@@ -28,25 +28,19 @@ export const authRouter = router({
 
       const passwordHash = await bcrypt.hash(input.password, 12);
 
+      const profileData =
+        input.role === "CLUB"
+          ? { club: { create: { name: input.clubName! } } }
+          : input.role === "COACH"
+            ? { coach: { create: { firstName: input.firstName!, lastName: input.lastName! } } }
+            : { player: { create: { firstName: input.firstName!, lastName: input.lastName! } } };
+
       const user = await ctx.db.user.create({
         data: {
           email: input.email,
           passwordHash,
           role: input.role,
-          ...(input.role === "CLUB"
-            ? {
-                club: {
-                  create: { name: input.clubName! },
-                },
-              }
-            : {
-                player: {
-                  create: {
-                    firstName: input.firstName!,
-                    lastName: input.lastName!,
-                  },
-                },
-              }),
+          ...profileData,
         },
       });
 

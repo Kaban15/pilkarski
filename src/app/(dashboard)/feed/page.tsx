@@ -162,7 +162,7 @@ function FeedCard({ item }: { item: FeedItem }) {
 }
 
 type DashboardStats = {
-  role: "CLUB" | "PLAYER";
+  role: "CLUB" | "PLAYER" | "COACH";
   activeSparings?: number;
   pendingApplications?: number;
   upcomingEvents?: number;
@@ -238,8 +238,10 @@ function ClubQuickActions() {
 
 export default function FeedPage() {
   const { data: session } = useSession();
-  const isClub = session?.user?.role === "CLUB";
-  const isPlayer = session?.user?.role === "PLAYER";
+  const userRole = session?.user?.role;
+  const isClub = userRole === "CLUB";
+  const isPlayer = userRole === "PLAYER";
+  const isCoach = userRole === "COACH";
   const feed = api.feed.get.useQuery({ limit: 30 });
   const stats = api.stats.dashboard.useQuery(undefined, { staleTime: 60_000 });
   const clubProfile = api.club.me.useQuery(undefined, {
@@ -317,7 +319,7 @@ export default function FeedPage() {
       {isClub && !showOnboarding && <ClubQuickActions />}
       {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
-      {isPlayer && <PlayerRecruitments />}
+      {(isPlayer || isCoach) && <PlayerRecruitments />}
 
       {feed.isLoading ? (
         <div className="space-y-3">

@@ -80,7 +80,7 @@ export const statsRouter = router({
           reviewCount: avgRating._count.rating,
         };
       }
-    } else {
+    } else if (role === "PLAYER") {
       const player = await ctx.db.player.findUnique({ where: { userId } });
       if (player) {
         const [totalApps, acceptedApps] = await Promise.all([
@@ -149,6 +149,17 @@ export const statsRouter = router({
       ]);
 
       return { role: "CLUB" as const, activeSparings, pendingApplications, upcomingEvents, unreadMessages };
+    }
+
+    if (role === "COACH") {
+      const unreadMessages = await ctx.db.message.count({
+        where: {
+          conversation: { participants: { some: { userId } } },
+          readAt: null,
+          senderId: { not: userId },
+        },
+      });
+      return { role: "COACH" as const, unreadMessages };
     }
 
     // PLAYER

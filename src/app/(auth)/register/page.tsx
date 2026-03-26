@@ -18,13 +18,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Shield, Users, UserPlus } from "lucide-react";
+import { Shield, Users, UserPlus, GraduationCap } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [role, setRole] = useState<"CLUB" | "PLAYER">("CLUB");
+  const [role, setRole] = useState<"CLUB" | "PLAYER" | "COACH">("CLUB");
   const credentialsRef = useRef<{ email: string; password: string } | null>(null);
 
   const registerMut = api.auth.register.useMutation({
@@ -95,31 +95,26 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent>
             {/* Role selector */}
-            <div className="mb-6 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole("CLUB")}
-                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition ${
-                  role === "CLUB"
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border hover:border-primary/30 hover:bg-muted"
-                }`}
-              >
-                <Shield className={`h-6 w-6 ${role === "CLUB" ? "text-primary" : "text-muted-foreground"}`} />
-                <span className="text-sm font-semibold">Klub</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("PLAYER")}
-                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition ${
-                  role === "PLAYER"
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border hover:border-primary/30 hover:bg-muted"
-                }`}
-              >
-                <Users className={`h-6 w-6 ${role === "PLAYER" ? "text-primary" : "text-muted-foreground"}`} />
-                <span className="text-sm font-semibold">Zawodnik</span>
-              </button>
+            <div className="mb-6 grid grid-cols-3 gap-3">
+              {([
+                { value: "CLUB" as const, Icon: Shield, label: "Klub" },
+                { value: "PLAYER" as const, Icon: Users, label: "Zawodnik" },
+                { value: "COACH" as const, Icon: GraduationCap, label: "Trener" },
+              ]).map(({ value, Icon, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setRole(value)}
+                  className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition ${
+                    role === value
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border hover:border-primary/30 hover:bg-muted"
+                  }`}
+                >
+                  <Icon className={`h-6 w-6 ${role === value ? "text-primary" : "text-muted-foreground"}`} />
+                  <span className="text-sm font-semibold">{label}</span>
+                </button>
+              ))}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -170,7 +165,7 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              {role === "PLAYER" && (
+              {(role === "PLAYER" || role === "COACH") && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Imię</Label>

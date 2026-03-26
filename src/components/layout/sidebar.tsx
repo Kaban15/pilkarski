@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
+import { ROLE_LABELS } from "@/lib/labels";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
 import {
@@ -142,7 +143,7 @@ export function Sidebar({ user }: SidebarProps) {
               {user.name || user.email}
             </p>
             <p className="text-[11px] text-sidebar-muted-foreground">
-              {user.role === "CLUB" ? "Klub" : "Zawodnik"}
+              {ROLE_LABELS[user.role] ?? "Użytkownik"}
             </p>
           </div>
           <PushNotificationToggle />

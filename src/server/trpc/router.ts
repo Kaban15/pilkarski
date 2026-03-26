@@ -18,6 +18,7 @@ import { gamificationRouter } from "./routers/gamification";
 import { pushRouter } from "./routers/push";
 import { recruitmentRouter } from "./routers/recruitment";
 import { clubPostRouter } from "./routers/club-post";
+import { coachRouter } from "./routers/coach";
 
 export const appRouter = router({
   health: healthRouter,
@@ -39,6 +40,7 @@ export const appRouter = router({
   push: pushRouter,
   recruitment: recruitmentRouter,
   clubPost: clubPostRouter,
+  coach: coachRouter,
 });
 
 export type AppRouter = typeof appRouter;

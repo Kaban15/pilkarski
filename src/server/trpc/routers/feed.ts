@@ -13,11 +13,12 @@ export const feedRouter = router({
       const userId = ctx.session.user.id;
 
       // Determine user's region
-      const [club, player] = await Promise.all([
+      const [club, player, coach] = await Promise.all([
         ctx.db.club.findUnique({ where: { userId }, select: { regionId: true } }),
         ctx.db.player.findUnique({ where: { userId }, select: { regionId: true } }),
+        ctx.db.coach.findUnique({ where: { userId }, select: { regionId: true } }),
       ]);
-      const regionId = club?.regionId ?? player?.regionId ?? null;
+      const regionId = club?.regionId ?? player?.regionId ?? coach?.regionId ?? null;
 
       const now = new Date();
 
@@ -127,24 +128,39 @@ export const feedRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      if (ctx.session.user.role !== "PLAYER") return { items: [], matched: false };
+      if (ctx.session.user.role === "CLUB") return { items: [], matched: false };
 
-      const player = await ctx.db.player.findUnique({
-        where: { userId },
-        select: { regionId: true, primaryPosition: true },
-      });
-      if (!player) return { items: [], matched: false };
+      // PLAYER uses player profile region, COACH uses coach profile region
+      let regionId: number | null = null;
+      let playerPosition: string | null = null;
+
+      if (ctx.session.user.role === "PLAYER") {
+        const player = await ctx.db.player.findUnique({
+          where: { userId },
+          select: { regionId: true, primaryPosition: true },
+        });
+        if (!player) return { items: [], matched: false };
+        regionId = player.regionId;
+        playerPosition = player.primaryPosition;
+      } else if (ctx.session.user.role === "COACH") {
+        const coach = await ctx.db.coach.findUnique({
+          where: { userId },
+          select: { regionId: true },
+        });
+        if (!coach) return { items: [], matched: false };
+        regionId = coach.regionId;
+      }
 
       const now = new Date();
 
-      const where: any = {
+      const where: Record<string, unknown> = {
         type: { in: ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"] as const },
         eventDate: { gte: now },
       };
 
-      // Filter by player's region if available
-      if (player.regionId) {
-        where.regionId = player.regionId;
+      // Filter by region if available
+      if (regionId) {
+        where.regionId = regionId;
       }
 
       const items = await ctx.db.event.findMany({
@@ -159,8 +175,8 @@ export const feedRouter = router({
 
       return {
         items,
-        matched: !!player.regionId,
-        playerPosition: player.primaryPosition,
+        matched: !!regionId,
+        playerPosition,
       };
     }),
 

@@ -3,26 +3,44 @@ import { redirect } from "next/navigation";
 import { db } from "@/server/db/client";
 import { ClubProfileForm } from "@/components/forms/club-profile-form";
 import { PlayerProfileForm } from "@/components/forms/player-profile-form";
+import { CoachProfileForm } from "@/components/forms/coach-profile-form";
 
 export default async function ProfilePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const user = session.user as { id: string; role: "CLUB" | "PLAYER" };
+  const user = session.user as { id: string; role: "CLUB" | "PLAYER" | "COACH" };
+
+  const regions = db.region.findMany({ orderBy: { name: "asc" } });
 
   if (user.role === "CLUB") {
-    const club = await db.club.findUnique({
-      where: { userId: user.id },
-      include: { region: true, leagueGroup: { include: { leagueLevel: true } } },
-    });
-    const regions = await db.region.findMany({ orderBy: { name: "asc" } });
-    return <ClubProfileForm club={club!} regions={regions} />;
+    const [club, resolvedRegions] = await Promise.all([
+      db.club.findUnique({
+        where: { userId: user.id },
+        include: { region: true, leagueGroup: { include: { leagueLevel: true } } },
+      }),
+      regions,
+    ]);
+    return <ClubProfileForm club={club!} regions={resolvedRegions} />;
   }
 
-  const player = await db.player.findUnique({
-    where: { userId: user.id },
-    include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
-  });
-  const regions = await db.region.findMany({ orderBy: { name: "asc" } });
-  return <PlayerProfileForm player={player!} regions={regions} />;
+  if (user.role === "COACH") {
+    const [coach, resolvedRegions] = await Promise.all([
+      db.coach.findUnique({
+        where: { userId: user.id },
+        include: { region: true },
+      }),
+      regions,
+    ]);
+    return <CoachProfileForm coach={coach!} regions={resolvedRegions} />;
+  }
+
+  const [player, resolvedRegions] = await Promise.all([
+    db.player.findUnique({
+      where: { userId: user.id },
+      include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
+    }),
+    regions,
+  ]);
+  return <PlayerProfileForm player={player!} regions={resolvedRegions} />;
 }

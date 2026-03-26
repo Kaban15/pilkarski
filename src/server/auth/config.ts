@@ -27,7 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const user = await db.user.findUnique({
           where: { email },
-          include: { club: true, player: true },
+          include: { club: true, player: true, coach: true },
         });
 
         if (!user) return null;
@@ -42,7 +42,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name:
             user.role === "CLUB"
               ? user.club?.name
-              : `${user.player?.firstName} ${user.player?.lastName}`,
+              : user.role === "COACH"
+                ? `${user.coach?.firstName} ${user.coach?.lastName}`
+                : `${user.player?.firstName} ${user.player?.lastName}`,
         };
       },
     }),

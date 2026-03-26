@@ -174,13 +174,40 @@ export const CLUB_POST_CATEGORY_COLORS: Record<string, string> = {
   MATCH_RESULT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
 };
 
+// Coach
+export const COACH_SPECIALIZATION_LABELS: Record<string, string> = {
+  YOUTH: "Trener młodzieży",
+  GOALKEEPER: "Trener bramkarzy",
+  FITNESS: "Trener przygotowania fizycznego",
+  TACTICAL: "Trener taktyki",
+  INDIVIDUAL: "Trener indywidualny",
+  GENERAL: "Trener ogólny",
+};
+
+export const COACH_LEVEL_LABELS: Record<string, string> = {
+  UEFA_PRO: "UEFA Pro",
+  UEFA_A: "UEFA A",
+  UEFA_B: "UEFA B",
+  UEFA_C: "UEFA C",
+  UEFA_D: "UEFA D / Grassroots",
+  OTHER: "Inne",
+};
+
+export const ROLE_LABELS: Record<string, string> = {
+  CLUB: "Klub",
+  PLAYER: "Zawodnik",
+  COACH: "Trener",
+};
+
 export function getUserDisplayName(user: {
   email?: string;
   club?: { name: string } | null;
   player?: { firstName: string; lastName: string } | null;
+  coach?: { firstName: string; lastName: string } | null;
 } | null): string {
   if (!user) return "Nieznany użytkownik";
   if (user.club) return user.club.name;
   if (user.player) return `${user.player.firstName} ${user.player.lastName}`;
+  if (user.coach) return `${user.coach.firstName} ${user.coach.lastName}`;
   return user.email ?? "Nieznany użytkownik";
 }
