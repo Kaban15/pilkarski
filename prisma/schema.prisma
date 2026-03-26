@@ -524,16 +524,32 @@ model RecruitmentPipeline {
   clubId     String           @map("club_id") @db.Uuid
   transferId String           @map("transfer_id") @db.Uuid
   stage      RecruitmentStage @default(WATCHING)
+  position   Int              @default(0)
   notes      String?
   createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt  DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  club     Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  transfer Transfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  club     Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  transfer Transfer           @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  events   RecruitmentEvent[]
 
   @@unique([clubId, transferId])
   @@index([clubId, stage])
   @@map("recruitment_pipeline")
+}
+
+model RecruitmentEvent {
+  id         String           @id @default(uuid()) @db.Uuid
+  pipelineId String           @map("pipeline_id") @db.Uuid
+  fromStage  RecruitmentStage? @map("from_stage")
+  toStage    RecruitmentStage @map("to_stage")
+  note       String?
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  pipeline RecruitmentPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineId])
+  @@map("recruitment_events")
 }
 
 // ============================================================

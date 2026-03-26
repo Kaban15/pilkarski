@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Target, Eye, FileText, UserCheck, CheckCircle2 } from "lucide-react";
+import { Target, Eye, FileText, UserCheck, CheckCircle2, Timer } from "lucide-react";
 
 const STAGE_CONFIG = [
   { key: "watching", label: "Na radarze", icon: Eye, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -15,6 +15,9 @@ const STAGE_CONFIG = [
 export function RecruitmentStats() {
   const { data: stats } = api.recruitment.stats.useQuery(undefined, {
     staleTime: 60_000,
+  });
+  const { data: avgTime } = api.recruitment.avgTimeToSign.useQuery(undefined, {
+    staleTime: 300_000,
   });
 
   if (!stats || stats.total === 0) return null;
@@ -50,6 +53,17 @@ export function RecruitmentStats() {
               </Link>
             );
           })}
+          {avgTime && (
+            <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/10">
+                <Timer className="h-3.5 w-3.5 text-emerald-500" />
+              </div>
+              <div>
+                <span className="text-lg font-bold tabular-nums">{avgTime.avgDays}d</span>
+                <p className="text-[10px] text-muted-foreground">Śr. do podpisania</p>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

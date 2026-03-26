@@ -47,6 +47,11 @@ export const recruitmentRouter = router({
 
       awardPoints(ctx.db, ctx.session.user.id, "player_added_to_radar", entry.id).catch(() => {});
 
+      // Log initial timeline event
+      ctx.db.recruitmentEvent.create({
+        data: { pipelineId: entry.id, toStage: "WATCHING", note: "Dodano na radar" },
+      }).catch(() => {});
+
       return entry;
     }),
 
@@ -71,10 +76,67 @@ export const recruitmentRouter = router({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      return ctx.db.recruitmentPipeline.update({
+      const oldStage = entry.stage;
+
+      const updated = await ctx.db.recruitmentPipeline.update({
         where: { id: input.id },
         data: { stage: input.stage, notes: input.notes },
       });
+
+      // Log stage change event
+      if (oldStage !== input.stage) {
+        ctx.db.recruitmentEvent.create({
+          data: {
+            pipelineId: input.id,
+            fromStage: oldStage,
+            toStage: input.stage,
+            note: input.notes,
+          },
+        }).catch(() => {});
+      }
+
+      return updated;
+    }),
+
+  updateStageAndOrder: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        stage: stageEnum,
+        position: z.number().int().min(0),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const entry = await ctx.db.recruitmentPipeline.findUnique({
+        where: { id: input.id },
+      });
+      if (!entry || entry.clubId !== club.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const oldStage = entry.stage;
+
+      const updated = await ctx.db.recruitmentPipeline.update({
+        where: { id: input.id },
+        data: { stage: input.stage, position: input.position },
+      });
+
+      if (oldStage !== input.stage) {
+        ctx.db.recruitmentEvent.create({
+          data: {
+            pipelineId: input.id,
+            fromStage: oldStage,
+            toStage: input.stage,
+          },
+        }).catch(() => {});
+      }
+
+      return updated;
     }),
 
   remove: protectedProcedure
@@ -135,8 +197,12 @@ export const recruitmentRouter = router({
               region: { select: { name: true } },
             },
           },
+          events: {
+            orderBy: { createdAt: "desc" },
+            take: 3,
+          },
         },
-        orderBy: { updatedAt: "desc" },
+        orderBy: [{ position: "asc" }, { updatedAt: "desc" }],
       });
     }),
 
@@ -232,5 +298,36 @@ export const recruitmentRouter = router({
     });
 
     return { csv: [header, ...rows].join("\n") };
+  }),
+
+  avgTimeToSign: protectedProcedure.query(async ({ ctx }) => {
+    const club = await ctx.db.club.findUnique({
+      where: { userId: ctx.session.user.id },
+    });
+    if (!club) return null;
+
+    // Find all signed pipeline entries with their events
+    const signedEntries = await ctx.db.recruitmentPipeline.findMany({
+      where: { clubId: club.id, stage: "SIGNED" },
+      select: { createdAt: true, events: { where: { toStage: "SIGNED" }, select: { createdAt: true }, take: 1 } },
+    });
+
+    if (signedEntries.length === 0) return null;
+
+    let totalDays = 0;
+    let count = 0;
+
+    for (const entry of signedEntries) {
+      const signedEvent = entry.events[0];
+      const signedAt = signedEvent?.createdAt ?? entry.createdAt;
+      const watchingSince = entry.createdAt;
+      const days = Math.round((signedAt.getTime() - watchingSince.getTime()) / (1000 * 60 * 60 * 24));
+      if (days >= 0) {
+        totalDays += days;
+        count++;
+      }
+    }
+
+    return count > 0 ? { avgDays: Math.round(totalDays / count), count } : null;
   }),
 });
