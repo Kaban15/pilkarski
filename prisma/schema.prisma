@@ -111,6 +111,8 @@ model Club {
   leagueGroup          LeagueGroup?          @relation(fields: [leagueGroupId], references: [id])
   sparingOffers        SparingOffer[]
   sparingApplications  SparingApplication[]
+  invitationsSent      SparingInvitation[]   @relation("InvitationsSent")
+  invitationsReceived  SparingInvitation[]   @relation("InvitationsReceived")
   events               Event[]
   reviewsGiven         Review[]              @relation("ReviewsGiven")
   reviewsReceived      Review[]              @relation("ReviewsReceived")
@@ -259,6 +261,7 @@ model SparingOffer {
   club         Club                 @relation(fields: [clubId], references: [id], onDelete: Cascade)
   region       Region?              @relation(fields: [regionId], references: [id])
   applications SparingApplication[]
+  invitations  SparingInvitation[]
   favorites    Favorite[]
   reviews      Review[]
 
@@ -282,6 +285,33 @@ model SparingApplication {
 
   @@unique([sparingOfferId, applicantClubId])
   @@map("sparing_applications")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model SparingInvitation {
+  id              String           @id @default(uuid()) @db.Uuid
+  sparingOfferId  String           @map("sparing_offer_id") @db.Uuid
+  fromClubId      String           @map("from_club_id") @db.Uuid
+  toClubId        String           @map("to_club_id") @db.Uuid
+  message         String?
+  status          InvitationStatus @default(PENDING)
+  expiresAt       DateTime?        @map("expires_at") @db.Timestamptz
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  sparingOffer SparingOffer @relation(fields: [sparingOfferId], references: [id], onDelete: Cascade)
+  fromClub     Club         @relation("InvitationsSent", fields: [fromClubId], references: [id], onDelete: Cascade)
+  toClub       Club         @relation("InvitationsReceived", fields: [toClubId], references: [id], onDelete: Cascade)
+
+  @@unique([sparingOfferId, toClubId])
+  @@index([toClubId, status])
+  @@map("sparing_invitations")
 }
 
 // ============================================================
@@ -361,6 +391,7 @@ enum NotificationType {
   RECRUITMENT_NEW        // obserwowany klub otworzył nabór/testy/camp
   RECRUITMENT_MATCH      // nabór w Twoim regionie na Twoją pozycję
   REMINDER               // przypomnienie o aktywności
+  SPARING_INVITATION     // zaproszenie na sparing od innego klubu
 }
 
 model Notification {

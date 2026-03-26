@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Swords } from "lucide-react";
+import { InviteClubDialog, ReceivedInvitations, SentInvitations } from "@/components/sparings/invite-club-dialog";
 
 type SparingApplication = {
   id: string;
@@ -165,6 +166,17 @@ export default function SparingDetailPage() {
           reviewSectionRef.current?.scrollIntoView({ behavior: "smooth" })
         }
       />
+
+      {/* Invitations */}
+      {isOwner && sparing.status === "OPEN" && (
+        <div className="space-y-4">
+          <InviteClubDialog sparingOfferId={id} />
+          <SentInvitations sparingOfferId={id} />
+        </div>
+      )}
+      {isClub && !isOwner && (
+        <ReceivedInvitations sparingOfferId={id} />
+      )}
 
       <ApplyForm
         sparingId={id}

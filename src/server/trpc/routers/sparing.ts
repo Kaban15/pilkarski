@@ -383,4 +383,234 @@ export const sparingRouter = router({
       orderBy: { createdAt: "desc" },
     });
   }),
+
+  // ===== INVITATIONS =====
+
+  invite: rateLimitedProcedure({ maxAttempts: 10 })
+    .input(
+      z.object({
+        sparingOfferId: z.string().uuid(),
+        toClubId: z.string().uuid(),
+        message: z.string().max(500).optional(),
+        expiresInHours: z.number().int().min(1).max(168).default(48),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const sparing = await ctx.db.sparingOffer.findUnique({
+        where: { id: input.sparingOfferId },
+      });
+      if (!sparing || sparing.clubId !== club.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Możesz zapraszać tylko do swoich sparingów" });
+      }
+      if (sparing.status !== "OPEN") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest otwarty" });
+      }
+      if (input.toClubId === club.id) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Nie możesz zaprosić własnego klubu" });
+      }
+
+      const toClub = await ctx.db.club.findUnique({
+        where: { id: input.toClubId },
+        select: { id: true, userId: true, name: true },
+      });
+      if (!toClub) throw new TRPCError({ code: "NOT_FOUND", message: "Klub nie znaleziony" });
+
+      const expiresAt = new Date(Date.now() + input.expiresInHours * 60 * 60 * 1000);
+
+      const invitation = await ctx.db.sparingInvitation.upsert({
+        where: {
+          sparingOfferId_toClubId: {
+            sparingOfferId: input.sparingOfferId,
+            toClubId: input.toClubId,
+          },
+        },
+        create: {
+          sparingOfferId: input.sparingOfferId,
+          fromClubId: club.id,
+          toClubId: input.toClubId,
+          message: input.message,
+          expiresAt,
+        },
+        update: {
+          message: input.message,
+          status: "PENDING",
+          expiresAt,
+        },
+      });
+
+      // Notify invited club
+      ctx.db.notification.create({
+        data: {
+          userId: toClub.userId,
+          type: "SPARING_INVITATION",
+          title: "Zaproszenie na sparing",
+          message: `${club.name} zaprasza Cię na sparing: "${sparing.title}"`,
+          link: `/sparings/${sparing.id}`,
+        },
+      }).catch(() => {});
+
+      sendPushToUser(toClub.userId, {
+        title: "Zaproszenie na sparing",
+        body: `${club.name} zaprasza na: ${sparing.title}`,
+        url: `/sparings/${sparing.id}`,
+      }).catch(() => {});
+
+      return invitation;
+    }),
+
+  respondToInvitation: protectedProcedure
+    .input(
+      z.object({
+        invitationId: z.string().uuid(),
+        accept: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const invitation = await ctx.db.sparingInvitation.findUnique({
+        where: { id: input.invitationId },
+        include: {
+          sparingOffer: true,
+          fromClub: { select: { userId: true, name: true } },
+        },
+      });
+      if (!invitation || invitation.toClubId !== club.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      if (invitation.status !== "PENDING") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Zaproszenie już obsłużone" });
+      }
+      if (invitation.expiresAt && new Date(invitation.expiresAt) < new Date()) {
+        await ctx.db.sparingInvitation.update({
+          where: { id: input.invitationId },
+          data: { status: "EXPIRED" },
+        });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Zaproszenie wygasło" });
+      }
+
+      if (input.accept) {
+        // Check sparing still open
+        if (invitation.sparingOffer.status !== "OPEN") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest już otwarty" });
+        }
+
+        // Accept invitation → match sparing
+        await ctx.db.$transaction([
+          ctx.db.sparingInvitation.update({
+            where: { id: input.invitationId },
+            data: { status: "ACCEPTED" },
+          }),
+          ctx.db.sparingOffer.update({
+            where: { id: invitation.sparingOfferId },
+            data: { status: "MATCHED" },
+          }),
+          // Auto-create accepted application for the invited club
+          ctx.db.sparingApplication.upsert({
+            where: {
+              sparingOfferId_applicantClubId: {
+                sparingOfferId: invitation.sparingOfferId,
+                applicantClubId: club.id,
+              },
+            },
+            create: {
+              sparingOfferId: invitation.sparingOfferId,
+              applicantClubId: club.id,
+              message: invitation.message ?? "Zaakceptowane zaproszenie",
+              status: "ACCEPTED",
+            },
+            update: { status: "ACCEPTED" },
+          }),
+          // Reject other pending applications
+          ctx.db.sparingApplication.updateMany({
+            where: {
+              sparingOfferId: invitation.sparingOfferId,
+              applicantClubId: { not: club.id },
+              status: { in: ["PENDING", "COUNTER_PROPOSED"] },
+            },
+            data: { status: "REJECTED" },
+          }),
+          // Reject other pending invitations
+          ctx.db.sparingInvitation.updateMany({
+            where: {
+              sparingOfferId: invitation.sparingOfferId,
+              id: { not: input.invitationId },
+              status: "PENDING",
+            },
+            data: { status: "REJECTED" },
+          }),
+        ]);
+
+        // Notify sparing owner
+        ctx.db.notification.create({
+          data: {
+            userId: invitation.fromClub.userId,
+            type: "SPARING_ACCEPTED",
+            title: "Zaproszenie zaakceptowane!",
+            message: `${club.name} zaakceptował zaproszenie na sparing "${invitation.sparingOffer.title}"`,
+            link: `/sparings/${invitation.sparingOfferId}`,
+          },
+        }).catch(() => {});
+
+        awardPoints(ctx.db, invitation.fromClub.userId, "sparing_matched", invitation.sparingOfferId).catch(() => {});
+
+        return { accepted: true };
+      }
+
+      // Reject
+      await ctx.db.sparingInvitation.update({
+        where: { id: input.invitationId },
+        data: { status: "REJECTED" },
+      });
+
+      ctx.db.notification.create({
+        data: {
+          userId: invitation.fromClub.userId,
+          type: "SPARING_REJECTED",
+          title: "Zaproszenie odrzucone",
+          message: `${club.name} odrzucił zaproszenie na sparing "${invitation.sparingOffer.title}"`,
+          link: `/sparings/${invitation.sparingOfferId}`,
+        },
+      }).catch(() => {});
+
+      return { accepted: false };
+    }),
+
+  myInvitations: protectedProcedure.query(async ({ ctx }) => {
+    const club = await ctx.db.club.findUnique({
+      where: { userId: ctx.session.user.id },
+    });
+    if (!club) return { sent: [], received: [] };
+
+    const [sent, received] = await Promise.all([
+      ctx.db.sparingInvitation.findMany({
+        where: { fromClubId: club.id },
+        include: {
+          sparingOffer: { select: { id: true, title: true, matchDate: true } },
+          toClub: { select: { id: true, name: true, logoUrl: true, city: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+      ctx.db.sparingInvitation.findMany({
+        where: { toClubId: club.id, status: "PENDING" },
+        include: {
+          sparingOffer: { select: { id: true, title: true, matchDate: true, location: true } },
+          fromClub: { select: { id: true, name: true, logoUrl: true, city: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+    ]);
+
+    return { sent, received };
+  }),
 });

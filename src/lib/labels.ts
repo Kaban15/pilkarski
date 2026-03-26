@@ -104,6 +104,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   RECRUITMENT_NEW: "Nowy nabór",
   RECRUITMENT_MATCH: "Nabór na Twoją pozycję",
   REMINDER: "Przypomnienie",
+  SPARING_INVITATION: "Zaproszenie na sparing",
 };
 
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
@@ -118,6 +119,7 @@ export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   RECRUITMENT_NEW: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
   RECRUITMENT_MATCH: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
   REMINDER: "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300",
+  SPARING_INVITATION: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
 };
 
 export const TRANSFER_TYPE_LABELS: Record<string, string> = {
