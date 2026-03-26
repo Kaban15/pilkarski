@@ -19,6 +19,8 @@ import { pushRouter } from "./routers/push";
 import { recruitmentRouter } from "./routers/recruitment";
 import { clubPostRouter } from "./routers/club-post";
 import { coachRouter } from "./routers/coach";
+import { clubMembershipRouter } from "./routers/club-membership";
+import { teamLineupRouter } from "./routers/team-lineup";
 
 export const appRouter = router({
   health: healthRouter,
@@ -41,6 +43,8 @@ export const appRouter = router({
   recruitment: recruitmentRouter,
   clubPost: clubPostRouter,
   coach: coachRouter,
+  clubMembership: clubMembershipRouter,
+  teamLineup: teamLineupRouter,
 });
 
 export type AppRouter = typeof appRouter;

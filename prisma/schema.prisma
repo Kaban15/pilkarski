@@ -83,6 +83,7 @@ model User {
   badges                   UserBadge[]
   pushSubscriptions        PushSubscription[]
   followedClubs            ClubFollower[]
+  clubMemberships          ClubMembership[]
 
   @@map("users")
 }
@@ -119,6 +120,8 @@ model Club {
   followers            ClubFollower[]
   recruitmentPipeline  RecruitmentPipeline[]
   posts                ClubPost[]
+  memberships          ClubMembership[]
+  lineups              TeamLineup[]
 
   @@map("clubs")
 }
@@ -392,6 +395,8 @@ enum NotificationType {
   RECRUITMENT_MATCH      // nabór w Twoim regionie na Twoją pozycję
   REMINDER               // przypomnienie o aktywności
   SPARING_INVITATION     // zaproszenie na sparing od innego klubu
+  MEMBERSHIP_REQUEST     // prośba o dołączenie do klubu
+  MEMBERSHIP_ACCEPTED    // akceptacja prośby o dołączenie
 }
 
 model Notification {
@@ -643,6 +648,7 @@ enum ClubPostCategory {
   LOOKING_FOR_COACH        // Szukamy trenera
   GENERAL_NEWS             // Aktualność ogólna
   MATCH_RESULT             // Wynik meczu
+  INTERNAL                 // Wewnętrzne (tylko członkowie klubu)
 }
 
 model ClubPost {
@@ -661,6 +667,83 @@ model ClubPost {
   @@index([clubId, createdAt])
   @@index([category])
   @@map("club_posts")
+}
+
+// ============================================================
+// CZŁONKOSTWO W KLUBIE
+// ============================================================
+
+enum MemberType {
+  PLAYER
+  COACH
+}
+
+enum MembershipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  LEFT
+  REMOVED
+}
+
+model ClubMembership {
+  id           String           @id @default(uuid()) @db.Uuid
+  clubId       String           @map("club_id") @db.Uuid
+  memberUserId String           @map("member_user_id") @db.Uuid
+  memberType   MemberType       @map("member_type")
+  status       MembershipStatus @default(PENDING)
+  message      String?
+  acceptedAt   DateTime?        @map("accepted_at") @db.Timestamptz
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  club       Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  memberUser User @relation(fields: [memberUserId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, memberUserId])
+  @@index([clubId, status])
+  @@index([memberUserId, status])
+  @@map("club_memberships")
+}
+
+// ============================================================
+// SKŁADY MECZOWE
+// ============================================================
+
+enum LineupRole {
+  STARTER
+  BENCH
+}
+
+model TeamLineup {
+  id       String   @id @default(uuid()) @db.Uuid
+  clubId   String   @map("club_id") @db.Uuid
+  title    String   @db.VarChar(300)
+  matchInfo String? @map("match_info") @db.VarChar(500)
+  date     DateTime @db.Timestamptz
+  notes    String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  club    Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  players TeamLineupPlayer[]
+
+  @@index([clubId, date])
+  @@map("team_lineups")
+}
+
+model TeamLineupPlayer {
+  id           String     @id @default(uuid()) @db.Uuid
+  lineupId     String     @map("lineup_id") @db.Uuid
+  memberUserId String     @map("member_user_id") @db.Uuid
+  role         LineupRole @default(STARTER)
+  position     String?    @db.VarChar(10)
+  notes        String?
+
+  lineup     TeamLineup @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+
+  @@unique([lineupId, memberUserId])
+  @@map("team_lineup_players")
 }
 
 // ============================================================

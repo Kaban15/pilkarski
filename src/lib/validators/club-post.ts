@@ -6,6 +6,7 @@ export const CLUB_POST_CATEGORIES = [
   "LOOKING_FOR_COACH",
   "GENERAL_NEWS",
   "MATCH_RESULT",
+  "INTERNAL",
 ] as const;
 
 export const createClubPostSchema = z.object({

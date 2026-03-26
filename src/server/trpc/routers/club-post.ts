@@ -84,7 +84,7 @@ export const clubPostRouter = router({
   list: publicProcedure
     .input(
       z.object({
-        category: z.enum(["LOOKING_FOR_GOALKEEPER", "LOOKING_FOR_SPARRING", "LOOKING_FOR_COACH", "GENERAL_NEWS", "MATCH_RESULT"]).optional(),
+        category: z.enum(["LOOKING_FOR_GOALKEEPER", "LOOKING_FOR_SPARRING", "LOOKING_FOR_COACH", "GENERAL_NEWS", "MATCH_RESULT", "INTERNAL"]).optional(),
         clubId: z.string().uuid().optional(),
         cursor: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(50).default(20),
@@ -92,7 +92,12 @@ export const clubPostRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = {};
-      if (input.category) where.category = input.category;
+      if (input.category) {
+        where.category = input.category;
+      } else {
+        // Exclude INTERNAL posts from public listing unless explicitly requested
+        where.category = { not: "INTERNAL" };
+      }
       if (input.clubId) where.clubId = input.clubId;
 
       // Exclude expired posts

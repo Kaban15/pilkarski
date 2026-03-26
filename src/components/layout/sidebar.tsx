@@ -22,6 +22,7 @@ import {
   Target,
   Megaphone,
   GraduationCap,
+  Users,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -49,6 +50,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/sparings", icon: Swords, label: "Sparingi", roles: ["CLUB"] },
       { href: "/events", icon: Trophy, label: "Wydarzenia" },
       { href: "/recruitment", icon: Target, label: "Rekrutacja" },
+      { href: "/squad", icon: Users, label: "Kadra", roles: ["CLUB"] },
       { href: "/trainings", icon: GraduationCap, label: "Treningi" },
       { href: "/calendar", icon: CalendarDays, label: "Kalendarz" },
     ],

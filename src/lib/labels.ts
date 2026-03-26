@@ -105,6 +105,8 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   RECRUITMENT_MATCH: "Nabór na Twoją pozycję",
   REMINDER: "Przypomnienie",
   SPARING_INVITATION: "Zaproszenie na sparing",
+  MEMBERSHIP_REQUEST: "Prośba o dołączenie",
+  MEMBERSHIP_ACCEPTED: "Dołączenie do klubu",
 };
 
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
@@ -120,6 +122,8 @@ export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   RECRUITMENT_MATCH: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
   REMINDER: "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300",
   SPARING_INVITATION: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
+  MEMBERSHIP_REQUEST: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
+  MEMBERSHIP_ACCEPTED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
 };
 
 export const TRANSFER_TYPE_LABELS: Record<string, string> = {
@@ -168,6 +172,7 @@ export const CLUB_POST_CATEGORY_LABELS: Record<string, string> = {
   LOOKING_FOR_COACH: "Szukamy trenera",
   GENERAL_NEWS: "Aktualność",
   MATCH_RESULT: "Wynik meczu",
+  INTERNAL: "Wewnętrzne",
 };
 
 export const CLUB_POST_CATEGORY_COLORS: Record<string, string> = {
@@ -176,6 +181,7 @@ export const CLUB_POST_CATEGORY_COLORS: Record<string, string> = {
   LOOKING_FOR_COACH: "bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300",
   GENERAL_NEWS: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
   MATCH_RESULT: "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300",
+  INTERNAL: "bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300",
 };
 
 // Coach
