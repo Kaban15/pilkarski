@@ -498,23 +498,26 @@ export const sparingRouter = router({
       }
 
       if (input.accept) {
-        // Check sparing still open
-        if (invitation.sparingOffer.status !== "OPEN") {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest już otwarty" });
-        }
+        // Accept invitation → match sparing (interactive transaction to prevent race)
+        await ctx.db.$transaction(async (tx) => {
+          // Re-check sparing status inside transaction
+          const offer = await tx.sparingOffer.findUnique({
+            where: { id: invitation.sparingOfferId },
+            select: { status: true },
+          });
+          if (!offer || offer.status !== "OPEN") {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest już otwarty" });
+          }
 
-        // Accept invitation → match sparing
-        await ctx.db.$transaction([
-          ctx.db.sparingInvitation.update({
+          await tx.sparingInvitation.update({
             where: { id: input.invitationId },
             data: { status: "ACCEPTED" },
-          }),
-          ctx.db.sparingOffer.update({
+          });
+          await tx.sparingOffer.update({
             where: { id: invitation.sparingOfferId },
             data: { status: "MATCHED" },
-          }),
-          // Auto-create accepted application for the invited club
-          ctx.db.sparingApplication.upsert({
+          });
+          await tx.sparingApplication.upsert({
             where: {
               sparingOfferId_applicantClubId: {
                 sparingOfferId: invitation.sparingOfferId,
@@ -528,26 +531,24 @@ export const sparingRouter = router({
               status: "ACCEPTED",
             },
             update: { status: "ACCEPTED" },
-          }),
-          // Reject other pending applications
-          ctx.db.sparingApplication.updateMany({
+          });
+          await tx.sparingApplication.updateMany({
             where: {
               sparingOfferId: invitation.sparingOfferId,
               applicantClubId: { not: club.id },
               status: { in: ["PENDING", "COUNTER_PROPOSED"] },
             },
             data: { status: "REJECTED" },
-          }),
-          // Reject other pending invitations
-          ctx.db.sparingInvitation.updateMany({
+          });
+          await tx.sparingInvitation.updateMany({
             where: {
               sparingOfferId: invitation.sparingOfferId,
               id: { not: input.invitationId },
               status: "PENDING",
             },
             data: { status: "REJECTED" },
-          }),
-        ]);
+          });
+        });
 
         // Notify sparing owner
         ctx.db.notification.create({

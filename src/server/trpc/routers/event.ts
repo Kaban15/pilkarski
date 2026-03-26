@@ -128,14 +128,20 @@ export const eventRouter = router({
   update: protectedProcedure
     .input(updateEventSchema)
     .mutation(async ({ ctx, input }) => {
-      const club = await ctx.db.club.findUnique({
-        where: { userId: ctx.session.user.id },
-      });
-      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
-
       const event = await ctx.db.event.findUnique({ where: { id: input.id } });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
-      if (event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+
+      // Check ownership: club owner or coach creator
+      const userId = ctx.session.user.id;
+      if (event.clubId) {
+        const club = await ctx.db.club.findUnique({ where: { userId } });
+        if (!club || event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+      } else if (event.coachId) {
+        const coach = await ctx.db.coach.findUnique({ where: { userId } });
+        if (!coach || event.coachId !== coach.id) throw new TRPCError({ code: "FORBIDDEN" });
+      } else {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
 
       return ctx.db.event.update({
         where: { id: input.id },
@@ -161,14 +167,19 @@ export const eventRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const club = await ctx.db.club.findUnique({
-        where: { userId: ctx.session.user.id },
-      });
-      if (!club) throw new TRPCError({ code: "FORBIDDEN" });
-
       const event = await ctx.db.event.findUnique({ where: { id: input.id } });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
-      if (event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const userId = ctx.session.user.id;
+      if (event.clubId) {
+        const club = await ctx.db.club.findUnique({ where: { userId } });
+        if (!club || event.clubId !== club.id) throw new TRPCError({ code: "FORBIDDEN" });
+      } else if (event.coachId) {
+        const coach = await ctx.db.coach.findUnique({ where: { userId } });
+        if (!coach || event.coachId !== coach.id) throw new TRPCError({ code: "FORBIDDEN" });
+      } else {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
 
       return ctx.db.event.delete({ where: { id: input.id } });
     }),
@@ -253,7 +264,11 @@ export const eventRouter = router({
 
       // Filter applications: owner sees all, applicant sees only own, others see none
       const userId = ctx.session?.user?.id;
-      const isOwner = userId === event.club?.userId;
+      const isClubOwner = userId && event.club?.userId === userId;
+      const isCoachOwner = userId && event.coachId
+        ? await ctx.db.coach.findUnique({ where: { userId }, select: { id: true } }).then((c) => c?.id === event.coachId)
+        : false;
+      const isOwner = isClubOwner || isCoachOwner;
       if (!isOwner) {
         event.applications = event.applications.filter(
           (a) => a.player.userId === userId

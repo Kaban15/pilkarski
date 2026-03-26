@@ -23,8 +23,6 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
     { enabled: isPlayerOrCoach }
   );
 
-  const utils = api.useUtils();
-
   const joinMut = api.clubMembership.requestJoin.useMutation({
     onSuccess: () => {
       toast.success("Prośba o dołączenie wysłana!");

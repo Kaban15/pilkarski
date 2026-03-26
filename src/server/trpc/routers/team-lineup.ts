@@ -23,6 +23,18 @@ export const teamLineupRouter = router({
       });
       if (!club) throw new TRPCError({ code: "FORBIDDEN" });
 
+      // Validate all players are accepted members of this club
+      if (input.players.length > 0) {
+        const memberIds = input.players.map((p) => p.memberUserId);
+        const validMembers = await ctx.db.clubMembership.findMany({
+          where: { clubId: club.id, memberUserId: { in: memberIds }, status: "ACCEPTED" },
+          select: { memberUserId: true },
+        });
+        if (validMembers.length !== new Set(memberIds).size) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Jeden lub więcej zawodników nie należy do klubu" });
+        }
+      }
+
       return ctx.db.teamLineup.create({
         data: {
           clubId: club.id,
