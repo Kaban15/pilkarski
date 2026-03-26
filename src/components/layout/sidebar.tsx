@@ -91,11 +91,11 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar-background md:flex">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+      <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-xs font-black text-primary-foreground">
           PS
         </div>
-        <span className="text-lg font-bold tracking-tight text-foreground">
+        <span className="text-[15px] font-semibold tracking-tight text-foreground">
           PilkaSport
         </span>
       </div>
@@ -124,7 +124,7 @@ export function Sidebar({ user }: SidebarProps) {
                   }`}
                 >
                   <item.icon
-                    className={`h-[18px] w-[18px] shrink-0 ${
+                    className={`h-4 w-4 shrink-0 ${
                       isActive
                         ? "text-primary"
                         : "text-sidebar-muted-foreground group-hover:text-foreground"

@@ -123,44 +123,42 @@ function FeedCard({ item }: { item: FeedItem }) {
 
   return (
     <Link href={getHref()} className="group block">
-      <Card className="transition-colors hover:border-primary/40">
-        <CardContent className="flex items-center gap-4 p-4">
-          <div className="min-w-0 flex-1">
-            <div className="mb-0.5 flex items-center gap-2">
-              <span
-                className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${config.badge}`}
-              >
-                {item.type === "event"
-                  ? (EVENT_TYPE_LABELS[item.data.type] ?? config.label)
-                  : config.label}
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                {formatDate(item.createdAt)}
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-              {getTitle()}
-            </p>
-            <p className="text-xs text-muted-foreground line-clamp-1">{getSubtitle()}</p>
+      <div className="flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-all hover:border-border hover:bg-card">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${config.badge}`}
+            >
+              {item.type === "event"
+                ? (EVENT_TYPE_LABELS[item.data.type] ?? config.label)
+                : config.label}
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              {formatDate(item.createdAt)}
+            </span>
           </div>
-          {(item.type === "sparing" || item.type === "event") && (
-            <div className="shrink-0 text-right text-xs text-muted-foreground">
-              <div className="flex items-center gap-1 justify-end">
-                <Calendar className="h-3 w-3" />
-                {item.type === "sparing"
-                  ? formatDate(item.data.matchDate)
-                  : formatDate(item.data.eventDate)}
-              </div>
-              {item.data.location && (
-                <div className="mt-0.5 flex items-center gap-1 justify-end">
-                  <MapPin className="h-3 w-3" />
-                  <span className="truncate max-w-[120px]">{item.data.location}</span>
-                </div>
-              )}
+          <p className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+            {getTitle()}
+          </p>
+          <p className="text-[13px] text-muted-foreground line-clamp-1">{getSubtitle()}</p>
+        </div>
+        {(item.type === "sparing" || item.type === "event") && (
+          <div className="shrink-0 text-right text-[12px] text-muted-foreground">
+            <div className="flex items-center gap-1 justify-end">
+              <Calendar className="h-3 w-3 opacity-50" />
+              {item.type === "sparing"
+                ? formatDate(item.data.matchDate)
+                : formatDate(item.data.eventDate)}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            {item.data.location && (
+              <div className="mt-0.5 flex items-center gap-1 justify-end">
+                <MapPin className="h-3 w-3 opacity-50" />
+                <span className="truncate max-w-[120px]">{item.data.location}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </Link>
   );
 }
@@ -192,15 +190,19 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
   const config = stats.role === "CLUB" ? STAT_CONFIG_CLUB : STAT_CONFIG_PLAYER;
 
   return (
-    <div className="mb-8 flex flex-wrap gap-3">
+    <div className="mb-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
       {config.map((c) => {
         const value = (stats as unknown as Record<string, number>)[c.key] ?? 0;
         return (
           <Link key={c.key} href={c.href}>
-            <div className="flex items-center gap-2.5 rounded-lg border border-border px-4 py-2.5 transition-colors hover:border-primary/40">
-              <c.icon className={`h-4 w-4 ${c.color}`} />
-              <span className="text-lg font-bold tabular-nums text-foreground">{value}</span>
-              <span className="text-xs text-muted-foreground">{c.label}</span>
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all hover:border-primary/30 hover:shadow-sm">
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${c.bg}`}>
+                <c.icon className={`h-4 w-4 ${c.color}`} />
+              </div>
+              <div>
+                <p className="text-xl font-bold tabular-nums leading-none text-foreground">{value}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{c.label}</p>
+              </div>
             </div>
           </Link>
         );
@@ -254,28 +256,28 @@ function PlayerDevelopment() {
 
 function ClubQuickActions() {
   return (
-    <div className="mb-8 flex flex-wrap gap-3">
+    <div className="mb-8 flex flex-wrap gap-2">
       <Link href="/sparings/new">
-        <Button variant="outline" className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button size="sm" className="gap-2 rounded-lg">
+          <Plus className="h-3.5 w-3.5" />
           Dodaj sparing
         </Button>
       </Link>
       <Link href="/events/new">
-        <Button variant="outline" className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button size="sm" variant="outline" className="gap-2 rounded-lg">
+          <Plus className="h-3.5 w-3.5" />
           Dodaj wydarzenie
         </Button>
       </Link>
       <Link href="/calendar">
-        <Button variant="ghost" className="gap-2">
-          <Calendar className="h-4 w-4" />
+        <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
+          <Calendar className="h-3.5 w-3.5" />
           Kalendarz
         </Button>
       </Link>
       <Link href="/search">
-        <Button variant="ghost" className="gap-2">
-          <Search className="h-4 w-4" />
+        <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
+          <Search className="h-3.5 w-3.5" />
           Szukaj rywala
         </Button>
       </Link>

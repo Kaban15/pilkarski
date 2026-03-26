@@ -7,13 +7,9 @@ import {
   SPARING_LEVEL_COLORS,
   AGE_CATEGORY_LABELS,
 } from "@/lib/labels";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/components/favorite-button";
-import {
-  Calendar,
-  MapPin,
-} from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 
 export type SparingCardItem = {
   id: string;
@@ -60,80 +56,77 @@ export function SparingCard({
 
   return (
     <Link href={`/sparings/${sparing.id}`} className="group block">
-      <Card className="h-full transition-colors hover:border-primary/40">
-        <CardContent className="p-5">
-          {/* Header: title + favorite */}
-          <div className="mb-1 flex items-start justify-between gap-2">
-            <h3 className="font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-1">
-              {sparing.title}
-            </h3>
-            {showFavorite && (
-              <div className="shrink-0" onClick={(e) => e.preventDefault()}>
-                <FavoriteButton sparingOfferId={sparing.id} initialFavorited={favorited ?? false} />
-              </div>
-            )}
-          </div>
-
-          {/* Club + meta */}
-          <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
+      <div className="h-full rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-sm">
+        {/* Top row: club + favorite */}
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
               {sparing.club.logoUrl ? (
-                <img
-                  src={sparing.club.logoUrl}
-                  alt={sparing.club.name}
-                  className="h-full w-full object-cover"
-                />
+                <img src={sparing.club.logoUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <span className="text-[9px] font-bold text-muted-foreground">
+                <span className="text-[10px] font-bold text-muted-foreground">
                   {sparing.club.name.slice(0, 2).toUpperCase()}
                 </span>
               )}
             </div>
-            <span className="truncate">
-              {sparing.club.name}
-              {sparing.club.city && ` · ${sparing.club.city}`}
-            </span>
-            {sparing.region && (
-              <span className="ml-auto shrink-0 text-xs">{sparing.region.name}</span>
-            )}
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-medium text-muted-foreground">
+                {sparing.club.name}
+              </p>
+            </div>
           </div>
-
-          {/* Badges */}
-          {(sparing.level || sparing.ageCategory) && (
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {sparing.level && (
-                <Badge variant="secondary" className={`text-[11px] ${SPARING_LEVEL_COLORS[sparing.level]}`}>
-                  {SPARING_LEVEL_LABELS[sparing.level]}
-                </Badge>
-              )}
-              {sparing.ageCategory && (
-                <Badge variant="secondary" className="text-[11px]">
-                  {AGE_CATEGORY_LABELS[sparing.ageCategory]}
-                </Badge>
-              )}
+          {showFavorite && (
+            <div className="shrink-0" onClick={(e) => e.preventDefault()}>
+              <FavoriteButton sparingOfferId={sparing.id} initialFavorited={favorited ?? false} />
             </div>
           )}
+        </div>
 
-          {/* Date + location row */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              {formatDate(sparing.matchDate)}
-            </span>
-            {sparing.location && (
-              <span className="flex items-center gap-1.5 truncate">
-                <MapPin className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{sparing.location}</span>
-              </span>
+        {/* Title */}
+        <h3 className="mb-3 text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
+          {sparing.title}
+        </h3>
+
+        {/* Badges */}
+        {(sparing.level || sparing.ageCategory) && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {sparing.level && (
+              <Badge variant="secondary" className={`text-[11px] font-medium ${SPARING_LEVEL_COLORS[sparing.level]}`}>
+                {SPARING_LEVEL_LABELS[sparing.level]}
+              </Badge>
             )}
-            {countdown && (
-              <span className="ml-auto shrink-0 text-emerald-600 dark:text-emerald-400 font-medium">
-                {countdown}
-              </span>
+            {sparing.ageCategory && (
+              <Badge variant="secondary" className="text-[11px] font-medium">
+                {AGE_CATEGORY_LABELS[sparing.ageCategory]}
+              </Badge>
+            )}
+            {sparing.region && (
+              <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground">
+                {sparing.region.name}
+              </Badge>
             )}
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Meta row */}
+        <div className="flex items-center gap-4 text-[13px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 shrink-0 opacity-50" />
+            {formatDate(sparing.matchDate)}
+          </span>
+          {sparing.location && (
+            <span className="flex items-center gap-1.5 truncate">
+              <MapPin className="h-3.5 w-3.5 shrink-0 opacity-50" />
+              <span className="truncate">{sparing.location}</span>
+            </span>
+          )}
+          {countdown && (
+            <span className="ml-auto shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400">
+              {countdown}
+            </span>
+          )}
+        </div>
+      </div>
     </Link>
   );
 }
