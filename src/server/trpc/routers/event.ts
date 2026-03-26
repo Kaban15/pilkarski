@@ -15,14 +15,38 @@ export const eventRouter = router({
   create: rateLimitedProcedure({ maxAttempts: 5 })
     .input(createEventSchema)
     .mutation(async ({ ctx, input }) => {
-      const club = await ctx.db.club.findUnique({
-        where: { userId: ctx.session.user.id },
-      });
-      if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą tworzyć wydarzenia" });
+      const role = ctx.session.user.role;
+      const isCoach = role === "COACH";
+      const trainingTypes = ["INDIVIDUAL_TRAINING", "GROUP_TRAINING"];
+      const isTrainingType = trainingTypes.includes(input.type);
+
+      let clubId: string | null = null;
+      let coachId: string | null = null;
+      let regionId: number | null = input.regionId ?? null;
+
+      if (isCoach) {
+        if (!isTrainingType) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Trenerzy mogą tworzyć tylko treningi" });
+        }
+        const coach = await ctx.db.coach.findUnique({
+          where: { userId: ctx.session.user.id },
+        });
+        if (!coach) throw new TRPCError({ code: "FORBIDDEN" });
+        coachId = coach.id;
+        regionId = regionId ?? coach.regionId;
+      } else {
+        const club = await ctx.db.club.findUnique({
+          where: { userId: ctx.session.user.id },
+        });
+        if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby i trenerzy mogą tworzyć wydarzenia" });
+        clubId = club.id;
+        regionId = regionId ?? club.regionId;
+      }
 
       const event = await ctx.db.event.create({
         data: {
-          clubId: club.id,
+          clubId,
+          coachId,
           type: input.type,
           title: input.title,
           description: input.description,
@@ -31,7 +55,7 @@ export const eventRouter = router({
           lat: input.lat,
           lng: input.lng,
           maxParticipants: input.maxParticipants,
-          regionId: input.regionId ?? club.regionId,
+          regionId,
           targetPosition: input.targetPosition,
           targetAgeMin: input.targetAgeMin,
           targetAgeMax: input.targetAgeMax,
@@ -45,9 +69,18 @@ export const eventRouter = router({
 
       awardPoints(ctx.db, ctx.session.user.id, isRecruitment ? "recruitment_created" : "event_created", event.id).catch(() => {});
 
-      // Notify club followers (fire-and-forget)
+      // Notify club followers (fire-and-forget) — only for club-created events
+      if (!clubId) return event;
+
+      // Fetch club name for notification messages
+      const clubData = await ctx.db.club.findUnique({
+        where: { id: clubId },
+        select: { name: true, regionId: true },
+      });
+      if (!clubData) return event;
+
       ctx.db.clubFollower.findMany({
-        where: { clubId: club.id },
+        where: { clubId },
         select: { userId: true },
       }).then((followers: { userId: string }[]) => {
         if (followers.length === 0) return;
@@ -58,38 +91,35 @@ export const eventRouter = router({
             userId: f.userId,
             type: notifType,
             title: `Nowy ${typeLabel} od obserwowanego klubu`,
-            message: `${club.name} dodał ${typeLabel}: ${input.title}`,
+            message: `${clubData.name} dodał ${typeLabel}: ${input.title}`,
             link: `/events/${event.id}`,
           })),
         }).catch(() => {});
       }).catch(() => {});
 
       // Notify matching players in region (fire-and-forget, recruitment only)
-      if (isRecruitment) {
-        const targetRegionId = input.regionId ?? club.regionId;
-        if (targetRegionId) {
-          const playerWhere: Record<string, unknown> = { regionId: targetRegionId };
-          if (input.targetPosition) {
-            playerWhere.primaryPosition = input.targetPosition;
-          }
-
-          ctx.db.player.findMany({
-            where: playerWhere,
-            select: { userId: true },
-            take: 100,
-          }).then((players: { userId: string }[]) => {
-            if (players.length === 0) return;
-            ctx.db.notification.createMany({
-              data: players.map((p: { userId: string }) => ({
-                userId: p.userId,
-                type: "RECRUITMENT_MATCH" as const,
-                title: "Nabór w Twoim regionie",
-                message: `${club.name} szuka zawodników: ${input.title}`,
-                link: `/events/${event.id}`,
-              })),
-            }).catch(() => {});
-          }).catch(() => {});
+      if (isRecruitment && regionId) {
+        const playerWhere: Record<string, unknown> = { regionId };
+        if (input.targetPosition) {
+          playerWhere.primaryPosition = input.targetPosition;
         }
+
+        ctx.db.player.findMany({
+          where: playerWhere,
+          select: { userId: true },
+          take: 100,
+        }).then((players: { userId: string }[]) => {
+          if (players.length === 0) return;
+          ctx.db.notification.createMany({
+            data: players.map((p: { userId: string }) => ({
+              userId: p.userId,
+              type: "RECRUITMENT_MATCH" as const,
+              title: "Nabór w Twoim regionie",
+              message: `${clubData.name} szuka zawodników: ${input.title}`,
+              link: `/events/${event.id}`,
+            })),
+          }).catch(() => {});
+        }).catch(() => {});
       }
 
       return event;
@@ -179,6 +209,7 @@ export const eventRouter = router({
         where,
         include: {
           club: { select: { id: true, name: true, city: true, logoUrl: true } },
+          coach: { select: { id: true, firstName: true, lastName: true, photoUrl: true } },
           region: true,
         },
         take: input.limit + 1,
@@ -217,7 +248,7 @@ export const eventRouter = router({
 
       // Filter applications: owner sees all, applicant sees only own, others see none
       const userId = ctx.session?.user?.id;
-      const isOwner = userId === event.club.userId;
+      const isOwner = userId === event.club?.userId;
       if (!isOwner) {
         event.applications = event.applications.filter(
           (a) => a.player.userId === userId
@@ -261,16 +292,19 @@ export const eventRouter = router({
       });
 
       // Notify event owner (fire-and-forget)
-      ctx.db.notification.create({
-        data: {
-          userId: event.club.userId,
-          type: "EVENT_APPLICATION",
-          title: "Nowe zgłoszenie na wydarzenie",
-          message: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
-          link: `/events/${event.id}`,
-        },
-      }).catch(() => {});
-      sendPushToUser(event.club.userId, {
+      const ownerUserId = event.club?.userId;
+      if (ownerUserId) {
+        ctx.db.notification.create({
+          data: {
+            userId: ownerUserId,
+            type: "EVENT_APPLICATION",
+            title: "Nowe zgłoszenie na wydarzenie",
+            message: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
+            link: `/events/${event.id}`,
+          },
+        }).catch(() => {});
+      }
+      if (ownerUserId) sendPushToUser(ownerUserId, {
         title: "Nowe zgłoszenie na wydarzenie",
         body: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
         url: `/events/${event.id}`,

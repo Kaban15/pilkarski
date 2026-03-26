@@ -184,6 +184,7 @@ model Coach {
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   region Region? @relation(fields: [regionId], references: [id])
+  events Event[]
 
   @@map("coaches")
 }
@@ -299,7 +300,8 @@ enum EventType {
 
 model Event {
   id              String    @id @default(uuid()) @db.Uuid
-  clubId          String    @map("club_id") @db.Uuid
+  clubId          String?   @map("club_id") @db.Uuid
+  coachId         String?   @map("coach_id") @db.Uuid
   type            EventType
   title           String    @db.VarChar(300)
   description     String?
@@ -317,7 +319,8 @@ model Event {
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  club         Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club         Club?              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  coach        Coach?             @relation(fields: [coachId], references: [id], onDelete: Cascade)
   region       Region?            @relation(fields: [regionId], references: [id])
   applications EventApplication[]
   favorites    Favorite[]
@@ -357,6 +360,7 @@ enum NotificationType {
   NEW_REVIEW             // nowa recenzja po sparingu
   RECRUITMENT_NEW        // obserwowany klub otworzył nabór/testy/camp
   RECRUITMENT_MATCH      // nabór w Twoim regionie na Twoją pozycję
+  REMINDER               // przypomnienie o aktywności
 }
 
 model Notification {

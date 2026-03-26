@@ -17,13 +17,13 @@ export async function registerClub(
   clubName: string,
 ) {
   await page.goto("/register");
-  await page.getByRole("tab", { name: "Klub" }).click();
+  await page.getByRole("button", { name: "Klub" }).click();
   await page.fill("#email", email);
   await page.fill("#password", password);
   await page.fill("#clubName", clubName);
   await page.getByRole("button", { name: "Zarejestruj się" }).click();
-  await page.waitForURL("**/login?registered=true", { timeout: 15000 });
-  await expect(page.getByText("Rejestracja udana")).toBeVisible();
+  // Auto-login redirects to /feed, fallback to /login?registered=true
+  await page.waitForURL(/\/(feed|login)/, { timeout: 15000 });
 }
 
 /**
@@ -37,14 +37,33 @@ export async function registerPlayer(
   lastName: string,
 ) {
   await page.goto("/register");
-  await page.getByRole("tab", { name: "Zawodnik" }).click();
+  await page.getByRole("button", { name: "Zawodnik" }).click();
   await page.fill("#email", email);
   await page.fill("#password", password);
   await page.fill("#firstName", firstName);
   await page.fill("#lastName", lastName);
   await page.getByRole("button", { name: "Zarejestruj się" }).click();
-  await page.waitForURL("**/login?registered=true", { timeout: 15000 });
-  await expect(page.getByText("Rejestracja udana")).toBeVisible();
+  await page.waitForURL(/\/(feed|login)/, { timeout: 15000 });
+}
+
+/**
+ * Register a new coach account via the UI.
+ */
+export async function registerCoach(
+  page: Page,
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+) {
+  await page.goto("/register");
+  await page.getByRole("button", { name: "Trener" }).click();
+  await page.fill("#email", email);
+  await page.fill("#password", password);
+  await page.fill("#firstName", firstName);
+  await page.fill("#lastName", lastName);
+  await page.getByRole("button", { name: "Zarejestruj się" }).click();
+  await page.waitForURL(/\/(feed|login)/, { timeout: 15000 });
 }
 
 /**
@@ -56,7 +75,6 @@ export async function login(page: Page, email: string, password: string) {
   await page.fill("#password", password);
   await page.getByRole("button", { name: "Zaloguj się" }).click();
   await page.waitForURL("**/feed", { timeout: 15000 });
-  // Wait for page to fully load so session cookie is established
   await page.waitForLoadState("networkidle");
 }
 

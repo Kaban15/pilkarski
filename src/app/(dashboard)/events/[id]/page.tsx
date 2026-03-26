@@ -83,7 +83,7 @@ export default function EventDetailPage() {
 
   if (!event) return <DetailPageSkeleton />;
 
-  const isOwner = session?.user?.id === event.club.userId;
+  const isOwner = session?.user?.id === event.club?.userId;
   const hasApplications = event.applications.length > 0;
   const myApplication = !isOwner && hasApplications ? event.applications[0] : null;
 
@@ -108,11 +108,11 @@ export default function EventDetailPage() {
             </Badge>
           </div>
           <p className="mt-1.5 text-muted-foreground">
-            {event.club.name}
-            {event.club.city && ` · ${event.club.city}`}
+            {event.club?.name ?? "Trener"}
+            {event.club?.city && ` · ${event.club.city}`}
           </p>
           <div className="mt-3">
-            <SendMessageButton recipientUserId={event.club.userId} />
+            {event.club && <SendMessageButton recipientUserId={event.club.userId} />}
           </div>
         </div>
         {isOwner && (

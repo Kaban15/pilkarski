@@ -89,7 +89,7 @@ export default function FavoritesPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-1 text-sm text-muted-foreground">
-                      <p><strong>{event.club.name}</strong>{event.club.city && ` · ${event.club.city}`}</p>
+                      <p><strong>{event.club?.name ?? "Trener"}</strong>{event.club?.city && ` · ${event.club.city}`}</p>
                       <p>{formatDate(event.eventDate)}</p>
                       {event.location && <p>{event.location}</p>}
                       <div className="flex items-center justify-between pt-2">

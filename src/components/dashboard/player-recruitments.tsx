@@ -43,7 +43,7 @@ export function PlayerRecruitments() {
             <Card className="h-full border-l-[3px] border-l-amber-500 transition-all hover:shadow-md hover:-translate-y-0.5">
               <CardContent className="py-3">
                 <div className="mb-2 flex items-start gap-2">
-                  {event.club.logoUrl ? (
+                  {event.club?.logoUrl ? (
                     <img
                       src={event.club.logoUrl}
                       alt={event.club.name}
@@ -51,7 +51,7 @@ export function PlayerRecruitments() {
                     />
                   ) : (
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-xs font-bold text-amber-600 dark:text-amber-400">
-                      {event.club.name.slice(0, 2).toUpperCase()}
+                      {(event.club?.name ?? "TR").slice(0, 2).toUpperCase()}
                     </div>
                   )}
                   <div className="min-w-0">
@@ -59,8 +59,8 @@ export function PlayerRecruitments() {
                       {event.title}
                     </h3>
                     <p className="text-xs text-muted-foreground line-clamp-1">
-                      {event.club.name}
-                      {event.club.city && ` · ${event.club.city}`}
+                      {event.club?.name ?? "Trener"}
+                      {event.club?.city && ` · ${event.club.city}`}
                     </p>
                   </div>
                 </div>

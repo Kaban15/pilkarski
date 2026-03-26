@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const publicRoutes = ["/", "/login", "/register"];
-const publicPrefixes = ["/clubs/", "/players/"];
+const publicPrefixes = ["/clubs/", "/players/", "/coaches/"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
