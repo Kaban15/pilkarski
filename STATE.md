@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–12 ✅ → Etap 13: Product Consolidation ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–13 ✅ → Etap 14: Visual Redesign ✅
 **Ostatnia sesja:** 2026-03-26
 
 ---
@@ -1055,6 +1055,52 @@
 - `src/app/(dashboard)/feed/page.tsx` — RecruitmentStats, PlayerDevelopment, onboardingi PLAYER/COACH
 - `src/app/(dashboard)/community/page.tsx` — przycisk Zgłoś z inline formularzem
 - `src/lib/gamification.ts` — +4 nowe eventy gamifikacyjne
+
+---
+
+### Etap 14: Visual Redesign "Pitch Black Precision" ✅
+
+**Cel:** Odświeżenie designu w stylu nowoczesnego SaaS (Linear/Vercel + Sofascore). Bez zmian logiki biznesowej.
+
+**Landing page — dark-first redesign:**
+- Tło `#050505` z dot grid background (radial-gradient 24px)
+- Hero: gradient orb glow (emerald blur), gradient text "w 2 minuty", pill z pulsującym dot
+- Typografia: fluid `clamp()` na H1, monospace `01/02/03` w steps
+- Stats: uppercase tracking-widest labels, 4xl bold numbers
+- Features: 2-kolumnowy grid z colored dots + icons, hover border per accent
+- How it works: 3 karty w jednym rounded container z gap-px border (Linear style)
+- Dla kogo: 3 karty (klub/zawodnik/trener) z role-specific accents (emerald/violet/blue)
+- CTA: biały przycisk na ciemnym tle z glow hover
+- Nav: glass morphism (`backdrop-blur-xl`), biały CTA button
+- Nowe ikony: `Zap` (bullets), `Target` (nabory), `GraduationCap` (treningi)
+
+**Dashboard — refined:**
+- StatsBar: ikony w kolorowych kółkach (`h-9 w-9 rounded-lg`), grid na mobile
+- FeedCard: borderless default, hover reveal (`hover:border-border hover:bg-card`), rounded-full badge pills
+- ClubQuickActions: compact `size="sm"`, primary CTA "Dodaj sparing"
+- PlayerDevelopment: sekcja z treningami indywidualnymi
+
+**Sparing card — modernized:**
+- Club avatar top-left (7x7 rounded-md), tytuł prominentny (15px)
+- Region jako outline badge (zamiast inline text)
+- Countdown jako pill z bg (`bg-emerald-500/10 text-emerald-600`)
+- Hover: `hover:border-primary/30 hover:shadow-sm`
+
+**Sidebar — tighter:**
+- Header: 56px (był 64px), logo 7x7 rounded-md (był 8x8 rounded-lg)
+- Ikony: 16px (były 18px), `font-semibold` (był `font-bold`)
+
+**Design tokens — zinc-based:**
+- Light: `#fafafa` bg (był `#fafbfc`), `#e4e4e7` borders (był `#e2e8f0`)
+- Muted foreground: `#71717a` (był `#64748b`) — cieplejszy szary
+- Secondary: `#f4f4f5` (był `#f1f5f9`) — neutral zamiast slate
+
+**Pliki zmodyfikowane:**
+- `src/app/page.tsx` — pełny redesign landing page
+- `src/styles/globals.css` — zinc-based design tokens
+- `src/components/sparings/sparing-card.tsx` — modernized card
+- `src/app/(dashboard)/feed/page.tsx` — StatsBar, FeedCard, QuickActions redesign
+- `src/components/layout/sidebar.tsx` — compact header, smaller icons
 
 ---
 
