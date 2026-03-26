@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–14 ✅ → Etap 15–19: Iteracje 1–5 ✅ → Etap 20: Backlog Cleanup ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21: Sparing Invitations ✅ → Etap 22: Club Membership & Squad ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1150,6 +1150,64 @@
 - `20260326180000_recruitment_board` ✅
 - `20260326200000_favorite_club_post` ✅
 - `20260326220000_coach_creates_events` ✅
+- `20260327100000_sparing_invitations` ✅
+- `20260327120000_club_membership` ✅
+
+---
+
+### Etap 21: Sparing Invitations ✅
+
+**Cel:** Zapraszanie konkretnych klubów na sparing z opcjonalnym czasem ważności.
+
+**Schema:**
+- `SparingInvitation` model (fromClubId, toClubId, sparingOfferId, status, expiresAt)
+- `InvitationStatus` enum (PENDING/ACCEPTED/REJECTED/EXPIRED)
+- `SPARING_INVITATION` NotificationType
+
+**Router (sparing.ts):**
+- `invite` — wysyłanie zaproszenia z wiadomością i expiresInHours (1-168h, default 48h)
+- `respondToInvitation` — akceptacja (→ auto-match, transaction) lub odrzucenie
+- `myInvitations` — wysłane + otrzymane zaproszenia
+- Push + powiadomienia przy zaproszeniu i odpowiedzi
+
+**Club router:** parametr `search` w `club.list` dla wyszukiwania po nazwie
+
+**UI:**
+- `InviteClubDialog` — wyszukiwanie klubu, wiadomość, czas ważności
+- `SentInvitations` — status wysłanych zaproszeń (oczekuje/zaakceptowane/odrzucone/wygasło)
+- `ReceivedInvitations` — akceptuj/odrzuć z countdown do wygaśnięcia
+- Zintegrowane na `/sparings/[id]` — owner widzi invite+sent, inny klub widzi received
+
+---
+
+### Etap 22: Club Membership & Squad Management ✅
+
+**Cel:** Relacja zawodnik/trener ↔ klub z prośbą o dołączenie, zarządzanie kadrą, składy meczowe, treści wewnętrzne.
+
+**Schema:**
+- `ClubMembership` model (clubId, memberUserId, memberType PLAYER/COACH, status PENDING/ACCEPTED/REJECTED/LEFT/REMOVED)
+- `TeamLineup` + `TeamLineupPlayer` modele (składy z rolami STARTER/BENCH)
+- `INTERNAL` ClubPostCategory — wewnętrzne posty (wykluczane z publicznej listy)
+- `MEMBERSHIP_REQUEST` + `MEMBERSHIP_ACCEPTED` NotificationType
+
+**Routery:**
+- `clubMembership`: requestJoin, respond (accept/reject), leaveClub, removeMember, listRequestsForClub, listMembers, myMembership, myClub
+- `teamLineup`: create (z walidacją członkostwa graczy), listByClub, getById, delete (gated by isClubMember)
+
+**Helper:** `isClubMember()` + `getClubMembership()` w `src/server/is-club-member.ts`
+
+**UI:**
+- `JoinClubButton` na `/clubs/[id]` — 3 stany (join/pending/member) + leave option
+- `/squad` — kadra klubu z 3 tabami (Zawodnicy, Trenerzy, Prośby), accept/reject, remove z ConfirmDialog
+- Sidebar: "Kadra" link (Users icon, CLUB only)
+
+**Code review fixes:**
+- event.ts: update/delete obsługują coach-owned events (było FORBIDDEN)
+- event.ts getById: coach widzi aplikacje na swoje treningi
+- reminders: fail closed bez CRON_SECRET (było open)
+- sparing invitation: interactive transaction z re-check status (race condition fix)
+- team-lineup: walidacja że gracze to ACCEPTED members klubu
+- join-club-button: usunięty unused utils
 
 ---
 
