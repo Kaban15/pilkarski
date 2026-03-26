@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–11 ✅ → Etap 12: Rola Trenera (COACH) ✅
+## Aktualny etap: Fazy 1–15 + Redesign (Etap 1–3) ✅ → Etap 4–12 ✅ → Etap 13: Product Consolidation ✅
 **Ostatnia sesja:** 2026-03-26
 
 ---
@@ -1012,7 +1012,49 @@
 - `src/lib/labels.ts` — getUserDisplayName, COACH_*_LABELS, ROLE_LABELS
 - `src/types/next-auth.d.ts` — COACH w Session type
 
-**Migracja:** Wymaga `prisma migrate deploy --url "..."` (migration `20260326120000_add_coach_role`)
+**Migracja:** Wymaga `prisma migrate deploy --url "..."` (migration `20260326120000_add_coach_role`) — ZASTOSOWANA
+
+---
+
+### Etap 13: Product Consolidation — Rekrutacja, Treningi, Community, Onboarding ✅
+
+**Cel:** Zebranie PilkaSport w spójny produkt pod realne użycie: wyeksponowanie rekrutacji, dedykowany widok treningów, hardening community, onboarding per rola.
+
+**Iteracja A — Rekrutacja + Pipeline:**
+- Sidebar zreorganizowany: "Rekrutacja" i "Treningi" przeniesione do sekcji "Główne"
+- Role-aware filtering w nawigacji (Sparingi widoczne tylko dla CLUB)
+- `recruitment.stats` — pipeline stats per stage (groupBy)
+- `recruitment.exportCsv` — export pipeline do CSV
+- `RecruitmentStats` widget na dashboardzie klubu (watching/invited/afterTryout/signed)
+- `PlayerRecruitments` wyeksponowane jako osobna sekcja przed feedem
+
+**Iteracja B — Treningi + Rozwój:**
+- Strona `/trainings` z dwoma tabami: "Treningi" (INDIVIDUAL/GROUP_TRAINING) + "Trenerzy" (coach.list)
+- Katalog trenerów z avatar, specjalizacja badge, licencja badge, miasto, region
+- Sekcja "Rozwój — treningi indywidualne" na dashboardzie PLAYER/COACH
+
+**Iteracja C — Community + Onboarding:**
+- Community: limit 5 aktywnych postów na klub
+- Community: min content length 10 znaków (wcześniej opcjonalne)
+- Community: przycisk "Zgłoś" z inline formularzem powodu (endpoint `clubPost.report`)
+- `PlayerOnboarding` — 3-krokowy wizard: profil → nabory/transfery → gotowe
+- `CoachOnboarding` — 3-krokowy wizard: profil → treningi/nabory → gotowe
+- Gamifikacja: +4 nowe eventy (first_training_published 15pkt, first_club_post 10pkt, first_nabor_application 10pkt, profile_region_set 5pkt)
+
+**Pliki nowe:**
+- `src/app/(dashboard)/trainings/page.tsx` — katalog treningów + trenerów
+- `src/components/recruitment/recruitment-stats.tsx` — pipeline stats widget
+- `src/components/onboarding/player-onboarding.tsx` — onboarding zawodnika
+- `src/components/onboarding/coach-onboarding.tsx` — onboarding trenera
+
+**Pliki zmodyfikowane:**
+- `src/components/layout/sidebar.tsx` — role-aware nav, GraduationCap, reorganizacja sekcji
+- `src/server/trpc/routers/recruitment.ts` — +stats, +exportCsv endpoints
+- `src/server/trpc/routers/club-post.ts` — limit 5 postów, +report endpoint
+- `src/lib/validators/club-post.ts` — min content 10 znaków, min title 5 znaków
+- `src/app/(dashboard)/feed/page.tsx` — RecruitmentStats, PlayerDevelopment, onboardingi PLAYER/COACH
+- `src/app/(dashboard)/community/page.tsx` — przycisk Zgłoś z inline formularzem
+- `src/lib/gamification.ts` — +4 nowe eventy gamifikacyjne
 
 ---
 

@@ -21,6 +21,7 @@ import {
   LogOut,
   Target,
   Megaphone,
+  GraduationCap,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -31,13 +32,24 @@ interface SidebarProps {
   };
 }
 
-const NAV_SECTIONS = [
+type NavItem = {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  roles?: string[];
+};
+
+type NavSection = { label: string; items: NavItem[] };
+
+const NAV_SECTIONS: NavSection[] = [
   {
     label: "Główne",
     items: [
       { href: "/feed", icon: Home, label: "Pulpit" },
-      { href: "/sparings", icon: Swords, label: "Sparingi" },
+      { href: "/sparings", icon: Swords, label: "Sparingi", roles: ["CLUB"] },
       { href: "/events", icon: Trophy, label: "Wydarzenia" },
+      { href: "/recruitment", icon: Target, label: "Rekrutacja" },
+      { href: "/trainings", icon: GraduationCap, label: "Treningi" },
       { href: "/calendar", icon: CalendarDays, label: "Kalendarz" },
     ],
   },
@@ -45,7 +57,6 @@ const NAV_SECTIONS = [
     label: "Więcej",
     items: [
       { href: "/community", icon: Megaphone, label: "Tablica" },
-      { href: "/recruitment", icon: Target, label: "Rekrutacja" },
       { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
       { href: "/search", icon: Search, label: "Szukaj" },
       { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
@@ -96,7 +107,7 @@ export function Sidebar({ user }: SidebarProps) {
             <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted-foreground">
               {section.label}
             </p>
-            {section.items.map((item) => {
+            {section.items.filter((item) => !item.roles || item.roles.includes(user.role)).map((item) => {
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/feed" && pathname.startsWith(item.href));

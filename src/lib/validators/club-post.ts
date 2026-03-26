@@ -10,8 +10,8 @@ export const CLUB_POST_CATEGORIES = [
 
 export const createClubPostSchema = z.object({
   category: z.enum(CLUB_POST_CATEGORIES),
-  title: z.string().min(3, "Tytuł musi mieć min. 3 znaki").max(300),
-  content: z.string().max(2000).optional(),
+  title: z.string().min(5, "Tytuł musi mieć min. 5 znaków").max(300),
+  content: z.string().min(10, "Treść musi mieć min. 10 znaków").max(2000),
   expiresAt: z.string().optional(),
 });
 

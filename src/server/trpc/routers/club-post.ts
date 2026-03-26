@@ -13,6 +13,19 @@ export const clubPostRouter = router({
       });
       if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą dodawać posty" });
 
+      const activeCount = await ctx.db.clubPost.count({
+        where: {
+          clubId: club.id,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+      });
+      if (activeCount >= 5) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Maksymalnie 5 aktywnych postów na klub. Usuń lub poczekaj na wygaśnięcie starszych.",
+        });
+      }
+
       const post = await ctx.db.clubPost.create({
         data: {
           clubId: club.id,
@@ -102,6 +115,18 @@ export const clubPostRouter = router({
       }
 
       return { items, nextCursor };
+    }),
+
+  report: protectedProcedure
+    .input(z.object({
+      postId: z.string().uuid(),
+      reason: z.string().min(5, "Podaj powód (min. 5 znaków)").max(500),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const post = await ctx.db.clubPost.findUnique({ where: { id: input.postId } });
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+      console.warn(`[REPORT] Post ${input.postId} reported by user ${ctx.session.user.id}: ${input.reason}`);
+      return { success: true };
     }),
 
   my: protectedProcedure.query(async ({ ctx }) => {

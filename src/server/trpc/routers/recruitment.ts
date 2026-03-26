@@ -158,4 +158,75 @@ export const recruitmentRouter = router({
         entries.map((e) => [e.transferId, { id: e.id, stage: e.stage }])
       );
     }),
+
+  stats: protectedProcedure.query(async ({ ctx }) => {
+    const club = await ctx.db.club.findUnique({
+      where: { userId: ctx.session.user.id },
+    });
+    if (!club) return null;
+
+    const counts = await ctx.db.recruitmentPipeline.groupBy({
+      by: ["stage"],
+      where: { clubId: club.id },
+      _count: true,
+    });
+
+    const byStage: Record<string, number> = {};
+    for (const c of counts) {
+      byStage[c.stage] = c._count;
+    }
+
+    return {
+      watching: byStage.WATCHING ?? 0,
+      invited: byStage.INVITED_TO_TRYOUT ?? 0,
+      afterTryout: byStage.AFTER_TRYOUT ?? 0,
+      offerSent: byStage.OFFER_SENT ?? 0,
+      signed: byStage.SIGNED ?? 0,
+      rejected: byStage.REJECTED ?? 0,
+      total: counts.reduce((sum, c) => sum + c._count, 0),
+    };
+  }),
+
+  exportCsv: protectedProcedure.query(async ({ ctx }) => {
+    const club = await ctx.db.club.findUnique({
+      where: { userId: ctx.session.user.id },
+    });
+    if (!club) return { csv: "" };
+
+    const entries = await ctx.db.recruitmentPipeline.findMany({
+      where: { clubId: club.id },
+      include: {
+        transfer: {
+          include: {
+            user: {
+              include: {
+                player: {
+                  select: { firstName: true, lastName: true, primaryPosition: true, city: true },
+                },
+              },
+            },
+            region: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    const header = "Imię,Nazwisko,Pozycja,Miasto,Region,Etap,Notatki,Data aktualizacji";
+    const rows = entries.map((e) => {
+      const p = e.transfer.user.player;
+      return [
+        p?.firstName ?? "",
+        p?.lastName ?? "",
+        p?.primaryPosition ?? "",
+        p?.city ?? "",
+        e.transfer.region?.name ?? "",
+        e.stage,
+        (e.notes ?? "").replace(/,/g, ";"),
+        e.updatedAt.toISOString().split("T")[0],
+      ].join(",");
+    });
+
+    return { csv: [header, ...rows].join("\n") };
+  }),
 });

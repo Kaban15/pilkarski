@@ -20,7 +20,7 @@ import {
 import type { ClubPostCategoryValue } from "@/lib/validators/club-post";
 import { createClubPostSchema } from "@/lib/validators/club-post";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
-import { Plus, Trash2, Megaphone } from "lucide-react";
+import { Plus, Trash2, Megaphone, Flag } from "lucide-react";
 
 type CategoryFilter = ClubPostCategoryValue | "ALL";
 
@@ -30,6 +30,8 @@ export default function CommunityPage() {
   const [category, setCategory] = useState<CategoryFilter>("ALL");
   const [showForm, setShowForm] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [reportingPostId, setReportingPostId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState("");
 
   const utils = api.useUtils();
 
@@ -44,6 +46,15 @@ export default function CommunityPage() {
       utils.clubPost.list.invalidate();
     },
     onError: (err) => toast.error(err.message || "Nie udało się dodać postu"),
+  });
+
+  const reportMut = api.clubPost.report.useMutation({
+    onSuccess: () => {
+      toast.success("Zgłoszenie wysłane");
+      setReportingPostId(null);
+      setReportReason("");
+    },
+    onError: (err) => toast.error(err.message || "Nie udało się wysłać zgłoszenia"),
   });
 
   const deleteMut = api.clubPost.delete.useMutation({
@@ -222,9 +233,40 @@ export default function CommunityPage() {
                     </Button>
                   )}
                 </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  {formatShortDate(post.createdAt)}
-                </p>
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-[11px] text-muted-foreground">
+                    {formatShortDate(post.createdAt)}
+                  </p>
+                  {session && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-1.5 text-muted-foreground hover:text-destructive"
+                      onClick={() => setReportingPostId(reportingPostId === post.id ? null : post.id)}
+                    >
+                      <Flag className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                {reportingPostId === post.id && (
+                  <div className="mt-2 flex gap-2">
+                    <Input
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      placeholder="Powód zgłoszenia..."
+                      className="h-8 text-xs"
+                    />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-8 shrink-0"
+                      disabled={reportReason.length < 5 || reportMut.isPending}
+                      onClick={() => reportMut.mutate({ postId: post.id, reason: reportReason })}
+                    >
+                      Zgłoś
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

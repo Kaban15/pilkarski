@@ -14,6 +14,9 @@ import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
 import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
+import { PlayerOnboarding } from "@/components/onboarding/player-onboarding";
+import { CoachOnboarding } from "@/components/onboarding/coach-onboarding";
+import { RecruitmentStats } from "@/components/recruitment/recruitment-stats";
 import {
   Swords,
   Trophy,
@@ -25,6 +28,7 @@ import {
   Plus,
   Search,
   CheckCircle2,
+  GraduationCap,
 } from "lucide-react";
 
 type FeedItem = {
@@ -205,6 +209,49 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
   );
 }
 
+function PlayerDevelopment() {
+  const trainings = api.event.list.useQuery({
+    type: "INDIVIDUAL_TRAINING" as "INDIVIDUAL_TRAINING",
+    sortBy: "eventDate",
+    sortOrder: "asc",
+    limit: 4,
+  });
+
+  const items = trainings.data?.items ?? [];
+  if (items.length === 0 && !trainings.isLoading) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardContent className="py-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="flex items-center gap-2 text-sm font-semibold">
+            <GraduationCap className="h-4 w-4 text-primary" />
+            Rozwój — treningi indywidualne
+          </p>
+          <Link href="/trainings" className="text-xs text-primary hover:underline">
+            Wszystkie →
+          </Link>
+        </div>
+        <div className="space-y-2">
+          {items.slice(0, 4).map((t: any) => (
+            <Link key={t.id} href={`/events/${t.id}`}>
+              <div className="flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors hover:border-primary/40">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{t.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.club?.name} · {new Date(t.eventDate).toLocaleDateString("pl-PL")}
+                    {t.priceInfo ? ` · ${t.priceInfo}` : ""}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ClubQuickActions() {
   return (
     <div className="mb-8 flex flex-wrap gap-3">
@@ -249,8 +296,12 @@ export default function FeedPage() {
     staleTime: Infinity,
   });
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [playerOnboardingDone, setPlayerOnboardingDone] = useState(false);
+  const [coachOnboardingDone, setCoachOnboardingDone] = useState(false);
 
   const showOnboarding = isClub && !onboardingDismissed && clubProfile.data && !clubProfile.data.regionId;
+  const showPlayerOnboarding = isPlayer && !playerOnboardingDone;
+  const showCoachOnboarding = isCoach && !coachOnboardingDone;
 
   return (
     <div className="animate-fade-in">
@@ -277,6 +328,12 @@ export default function FeedPage() {
           setOnboardingDismissed(true);
           clubProfile.refetch();
         }} />
+      )}
+      {showPlayerOnboarding && (
+        <PlayerOnboarding onComplete={() => setPlayerOnboardingDone(true)} />
+      )}
+      {showCoachOnboarding && (
+        <CoachOnboarding onComplete={() => setCoachOnboardingDone(true)} />
       )}
 
       {isClub && !showOnboarding && stats.data &&
@@ -317,9 +374,12 @@ export default function FeedPage() {
       <StatsBar stats={(stats.data as DashboardStats) ?? null} />
 
       {isClub && !showOnboarding && <ClubQuickActions />}
+      {isClub && <RecruitmentStats />}
       {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
+
       {(isPlayer || isCoach) && <PlayerRecruitments />}
+      {(isPlayer || isCoach) && <PlayerDevelopment />}
 
       {feed.isLoading ? (
         <div className="space-y-3">
