@@ -22,6 +22,8 @@ import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 import type { EventTypeValue } from "@/lib/validators/event";
 import { EmptyState } from "@/components/empty-state";
+import { ProcessSteps } from "@/components/process-steps";
+import { Coachmark } from "@/components/coachmark";
 import {
   Plus,
   Calendar,
@@ -388,6 +390,10 @@ function MyEventsTab() {
   const upcoming = events.filter((e) => new Date(e.eventDate) >= now);
   const past = events.filter((e) => new Date(e.eventDate) < now);
 
+  const hasApplications = events.some((e) => (e._count?.applications ?? 0) > 0);
+  const hasPast = past.length > 0;
+  const processStep = hasPast ? 3 : hasApplications ? 2 : upcoming.length > 0 ? 1 : 0;
+
   const groups = [
     { label: "Nadchodzące", items: upcoming },
     { label: "Przeszłe", items: past },
@@ -395,6 +401,21 @@ function MyEventsTab() {
 
   return (
     <div className="space-y-8">
+      <Coachmark
+        storageKey="ps_coachmark_events"
+        title="Zarządzaj wydarzeniami"
+        description="Tu widzisz swoje nabory i treningi. Kliknij w wydarzenie, żeby zobaczyć zgłoszenia zawodników i zarządzać uczestnikami."
+      />
+
+      <ProcessSteps
+        steps={[
+          { label: "Ogłoszenie", description: "Dodaj wydarzenie" },
+          { label: "Zgłoszenia", description: "Przyjmuj zawodników" },
+          { label: "Zakończone" },
+        ]}
+        currentStep={processStep}
+      />
+
       {groups.map((group) => (
         <div key={group.label}>
           <h2 className="mb-3 text-lg font-semibold">{group.label} ({group.items.length})</h2>

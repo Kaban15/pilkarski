@@ -24,6 +24,8 @@ import { CardSkeleton } from "@/components/card-skeleton";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { EmptyState } from "@/components/empty-state";
 import { SparingCard, type SparingCardItem } from "@/components/sparings/sparing-card";
+import { ProcessSteps } from "@/components/process-steps";
+import { Coachmark } from "@/components/coachmark";
 import {
   Select,
   SelectContent,
@@ -391,6 +393,12 @@ function MySparingsTab() {
   const upcomingMatched = matched.filter((s) => new Date(s.matchDate) >= now);
   const pastMatched = matched.filter((s) => new Date(s.matchDate) < now);
 
+  // Determine overall process step for the legend
+  const hasOpen = open.length > 0;
+  const hasMatched = matched.length > 0 || upcomingMatched.length > 0;
+  const hasCompleted = completed.length > 0;
+  const processStep = hasCompleted ? 3 : hasMatched ? 2 : hasOpen ? 1 : 0;
+
   const groups = [
     { label: "Nadchodzące mecze", items: upcomingMatched, highlight: true },
     { label: "Otwarte", items: open, highlight: false },
@@ -401,6 +409,21 @@ function MySparingsTab() {
 
   return (
     <div className="space-y-8">
+      <Coachmark
+        storageKey="ps_coachmark_sparings"
+        title="Zarządzaj sparingami"
+        description="Tu widzisz swoje ogłoszenia. Kliknij w sparing, żeby zobaczyć zgłoszenia, zaakceptować rywala lub ocenić mecz."
+      />
+
+      <ProcessSteps
+        steps={[
+          { label: "Ogłoszenie", description: "Dodaj sparing" },
+          { label: "Zgłoszenia", description: "Wybierz rywala" },
+          { label: "Rozegrany i oceniony" },
+        ]}
+        currentStep={processStep}
+      />
+
       {groups.map((group) => (
         <div key={group.label}>
           <h2 className={`mb-3 text-lg font-semibold ${group.highlight ? "text-primary" : ""}`}>{group.label} ({group.items.length})</h2>

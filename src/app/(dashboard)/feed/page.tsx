@@ -29,6 +29,8 @@ import {
   Search,
   CheckCircle2,
   GraduationCap,
+  Target,
+  ChevronDown,
 } from "lucide-react";
 
 type FeedItem = {
@@ -255,32 +257,64 @@ function PlayerDevelopment() {
 }
 
 function ClubQuickActions() {
+  const [showMore, setShowMore] = useState(false);
+
   return (
-    <div className="mb-8 flex flex-wrap gap-2">
-      <Link href="/sparings/new">
-        <Button size="sm" className="gap-2 rounded-lg">
-          <Plus className="h-3.5 w-3.5" />
-          Dodaj sparing
-        </Button>
-      </Link>
-      <Link href="/events/new">
-        <Button size="sm" variant="outline" className="gap-2 rounded-lg">
-          <Plus className="h-3.5 w-3.5" />
-          Dodaj wydarzenie
-        </Button>
-      </Link>
-      <Link href="/calendar">
-        <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
-          <Calendar className="h-3.5 w-3.5" />
-          Kalendarz
-        </Button>
-      </Link>
-      <Link href="/search">
-        <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
-          <Search className="h-3.5 w-3.5" />
-          Szukaj rywala
-        </Button>
-      </Link>
+    <div className="mb-8 space-y-3">
+      {/* Primary CTAs */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <Link href="/sparings/new">
+          <Button className="w-full gap-2 rounded-xl py-5">
+            <Swords className="h-4 w-4" />
+            Dodaj sparing
+          </Button>
+        </Link>
+        <Link href="/events/new">
+          <Button variant="outline" className="w-full gap-2 rounded-xl py-5">
+            <Trophy className="h-4 w-4" />
+            Dodaj nabór / trening
+          </Button>
+        </Link>
+        <Link href="/recruitment">
+          <Button variant="outline" className="w-full gap-2 rounded-xl py-5">
+            <Target className="h-4 w-4" />
+            Pipeline rekrutacyjny
+          </Button>
+        </Link>
+      </div>
+
+      {/* More actions */}
+      <div>
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition hover:text-foreground"
+        >
+          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showMore ? "rotate-180" : ""}`} />
+          Więcej działań
+        </button>
+        {showMore && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Link href="/calendar">
+              <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
+                <Calendar className="h-3.5 w-3.5" />
+                Kalendarz
+              </Button>
+            </Link>
+            <Link href="/search">
+              <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
+                <Search className="h-3.5 w-3.5" />
+                Szukaj rywala
+              </Button>
+            </Link>
+            <Link href="/community">
+              <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Tablica
+              </Button>
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
