@@ -126,9 +126,18 @@ function FeedCard({ item }: { item: FeedItem }) {
     }
   };
 
+  const hoverGlowClass =
+    item.type === "sparing"
+      ? "hover-glow-violet"
+      : item.type === "event"
+        ? "hover-glow-sky"
+        : item.type === "transfer"
+          ? "hover-glow-emerald"
+          : "hover-glow-pink";
+
   return (
     <Link href={getHref()} className="group block">
-      <div className="flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-all hover:border-border hover:bg-card">
+      <div className={`flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-all hover:border-border hover:bg-card ${hoverGlowClass}`}>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
             <span
@@ -200,7 +209,7 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
         const value = (stats as unknown as Record<string, number>)[c.key] ?? 0;
         return (
           <Link key={c.key} href={c.href}>
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all hover:border-primary/30 hover:shadow-sm">
+            <div className="flex items-center gap-3 rounded-xl border bg-gradient-to-r from-violet-500/10 to-sky-500/10 border-violet-500/20 px-4 py-3 transition-all hover:border-primary/30 hover:shadow-sm">
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${c.bg}`}>
                 <c.icon className={`h-4 w-4 ${c.color}`} />
               </div>
@@ -357,7 +366,7 @@ function ClubQuickActions() {
       {/* Primary CTAs */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <Link href="/sparings/new">
-          <Button className="w-full gap-2 rounded-xl py-5">
+          <Button className="w-full gap-2 rounded-xl py-5 bg-gradient-to-r from-violet-500 to-sky-500 hover:from-violet-600 hover:to-sky-600 text-white">
             <Swords className="h-4 w-4" />
             Dodaj sparing
           </Button>
