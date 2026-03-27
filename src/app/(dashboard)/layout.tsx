@@ -17,7 +17,7 @@ export default async function DashboardLayout({
       <OfflineBanner />
       <Sidebar user={session.user} />
       <main className="pb-20 md:pb-0 md:ml-60">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="page-enter mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>
