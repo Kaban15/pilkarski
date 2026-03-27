@@ -96,6 +96,11 @@ export default async function ClubPublicProfilePage({ params }: Props) {
     }),
   ]);
 
+  const leagueGroupHref =
+    club.leagueGroup && club.region
+      ? `/leagues/${club.region.slug}/${club.leagueGroup.leagueLevel.id}/${club.leagueGroup.id}`
+      : null;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero banner */}
@@ -144,10 +149,8 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                     </Badge>
                   </Link>
                 )}
-                {club.leagueGroup && club.region && (
-                  <Link
-                    href={`/leagues/${club.region.slug}/${club.leagueGroup.leagueLevel.id}/${club.leagueGroup.id}`}
-                  >
+                {leagueGroupHref && club.leagueGroup && (
+                  <Link href={leagueGroupHref}>
                     <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/20 cursor-pointer">
                       <Trophy className="mr-1 h-3 w-3" />
                       {club.leagueGroup.leagueLevel.name} &mdash; {club.leagueGroup.name}
@@ -180,11 +183,11 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {club.leagueGroup && club.region && (
+                  {leagueGroupHref && club.leagueGroup && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">Liga</p>
                       <Link
-                        href={`/leagues/${club.region.slug}/${club.leagueGroup.leagueLevel.id}/${club.leagueGroup.id}`}
+                        href={leagueGroupHref}
                         className="font-medium text-primary hover:underline"
                       >
                         {club.leagueGroup.leagueLevel.name} &mdash; {club.leagueGroup.name}

@@ -221,3 +221,15 @@ export function getUserDisplayName(user: {
   if (user.coach) return `${user.coach.firstName} ${user.coach.lastName}`;
   return user.email ?? "Nieznany użytkownik";
 }
+
+/**
+ * Polish noun pluralization: 1 → one, 2-4/22-24/… → few, rest → many.
+ * Handles teens (12-14 → many) correctly.
+ */
+export function pluralPL(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+}

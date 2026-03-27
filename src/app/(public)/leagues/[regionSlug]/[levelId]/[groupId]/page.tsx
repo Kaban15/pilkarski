@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MapPin } from "lucide-react";
+import { pluralPL } from "@/lib/labels";
 
 type Props = { params: Promise<{ regionSlug: string; levelId: string; groupId: string }> };
 
@@ -16,16 +17,15 @@ async function getData(regionSlug: string, levelId: number, groupId: number) {
   });
   if (!level) return null;
 
-  const group = await db.leagueGroup.findFirst({
-    where: { id: groupId, leagueLevelId: levelId },
-  });
+  const [group, clubs] = await Promise.all([
+    db.leagueGroup.findFirst({ where: { id: groupId, leagueLevelId: levelId } }),
+    db.club.findMany({
+      where: { leagueGroupId: groupId },
+      orderBy: { name: "asc" },
+      include: { region: true },
+    }),
+  ]);
   if (!group) return null;
-
-  const clubs = await db.club.findMany({
-    where: { leagueGroupId: groupId },
-    orderBy: { name: "asc" },
-    include: { region: true },
-  });
 
   return { region, level, group, clubs };
 }
@@ -65,7 +65,7 @@ export default async function ClubsInGroupPage({ params }: Props) {
           </h1>
           <p className="mt-1 text-muted-foreground">
             {region.name} &middot; {clubs.length}{" "}
-            {clubs.length === 1 ? "drużyna" : clubs.length < 5 ? "drużyny" : "drużyn"}
+            {pluralPL(clubs.length, "drużyna", "drużyny", "drużyn")}
           </p>
         </div>
 

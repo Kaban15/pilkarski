@@ -1,3 +1,4 @@
+import { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -5,12 +6,13 @@ import { db } from "@/server/db/client";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Users } from "lucide-react";
+import { pluralPL } from "@/lib/labels";
 
 type Props = { params: Promise<{ regionSlug: string }> };
 
-async function getRegionBySlug(slug: string) {
-  return db.region.findUnique({ where: { slug } });
-}
+const getRegionBySlug = cache((slug: string) =>
+  db.region.findUnique({ where: { slug } })
+);
 
 async function getLevelsWithStats(regionId: number) {
   const levels = await db.leagueLevel.findMany({
@@ -85,7 +87,7 @@ export default async function RegionLevelsPage({ params }: Props) {
                       <span className="font-medium">{level.name}</span>
                       {level.groups.length > 1 && (
                         <p className="text-xs text-muted-foreground">
-                          {level.groups.length} {level.groups.length < 5 ? "grupy" : "grup"}
+                          {level.groups.length} {pluralPL(level.groups.length, "grupa", "grupy", "grup")}
                         </p>
                       )}
                     </div>
