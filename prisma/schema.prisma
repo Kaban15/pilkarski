@@ -256,10 +256,14 @@ model SparingOffer {
   level         SparingLevel? @map("level")
   ageCategory   AgeCategory?  @map("age_category")
   preferredTime String?       @map("preferred_time") @db.VarChar(100)
-  status        SparingStatus @default(OPEN)
-  regionId      Int?          @map("region_id")
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  status           SparingStatus @default(OPEN)
+  regionId         Int?          @map("region_id")
+  homeScore        Int?          @map("home_score")
+  awayScore        Int?          @map("away_score")
+  scoreSubmittedBy String?       @map("score_submitted_by") @db.Uuid
+  scoreConfirmed   Boolean       @default(false) @map("score_confirmed")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
   club         Club                 @relation(fields: [clubId], references: [id], onDelete: Cascade)
   region       Region?              @relation(fields: [regionId], references: [id])
@@ -397,6 +401,9 @@ enum NotificationType {
   SPARING_INVITATION     // zaproszenie na sparing od innego klubu
   MEMBERSHIP_REQUEST     // prośba o dołączenie do klubu
   MEMBERSHIP_ACCEPTED    // akceptacja prośby o dołączenie
+  SCORE_SUBMITTED        // wynik wpisany — czeka na potwierdzenie
+  SCORE_CONFIRMED        // wynik potwierdzony
+  SCORE_REJECTED         // wynik odrzucony
 }
 
 model Notification {
