@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–26 ✅ → Etap 27: UX Fixes, Coach Permissions, Career & Profile Links ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–27 ✅ → Etap 28: Attendance Reminders 24h ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1473,7 +1473,46 @@
 - `src/app/(dashboard)/events/[id]/_components/attendance-section.tsx` — klikalne profile
 - `src/app/(dashboard)/recruitment/page.tsx` — link do gracza zamiast transferu
 
-**Migracja:** Wymaga `npm run db:migrate -- --url "..." --name add_coach_career`
+**Migracja:** `20260327200000_add_coach_career` — ZASTOSOWANA
+
+---
+
+### Etap 28: Attendance Reminders 24h + Coach Profile Fix ✅
+
+**Cel:** Automatyczne przypomnienia o braku deklaracji obecności 24h przed wydarzeniem wewnętrznym + push przy tworzeniu INTERNAL eventu. Fix crash profilu trenera.
+
+**Fix — Coach profile crash:**
+- Query `careerEntries` z graceful fallback (try/catch) w coach.me, getById, profil publiczny, profil dashboard
+- Zabezpiecza przed crashem gdy tabela `coach_career_entries` nie istnieje (migracja niezastosowana)
+
+**Feature — Przypomnienia 24h:**
+- `/api/reminders` — szuka INTERNAL eventów w oknie 20-28h, identyfikuje członków bez deklaracji
+- Batch lookup: 1 query `notification.findMany` z `Set` (nie N+1)
+- Równoległe zapytania: members + attendance via `Promise.all`
+- Push via `Promise.allSettled` (nie sekwencyjny for loop)
+- Dedup: nie wysyła dwóch przypomnień o tym samym evencie w 24h
+
+**Feature — Push przy tworzeniu INTERNAL eventu:**
+- `event.create` — powiadomienie in-app + push do całej kadry przy INTERNAL visibility
+- Treść: `"[Klub]: Nowe wydarzenie wewnętrzne — [data]. Zadeklaruj obecność!"`
+- Reuse `clubData` fetch (eliminacja duplikatu zapytania)
+- Push via `Promise.allSettled`
+
+**Code review (/simplify):**
+- N+1 → 1 query: batch `notification.findMany` z `Set` lookup zamiast `findFirst` per member per event
+- Members + attendance: `Promise.all` zamiast sekwencyjnych zapytań
+- Push: `Promise.allSettled` zamiast for loop (event.ts + reminders)
+- Duplikat club fetch: `clubData` query przeniesiony przed blok INTERNAL
+- `formatEventDateTime()` wyekstrahowany do `src/lib/format.ts`
+
+**Pliki zmodyfikowane:**
+- `src/app/api/reminders/route.ts` — attendance reminders z batch dedup
+- `src/server/trpc/routers/event.ts` — push do kadry przy INTERNAL, deduplikacja clubData
+- `src/server/trpc/routers/coach.ts` — graceful careerEntries fallback
+- `src/app/(public)/coaches/[id]/page.tsx` — graceful careerEntries fallback
+- `src/app/(dashboard)/profile/page.tsx` — graceful careerEntries fallback
+- `src/lib/format.ts` — +formatEventDateTime()
+- `prisma/migrations/20260327200000_add_coach_career/migration.sql` — tabela coach_career_entries
 
 ---
 
