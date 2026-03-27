@@ -50,6 +50,16 @@ export default function SquadPage() {
     onError: (err) => toast.error(err.message),
   });
 
+  const permMut = api.clubMembership.setPermissions.useMutation({
+    onSuccess: () => {
+      toast.success("Uprawnienia zaktualizowane");
+      utils.clubMembership.listMembers.invalidate();
+    },
+    onError: (e: { message: string }) => toast.error(e.message),
+  });
+
+  const isOwner = club?.userId === session?.user?.id;
+
   if (!isClub) {
     return <EmptyState icon={Shield} title="Sekcja dla klubów" description="Zarządzanie kadrą dostępne tylko dla kont klubowych." />;
   }
@@ -151,6 +161,20 @@ export default function SquadPage() {
                       {p.city ? ` · ${p.city}` : ""}
                     </p>
                   </div>
+                  {isOwner && (
+                    <Button
+                      size="sm"
+                      variant={m.canManageEvents ? "default" : "outline"}
+                      className={`text-xs ${m.canManageEvents ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : ""}`}
+                      onClick={() => permMut.mutate({
+                        membershipId: m.id,
+                        canManageEvents: !m.canManageEvents,
+                      })}
+                      disabled={permMut.isPending}
+                    >
+                      {m.canManageEvents ? "✓ Zarządza wydarzeniami" : "Nadaj uprawnienia"}
+                    </Button>
+                  )}
                   <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground hover:text-destructive" onClick={() => setRemovingId(m.id)}>
                     <UserMinus className="h-3.5 w-3.5" />
                   </Button>
@@ -187,6 +211,20 @@ export default function SquadPage() {
                       {c.specialization ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization : "Trener"}
                     </p>
                   </div>
+                  {isOwner && (
+                    <Button
+                      size="sm"
+                      variant={m.canManageEvents ? "default" : "outline"}
+                      className={`text-xs ${m.canManageEvents ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : ""}`}
+                      onClick={() => permMut.mutate({
+                        membershipId: m.id,
+                        canManageEvents: !m.canManageEvents,
+                      })}
+                      disabled={permMut.isPending}
+                    >
+                      {m.canManageEvents ? "✓ Zarządza wydarzeniami" : "Nadaj uprawnienia"}
+                    </Button>
+                  )}
                   <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground hover:text-destructive" onClick={() => setRemovingId(m.id)}>
                     <UserMinus className="h-3.5 w-3.5" />
                   </Button>
