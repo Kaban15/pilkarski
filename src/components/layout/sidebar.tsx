@@ -96,7 +96,7 @@ export function Sidebar({ user }: SidebarProps) {
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar-background md:flex">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-xs font-black text-primary-foreground">
+        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-sky-500 text-xs font-black text-white">
           PS
         </div>
         <span className="text-[15px] font-semibold tracking-tight text-foreground">
@@ -123,7 +123,7 @@ export function Sidebar({ user }: SidebarProps) {
                   href={item.href}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-2 border-violet-500"
                       : "text-sidebar-foreground hover:bg-sidebar-muted hover:text-foreground"
                   }`}
                 >
@@ -136,7 +136,7 @@ export function Sidebar({ user }: SidebarProps) {
                   />
                   <span className="flex-1">{item.label}</span>
                   {badge > 0 && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                    <span className="pulse-dot flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-500 px-1.5 text-[10px] font-bold text-white">
                       {badge > 99 ? "99+" : badge}
                     </span>
                   )}
@@ -150,7 +150,7 @@ export function Sidebar({ user }: SidebarProps) {
       {/* User section */}
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-2 ring-violet-500/30">
             {(user.name || user.email || "?")[0].toUpperCase()}
           </div>
           <div className="flex-1 truncate">
