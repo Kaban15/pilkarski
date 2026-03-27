@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { MapPin } from "lucide-react";
+import { MapPin, ChevronRight } from "lucide-react";
 import { pluralPL } from "@/lib/labels";
 
 type Props = { params: Promise<{ regionSlug: string; levelId: string; groupId: string }> };
@@ -49,10 +49,10 @@ export default async function ClubsInGroupPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <Breadcrumbs
           items={[
-            { label: "Polska", href: "/leagues" },
+            { label: "Ligi", href: "/leagues" },
             { label: region.name, href: `/leagues/${regionSlug}` },
             { label: level.name, href: `/leagues/${regionSlug}/${levelId}` },
             { label: group.name },
@@ -63,7 +63,7 @@ export default async function ClubsInGroupPage({ params }: Props) {
           <h1 className="text-2xl font-bold tracking-tight">
             {level.name} &mdash; {group.name}
           </h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {region.name} &middot; {clubs.length}{" "}
             {pluralPL(clubs.length, "drużyna", "drużyny", "drużyn")}
           </p>
@@ -74,33 +74,41 @@ export default async function ClubsInGroupPage({ params }: Props) {
             Brak drużyn przypisanych do tej grupy.
           </p>
         ) : (
-          <div className="space-y-2">
-            {clubs.map((club) => (
+          <div className="overflow-hidden rounded-lg border border-border">
+            {clubs.map((club, i) => (
               <Link
                 key={club.id}
                 href={`/clubs/${club.id}`}
-                className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:shadow-sm"
+                className={`group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50 ${
+                  i > 0 ? "border-t border-border" : ""
+                }`}
               >
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center text-[11px] font-medium text-muted-foreground">
+                  {i + 1}.
+                </div>
                 {club.logoUrl ? (
                   <img
                     src={club.logoUrl}
                     alt={club.name}
-                    className="h-8 w-8 rounded-md object-cover"
+                    className="h-8 w-8 shrink-0 rounded-md object-cover"
                   />
                 ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
                     {club.name.charAt(0)}
                   </div>
                 )}
-                <div className="flex-1">
-                  <p className="font-medium group-hover:text-primary">{club.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold group-hover:text-primary">
+                    {club.name}
+                  </p>
                   {club.city && (
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       {club.city}
                     </p>
                   )}
                 </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
               </Link>
             ))}
           </div>

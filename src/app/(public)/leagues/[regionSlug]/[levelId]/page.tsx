@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { ChevronRight, Users } from "lucide-react";
+import { pluralPL } from "@/lib/labels";
 
 type Props = { params: Promise<{ regionSlug: string; levelId: string }> };
 
@@ -22,7 +22,6 @@ async function getData(regionSlug: string, levelId: number) {
     include: { _count: { select: { clubs: true } } },
   });
 
-  // Sort numerically: "Grupa 1", "Grupa 2", ..., "Grupa 13" (not alphabetical)
   groups.sort((a, b) => {
     const numA = parseInt(a.name.replace(/\D/g, ""), 10) || 0;
     const numB = parseInt(b.name.replace(/\D/g, ""), 10) || 0;
@@ -48,13 +47,14 @@ export default async function GroupsPage({ params }: Props) {
   if (!data) notFound();
 
   const { region, level, groups } = data;
+  const totalClubs = groups.reduce((sum, g) => sum + g._count.clubs, 0);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <Breadcrumbs
           items={[
-            { label: "Polska", href: "/leagues" },
+            { label: "Ligi", href: "/leagues" },
             { label: region.name, href: `/leagues/${regionSlug}` },
             { label: level.name },
           ]}
@@ -62,26 +62,36 @@ export default async function GroupsPage({ params }: Props) {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight">{level.name}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {region.name} &middot; Wybierz grupę, aby zobaczyć drużyny.
+          <p className="mt-1 text-sm text-muted-foreground">
+            {region.name} &middot; {groups.length} {pluralPL(groups.length, "grupa", "grupy", "grup")} &middot; {totalClubs} klubów
           </p>
         </div>
 
         {groups.length === 0 ? (
           <p className="text-muted-foreground">Brak grup w tym szczeblu.</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {groups.map((group) => (
+          <div className="overflow-hidden rounded-lg border border-border">
+            {groups.map((group, i) => (
               <Link
                 key={group.id}
                 href={`/leagues/${regionSlug}/${levelId}/${group.id}`}
-                className="group flex items-center justify-between rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:shadow-sm"
+                className={`group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50 ${
+                  i > 0 ? "border-t border-border" : ""
+                }`}
               >
-                <span className="font-medium">{group.name}</span>
-                <Badge variant="secondary" className="gap-1">
-                  <Users className="h-3 w-3" />
-                  {group._count.clubs}
-                </Badge>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-bold text-muted-foreground">
+                  {i + 1}
+                </div>
+                <p className="flex-1 text-[13px] font-semibold group-hover:text-primary">
+                  {group.name}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Users className="h-3 w-3" />
+                    {group._count.clubs}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary" />
+                </div>
               </Link>
             ))}
           </div>
