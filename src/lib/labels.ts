@@ -239,3 +239,14 @@ export function pluralPL(n: number, one: string, few: string, many: string): str
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
   return many;
 }
+
+export const EVENT_VISIBILITY_LABELS: Record<string, string> = {
+  PUBLIC: "Publiczne",
+  INTERNAL: "Tylko dla klubu",
+};
+
+export const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
+  YES: "Tak",
+  NO: "Nie",
+  MAYBE: "Nie wiem",
+};
