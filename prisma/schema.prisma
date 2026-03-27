@@ -433,6 +433,7 @@ enum NotificationType {
   SCORE_SUBMITTED        // wynik wpisany — czeka na potwierdzenie
   SCORE_CONFIRMED        // wynik potwierdzony
   SCORE_REJECTED         // wynik odrzucony
+  CLUB_INVITATION        // zaproszenie do kadry klubu
 }
 
 model Notification {
@@ -716,6 +717,7 @@ enum MemberType {
 
 enum MembershipStatus {
   PENDING
+  INVITED
   ACCEPTED
   REJECTED
   LEFT
