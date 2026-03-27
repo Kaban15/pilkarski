@@ -123,6 +123,7 @@ model Club {
   posts                ClubPost[]
   memberships          ClubMembership[]
   lineups              TeamLineup[]
+  groupChat            Conversation?
 
   @@map("clubs")
 }
@@ -475,8 +476,10 @@ model Notification {
 
 model Conversation {
   id        String   @id @default(uuid()) @db.Uuid
+  clubId    String?  @unique @map("club_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
+  club         Club?                    @relation(fields: [clubId], references: [id], onDelete: Cascade)
   participants ConversationParticipant[]
   messages     Message[]
 
