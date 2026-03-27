@@ -276,39 +276,42 @@ export default async function LandingPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {([
                 {
-                  Icon: Shield, title: "Dla klubów", accent: "emerald",
+                  Icon: Shield, title: "Dla klubów",
                   items: ["Sparingi — rywale z regionu zgłoszą się sami", "Pipeline rekrutacyjny i nabory online", "Tablica społeczności i wiadomości"],
                   cta: "Zarejestruj klub", extraClass: "",
+                  hoverBorder: "hover:border-emerald-500/20", iconBg: "bg-emerald-500/10", iconText: "text-emerald-400", bulletText: "text-emerald-400/50", ctaText: "text-emerald-400 hover:text-emerald-300",
                 },
                 {
-                  Icon: Users, title: "Dla zawodników", accent: "violet",
+                  Icon: Users, title: "Dla zawodników",
                   items: ["Nabory dopasowane do pozycji i regionu", "Profil zawodnika z historią kariery", "Bezpośredni czat z klubami"],
                   cta: "Dołącz jako zawodnik", extraClass: "",
+                  hoverBorder: "hover:border-violet-500/20", iconBg: "bg-violet-500/10", iconText: "text-violet-400", bulletText: "text-violet-400/50", ctaText: "text-violet-400 hover:text-violet-300",
                 },
                 {
-                  Icon: GraduationCap, title: "Dla trenerów", accent: "sky",
+                  Icon: GraduationCap, title: "Dla trenerów",
                   items: ["Profil z licencją i specjalizacją", "Katalog treningów indywidualnych", "Dostęp do naborów i społeczności"],
                   cta: "Dołącz jako trener", extraClass: "sm:col-span-2 lg:col-span-1",
+                  hoverBorder: "hover:border-sky-500/20", iconBg: "bg-sky-500/10", iconText: "text-sky-400", bulletText: "text-sky-400/50", ctaText: "text-sky-400 hover:text-sky-300",
                 },
-              ] as const).map((role) => (
-                <div key={role.title} className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] hover:border-${role.accent}-500/20 ${role.extraClass}`}>
+              ]).map((role) => (
+                <div key={role.title} className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] ${role.hoverBorder} ${role.extraClass}`}>
                   <div className="mb-5 flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-${role.accent}-500/10`}>
-                      <role.Icon className={`h-4 w-4 text-${role.accent}-400`} />
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${role.iconBg}`}>
+                      <role.Icon className={`h-4 w-4 ${role.iconText}`} />
                     </div>
                     <h3 className="text-[15px] font-semibold">{role.title}</h3>
                   </div>
                   <ul className="space-y-3 text-[14px] text-white/40">
                     {role.items.map((item) => (
                       <li key={item} className="flex items-start gap-2.5">
-                        <Zap className={`mt-0.5 h-3.5 w-3.5 shrink-0 text-${role.accent}-400/50`} />
+                        <Zap className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${role.bulletText}`} />
                         {item}
                       </li>
                     ))}
                   </ul>
                   <Link
                     href="/register"
-                    className={`mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-${role.accent}-400 transition hover:text-${role.accent}-300`}
+                    className={`mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold transition ${role.ctaText}`}
                   >
                     {role.cta}
                     <ArrowRight className="h-3.5 w-3.5" />

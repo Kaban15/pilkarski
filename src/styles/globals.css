@@ -76,10 +76,6 @@
     50% { transform: scale(1.3); }
   }
 
-  --animate-blob-1: blob-1 8s ease-in-out infinite;
-  --animate-blob-2: blob-2 10s ease-in-out infinite;
-  --animate-blob-3: blob-3 12s ease-in-out infinite;
-  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
 }
 
 :root {
@@ -192,31 +188,17 @@ button, a, [role="button"] {
 .reveal-delay-3 { transition-delay: 300ms; }
 .reveal-delay-4 { transition-delay: 400ms; }
 
-/* Hover glow */
-.hover-glow-violet { transition: transform 0.2s, box-shadow 0.2s; }
-.hover-glow-violet:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(124,58,237,0.15); }
-.hover-glow-sky { transition: transform 0.2s, box-shadow 0.2s; }
-.hover-glow-sky:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(14,165,233,0.15); }
-.hover-glow-emerald { transition: transform 0.2s, box-shadow 0.2s; }
-.hover-glow-emerald:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(16,185,129,0.15); }
-.hover-glow-pink { transition: transform 0.2s, box-shadow 0.2s; }
-.hover-glow-pink:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(244,114,182,0.15); }
-
-/* Gradient border */
-.gradient-border {
-  position: relative;
-  background: var(--card);
-  z-index: 0;
+/* Hover glow — shared base */
+[class*="hover-glow-"] {
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.gradient-border::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: conic-gradient(from var(--gradient-angle, 0deg), #7c3aed, #0ea5e9, #10b981, #7c3aed);
-  z-index: -1;
-  animation: gradient-rotate 3s linear infinite;
+[class*="hover-glow-"]:hover {
+  transform: translateY(-2px);
 }
+.hover-glow-violet:hover { box-shadow: 0 0 24px rgba(124,58,237,0.15); }
+.hover-glow-sky:hover { box-shadow: 0 0 24px rgba(14,165,233,0.15); }
+.hover-glow-emerald:hover { box-shadow: 0 0 24px rgba(16,185,129,0.15); }
+.hover-glow-pink:hover { box-shadow: 0 0 24px rgba(244,114,182,0.15); }
 
 /* Pulse notification dot */
 .pulse-dot {
@@ -226,4 +208,12 @@ button, a, [role="button"] {
 /* Page enter */
 .page-enter {
   animation: slide-up 0.3s ease-out;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none; opacity: 1; transform: none; }
+  .page-enter { animation: none; }
+  .pulse-dot { animation: none; }
+  .stagger-children > * { animation: none; opacity: 1; }
 }
