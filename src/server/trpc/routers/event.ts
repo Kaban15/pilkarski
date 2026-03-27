@@ -88,6 +88,34 @@ export const eventRouter = router({
 
       awardPoints(ctx.db, ctx.session.user.id, isRecruitment ? "recruitment_created" : "event_created", event.id).catch(() => {});
 
+      // Notify club members about INTERNAL events (fire-and-forget)
+      if (clubId && input.visibility === "INTERNAL") {
+        ctx.db.clubMembership.findMany({
+          where: { clubId, status: "ACCEPTED" },
+          select: { memberUserId: true },
+        }).then(async (members: { memberUserId: string }[]) => {
+          if (members.length === 0) return;
+          const clubName = (await ctx.db.club.findUnique({ where: { id: clubId! }, select: { name: true } }))?.name ?? "Klub";
+          const dateStr = new Date(input.eventDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+          ctx.db.notification.createMany({
+            data: members.map((m) => ({
+              userId: m.memberUserId,
+              type: "REMINDER" as const,
+              title: `${clubName}: Nowe wydarzenie wewnętrzne`,
+              message: `${input.title} — ${dateStr}. Zadeklaruj obecność!`,
+              link: `/events/${event.id}`,
+            })),
+          }).catch(() => {});
+          for (const m of members) {
+            sendPushToUser(m.memberUserId, {
+              title: `${clubName}: Nowe wydarzenie`,
+              body: `${input.title} — ${dateStr}`,
+              url: `/events/${event.id}`,
+            }).catch(() => {});
+          }
+        }).catch(() => {});
+      }
+
       // Notify club followers (fire-and-forget) — only for club-created events
       if (!clubId) return event;
 

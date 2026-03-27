@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db/client";
+import { sendPushToUser } from "@/server/send-push";
 
 // POST /api/reminders — send reminder notifications
 // Can be called from Vercel Cron or manually
@@ -94,6 +95,74 @@ export async function POST(req: Request) {
         message: `${player.firstName}, uzupełnij pozycję i region — kluby będą mogły Cię znaleźć!`,
         link: "/profile",
       });
+    }
+  }
+
+  // 4. Attendance reminders — INTERNAL events starting in ~24h without attendance declaration
+  const now = new Date();
+  const in20h = new Date(now.getTime() + 20 * 60 * 60 * 1000);
+  const in28h = new Date(now.getTime() + 28 * 60 * 60 * 1000);
+
+  const upcomingInternalEvents = await db.event.findMany({
+    where: {
+      visibility: "INTERNAL",
+      eventDate: { gte: in20h, lte: in28h },
+      clubId: { not: null },
+    },
+    select: {
+      id: true,
+      title: true,
+      eventDate: true,
+      clubId: true,
+      club: { select: { name: true } },
+    },
+  });
+
+  for (const event of upcomingInternalEvents) {
+    if (!event.clubId) continue;
+
+    // Get all accepted members of this club
+    const members = await db.clubMembership.findMany({
+      where: { clubId: event.clubId, status: "ACCEPTED" },
+      select: { memberUserId: true },
+    });
+
+    // Get members who already declared attendance
+    const declared = await db.eventAttendance.findMany({
+      where: { eventId: event.id },
+      select: { userId: true },
+    });
+    const declaredSet = new Set(declared.map((d) => d.userId));
+
+    // Find members without declaration
+    const undeclared = members.filter((m) => !declaredSet.has(m.memberUserId));
+
+    for (const member of undeclared) {
+      // Skip if already reminded about this event
+      const alreadyReminded = await db.notification.findFirst({
+        where: {
+          userId: member.memberUserId,
+          type: "REMINDER",
+          link: `/events/${event.id}`,
+          createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+        },
+      });
+      if (alreadyReminded) continue;
+
+      const dateStr = event.eventDate.toLocaleDateString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      notifications.push({
+        userId: member.memberUserId,
+        title: "Potwierdź obecność",
+        message: `${event.club?.name ?? "Klub"}: ${event.title} — ${dateStr}. Zadeklaruj czy będziesz!`,
+        link: `/events/${event.id}`,
+      });
+
+      // Fire-and-forget push
+      sendPushToUser(member.memberUserId, {
+        title: "Potwierdź obecność",
+        body: `${event.club?.name ?? "Klub"}: ${event.title} — ${dateStr}`,
+        url: `/events/${event.id}`,
+      }).catch(() => {});
     }
   }
 
