@@ -110,18 +110,12 @@ export const coachRouter = router({
       if (ctx.session.user.role !== "COACH") {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
-      const coach = await ctx.db.coach.findUnique({
-        where: { userId: ctx.session.user.id },
+      const { count } = await ctx.db.coachCareerEntry.deleteMany({
+        where: { id: input.id, coach: { userId: ctx.session.user.id } },
       });
-      if (!coach) throw new TRPCError({ code: "NOT_FOUND" });
-
-      const entry = await ctx.db.coachCareerEntry.findUnique({
-        where: { id: input.id },
-      });
-      if (!entry || entry.coachId !== coach.id) {
+      if (count === 0) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
-
-      return ctx.db.coachCareerEntry.delete({ where: { id: input.id } });
+      return { id: input.id };
     }),
 });

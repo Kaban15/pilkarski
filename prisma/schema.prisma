@@ -201,8 +201,8 @@ model CoachCareerEntry {
   coachId   String   @map("coach_id") @db.Uuid
   clubName  String   @map("club_name") @db.VarChar(200)
   season    String   @db.VarChar(20)
-  role      String   @db.VarChar(100) // e.g. "Pierwszy trener", "Asystent", "Trener bramkarzy"
-  level     String?  @db.VarChar(100) // e.g. "Klasa A", "IV liga", "Ekstraklasa"
+  role      String   @db.VarChar(100)
+  level     String?  @db.VarChar(100)
   notes     String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at")
 

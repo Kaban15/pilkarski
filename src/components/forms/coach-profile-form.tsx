@@ -68,7 +68,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
 
   const addCareerMut = api.coach.addCareerEntry.useMutation({
     onSuccess: (entry) => {
-      setCareers([entry, ...careers]);
+      setCareers((prev) => [entry, ...prev]);
       setNewClubName("");
       setNewSeason("");
       setNewRole("");
@@ -81,7 +81,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
 
   const deleteCareerMut = api.coach.removeCareerEntry.useMutation({
     onSuccess: (_, variables) => {
-      setCareers(careers.filter((c) => c.id !== variables.id));
+      setCareers((prev) => prev.filter((c) => c.id !== variables.id));
       toast.success("Wpis usunięty");
     },
     onError: () => toast.error("Nie udało się usunąć wpisu"),

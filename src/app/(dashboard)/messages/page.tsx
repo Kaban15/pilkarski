@@ -5,9 +5,10 @@ import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConversationSkeleton } from "@/components/card-skeleton";
-import { getUserDisplayName } from "@/lib/labels";
+import { getUserDisplayName, getProfileHref } from "@/lib/labels";
 import { EmptyState } from "@/components/empty-state";
 import { MessageSquare, ArrowRight, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Conversation = {
   id: string;
@@ -29,6 +30,7 @@ type Conversation = {
 };
 
 export default function MessagesPage() {
+  const router = useRouter();
   const { data: conversations = [] as Conversation[], isLoading: loading } = api.message.getConversations.useQuery(undefined, {
     select: (data) => data as unknown as Conversation[],
   });
@@ -60,13 +62,7 @@ export default function MessagesPage() {
             const displayName = getUserDisplayName(conv.otherUser);
             const initial = displayName?.[0]?.toUpperCase() ?? "?";
             const isClub = conv.otherUser?.role === "CLUB";
-            const profileHref = conv.otherUser?.role === "CLUB" && conv.otherUser.club
-              ? `/clubs/${conv.otherUser.club.id}`
-              : conv.otherUser?.role === "PLAYER" && conv.otherUser.player
-                ? `/players/${conv.otherUser.player.id}`
-                : conv.otherUser?.role === "COACH" && conv.otherUser.coach
-                  ? `/coaches/${conv.otherUser.coach.id}`
-                  : null;
+            const profileHref = getProfileHref(conv.otherUser);
 
             return (
               <Link key={conv.id} href={`/messages/${conv.id}`} className="group block">
@@ -84,14 +80,13 @@ export default function MessagesPage() {
                         <p className="font-semibold truncate group-hover:text-primary transition-colors flex items-center gap-1.5">
                           {displayName}
                           {profileHref && (
-                            <Link
-                              href={profileHref}
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(profileHref); }}
                               className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
                               title="Zobacz profil"
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
-                            </Link>
+                            </button>
                           )}
                         </p>
                         {conv.lastMessage && (

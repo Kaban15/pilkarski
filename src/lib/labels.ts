@@ -230,6 +230,19 @@ export function getUserDisplayName(user: {
   return user.email ?? "Nieznany użytkownik";
 }
 
+export function getProfileHref(user: {
+  role?: string;
+  club?: { id: string } | null;
+  player?: { id: string } | null;
+  coach?: { id: string } | null;
+} | null): string | null {
+  if (!user) return null;
+  if (user.role === "CLUB" && user.club) return `/clubs/${user.club.id}`;
+  if (user.role === "PLAYER" && user.player) return `/players/${user.player.id}`;
+  if (user.role === "COACH" && user.coach) return `/coaches/${user.coach.id}`;
+  return null;
+}
+
 /**
  * Polish noun pluralization: 1 → one, 2-4/22-24/… → few, rest → many.
  * Handles teens (12-14 → many) correctly.
