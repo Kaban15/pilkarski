@@ -124,7 +124,7 @@ const LEAGUE_STRUCTURE: Record<string, LeagueLevel[]> = {
     { name: "V liga", tier: 2, groups: 3 },
     { name: "Klasa okręgowa", tier: 3, groups: 6 },
     { name: "Klasa A", tier: 4, groups: 9 },
-    { name: "Klasa B", tier: 5, groups: 12 },
+    { name: "Klasa B", tier: 5, groups: 13 },
   ],
   "zachodniopomorski-zpn": [
     { name: "IV liga", tier: 1, groups: 1 },

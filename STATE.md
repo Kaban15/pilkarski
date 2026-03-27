@@ -1249,6 +1249,18 @@
 - `src/app/(dashboard)/search/page.tsx` — liga w wynikach
 - `src/lib/labels.ts` — `pluralPL()` helper (poprawna odmiana polska)
 
+**Seed — realne dane ligowe (2024/2025):**
+- Źródła: Wikipedia, wielkopolskizpn.pl, 90minut.pl, PZPN
+- V liga dodana w 4 regionach (Małopolskie, Mazowieckie, Śląskie, Wielkopolskie)
+- Klasa C tylko w Małopolskim i Śląskim (+ Dolnośląskim wg niektórych źródeł)
+- Podlaskie bez Klasy B (nie istnieje)
+- Dane per województwo: 16 regionów, 69 szczebli, 397 grup
+- Seed obsługuje bezpieczne czyszczenie nieaktualnych poziomów/grup (nie kasuje z przypisanymi klubami)
+
+**Sortowanie grup numerycznie:**
+- `sortGroupsByNumber()` helper w `region.ts` — sortuje "Grupa 1"..."Grupa 13" numerycznie (nie alfabetycznie)
+- Użyte w: `region.leagueGroups`, `region.hierarchy`, strona `[levelId]/page.tsx`
+
 **Code review (/simplify):**
 - `pluralPL()` — poprawna odmiana polska (12-14→many, 22-24→few)
 - React `cache()` na `getRegionBySlug` — eliminacja podwójnego DB query

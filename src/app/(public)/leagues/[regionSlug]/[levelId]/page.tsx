@@ -19,8 +19,14 @@ async function getData(regionSlug: string, levelId: number) {
 
   const groups = await db.leagueGroup.findMany({
     where: { leagueLevelId: levelId },
-    orderBy: { name: "asc" },
     include: { _count: { select: { clubs: true } } },
+  });
+
+  // Sort numerically: "Grupa 1", "Grupa 2", ..., "Grupa 13" (not alphabetical)
+  groups.sort((a, b) => {
+    const numA = parseInt(a.name.replace(/\D/g, ""), 10) || 0;
+    const numB = parseInt(b.name.replace(/\D/g, ""), 10) || 0;
+    return numA - numB;
   });
 
   return { region, level, groups };
