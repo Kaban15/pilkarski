@@ -30,6 +30,7 @@ export default function EditEventPage() {
   const { data: event } = api.event.getById.useQuery({ id }, { enabled: !!id });
 
   const [selectedType, setSelectedType] = useState<EventTypeValue | null>(null);
+  const [visibility, setVisibility] = useState<string | null>(null);
 
   const updateMut = api.event.update.useMutation({
     onSuccess: () => {
@@ -53,6 +54,7 @@ export default function EditEventPage() {
     setFieldErrors({});
 
     const fd = new FormData(e.currentTarget);
+    const currentVisibility = visibility ?? (event?.visibility ?? "PUBLIC");
     const data: Record<string, unknown> = {
       id,
       type: currentType,
@@ -62,6 +64,7 @@ export default function EditEventPage() {
       location: (fd.get("location") as string) || undefined,
       maxParticipants: fd.get("maxParticipants") ? Number(fd.get("maxParticipants")) : undefined,
       regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+      visibility: currentVisibility,
     };
 
     if (isRecruitment) {
@@ -113,6 +116,18 @@ export default function EditEventPage() {
               {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Widoczność</label>
+            <select
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={visibility ?? (event.visibility ?? "PUBLIC")}
+              onChange={(e) => setVisibility(e.target.value)}
+            >
+              <option value="PUBLIC">Publiczne</option>
+              <option value="INTERNAL">Tylko dla klubu</option>
             </select>
           </div>
 

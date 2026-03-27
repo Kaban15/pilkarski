@@ -26,6 +26,7 @@ export default function NewEventPage() {
   const router = useRouter();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [selectedType, setSelectedType] = useState<EventTypeValue>("OPEN_TRAINING");
+  const [visibility, setVisibility] = useState("PUBLIC");
   const formRef = useRef<HTMLFormElement>(null);
 
   const { data: regions = [] } = api.region.list.useQuery();
@@ -74,6 +75,7 @@ export default function NewEventPage() {
       location: (fd.get("location") as string) || undefined,
       maxParticipants: fd.get("maxParticipants") ? Number(fd.get("maxParticipants")) : undefined,
       regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+      visibility,
     };
 
     if (isRecruitment) {
@@ -117,6 +119,18 @@ export default function NewEventPage() {
               {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Widoczność</label>
+            <select
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={visibility}
+              onChange={(e) => setVisibility(e.target.value)}
+            >
+              <option value="PUBLIC">Publiczne</option>
+              <option value="INTERNAL">Tylko dla klubu</option>
             </select>
           </div>
 

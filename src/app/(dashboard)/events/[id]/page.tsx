@@ -17,6 +17,7 @@ import { SendMessageButton } from "@/components/send-message-button";
 import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS, SPARING_LEVEL_LABELS } from "@/lib/labels";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { AttendanceSection } from "./_components/attendance-section";
 import {
   Calendar,
   MapPin,
@@ -54,6 +55,11 @@ export default function EventDetailPage() {
 
   const utils = api.useUtils();
   const { data: event } = api.event.getById.useQuery({ id }, { enabled: !!id });
+
+  const { data: myMembership } = api.clubMembership.myMembership.useQuery(
+    { clubId: event?.clubId ?? "" },
+    { enabled: !!event?.clubId && event?.visibility === "INTERNAL" && !!session?.user }
+  );
 
   const applyMut = api.event.applyFor.useMutation({
     onSuccess: () => {
@@ -106,6 +112,9 @@ export default function EventDetailPage() {
             <Badge className="bg-violet-500/10 text-violet-700 hover:bg-violet-500/10 dark:text-violet-400">
               {EVENT_TYPE_LABELS[event.type]}
             </Badge>
+            {event.visibility === "INTERNAL" && (
+              <Badge className="bg-amber-500/10 text-amber-600">Tylko dla klubu</Badge>
+            )}
           </div>
           <p className="mt-1.5 text-muted-foreground">
             {event.club?.name ?? "Trener"}
@@ -237,6 +246,15 @@ export default function EventDetailPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Attendance section (for INTERNAL events) */}
+      {event.visibility === "INTERNAL" && session?.user && (
+        <AttendanceSection
+          eventId={id}
+          isClubMember={myMembership?.status === "ACCEPTED" || event?.club?.userId === session?.user?.id}
+          isAdmin={event?.club?.userId === session?.user?.id}
+        />
       )}
 
       {/* Apply section (for players) */}
