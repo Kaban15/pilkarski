@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–23 ✅ → Etap 24: Sparing Scores + League SEO ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–24 ✅ → Etap 25: Internal Events, Attendance & Permissions ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1302,6 +1302,51 @@
 - `src/app/sitemap.ts` — dynamic league URLs
 
 **Migracja:** `20260327140000_add_sparing_scores` — ZASTOSOWANA
+
+---
+
+### Etap 25: Internal Events, Attendance & Club Permissions ✅
+
+**Cel:** Wydarzenia wewnętrzne widoczne tylko dla członków klubu, śledzenie obecności, delegowanie uprawnień.
+
+**Schema:**
+- Enum `EventVisibility` (PUBLIC/INTERNAL), `AttendanceStatus` (YES/NO/MAYBE)
+- Model `EventAttendance` (eventId+userId unique, status, updatedAt)
+- `Event.visibility` — domyślnie PUBLIC
+- `ClubMembership.canManageEvents` — boolean, domyślnie false
+
+**Backend:**
+- `checkEventPermission()` helper — owner LUB member z canManageEvents
+- `event.create` — obsługuje `visibility` z inputu
+- `event.list` — filtruje `visibility: "PUBLIC"` (INTERNAL widoczne przez event.my)
+- `event.getById` — jeśli INTERNAL, sprawdza membership → 404 dla nie-członków
+- `event.setAttendance` — upsert YES/NO/MAYBE, walidacja: INTERNAL + member
+- `event.getAttendance` — lista z user info + stats (yes/no/maybe) + myStatus
+- `clubMembership.setPermissions` — toggle canManageEvents, owner-only
+
+**Frontend:**
+- `AttendanceSection` — widget z 3 przyciskami (Tak/Nie/Nie wiem) + lista dla admina
+- `/events/[id]` — badge "Tylko dla klubu" (amber) + AttendanceSection
+- `/events/new` + `/events/[id]/edit` — dropdown widoczności (Publiczne / Tylko dla klubu)
+- `/squad` — toggle "Zarządza wydarzeniami" per członek (owner-only)
+
+**Pliki nowe:**
+- `src/server/check-event-permission.ts`
+- `src/app/(dashboard)/events/[id]/_components/attendance-section.tsx`
+- `prisma/migrations/20260327160000_add_event_visibility_attendance/migration.sql`
+
+**Pliki zmodyfikowane:**
+- `prisma/schema.prisma` — 2 enumy, model EventAttendance, pola visibility + canManageEvents
+- `src/server/trpc/routers/event.ts` — visibility filter + 2 nowe procedury
+- `src/server/trpc/routers/club-membership.ts` — setPermissions
+- `src/lib/validators/event.ts` — visibility w schema
+- `src/lib/labels.ts` — EVENT_VISIBILITY_LABELS, ATTENDANCE_STATUS_LABELS
+- `src/app/(dashboard)/events/[id]/page.tsx` — badge + AttendanceSection
+- `src/app/(dashboard)/events/new/page.tsx` — visibility selector
+- `src/app/(dashboard)/events/[id]/edit/page.tsx` — visibility selector
+- `src/app/(dashboard)/squad/page.tsx` — permissions toggle
+
+**Migracja:** `20260327160000_add_event_visibility_attendance` — ZASTOSOWANA
 
 ---
 
