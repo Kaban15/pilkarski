@@ -367,6 +367,151 @@ export const sparingRouter = router({
       });
     }),
 
+  submitScore: protectedProcedure
+    .input(z.object({
+      sparingId: z.string().uuid(),
+      homeScore: z.number().int().min(0).max(99),
+      awayScore: z.number().int().min(0).max(99),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const offer = await ctx.db.sparingOffer.findUnique({
+        where: { id: input.sparingId },
+        include: {
+          club: { select: { userId: true, name: true } },
+          applications: {
+            where: { status: "ACCEPTED" },
+            include: { applicantClub: { select: { userId: true, name: true } } },
+          },
+        },
+      });
+
+      if (!offer) throw new TRPCError({ code: "NOT_FOUND" });
+      if (offer.status !== "COMPLETED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Wynik można wpisać tylko po zakończeniu sparingu" });
+      }
+      if (offer.homeScore !== null) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Wynik już został wpisany" });
+      }
+
+      const acceptedApp = offer.applications[0];
+      const isOwner = offer.club.userId === userId;
+      const isRival = acceptedApp?.applicantClub.userId === userId;
+      if (!isOwner && !isRival) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Tylko uczestnicy sparingu mogą wpisać wynik" });
+      }
+
+      const updated = await ctx.db.sparingOffer.update({
+        where: { id: input.sparingId },
+        data: {
+          homeScore: input.homeScore,
+          awayScore: input.awayScore,
+          scoreSubmittedBy: userId,
+        },
+      });
+
+      const otherUserId = isOwner ? acceptedApp?.applicantClub.userId : offer.club.userId;
+      if (otherUserId) {
+        ctx.db.notification.create({
+          data: {
+            userId: otherUserId,
+            type: "SCORE_SUBMITTED",
+            title: "Wynik do potwierdzenia",
+            message: `Wynik ${input.homeScore}:${input.awayScore} — potwierdź lub odrzuć`,
+            link: `/sparings/${input.sparingId}`,
+          },
+        }).catch(() => {});
+        sendPushToUser(otherUserId, {
+          title: "Wynik do potwierdzenia",
+          body: `Wynik ${input.homeScore}:${input.awayScore}`,
+          url: `/sparings/${input.sparingId}`,
+        }).catch(() => {});
+      }
+
+      return updated;
+    }),
+
+  confirmScore: protectedProcedure
+    .input(z.object({
+      sparingId: z.string().uuid(),
+      confirm: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const offer = await ctx.db.sparingOffer.findUnique({
+        where: { id: input.sparingId },
+        include: {
+          club: { select: { userId: true } },
+          applications: {
+            where: { status: "ACCEPTED" },
+            include: { applicantClub: { select: { userId: true } } },
+          },
+        },
+      });
+
+      if (!offer) throw new TRPCError({ code: "NOT_FOUND" });
+      if (offer.homeScore === null) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Brak wyniku do potwierdzenia" });
+      }
+      if (offer.scoreConfirmed) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Wynik już potwierdzony" });
+      }
+      if (offer.scoreSubmittedBy === userId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Nie możesz potwierdzić własnego wyniku" });
+      }
+
+      const isOwner = offer.club.userId === userId;
+      const isRival = offer.applications[0]?.applicantClub.userId === userId;
+      if (!isOwner && !isRival) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      if (input.confirm) {
+        const updated = await ctx.db.sparingOffer.update({
+          where: { id: input.sparingId },
+          data: { scoreConfirmed: true },
+        });
+
+        ctx.db.notification.create({
+          data: {
+            userId: offer.scoreSubmittedBy!,
+            type: "SCORE_CONFIRMED",
+            title: "Wynik potwierdzony",
+            message: `Wynik ${offer.homeScore}:${offer.awayScore} został potwierdzony`,
+            link: `/sparings/${input.sparingId}`,
+          },
+        }).catch(() => {});
+
+        return updated;
+      } else {
+        const updated = await ctx.db.sparingOffer.update({
+          where: { id: input.sparingId },
+          data: {
+            homeScore: null,
+            awayScore: null,
+            scoreSubmittedBy: null,
+            scoreConfirmed: false,
+          },
+        });
+
+        if (offer.scoreSubmittedBy) {
+          ctx.db.notification.create({
+            data: {
+              userId: offer.scoreSubmittedBy,
+              type: "SCORE_REJECTED",
+              title: "Wynik odrzucony",
+              message: "Twój wynik został odrzucony. Możesz wpisać go ponownie.",
+              link: `/sparings/${input.sparingId}`,
+            },
+          }).catch(() => {});
+        }
+
+        return updated;
+      }
+    }),
+
   // My sparings (as owner)
   my: protectedProcedure.query(async ({ ctx }) => {
     const club = await ctx.db.club.findUnique({
