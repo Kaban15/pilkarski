@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–28 ✅ → Etap 29: Violet Surge Visual Redesign ✅ → Etap 30: League Catalog Redesign ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–28 ✅ → Etap 29: Violet Surge ✅ → Etap 30: League Catalog ✅ → Etap 31: League Map + Active Badge ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1595,6 +1595,37 @@
 - `src/app/(public)/leagues/[regionSlug]/page.tsx`
 - `src/app/(public)/leagues/[regionSlug]/[levelId]/page.tsx`
 - `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx`
+
+---
+
+### Etap 31: League Map + Active Club Badge ✅
+
+**Cel:** Interaktywna mapa województw na stronie lig + badge "Aktywny" przy klubach.
+
+**Mapa geograficzna:**
+- Komponent `PolandMap` — grid 4x4 odzwierciedlający pozycje geograficzne 16 województw
+- Kafelki z MapPin ikoną, skróconymi nazwami, liczba klubów/lig
+- Violet glow na hover z cieniem, link do `/leagues/[slug]`
+- Ukryta na mobile (`hidden sm:block`), pełna lista regionów pod spodem
+- V1 (SVG wielokąty) zastąpiona V2 (grid) — czytelniejsza, bardziej wizualna
+
+**Badge "Aktywny":**
+- Zielony badge `Aktywny` przy klubach w katalogu ligowym (`/leagues/[r]/[l]/[g]`)
+- Wyświetlany gdy klub ma sparingi lub wydarzenia w ostatnich 6 miesięcy
+- Query z `_count` (brak dodatkowych zapytań N+1)
+
+**Strona lig — ulepszenia wizualne:**
+- Hero: gradient trophy icon (violet→sky) z shadow-violet-500/20
+- Statystyki: totale szczebli + klubów z `pluralPL`
+- Kafelki regionów: gradient icon bg, `hover-glow-violet`, pełne nazwy bez truncation
+- Uppercase sekcja labels, ScrollReveal na mapie i grid
+
+**Pliki nowe:**
+- `src/components/leagues/poland-map.tsx`
+
+**Pliki zmodyfikowane:**
+- `src/app/(public)/leagues/page.tsx` — mapa + ulepszony hero + kafelki
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx` — badge "Aktywny"
 
 ---
 
