@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
+import { ClubInvitations } from "@/components/dashboard/club-invitations";
 import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
 import { PlayerOnboarding } from "@/components/onboarding/player-onboarding";
 import { CoachOnboarding } from "@/components/onboarding/coach-onboarding";
@@ -514,6 +515,7 @@ export default function FeedPage() {
       {isClub && <ClubDashboardSections />}
 
       {isCoach && <CoachDashboardStats />}
+      {(isPlayer || isCoach) && <ClubInvitations />}
       {isPlayer && <NewClubsInRegion />}
       {(isPlayer || isCoach) && <PlayerRecruitments />}
       {(isPlayer || isCoach) && <PlayerDevelopment />}
