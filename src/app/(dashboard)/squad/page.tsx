@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { POSITION_LABELS, COACH_SPECIALIZATION_LABELS } from "@/lib/labels";
 import { Users, Check, X, UserMinus, Shield } from "lucide-react";
+import { InviteMemberDialog } from "@/components/squad/invite-member-dialog";
 
 export default function SquadPage() {
   const { data: session } = useSession();
@@ -71,7 +72,15 @@ export default function SquadPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Kadra klubu</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Kadra klubu</h1>
+          {isOwner && (
+            <InviteMemberDialog onInvited={() => {
+              utils.clubMembership.listMembers.invalidate();
+              utils.clubMembership.listRequestsForClub.invalidate();
+            }} />
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">Zarządzaj zawodnikami i trenerami</p>
       </div>
 
@@ -114,18 +123,23 @@ export default function SquadPage() {
                       <p className="text-sm font-semibold">{name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Badge variant="secondary" className="text-[10px]">{req.memberType === "COACH" ? "Trener" : "Zawodnik"}</Badge>
+                        <Badge className={req.status === "INVITED" ? "bg-amber-500/10 text-amber-600" : "bg-blue-500/10 text-blue-600"}>
+                          {req.status === "INVITED" ? "Zaproszony" : "Prośba"}
+                        </Badge>
                         {detail && <span className="text-[11px] text-muted-foreground">{detail}</span>}
                       </div>
                       {req.message && <p className="mt-1 text-[11px] text-muted-foreground italic">"{req.message}"</p>}
                     </div>
-                    <div className="flex gap-1.5">
-                      <Button size="sm" className="h-8 gap-1" onClick={() => respondMut.mutate({ membershipId: req.id, decision: "ACCEPT" })} disabled={respondMut.isPending}>
-                        <Check className="h-3.5 w-3.5" /> Akceptuj
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => respondMut.mutate({ membershipId: req.id, decision: "REJECT" })} disabled={respondMut.isPending}>
-                        <X className="h-3.5 w-3.5" /> Odrzuć
-                      </Button>
-                    </div>
+                    {req.status !== "INVITED" && (
+                      <div className="flex gap-1.5">
+                        <Button size="sm" className="h-8 gap-1" onClick={() => respondMut.mutate({ membershipId: req.id, decision: "ACCEPT" })} disabled={respondMut.isPending}>
+                          <Check className="h-3.5 w-3.5" /> Akceptuj
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => respondMut.mutate({ membershipId: req.id, decision: "REJECT" })} disabled={respondMut.isPending}>
+                          <X className="h-3.5 w-3.5" /> Odrzuć
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
