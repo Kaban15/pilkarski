@@ -31,9 +31,10 @@ export default function ClubChatPage() {
     },
   });
 
+  const lastMessageId = data?.messages?.[data.messages.length - 1]?.id;
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [data?.messages]);
+  }, [lastMessageId]);
 
   const handleSend = () => {
     const trimmed = message.trim();
