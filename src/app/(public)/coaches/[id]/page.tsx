@@ -19,10 +19,23 @@ import {
 type Props = { params: Promise<{ id: string }> };
 
 async function getCoach(id: string) {
-  return db.coach.findUnique({
+  const coach = await db.coach.findUnique({
     where: { id },
-    include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
+    include: { region: true },
   });
+  if (!coach) return null;
+
+  let careerEntries: { id: string; clubName: string; season: string; role: string; level: string | null; notes: string | null }[] = [];
+  try {
+    careerEntries = await db.coachCareerEntry.findMany({
+      where: { coachId: id },
+      orderBy: { season: "desc" },
+    });
+  } catch {
+    // Table may not exist yet if migration not applied
+  }
+
+  return { ...coach, careerEntries };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

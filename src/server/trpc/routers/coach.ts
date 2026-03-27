@@ -6,10 +6,14 @@ import { coachCareerEntrySchema } from "@/lib/validators/coach";
 export const coachRouter = router({
   me: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "COACH") return null;
-    return ctx.db.coach.findUnique({
+    const coach = await ctx.db.coach.findUnique({
       where: { userId: ctx.session.user.id },
-      include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
+      include: { region: true },
     });
+    if (!coach) return null;
+    let careerEntries: { id: string; clubName: string; season: string; role: string; level: string | null; notes: string | null; createdAt: Date }[] = [];
+    try { careerEntries = await ctx.db.coachCareerEntry.findMany({ where: { coachId: coach.id }, orderBy: { season: "desc" } }); } catch {}
+    return { ...coach, careerEntries };
   }),
 
   update: protectedProcedure
@@ -41,10 +45,12 @@ export const coachRouter = router({
     .query(async ({ ctx, input }) => {
       const coach = await ctx.db.coach.findUnique({
         where: { id: input.id },
-        include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
+        include: { region: true },
       });
       if (!coach) throw new TRPCError({ code: "NOT_FOUND" });
-      return coach;
+      let careerEntries: { id: string; clubName: string; season: string; role: string; level: string | null; notes: string | null; createdAt: Date }[] = [];
+      try { careerEntries = await ctx.db.coachCareerEntry.findMany({ where: { coachId: input.id }, orderBy: { season: "desc" } }); } catch {}
+      return { ...coach, careerEntries };
     }),
 
   list: publicProcedure

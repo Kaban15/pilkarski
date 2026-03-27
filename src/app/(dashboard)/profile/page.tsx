@@ -28,11 +28,13 @@ export default async function ProfilePage() {
     const [coach, resolvedRegions] = await Promise.all([
       db.coach.findUnique({
         where: { userId: user.id },
-        include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
+        include: { region: true },
       }),
       regions,
     ]);
-    return <CoachProfileForm coach={coach!} regions={resolvedRegions} />;
+    let careerEntries: { id: string; clubName: string; season: string; role: string; level: string | null; notes: string | null }[] = [];
+    try { careerEntries = await db.coachCareerEntry.findMany({ where: { coachId: coach!.id }, orderBy: { season: "desc" } }); } catch {}
+    return <CoachProfileForm coach={{ ...coach!, careerEntries }} regions={resolvedRegions} />;
   }
 
   const [player, resolvedRegions] = await Promise.all([
