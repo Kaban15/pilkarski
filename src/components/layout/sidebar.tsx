@@ -24,6 +24,7 @@ import {
   GraduationCap,
   Users,
   Medal,
+  UsersRound,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -64,6 +65,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/leagues", icon: Medal, label: "Ligi" },
       { href: "/search", icon: Search, label: "Szukaj" },
       { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
+      { href: "/club-chat", icon: UsersRound, label: "Czat klubu" },
       { href: "/notifications", icon: Bell, label: "Powiadomienia" },
     ],
   },
