@@ -19,7 +19,6 @@ export const createSparingSchema = z.object({
   location: z.string().max(300).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
-  costSplitInfo: z.string().max(500).optional(),
   level: z.enum(SPARING_LEVELS).optional(),
   ageCategory: z.enum(AGE_CATEGORIES).optional(),
   preferredTime: z.string().max(100).optional(),

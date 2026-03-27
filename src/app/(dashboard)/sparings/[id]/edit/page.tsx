@@ -40,7 +40,6 @@ export default function EditSparingPage() {
               description: sparing.description,
               matchDate: sparing.matchDate as unknown as string,
               location: sparing.location,
-              costSplitInfo: sparing.costSplitInfo,
               level: sparing.level,
               ageCategory: sparing.ageCategory,
               preferredTime: sparing.preferredTime,

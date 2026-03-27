@@ -17,7 +17,6 @@ import {
   Calendar,
   MapPin,
   Globe,
-  Banknote,
   FileText,
   Pencil,
   Trash2,
@@ -176,19 +175,6 @@ export function SparingInfo({
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Miejsce</p>
                   <p className="font-medium">{sparing.location}</p>
-                </div>
-              </div>
-            )}
-            {sparing.costSplitInfo && (
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
-                  <Banknote className="h-4 w-4 text-amber-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Podział kosztów
-                  </p>
-                  <p className="font-medium">{sparing.costSplitInfo}</p>
                 </div>
               </div>
             )}

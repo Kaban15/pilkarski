@@ -272,14 +272,13 @@ function PlayerDevelopment() {
           </Link>
         </div>
         <div className="space-y-2">
-          {items.map((t: { id: string; title: string; eventDate: string | Date; club?: { name: string } | null; coach?: { firstName: string; lastName: string } | null; priceInfo?: string | null }) => (
+          {items.map((t: { id: string; title: string; eventDate: string | Date; club?: { name: string } | null; coach?: { firstName: string; lastName: string } | null }) => (
             <Link key={t.id} href={`/events/${t.id}`}>
               <div className="flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors hover:border-primary/40">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{t.title}</p>
                   <p className="text-xs text-muted-foreground">
                     {t.club?.name ?? (t.coach ? `${t.coach.firstName} ${t.coach.lastName}` : "")} · {new Date(t.eventDate).toLocaleDateString("pl-PL")}
-                    {t.priceInfo ? ` · ${t.priceInfo}` : ""}
                   </p>
                 </div>
               </div>

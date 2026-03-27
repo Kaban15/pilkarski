@@ -58,7 +58,6 @@ export default function NewEventPage() {
     setInput("title", preset.name);
     setInput("description", preset.description);
     if (preset.maxParticipants) setInput("maxParticipants", String(preset.maxParticipants));
-    if (preset.priceInfo) setInput("priceInfo", preset.priceInfo);
     toast.success(`Szablon "${preset.name}" zastosowany`);
   }
 
@@ -86,9 +85,6 @@ export default function NewEventPage() {
       if (fd.get("targetAgeMin")) data.targetAgeMin = Number(fd.get("targetAgeMin"));
       if (fd.get("targetAgeMax")) data.targetAgeMax = Number(fd.get("targetAgeMax"));
     }
-
-    const price = fd.get("priceInfo") as string;
-    if (price) data.priceInfo = price;
 
     const validation = createEventSchema.safeParse(data);
     if (!validation.success) {
@@ -151,9 +147,6 @@ export default function NewEventPage() {
                     className="rounded-md border border-border bg-card px-3 py-2 text-left text-[13px] transition hover:border-primary/40 hover:bg-primary/5"
                   >
                     <p className="font-medium">{preset.name}</p>
-                    {preset.priceInfo && (
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">{preset.priceInfo}</p>
-                    )}
                   </button>
                 ))}
               </div>
@@ -253,18 +246,6 @@ export default function NewEventPage() {
                   <Input id="targetAgeMax" name="targetAgeMax" type="number" min={5} max={60} placeholder="np. 23" />
                 </div>
               </div>
-            </div>
-          )}
-
-          {isTraining && (
-            <div className="space-y-2 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-4">
-              <Label htmlFor="priceInfo">Cena</Label>
-              <Input
-                id="priceInfo"
-                name="priceInfo"
-                placeholder="np. 120 zł/h, 200 zł za sesję"
-                maxLength={200}
-              />
             </div>
           )}
 

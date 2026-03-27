@@ -46,7 +46,6 @@ type SparingFormProps = {
     description?: string | null;
     matchDate?: string;
     location?: string | null;
-    costSplitInfo?: string | null;
     level?: string | null;
     ageCategory?: string | null;
     preferredTime?: string | null;
@@ -60,7 +59,6 @@ type FormData = {
   description: string;
   matchDate: string;
   location: string;
-  costSplitInfo: string;
   preferredTime: string;
   level: string;
   ageCategory: string;
@@ -103,7 +101,6 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     description: defaultValues?.description ?? "",
     matchDate: matchDateLocal,
     location: defaultValues?.location ?? "",
-    costSplitInfo: defaultValues?.costSplitInfo ?? "",
     preferredTime: defaultValues?.preferredTime ?? "",
     level: defaultValues?.level ?? "",
     ageCategory: defaultValues?.ageCategory ?? "",
@@ -121,7 +118,6 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
       description: form.description || undefined,
       matchDate: form.matchDate,
       location: form.location || undefined,
-      costSplitInfo: form.costSplitInfo || undefined,
       level: (form.level || undefined) as SparingLevel | undefined,
       ageCategory: (form.ageCategory || undefined) as AgeCategory | undefined,
       preferredTime: form.preferredTime || undefined,
@@ -172,7 +168,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
       // Go back to the step with the error
       const errorKeys = Object.keys(getFieldErrors(validation.error));
       if (errorKeys.some((k) => ["title", "level", "ageCategory", "regionId"].includes(k))) setStep(0);
-      else if (errorKeys.some((k) => ["matchDate", "location", "costSplitInfo", "preferredTime"].includes(k))) setStep(1);
+      else if (errorKeys.some((k) => ["matchDate", "location", "preferredTime"].includes(k))) setStep(1);
       setLoading(false);
       return;
     }
@@ -551,18 +547,6 @@ function StepTwoFields({
             placeholder="np. weekendy 10:00-14:00"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="costSplitInfo" className="inline-flex items-center gap-1.5">
-            Podział kosztów
-            <FormTooltip text="Opisz jak chcesz podzielić koszty meczu — np. sędzia, wynajem boiska, szatnie." />
-          </Label>
-          <Input
-            id="costSplitInfo"
-            value={form.costSplitInfo}
-            onChange={(e) => updateField("costSplitInfo", e.target.value)}
-            placeholder="np. 50/50 sędzia + boisko"
-          />
-        </div>
       </div>
     </div>
   );
@@ -604,7 +588,6 @@ function StepThreeSummary({
           {form.level && <SummaryRow label="Poziom" value={SPARING_LEVEL_LABELS[form.level] ?? form.level} />}
           {form.ageCategory && <SummaryRow label="Kategoria wiekowa" value={AGE_CATEGORY_LABELS[form.ageCategory] ?? form.ageCategory} />}
           {form.preferredTime && <SummaryRow label="Preferowane godziny" value={form.preferredTime} />}
-          {form.costSplitInfo && <SummaryRow label="Podział kosztów" value={form.costSplitInfo} />}
         </CardContent>
       </Card>
 

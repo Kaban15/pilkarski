@@ -25,7 +25,6 @@ type TrainingItem = {
   eventDate: string | Date;
   location: string | null;
   maxParticipants: number | null;
-  priceInfo: string | null;
   club: { id: string; name: string; city: string | null; logoUrl: string | null };
   region: { name: string } | null;
 };
@@ -62,9 +61,6 @@ function RecommendedTrainings() {
                   <Badge variant="secondary" className="text-[10px]">
                     {EVENT_TYPE_LABELS[t.type] ?? t.type}
                   </Badge>
-                  {t.priceInfo && (
-                    <span className="ml-auto text-[12px] font-semibold text-primary">{t.priceInfo}</span>
-                  )}
                 </div>
                 <p className="text-[14px] font-semibold leading-snug line-clamp-2">{t.title}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
@@ -175,9 +171,6 @@ export default function TrainingsPage() {
                             <MapPin className="h-3 w-3" />
                             {t.location}
                           </span>
-                        )}
-                        {t.priceInfo && (
-                          <span className="font-medium text-foreground">{t.priceInfo}</span>
                         )}
                       </div>
                     </div>

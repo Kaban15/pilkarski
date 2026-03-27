@@ -47,7 +47,6 @@ export default function EditEventPage() {
   const eventDateLocal = new Date(event.eventDate).toISOString().slice(0, 16);
   const currentType = selectedType ?? (event.type as EventTypeValue);
   const isRecruitment = RECRUITMENT_TYPES.includes(currentType);
-  const isTraining = currentType === "INDIVIDUAL_TRAINING" || currentType === "GROUP_TRAINING";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -75,9 +74,6 @@ export default function EditEventPage() {
       if (fd.get("targetAgeMin")) data.targetAgeMin = Number(fd.get("targetAgeMin"));
       if (fd.get("targetAgeMax")) data.targetAgeMax = Number(fd.get("targetAgeMax"));
     }
-
-    const price = fd.get("priceInfo") as string;
-    if (price) data.priceInfo = price;
 
     const validation = updateEventSchema.safeParse(data);
     if (!validation.success) {
@@ -245,19 +241,6 @@ export default function EditEventPage() {
                   />
                 </div>
               </div>
-            </div>
-          )}
-
-          {isTraining && (
-            <div className="space-y-2 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-4">
-              <Label htmlFor="priceInfo">Cena</Label>
-              <Input
-                id="priceInfo"
-                name="priceInfo"
-                placeholder="np. 120 zł/h, 200 zł za sesję"
-                maxLength={200}
-                defaultValue={event.priceInfo || ""}
-              />
             </div>
           )}
 

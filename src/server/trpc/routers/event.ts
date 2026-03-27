@@ -61,7 +61,6 @@ export const eventRouter = router({
           targetAgeMin: input.targetAgeMin,
           targetAgeMax: input.targetAgeMax,
           targetLevel: input.targetLevel,
-          priceInfo: input.priceInfo,
           visibility: input.visibility,
         },
       });
@@ -161,7 +160,6 @@ export const eventRouter = router({
           targetAgeMin: input.targetAgeMin,
           targetAgeMax: input.targetAgeMax,
           targetLevel: input.targetLevel,
-          priceInfo: input.priceInfo,
         },
       });
     }),
