@@ -46,6 +46,7 @@ export const clubRouter = router({
     .input(
       z.object({
         regionId: z.number().int().optional(),
+        leagueGroupId: z.number().int().optional(),
         search: z.string().max(100).optional(),
         cursor: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(50).default(20),
@@ -54,13 +55,14 @@ export const clubRouter = router({
     .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = {};
       if (input.regionId) where.regionId = input.regionId;
+      if (input.leagueGroupId) where.leagueGroupId = input.leagueGroupId;
       if (input.search) {
         where.name = { contains: input.search, mode: "insensitive" };
       }
 
       const clubs = await ctx.db.club.findMany({
         where: Object.keys(where).length > 0 ? where : undefined,
-        include: { region: true },
+        include: { region: true, leagueGroup: { include: { leagueLevel: true } } },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
         orderBy: { createdAt: "desc" },

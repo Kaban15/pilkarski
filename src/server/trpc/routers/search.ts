@@ -18,7 +18,12 @@ export const searchRouter = router({
               { city: { contains: input.query, mode: "insensitive" } },
             ],
           },
-          include: { region: { select: { name: true } } },
+          include: {
+            region: { select: { name: true, slug: true } },
+            leagueGroup: {
+              include: { leagueLevel: { select: { id: true, name: true } } },
+            },
+          },
           take: input.limit,
           orderBy: { name: "asc" },
         }),
