@@ -1216,11 +1216,9 @@
 **Cel:** Publiczna wyszukiwarka/katalog drużyn przeglądany hierarchicznie: Województwo → Szczebel → Grupa → Lista Klubów.
 
 **Backend (tRPC):**
-- `region.listWithStats` — 16 województw z liczbą klubów (_count)
-- `region.levelsWithStats` — szczeble w regionie z count klubów (through groups)
-- `region.groupsWithStats` — grupy w szczeblu z _count klubów
 - `club.list` rozszerzony o filtr `leagueGroupId` + include leagueGroup
 - `search.global` — wyniki klubów wzbogacone o leagueGroup + leagueLevel
+- Strony używają bezpośredniego Prisma (ten sam pattern co `/clubs/[id]`)
 
 **Frontend — 4 strony publiczne:**
 - `/leagues` — grid 16 województw z badge liczbą klubów
@@ -1243,13 +1241,20 @@
 - `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx`
 
 **Pliki zmodyfikowane:**
-- `src/server/trpc/routers/region.ts` — +3 procedury
 - `src/server/trpc/routers/club.ts` — leagueGroupId filter + include
 - `src/server/trpc/routers/search.ts` — leagueGroup include
 - `src/middleware.ts` — /leagues/ prefix
 - `src/components/layout/sidebar.tsx` — Medal icon + "Ligi"
-- `src/app/(public)/clubs/[id]/page.tsx` — kllikalne badge'e
+- `src/app/(public)/clubs/[id]/page.tsx` — klikalne badge'e (leagueGroupHref extracted)
 - `src/app/(dashboard)/search/page.tsx` — liga w wynikach
+- `src/lib/labels.ts` — `pluralPL()` helper (poprawna odmiana polska)
+
+**Code review (/simplify):**
+- `pluralPL()` — poprawna odmiana polska (12-14→many, 22-24→few)
+- React `cache()` na `getRegionBySlug` — eliminacja podwójnego DB query
+- `Promise.all` na group + clubs w [groupId] — równoległy fetch
+- Usunięte 3 nieużywane tRPC procedures (listWithStats, levelsWithStats, groupsWithStats)
+- `leagueGroupHref` wyekstrahowany w club profile (było powtórzone 3x)
 
 ---
 
