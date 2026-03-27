@@ -25,17 +25,117 @@ const REGIONS = [
   { name: "Zachodniopomorski ZPN", slug: "zachodniopomorski-zpn" },
 ];
 
-// Typowe szczeble ligowe w strukturze regionalnej (od najwyższego)
-const LEAGUE_LEVELS = [
-  { name: "IV liga", tier: 1, groups: 1 },
-  { name: "Klasa okręgowa", tier: 2, groups: 2 },
-  { name: "Klasa A", tier: 3, groups: 4 },
-  { name: "Klasa B", tier: 4, groups: 6 },
-  { name: "Klasa C", tier: 5, groups: 4 },
-];
+// Realna struktura ligowa per województwo (sezon 2024/2025)
+// Źródła: Wikipedia, wielkopolskizpn.pl, 90minut.pl, PZPN
+type LeagueLevel = { name: string; tier: number; groups: number };
+
+const LEAGUE_STRUCTURE: Record<string, LeagueLevel[]> = {
+  "dolnoslaski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 4 },
+    { name: "Klasa A", tier: 3, groups: 13 },
+    { name: "Klasa B", tier: 4, groups: 23 },
+  ],
+  "kujawsko-pomorski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 2 },
+    { name: "Klasa A", tier: 3, groups: 4 },
+    { name: "Klasa B", tier: 4, groups: 8 },
+  ],
+  "lubelski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 4 },
+    { name: "Klasa A", tier: 3, groups: 7 },
+    { name: "Klasa B", tier: 4, groups: 9 },
+  ],
+  "lubuski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 2 },
+    { name: "Klasa A", tier: 3, groups: 5 },
+    { name: "Klasa B", tier: 4, groups: 9 },
+  ],
+  "lodzki-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 4 },
+    { name: "Klasa A", tier: 3, groups: 8 },
+    { name: "Klasa B", tier: 4, groups: 10 },
+  ],
+  "malopolski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "V liga", tier: 2, groups: 2 },
+    { name: "Klasa okręgowa", tier: 3, groups: 8 },
+    { name: "Klasa A", tier: 4, groups: 19 },
+    { name: "Klasa B", tier: 5, groups: 18 },
+    { name: "Klasa C", tier: 6, groups: 5 },
+  ],
+  "mazowiecki-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "V liga", tier: 2, groups: 2 },
+    { name: "Klasa okręgowa", tier: 3, groups: 6 },
+    { name: "Klasa A", tier: 4, groups: 8 },
+    { name: "Klasa B", tier: 5, groups: 9 },
+  ],
+  "opolski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 2 },
+    { name: "Klasa A", tier: 3, groups: 6 },
+    { name: "Klasa B", tier: 4, groups: 13 },
+  ],
+  "podkarpacki-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 5 },
+    { name: "Klasa A", tier: 3, groups: 13 },
+    { name: "Klasa B", tier: 4, groups: 21 },
+  ],
+  "podlaski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 1 },
+    { name: "Klasa A", tier: 3, groups: 3 },
+    // Brak Klasy B w województwie podlaskim
+  ],
+  "pomorski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 3 },
+    { name: "Klasa A", tier: 3, groups: 6 },
+    { name: "Klasa B", tier: 4, groups: 10 },
+  ],
+  "slaski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "V liga", tier: 2, groups: 2 },
+    { name: "Klasa okręgowa", tier: 3, groups: 6 },
+    { name: "Klasa A", tier: 4, groups: 14 },
+    { name: "Klasa B", tier: 5, groups: 14 },
+    { name: "Klasa C", tier: 6, groups: 5 },
+  ],
+  "swietokrzyski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 1 },
+    { name: "Klasa A", tier: 3, groups: 3 },
+    { name: "Klasa B", tier: 4, groups: 3 },
+  ],
+  "warminsko-mazurski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 2 },
+    { name: "Klasa A", tier: 3, groups: 4 },
+    { name: "Klasa B", tier: 4, groups: 4 },
+  ],
+  "wielkopolski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "V liga", tier: 2, groups: 3 },
+    { name: "Klasa okręgowa", tier: 3, groups: 6 },
+    { name: "Klasa A", tier: 4, groups: 9 },
+    { name: "Klasa B", tier: 5, groups: 12 },
+  ],
+  "zachodniopomorski-zpn": [
+    { name: "IV liga", tier: 1, groups: 1 },
+    { name: "Klasa okręgowa", tier: 2, groups: 4 },
+    { name: "Klasa A", tier: 3, groups: 8 },
+    { name: "Klasa B", tier: 4, groups: 8 },
+  ],
+};
 
 async function main() {
-  console.log("Seeding regions...");
+  console.log("Seeding regions and league structure...");
 
   for (const region of REGIONS) {
     const created = await db.region.upsert({
@@ -46,7 +146,29 @@ async function main() {
 
     console.log(`  Region: ${created.name} (id: ${created.id})`);
 
-    for (const level of LEAGUE_LEVELS) {
+    const levels = LEAGUE_STRUCTURE[region.slug];
+    if (!levels) {
+      console.warn(`    ⚠ No league structure for ${region.slug}`);
+      continue;
+    }
+
+    // Remove old levels/groups that no longer exist in updated structure
+    const existingLevels = await db.leagueLevel.findMany({
+      where: { regionId: created.id },
+      include: { groups: true },
+    });
+
+    const newLevelNames = new Set(levels.map((l) => l.name));
+    for (const existing of existingLevels) {
+      if (!newLevelNames.has(existing.name)) {
+        // Delete groups first (cascade may handle, but be explicit)
+        await db.leagueGroup.deleteMany({ where: { leagueLevelId: existing.id } });
+        await db.leagueLevel.delete({ where: { id: existing.id } });
+        console.log(`    Removed outdated level: ${existing.name}`);
+      }
+    }
+
+    for (const level of levels) {
       const createdLevel = await db.leagueLevel.upsert({
         where: {
           regionId_name: { regionId: created.id, name: level.name },
@@ -59,6 +181,27 @@ async function main() {
         },
       });
 
+      // Remove excess groups if count decreased
+      const existingGroups = await db.leagueGroup.findMany({
+        where: { leagueLevelId: createdLevel.id },
+        orderBy: { name: "asc" },
+      });
+
+      for (const eg of existingGroups) {
+        const groupNum = parseInt(eg.name.replace("Grupa ", ""), 10);
+        if (groupNum > level.groups) {
+          // Only delete if no clubs assigned
+          const clubCount = await db.club.count({ where: { leagueGroupId: eg.id } });
+          if (clubCount === 0) {
+            await db.leagueGroup.delete({ where: { id: eg.id } });
+            console.log(`    Removed empty group: ${level.name} ${eg.name}`);
+          } else {
+            console.warn(`    ⚠ Cannot remove ${level.name} ${eg.name} — ${clubCount} clubs assigned`);
+          }
+        }
+      }
+
+      // Create missing groups
       for (let g = 1; g <= level.groups; g++) {
         const groupName = level.groups === 1 ? "Grupa 1" : `Grupa ${g}`;
         await db.leagueGroup.upsert({
