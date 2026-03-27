@@ -15,3 +15,12 @@ export function formatShortDate(date: string | Date) {
     year: "numeric",
   }).format(new Date(date));
 }
+
+export function formatEventDateTime(date: string | Date) {
+  return new Intl.DateTimeFormat("pl-PL", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(date));
+}

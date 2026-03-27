@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db/client";
 import { sendPushToUser } from "@/server/send-push";
+import { formatEventDateTime } from "@/lib/format";
 
 // POST /api/reminders — send reminder notifications
 // Can be called from Vercel Cron or manually
@@ -118,52 +119,63 @@ export async function POST(req: Request) {
     },
   });
 
-  for (const event of upcomingInternalEvents) {
-    if (!event.clubId) continue;
+  if (upcomingInternalEvents.length > 0) {
+    const eventLinks = upcomingInternalEvents.map((e) => `/events/${e.id}`);
 
-    // Get all accepted members of this club
-    const members = await db.clubMembership.findMany({
-      where: { clubId: event.clubId, status: "ACCEPTED" },
-      select: { memberUserId: true },
+    // Batch: get all recent reminders for these events in one query
+    const recentReminders = await db.notification.findMany({
+      where: {
+        type: "REMINDER",
+        link: { in: eventLinks },
+        createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+      },
+      select: { userId: true, link: true },
     });
+    const remindedSet = new Set(recentReminders.map((r) => `${r.userId}:${r.link}`));
 
-    // Get members who already declared attendance
-    const declared = await db.eventAttendance.findMany({
-      where: { eventId: event.id },
-      select: { userId: true },
-    });
-    const declaredSet = new Set(declared.map((d) => d.userId));
+    const pushPromises: Promise<void>[] = [];
 
-    // Find members without declaration
-    const undeclared = members.filter((m) => !declaredSet.has(m.memberUserId));
+    for (const event of upcomingInternalEvents) {
+      if (!event.clubId) continue;
 
-    for (const member of undeclared) {
-      // Skip if already reminded about this event
-      const alreadyReminded = await db.notification.findFirst({
-        where: {
+      const [members, declared] = await Promise.all([
+        db.clubMembership.findMany({
+          where: { clubId: event.clubId, status: "ACCEPTED" },
+          select: { memberUserId: true },
+        }),
+        db.eventAttendance.findMany({
+          where: { eventId: event.id },
+          select: { userId: true },
+        }),
+      ]);
+
+      const declaredSet = new Set(declared.map((d) => d.userId));
+      const eventLink = `/events/${event.id}`;
+      const dateStr = formatEventDateTime(event.eventDate);
+      const clubName = event.club?.name ?? "Klub";
+
+      for (const member of members) {
+        if (declaredSet.has(member.memberUserId)) continue;
+        if (remindedSet.has(`${member.memberUserId}:${eventLink}`)) continue;
+
+        notifications.push({
           userId: member.memberUserId,
-          type: "REMINDER",
-          link: `/events/${event.id}`,
-          createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-        },
-      });
-      if (alreadyReminded) continue;
+          title: "Potwierdź obecność",
+          message: `${clubName}: ${event.title} — ${dateStr}. Zadeklaruj czy będziesz!`,
+          link: eventLink,
+        });
 
-      const dateStr = event.eventDate.toLocaleDateString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-      notifications.push({
-        userId: member.memberUserId,
-        title: "Potwierdź obecność",
-        message: `${event.club?.name ?? "Klub"}: ${event.title} — ${dateStr}. Zadeklaruj czy będziesz!`,
-        link: `/events/${event.id}`,
-      });
-
-      // Fire-and-forget push
-      sendPushToUser(member.memberUserId, {
-        title: "Potwierdź obecność",
-        body: `${event.club?.name ?? "Klub"}: ${event.title} — ${dateStr}`,
-        url: `/events/${event.id}`,
-      }).catch(() => {});
+        pushPromises.push(
+          sendPushToUser(member.memberUserId, {
+            title: "Potwierdź obecność",
+            body: `${clubName}: ${event.title} — ${dateStr}`,
+            url: eventLink,
+          }).catch(() => {})
+        );
+      }
     }
+
+    await Promise.allSettled(pushPromises);
   }
 
   // Batch create notifications
