@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PublicProfileCTA } from "@/components/public-profile-cta";
 import { ProfileMessageButton } from "@/components/profile-message-button";
+import { ClubInviteButton } from "@/components/club-invite-button";
+import { BackButton } from "@/components/back-button";
 import { COACH_SPECIALIZATION_LABELS, COACH_LEVEL_LABELS } from "@/lib/labels";
 import {
   MapPin,
@@ -62,6 +64,7 @@ export default async function CoachProfilePage({ params }: Props) {
         </svg>
 
         <div className="relative mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
+          <BackButton label="Powrót" />
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-end">
             {/* Photo */}
             {coach.photoUrl ? (
@@ -90,8 +93,9 @@ export default async function CoachProfilePage({ params }: Props) {
                   </Badge>
                 )}
               </div>
-              <div className="mt-3 flex items-center justify-center gap-4 sm:justify-start">
+              <div className="mt-3 flex items-center justify-center gap-2 sm:justify-start">
                 <ProfileMessageButton recipientUserId={coach.userId} />
+                <ClubInviteButton targetUserId={coach.userId} />
               </div>
             </div>
           </div>

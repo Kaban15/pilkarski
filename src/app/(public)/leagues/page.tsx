@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
-import { ArrowLeft, Globe, Users } from "lucide-react";
+import { Globe, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { BackButton } from "@/components/back-button";
 
 export const metadata: Metadata = {
   title: "Struktura ligowa",
@@ -18,13 +19,7 @@ export default async function LeaguesPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          PilkaSport
-        </Link>
+        <BackButton label="Powrót" variant="dark" />
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight">Struktura ligowa</h1>

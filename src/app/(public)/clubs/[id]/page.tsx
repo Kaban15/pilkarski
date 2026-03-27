@@ -9,6 +9,7 @@ import { PublicProfileCTA } from "@/components/public-profile-cta";
 import { FollowClubButton } from "@/components/follow-club-button";
 import { JoinClubButton } from "@/components/join-club-button";
 import { ProfileMessageButton } from "@/components/profile-message-button";
+import { BackButton } from "@/components/back-button";
 import { formatShortDate, formatDate } from "@/lib/format";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 import {
@@ -22,7 +23,6 @@ import {
   Users,
   Swords,
   Shield,
-  ArrowLeft,
   Star,
 } from "lucide-react";
 
@@ -136,13 +136,7 @@ export default async function ClubPublicProfilePage({ params }: Props) {
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 to-emerald-800 dark:from-emerald-900 dark:to-emerald-950">
         <div className="pointer-events-none absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djZoLTJ2LTZoLTZ2LTJoNnYtNmgydjZoNnYyaC02eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-          <Link
-            href="/"
-            className="mb-6 inline-flex items-center gap-1.5 text-sm text-white/70 transition hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            PilkaSport
-          </Link>
+          <BackButton label="Powrót" />
           <div className="flex items-center gap-5">
             {club.logoUrl ? (
               <img
