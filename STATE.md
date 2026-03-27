@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–24 ✅ → Etap 25: Internal Events, Attendance & Permissions ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–25 ✅ → Etap 26: Club Invite Members ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1347,6 +1347,45 @@
 - `src/app/(dashboard)/squad/page.tsx` — permissions toggle
 
 **Migracja:** `20260327160000_add_event_visibility_attendance` — ZASTOSOWANA
+
+---
+
+### Etap 26: Club Invite Members ✅
+
+**Cel:** Klub wyszukuje zawodnika/trenera i wysyła zaproszenie do kadry. Odwrotny flow do requestJoin.
+
+**Schema:**
+- `INVITED` dodany do `MembershipStatus` enum
+- `CLUB_INVITATION` dodany do `NotificationType` enum
+
+**Backend (tRPC):**
+- `clubMembership.searchUsers` — wyszukiwarka po imieniu/nazwisku, wyklucza istniejących członków
+- `clubMembership.invite` — tworzenie INVITED membership, powiadomienie + push
+- `clubMembership.respondToInvite` — ACCEPT→ACCEPTED / REJECT→REJECTED
+- `clubMembership.myInvitations` — zaproszenia INVITED skierowane do usera
+- `clubMembership.listRequestsForClub` rozszerzony o INVITED (PENDING + INVITED)
+
+**Frontend:**
+- `InviteMemberDialog` na `/squad` — wyszukiwarka z debounce, lista wyników, przycisk "Zaproś"
+- Tab "Prośby" na `/squad` — badge "Zaproszony" (amber) vs "Prośba" (blue), ukryte Accept/Reject dla INVITED
+- `ClubInviteButton` na `/players/[id]` — przycisk "Zaproś do klubu" w hero (CLUB-only)
+- `ClubInvitations` widget na dashboardzie PLAYER/COACH — karty z Accept/Reject
+
+**Pliki nowe:**
+- `src/components/squad/invite-member-dialog.tsx`
+- `src/components/club-invite-button.tsx`
+- `src/components/dashboard/club-invitations.tsx`
+- `prisma/migrations/20260327180000_add_invited_status/migration.sql`
+
+**Pliki zmodyfikowane:**
+- `prisma/schema.prisma` — INVITED + CLUB_INVITATION
+- `src/server/trpc/routers/club-membership.ts` — 4 nowe procedury + listRequestsForClub rozszerzony
+- `src/lib/labels.ts` — CLUB_INVITATION label + color
+- `src/app/(dashboard)/squad/page.tsx` — InviteMemberDialog + INVITED badge w requests
+- `src/app/(public)/players/[id]/page.tsx` — ClubInviteButton
+- `src/app/(dashboard)/feed/page.tsx` — ClubInvitations widget
+
+**Migracja:** `20260327180000_add_invited_status` — ZASTOSOWANA
 
 ---
 
