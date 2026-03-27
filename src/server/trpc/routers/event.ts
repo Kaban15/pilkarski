@@ -9,6 +9,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
+import { isClubMember } from "@/server/is-club-member";
 
 export const eventRouter = router({
   // Create event (club only)
@@ -61,6 +62,7 @@ export const eventRouter = router({
           targetAgeMax: input.targetAgeMax,
           targetLevel: input.targetLevel,
           priceInfo: input.priceInfo,
+          visibility: input.visibility,
         },
       });
 
@@ -221,6 +223,9 @@ export const eventRouter = router({
         where.eventDate = { gte: new Date() };
       }
 
+      // Only show PUBLIC events in public listing; INTERNAL events are visible via club's own endpoints
+      (where as Record<string, unknown>).visibility = "PUBLIC";
+
       const items = await ctx.db.event.findMany({
         where,
         include: {
@@ -249,6 +254,7 @@ export const eventRouter = router({
         where: { id: input.id },
         include: {
           club: { select: { id: true, name: true, city: true, logoUrl: true, userId: true } },
+          coach: { select: { id: true, firstName: true, lastName: true, photoUrl: true, userId: true } },
           region: true,
           applications: {
             include: {
@@ -261,6 +267,20 @@ export const eventRouter = router({
         },
       });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Visibility check for INTERNAL events
+      if (event.visibility === "INTERNAL") {
+        const userId = ctx.session?.user?.id;
+        if (!userId) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const isOwner = event.club?.userId === userId || event.coach?.userId === userId;
+        if (!isOwner) {
+          const clubId = event.clubId;
+          if (!clubId) throw new TRPCError({ code: "NOT_FOUND" });
+          const member = await isClubMember(userId, clubId);
+          if (!member) throw new TRPCError({ code: "NOT_FOUND" });
+        }
+      }
 
       // Filter applications: owner sees all, applicant sees only own, others see none
       const userId = ctx.session?.user?.id;
@@ -456,5 +476,75 @@ export const eventRouter = router({
       });
 
       return { items };
+    }),
+
+  setAttendance: protectedProcedure
+    .input(z.object({
+      eventId: z.string().uuid(),
+      status: z.enum(["YES", "NO", "MAYBE"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const event = await ctx.db.event.findUnique({
+        where: { id: input.eventId },
+        select: { visibility: true, clubId: true },
+      });
+      if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+      if (event.visibility !== "INTERNAL") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Obecność dostępna tylko dla wydarzeń wewnętrznych" });
+      }
+      if (!event.clubId) throw new TRPCError({ code: "BAD_REQUEST" });
+
+      const member = await isClubMember(userId, event.clubId);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+
+      return ctx.db.eventAttendance.upsert({
+        where: { eventId_userId: { eventId: input.eventId, userId } },
+        create: { eventId: input.eventId, userId, status: input.status },
+        update: { status: input.status },
+      });
+    }),
+
+  getAttendance: protectedProcedure
+    .input(z.object({ eventId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const event = await ctx.db.event.findUnique({
+        where: { id: input.eventId },
+        select: { visibility: true, clubId: true },
+      });
+      if (!event || event.visibility !== "INTERNAL" || !event.clubId) {
+        return { items: [], stats: { yes: 0, no: 0, maybe: 0 }, myStatus: null as string | null };
+      }
+
+      const member = await isClubMember(userId, event.clubId);
+      if (!member) return { items: [], stats: { yes: 0, no: 0, maybe: 0 }, myStatus: null as string | null };
+
+      const items = await ctx.db.eventAttendance.findMany({
+        where: { eventId: input.eventId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              player: { select: { firstName: true, lastName: true, photoUrl: true } },
+              coach: { select: { firstName: true, lastName: true, photoUrl: true } },
+            },
+          },
+        },
+        orderBy: { updatedAt: "desc" },
+      });
+
+      const stats = { yes: 0, no: 0, maybe: 0 };
+      let myStatus: string | null = null;
+      for (const item of items) {
+        if (item.status === "YES") stats.yes++;
+        else if (item.status === "NO") stats.no++;
+        else stats.maybe++;
+        if (item.userId === userId) myStatus = item.status;
+      }
+
+      return { items, stats, myStatus };
     }),
 });
