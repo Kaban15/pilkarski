@@ -276,4 +276,116 @@ export const messageRouter = router({
 
       return shared?.conversationId ?? null;
     }),
+
+  // Get club group chat for current user
+  getClubChat: protectedProcedure.query(async ({ ctx }) => {
+    // Find user's club: either they OWN a club or are ACCEPTED member
+    const ownedClub = await ctx.db.club.findUnique({
+      where: { userId: ctx.session.user.id },
+      select: { id: true, name: true, logoUrl: true },
+    });
+
+    let clubId = ownedClub?.id ?? null;
+    let clubName = ownedClub?.name ?? null;
+    let clubLogo = ownedClub?.logoUrl ?? null;
+
+    if (!clubId) {
+      const membership = await ctx.db.clubMembership.findFirst({
+        where: { memberUserId: ctx.session.user.id, status: "ACCEPTED" },
+        include: { club: { select: { id: true, name: true, logoUrl: true } } },
+      });
+      if (membership) {
+        clubId = membership.club.id;
+        clubName = membership.club.name;
+        clubLogo = membership.club.logoUrl;
+      }
+    }
+
+    if (!clubId) return null;
+
+    // Find or create club group conversation
+    let conversation = await ctx.db.conversation.findUnique({
+      where: { clubId },
+      select: { id: true },
+    });
+
+    if (!conversation) {
+      conversation = await ctx.db.conversation.create({
+        data: { clubId, participants: { create: { userId: ctx.session.user.id } } },
+      });
+    }
+
+    // Ensure current user is participant
+    await ctx.db.conversationParticipant.upsert({
+      where: { conversationId_userId: { conversationId: conversation.id, userId: ctx.session.user.id } },
+      update: {},
+      create: { conversationId: conversation.id, userId: ctx.session.user.id },
+    });
+
+    // Get recent messages
+    const messages = await ctx.db.message.findMany({
+      where: { conversationId: conversation.id },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: {
+        sender: {
+          select: {
+            id: true, email: true, role: true,
+            club: { select: { name: true } },
+            player: { select: { firstName: true, lastName: true, photoUrl: true } },
+            coach: { select: { firstName: true, lastName: true, photoUrl: true } },
+          },
+        },
+      },
+    });
+
+    const memberCount = await ctx.db.clubMembership.count({
+      where: { clubId, status: "ACCEPTED" },
+    });
+
+    return {
+      conversationId: conversation.id,
+      club: { id: clubId, name: clubName, logoUrl: clubLogo },
+      messages: messages.reverse(),
+      memberCount: memberCount + 1,
+    };
+  }),
+
+  // Send message to club group chat
+  sendToClubChat: rateLimitedProcedure({ maxAttempts: 30 })
+    .input(z.object({ conversationId: z.string().uuid(), content: z.string().min(1).max(2000) }))
+    .mutation(async ({ ctx, input }) => {
+      const conversation = await ctx.db.conversation.findUnique({
+        where: { id: input.conversationId },
+        select: { clubId: true },
+      });
+      if (!conversation?.clubId) throw new TRPCError({ code: "FORBIDDEN" });
+
+      // Verify user is club owner or accepted member
+      const club = await ctx.db.club.findUnique({
+        where: { id: conversation.clubId },
+        select: { userId: true },
+      });
+      const isOwner = club?.userId === ctx.session.user.id;
+      if (!isOwner) {
+        const membership = await ctx.db.clubMembership.findFirst({
+          where: { clubId: conversation.clubId, memberUserId: ctx.session.user.id, status: "ACCEPTED" },
+        });
+        if (!membership) throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      return ctx.db.message.create({
+        data: { conversationId: input.conversationId, senderId: ctx.session.user.id, content: input.content },
+        include: {
+          sender: {
+            select: {
+              id: true, email: true, role: true,
+              club: { select: { name: true } },
+              player: { select: { firstName: true, lastName: true, photoUrl: true } },
+              coach: { select: { firstName: true, lastName: true, photoUrl: true } },
+            },
+          },
+        },
+      });
+    }),
 });
