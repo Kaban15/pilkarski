@@ -208,4 +208,30 @@ export const clubMembershipRouter = router({
     });
     return membership;
   }),
+
+  setPermissions: protectedProcedure
+    .input(z.object({
+      membershipId: z.string().uuid(),
+      canManageEvents: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const membership = await ctx.db.clubMembership.findUnique({
+        where: { id: input.membershipId },
+        include: { club: { select: { userId: true } } },
+      });
+      if (!membership) throw new TRPCError({ code: "NOT_FOUND" });
+      if (membership.club.userId !== userId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Tylko właściciel klubu może zmieniać uprawnienia" });
+      }
+      if (membership.status !== "ACCEPTED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Można zmieniać uprawnienia tylko aktywnych członków" });
+      }
+
+      return ctx.db.clubMembership.update({
+        where: { id: input.membershipId },
+        data: { canManageEvents: input.canManageEvents },
+      });
+    }),
 });
