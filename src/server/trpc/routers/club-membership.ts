@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { router, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import { sendPushToUser } from "@/server/send-push";
 
 export const clubMembershipRouter = router({
   requestJoin: protectedProcedure
@@ -77,7 +78,7 @@ export const clubMembershipRouter = router({
     if (!club) return [];
 
     return ctx.db.clubMembership.findMany({
-      where: { clubId: club.id, status: "PENDING" },
+      where: { clubId: club.id, status: { in: ["PENDING", "INVITED"] } },
       include: {
         memberUser: {
           include: {
@@ -234,4 +235,191 @@ export const clubMembershipRouter = router({
         data: { canManageEvents: input.canManageEvents },
       });
     }),
+
+  searchUsers: protectedProcedure
+    .input(z.object({
+      query: z.string().min(2).max(100),
+      limit: z.number().int().min(1).max(20).default(10),
+    }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const club = await ctx.db.club.findUnique({
+        where: { userId },
+        select: { id: true },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą wyszukiwać" });
+
+      const existing = await ctx.db.clubMembership.findMany({
+        where: {
+          clubId: club.id,
+          status: { in: ["ACCEPTED", "INVITED", "PENDING"] },
+        },
+        select: { memberUserId: true },
+      });
+      const excludeIds = [userId, ...existing.map((m) => m.memberUserId)];
+
+      const [players, coaches] = await Promise.all([
+        ctx.db.player.findMany({
+          where: {
+            userId: { notIn: excludeIds },
+            OR: [
+              { firstName: { contains: input.query, mode: "insensitive" } },
+              { lastName: { contains: input.query, mode: "insensitive" } },
+            ],
+          },
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            photoUrl: true,
+            city: true,
+            primaryPosition: true,
+          },
+          take: input.limit,
+        }),
+        ctx.db.coach.findMany({
+          where: {
+            userId: { notIn: excludeIds },
+            OR: [
+              { firstName: { contains: input.query, mode: "insensitive" } },
+              { lastName: { contains: input.query, mode: "insensitive" } },
+            ],
+          },
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            photoUrl: true,
+            city: true,
+            specialization: true,
+          },
+          take: input.limit,
+        }),
+      ]);
+
+      return {
+        players: players.map((p) => ({ ...p, role: "PLAYER" as const })),
+        coaches: coaches.map((c) => ({ ...c, role: "COACH" as const })),
+      };
+    }),
+
+  invite: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid(),
+      message: z.string().max(500).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const callerId = ctx.session.user.id;
+      const club = await ctx.db.club.findUnique({
+        where: { userId: callerId },
+        select: { id: true, name: true },
+      });
+      if (!club) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko kluby mogą zapraszać" });
+
+      const targetUser = await ctx.db.user.findUnique({
+        where: { id: input.userId },
+        select: { role: true },
+      });
+      if (!targetUser || (targetUser.role !== "PLAYER" && targetUser.role !== "COACH")) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Można zapraszać tylko zawodników i trenerów" });
+      }
+
+      const existing = await ctx.db.clubMembership.findUnique({
+        where: { clubId_memberUserId: { clubId: club.id, memberUserId: input.userId } },
+      });
+      if (existing && ["ACCEPTED", "INVITED", "PENDING"].includes(existing.status)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Ten użytkownik jest już członkiem lub zaproszony" });
+      }
+
+      const memberType = targetUser.role === "PLAYER" ? "PLAYER" : "COACH";
+
+      const membership = existing
+        ? await ctx.db.clubMembership.update({
+            where: { id: existing.id },
+            data: { status: "INVITED", memberType, message: input.message },
+          })
+        : await ctx.db.clubMembership.create({
+            data: {
+              clubId: club.id,
+              memberUserId: input.userId,
+              memberType,
+              status: "INVITED",
+              message: input.message,
+            },
+          });
+
+      ctx.db.notification.create({
+        data: {
+          userId: input.userId,
+          type: "CLUB_INVITATION",
+          title: "Zaproszenie do klubu",
+          message: `Klub ${club.name} zaprasza Cię do kadry`,
+          link: "/feed",
+        },
+      }).catch(() => {});
+
+      sendPushToUser(input.userId, {
+        title: "Zaproszenie do klubu",
+        body: `Klub ${club.name} zaprasza Cię do kadry`,
+        url: "/feed",
+      }).catch(() => {});
+
+      return membership;
+    }),
+
+  respondToInvite: protectedProcedure
+    .input(z.object({
+      membershipId: z.string().uuid(),
+      decision: z.enum(["ACCEPT", "REJECT"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const membership = await ctx.db.clubMembership.findUnique({
+        where: { id: input.membershipId },
+        include: { club: { select: { userId: true, name: true } } },
+      });
+      if (!membership) throw new TRPCError({ code: "NOT_FOUND" });
+      if (membership.memberUserId !== userId) throw new TRPCError({ code: "FORBIDDEN" });
+      if (membership.status !== "INVITED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "To zaproszenie nie jest już aktywne" });
+      }
+
+      if (input.decision === "ACCEPT") {
+        const updated = await ctx.db.clubMembership.update({
+          where: { id: input.membershipId },
+          data: { status: "ACCEPTED", acceptedAt: new Date() },
+        });
+
+        ctx.db.notification.create({
+          data: {
+            userId: membership.club.userId,
+            type: "MEMBERSHIP_ACCEPTED",
+            title: "Zaproszenie zaakceptowane",
+            message: "Użytkownik dołączył do Twojego klubu",
+            link: "/squad",
+          },
+        }).catch(() => {});
+
+        return updated;
+      } else {
+        return ctx.db.clubMembership.update({
+          where: { id: input.membershipId },
+          data: { status: "REJECTED" },
+        });
+      }
+    }),
+
+  myInvitations: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.clubMembership.findMany({
+      where: {
+        memberUserId: ctx.session.user.id,
+        status: "INVITED",
+      },
+      include: {
+        club: { select: { id: true, name: true, logoUrl: true, city: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }),
 });
