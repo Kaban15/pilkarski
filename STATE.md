@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–25 ✅ → Etap 26: Club Invite Members ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–26 ✅ → Etap 27: UX Fixes, Coach Permissions, Career & Profile Links ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1386,6 +1386,94 @@
 - `src/app/(dashboard)/feed/page.tsx` — ClubInvitations widget
 
 **Migracja:** `20260327180000_add_invited_status` — ZASTOSOWANA
+
+---
+
+### Etap 27: UX Fixes, Coach Permissions, Career & Profile Links ✅
+
+**Cel:** Poprawki UX, zmiana modelu uprawnień trenera, CV trenera, klikalne profile.
+
+**Fix 1 — JWT + Back Button:**
+- Deklaracja `JWT` module w `next-auth.d.ts` (id, role) — fix `ClubInviteButton` nie widoczny dla CLUB
+- `BackButton` komponent z `router.back()` zamiast `<Link href="/">` na profilach publicznych (clubs, players, coaches, leagues)
+- `ClubInviteButton` dodany na profilu trenera `/coaches/[id]`
+
+**Fix 2 — Usunięcie cen/kosztów:**
+- Usunięte pole "Cena" z formularzy wydarzeń (new + edit)
+- Usunięte ceny z szablonów treningów (training-presets.ts)
+- Usunięte "Podział kosztów" z formularza i szczegółów sparingu
+- Usunięte `priceInfo`/`costSplitInfo` z validatorów i routerów
+- Kolumny DB zachowane (brak migracji)
+
+**Fix 3 — Coach tworzy wydarzenia przez klub:**
+- `event.create` — COACH musi mieć `ClubMembership` ACCEPTED z `canManageEvents = true`
+- Event dostaje `clubId` z klubu trenera (działa w imieniu klubu)
+- `/events/new` — guard: PLAYER → blokada, COACH bez uprawnień → komunikat "Brak uprawnień"
+- COACH widzi tylko typy INDIVIDUAL/GROUP_TRAINING w selektorze
+- "Dodaj wydarzenie" widoczne dla CLUB lub COACH z canManageEvents
+- Coach onboarding: "Dodaj trening" → "Dołącz do klubu" CTA
+- `myClub` endpoint zwraca `canManageEvents`
+
+**Fix 4 — Coach Career History (CV):**
+- Model `CoachCareerEntry` (clubName, season, role, level, notes)
+- `coach.addCareerEntry` / `coach.removeCareerEntry` tRPC endpoints
+- Formularz w profilu trenera (dodawanie/usuwanie wpisów)
+- Timeline na publicznym profilu `/coaches/[id]` (niebieskie kropki, analogicznie do zawodnika)
+
+**Fix 5 — Klikalne profile (11 stron):**
+- Kadra (`/squad`) — nazwy zawodników/trenerów → `/players/[id]`, `/coaches/[id]`
+- Wiadomości lista — ikona profilu obok nazwy (button + router.push, nie nested Link)
+- Wiadomości czat — nagłówek klikalny do profilu
+- Wydarzenia detail — nazwa klubu + nazwy aplikantów → profile
+- Sparingi detail — nazwy aplikujących klubów → `/clubs/[id]`
+- Community — autor posta → profil klubu
+- Attendance — uczestnicy → profile
+- Rekrutacja — nazwisko zawodnika → `/players/[id]` (było → transfer)
+
+**Code review (/simplify):**
+- `getProfileHref()` wyekstrahowany do `labels.ts` (był duplikowany w 4 plikach)
+- Nested `<Link>` → `<button>` + `router.push()` w messages (fix hydration)
+- Stale closure w career mutations → functional updater `setCareers(prev => ...)`
+- `removeCareerEntry` — 3 DB queries → 1 (`deleteMany` z compound where)
+- `otherUserProfileHref` state → derived (usunięty zbędny useState)
+- Komentarze przykładowe usunięte z CoachCareerEntry schema
+
+**Pliki nowe:**
+- `src/components/back-button.tsx`
+- `src/lib/validators/coach.ts`
+
+**Pliki zmodyfikowane (21):**
+- `src/types/next-auth.d.ts` — JWT module declaration
+- `prisma/schema.prisma` — CoachCareerEntry model
+- `src/lib/labels.ts` — +getProfileHref()
+- `src/lib/training-presets.ts` — usunięte priceInfo
+- `src/lib/validators/event.ts` — usunięte priceInfo
+- `src/lib/validators/sparing.ts` — usunięte costSplitInfo
+- `src/server/auth/config.ts` — uproszczone casty JWT
+- `src/server/trpc/routers/event.ts` — COACH membership check, usunięte priceInfo
+- `src/server/trpc/routers/sparing.ts` — usunięte costSplitInfo
+- `src/server/trpc/routers/coach.ts` — +addCareerEntry, removeCareerEntry (1 query)
+- `src/server/trpc/routers/club-membership.ts` — myClub z canManageEvents, id w selectach
+- `src/server/trpc/routers/message.ts` — coach select w getConversations
+- `src/components/forms/coach-profile-form.tsx` — sekcja doświadczenia trenerskiego
+- `src/components/onboarding/coach-onboarding.tsx` — "Dołącz do klubu" CTA
+- `src/components/sparings/sparing-form.tsx` — usunięte costSplitInfo
+- `src/app/(public)/players/[id]/page.tsx` — BackButton
+- `src/app/(public)/clubs/[id]/page.tsx` — BackButton
+- `src/app/(public)/coaches/[id]/page.tsx` — BackButton + career timeline
+- `src/app/(public)/leagues/page.tsx` — BackButton
+- `src/app/(dashboard)/events/new/page.tsx` — guard COACH/PLAYER + typ filter
+- `src/app/(dashboard)/events/page.tsx` — canCreateEvents
+- `src/app/(dashboard)/squad/page.tsx` — klikalne profile
+- `src/app/(dashboard)/messages/page.tsx` — ikona profilu (button)
+- `src/app/(dashboard)/messages/[conversationId]/page.tsx` — klikalny nagłówek
+- `src/app/(dashboard)/events/[id]/page.tsx` — klikalne profile
+- `src/app/(dashboard)/sparings/[id]/_components/sparing-applications.tsx` — klikalne profile
+- `src/app/(dashboard)/community/page.tsx` — klikalny autor
+- `src/app/(dashboard)/events/[id]/_components/attendance-section.tsx` — klikalne profile
+- `src/app/(dashboard)/recruitment/page.tsx` — link do gracza zamiast transferu
+
+**Migracja:** Wymaga `npm run db:migrate -- --url "..." --name add_coach_career`
 
 ---
 
