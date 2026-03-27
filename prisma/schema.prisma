@@ -188,11 +188,27 @@ model Coach {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  region Region? @relation(fields: [regionId], references: [id])
-  events Event[]
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region        Region?            @relation(fields: [regionId], references: [id])
+  events        Event[]
+  careerEntries CoachCareerEntry[]
 
   @@map("coaches")
+}
+
+model CoachCareerEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  coachId   String   @map("coach_id") @db.Uuid
+  clubName  String   @map("club_name") @db.VarChar(200)
+  season    String   @db.VarChar(20)
+  role      String   @db.VarChar(100) // e.g. "Pierwszy trener", "Asystent", "Trener bramkarzy"
+  level     String?  @db.VarChar(100) // e.g. "Klasa A", "IV liga", "Ekstraklasa"
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  coach Coach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@map("coach_career_entries")
 }
 
 model CareerEntry {

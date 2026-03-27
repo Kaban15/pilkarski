@@ -14,6 +14,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { POSITION_LABELS, COACH_SPECIALIZATION_LABELS } from "@/lib/labels";
 import { Users, Check, X, UserMinus, Shield } from "lucide-react";
 import { InviteMemberDialog } from "@/components/squad/invite-member-dialog";
+import Link from "next/link";
 
 export default function SquadPage() {
   const { data: session } = useSession();
@@ -120,7 +121,13 @@ export default function SquadPage() {
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold">{name}</p>
+                      <p className="text-sm font-semibold">
+                        {p ? (
+                          <Link href={`/players/${p.id}`} className="hover:underline hover:text-primary">{name}</Link>
+                        ) : c ? (
+                          <Link href={`/coaches/${c.id}`} className="hover:underline hover:text-primary">{name}</Link>
+                        ) : name}
+                      </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Badge variant="secondary" className="text-[10px]">{req.memberType === "COACH" ? "Trener" : "Zawodnik"}</Badge>
                         <Badge className={req.status === "INVITED" ? "bg-amber-500/10 text-amber-600" : "bg-blue-500/10 text-blue-600"}>
@@ -169,7 +176,9 @@ export default function SquadPage() {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-semibold">{p.firstName} {p.lastName}</p>
+                    <p className="text-[13px] font-semibold">
+                      <Link href={`/players/${p.id}`} className="hover:underline hover:text-primary">{p.firstName} {p.lastName}</Link>
+                    </p>
                     <p className="text-[11px] text-muted-foreground">
                       {p.primaryPosition ? POSITION_LABELS[p.primaryPosition] : ""}
                       {p.city ? ` · ${p.city}` : ""}
@@ -220,7 +229,9 @@ export default function SquadPage() {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-semibold">{c.firstName} {c.lastName}</p>
+                    <p className="text-[13px] font-semibold">
+                      <Link href={`/coaches/${c.id}`} className="hover:underline hover:text-primary">{c.firstName} {c.lastName}</Link>
+                    </p>
                     <p className="text-[11px] text-muted-foreground">
                       {c.specialization ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization : "Trener"}
                     </p>

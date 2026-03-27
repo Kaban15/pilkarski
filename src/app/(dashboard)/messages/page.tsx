@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConversationSkeleton } from "@/components/card-skeleton";
 import { getUserDisplayName } from "@/lib/labels";
 import { EmptyState } from "@/components/empty-state";
-import { MessageSquare, ArrowRight } from "lucide-react";
+import { MessageSquare, ArrowRight, ExternalLink } from "lucide-react";
 
 type Conversation = {
   id: string;
@@ -15,8 +15,9 @@ type Conversation = {
     id: string;
     email: string;
     role: string;
-    club: { name: string; logoUrl: string | null } | null;
-    player: { firstName: string; lastName: string; photoUrl: string | null } | null;
+    club: { id: string; name: string; logoUrl: string | null } | null;
+    player: { id: string; firstName: string; lastName: string; photoUrl: string | null } | null;
+    coach: { id: string; firstName: string; lastName: string; photoUrl: string | null } | null;
   } | null;
   lastMessage: {
     id: string;
@@ -59,6 +60,13 @@ export default function MessagesPage() {
             const displayName = getUserDisplayName(conv.otherUser);
             const initial = displayName?.[0]?.toUpperCase() ?? "?";
             const isClub = conv.otherUser?.role === "CLUB";
+            const profileHref = conv.otherUser?.role === "CLUB" && conv.otherUser.club
+              ? `/clubs/${conv.otherUser.club.id}`
+              : conv.otherUser?.role === "PLAYER" && conv.otherUser.player
+                ? `/players/${conv.otherUser.player.id}`
+                : conv.otherUser?.role === "COACH" && conv.otherUser.coach
+                  ? `/coaches/${conv.otherUser.coach.id}`
+                  : null;
 
             return (
               <Link key={conv.id} href={`/messages/${conv.id}`} className="group block">
@@ -73,8 +81,18 @@ export default function MessagesPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-semibold truncate group-hover:text-primary transition-colors">
+                        <p className="font-semibold truncate group-hover:text-primary transition-colors flex items-center gap-1.5">
                           {displayName}
+                          {profileHref && (
+                            <Link
+                              href={profileHref}
+                              onClick={(e) => e.stopPropagation()}
+                              className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+                              title="Zobacz profil"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </Link>
+                          )}
                         </p>
                         {conv.lastMessage && (
                           <span className="shrink-0 text-xs text-muted-foreground">

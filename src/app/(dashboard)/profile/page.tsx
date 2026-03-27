@@ -28,7 +28,7 @@ export default async function ProfilePage() {
     const [coach, resolvedRegions] = await Promise.all([
       db.coach.findUnique({
         where: { userId: user.id },
-        include: { region: true },
+        include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
       }),
       regions,
     ]);

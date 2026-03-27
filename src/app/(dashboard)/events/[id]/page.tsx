@@ -117,7 +117,9 @@ export default function EventDetailPage() {
             )}
           </div>
           <p className="mt-1.5 text-muted-foreground">
-            {event.club?.name ?? "Trener"}
+            {event.club ? (
+              <Link href={`/clubs/${event.club.id}`} className="hover:underline hover:text-primary">{event.club.name}</Link>
+            ) : "Trener"}
             {event.club?.city && ` · ${event.club.city}`}
           </p>
           <div className="mt-3">
@@ -300,7 +302,7 @@ export default function EventDetailPage() {
                   <li key={app.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-medium">
-                        {app.player.firstName} {app.player.lastName}
+                        <Link href={`/players/${app.player.id}`} className="hover:underline hover:text-primary">{app.player.firstName} {app.player.lastName}</Link>
                         {app.player.primaryPosition && (
                           <Badge variant="secondary" className="ml-2 text-xs">
                             {POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition}

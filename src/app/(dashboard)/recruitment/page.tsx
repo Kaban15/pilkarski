@@ -142,9 +142,15 @@ function PipelineCard({
         )}
 
         <div className="min-w-0 flex-1">
-          <Link href={`/transfers/${entry.transfer.id}`} className="text-[13px] font-semibold hover:text-primary">
-            {playerName}
-          </Link>
+          {player ? (
+            <Link href={`/players/${player.id}`} className="text-[13px] font-semibold hover:underline hover:text-primary">
+              {playerName}
+            </Link>
+          ) : (
+            <Link href={`/transfers/${entry.transfer.id}`} className="text-[13px] font-semibold hover:underline hover:text-primary">
+              {playerName}
+            </Link>
+          )}
           <div className="flex flex-wrap items-center gap-1 mt-0.5">
             {player?.primaryPosition && (
               <Badge variant="secondary" className="text-[10px]">
@@ -163,13 +169,11 @@ function PipelineCard({
 
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-0.5">
-          {player && (
-            <Link href={`/players/${player.id}`}>
-              <Button size="icon" variant="ghost" className="h-7 w-7">
-                <MessageSquare className="h-3.5 w-3.5" />
-              </Button>
-            </Link>
-          )}
+          <Link href={`/transfers/${entry.transfer.id}`}>
+            <Button size="icon" variant="ghost" className="h-7 w-7" title="Zobacz ogłoszenie">
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
           <Button
             size="icon"
             variant="ghost"

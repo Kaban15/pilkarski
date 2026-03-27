@@ -11,6 +11,7 @@ import {
 } from "@/lib/labels";
 import { formatDate } from "@/lib/format";
 import { Users, CheckCircle2, XCircle, CalendarClock, Clock } from "lucide-react";
+import Link from "next/link";
 
 type SparingApplicationsProps = {
   applications: any[];
@@ -103,7 +104,7 @@ export function SparingApplications({
                     </div>
                     <div className="min-w-0">
                       <p className="font-medium">
-                        {app.applicantClub.name}
+                        <Link href={`/clubs/${app.applicantClub.id}`} className="hover:underline hover:text-primary">{app.applicantClub.name}</Link>
                         {app.applicantClub.city && (
                           <span className="text-muted-foreground">
                             {" "}

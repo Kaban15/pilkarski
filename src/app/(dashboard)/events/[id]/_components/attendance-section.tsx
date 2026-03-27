@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X, HelpCircle, Users } from "lucide-react";
 import { ATTENDANCE_STATUS_LABELS } from "@/lib/labels";
+import Link from "next/link";
 
 interface AttendanceSectionProps {
   eventId: string;
@@ -86,9 +87,19 @@ export function AttendanceSection({ eventId, isClubMember, isAdmin }: Attendance
                   item.status === "YES" ? "text-emerald-600" :
                   item.status === "NO" ? "text-red-500" : "text-amber-600";
 
+                const profileHref = item.user.player
+                  ? `/players/${item.user.player.id}`
+                  : item.user.coach
+                    ? `/coaches/${item.user.coach.id}`
+                    : null;
+
                 return (
                   <li key={item.id} className="flex items-center justify-between py-2">
-                    <span className="text-sm">{name}</span>
+                    <span className="text-sm">
+                      {profileHref ? (
+                        <Link href={profileHref} className="hover:underline hover:text-primary">{name}</Link>
+                      ) : name}
+                    </span>
                     <span className={`text-xs font-medium ${statusColor}`}>{statusLabel}</span>
                   </li>
                 );

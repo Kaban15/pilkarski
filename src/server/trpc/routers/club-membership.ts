@@ -82,8 +82,8 @@ export const clubMembershipRouter = router({
       include: {
         memberUser: {
           include: {
-            player: { select: { firstName: true, lastName: true, primaryPosition: true, photoUrl: true } },
-            coach: { select: { firstName: true, lastName: true, specialization: true, photoUrl: true } },
+            player: { select: { id: true, firstName: true, lastName: true, primaryPosition: true, photoUrl: true } },
+            coach: { select: { id: true, firstName: true, lastName: true, specialization: true, photoUrl: true } },
           },
         },
       },

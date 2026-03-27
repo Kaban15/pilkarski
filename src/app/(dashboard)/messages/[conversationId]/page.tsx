@@ -7,6 +7,7 @@ import { api } from "@/lib/trpc-react";
 import { supabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
 import { getUserDisplayName } from "@/lib/labels";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +34,7 @@ export default function ConversationPage() {
   const [newMessage, setNewMessage] = useState("");
   const [otherUserName, setOtherUserName] = useState("");
   const [otherUserId, setOtherUserId] = useState("");
+  const [otherUserProfileHref, setOtherUserProfileHref] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -70,10 +72,16 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (!convs || !conversationId) return;
-    const conv = (convs as unknown as { id: string; otherUser: { id: string; email?: string; club?: { name: string } | null; player?: { firstName: string; lastName: string } | null } | null }[]).find((c) => c.id === conversationId);
+    const conv = (convs as unknown as { id: string; otherUser: { id: string; role?: string; email?: string; club?: { id: string; name: string } | null; player?: { id: string; firstName: string; lastName: string } | null; coach?: { id: string; firstName: string; lastName: string } | null } | null }[]).find((c) => c.id === conversationId);
     if (conv?.otherUser) {
       setOtherUserId(conv.otherUser.id);
       setOtherUserName(getUserDisplayName(conv.otherUser));
+      const u = conv.otherUser;
+      const href = u.role === "CLUB" && u.club ? `/clubs/${u.club.id}`
+        : u.role === "PLAYER" && u.player ? `/players/${u.player.id}`
+        : u.role === "COACH" && u.coach ? `/coaches/${u.coach.id}`
+        : null;
+      setOtherUserProfileHref(href);
     }
   }, [convs, conversationId]);
 
@@ -140,7 +148,13 @@ export default function ConversationPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
             {otherUserName?.[0]?.toUpperCase() ?? "?"}
           </div>
-          <h1 className="font-semibold">{otherUserName || "Konwersacja"}</h1>
+          {otherUserProfileHref ? (
+            <Link href={otherUserProfileHref} className="font-semibold hover:underline hover:text-primary transition-colors">
+              {otherUserName || "Konwersacja"}
+            </Link>
+          ) : (
+            <h1 className="font-semibold">{otherUserName || "Konwersacja"}</h1>
+          )}
         </div>
       </div>
 

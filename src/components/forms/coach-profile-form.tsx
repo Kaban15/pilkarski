@@ -23,6 +23,15 @@ import {
 import { ImageUpload } from "@/components/image-upload";
 import { COACH_SPECIALIZATION_LABELS, COACH_LEVEL_LABELS } from "@/lib/labels";
 
+interface CoachCareerEntry {
+  id: string;
+  clubName: string;
+  season: string;
+  role: string;
+  level: string | null;
+  notes: string | null;
+}
+
 interface CoachProfileFormProps {
   coach: {
     id: string;
@@ -34,6 +43,7 @@ interface CoachProfileFormProps {
     regionId: number | null;
     bio: string | null;
     photoUrl: string | null;
+    careerEntries: CoachCareerEntry[];
   };
   regions: { id: number; name: string }[];
 }
@@ -47,6 +57,46 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
   const [regionId, setRegionId] = useState(coach.regionId?.toString() ?? "");
   const [bio, setBio] = useState(coach.bio ?? "");
   const [photoUrl, setPhotoUrl] = useState(coach.photoUrl ?? "");
+  const [careers, setCareers] = useState<CoachCareerEntry[]>(coach.careerEntries);
+
+  // Career entry form
+  const [newClubName, setNewClubName] = useState("");
+  const [newSeason, setNewSeason] = useState("");
+  const [newRole, setNewRole] = useState("");
+  const [newLevel, setNewLevel] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+
+  const addCareerMut = api.coach.addCareerEntry.useMutation({
+    onSuccess: (entry) => {
+      setCareers([entry, ...careers]);
+      setNewClubName("");
+      setNewSeason("");
+      setNewRole("");
+      setNewLevel("");
+      setNewNotes("");
+      toast.success("Wpis dodany");
+    },
+    onError: () => toast.error("Nie udało się dodać wpisu"),
+  });
+
+  const deleteCareerMut = api.coach.removeCareerEntry.useMutation({
+    onSuccess: (_, variables) => {
+      setCareers(careers.filter((c) => c.id !== variables.id));
+      toast.success("Wpis usunięty");
+    },
+    onError: () => toast.error("Nie udało się usunąć wpisu"),
+  });
+
+  function addCareer() {
+    if (!newClubName || !newSeason || !newRole) return;
+    addCareerMut.mutate({
+      clubName: newClubName,
+      season: newSeason,
+      role: newRole,
+      level: newLevel || undefined,
+      notes: newNotes || undefined,
+    });
+  }
 
   const updateMut = api.coach.update.useMutation({
     onSuccess: () => toast.success("Profil zaktualizowany"),
@@ -190,6 +240,86 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
               {updateMut.isPending ? "Zapisywanie..." : "Zapisz profil"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Doświadczenie trenerskie</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Nazwa klubu"
+                value={newClubName}
+                onChange={(e) => setNewClubName(e.target.value)}
+              />
+              <Input
+                placeholder="Sezon (np. 2024/2025)"
+                value={newSeason}
+                onChange={(e) => setNewSeason(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Rola (np. Pierwszy trener)"
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+              />
+              <Input
+                placeholder="Poziom (np. IV liga) – opcjonalnie"
+                value={newLevel}
+                onChange={(e) => setNewLevel(e.target.value)}
+              />
+            </div>
+            <Input
+              placeholder="Notatki – opcjonalnie"
+              value={newNotes}
+              onChange={(e) => setNewNotes(e.target.value)}
+            />
+            <Button
+              type="button"
+              onClick={addCareer}
+              variant="outline"
+              disabled={addCareerMut.isPending}
+            >
+              {addCareerMut.isPending ? "Dodawanie..." : "Dodaj wpis"}
+            </Button>
+          </div>
+          {careers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Brak wpisów</p>
+          ) : (
+            <ul className="space-y-2">
+              {careers.map((c) => (
+                <li
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                >
+                  <div>
+                    <span className="font-medium">{c.clubName}</span>{" "}
+                    <span className="text-muted-foreground">({c.season})</span>
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      — {c.role}
+                    </span>
+                    {c.level && (
+                      <span className="ml-1 text-sm text-muted-foreground">
+                        · {c.level}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteCareerMut.mutate({ id: c.id })}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    Usuń
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>

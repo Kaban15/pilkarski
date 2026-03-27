@@ -23,6 +23,7 @@ import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Badge } from "@/components/ui/badge";
 import { MobileRefresh } from "@/components/mobile-refresh";
 import { Plus, Trash2, Megaphone, Flag, Bookmark, Users, Zap } from "lucide-react";
+import Link from "next/link";
 
 type CategoryFilter = ClubPostCategoryValue | "ALL";
 
@@ -233,7 +234,7 @@ export default function CommunityPage() {
                         className="h-5 w-5 rounded-full object-cover"
                       />
                     )}
-                    <span className="font-medium">{post.club.name}</span>
+                    <Link href={`/clubs/${post.club.id}`} className="font-medium hover:underline hover:text-primary">{post.club.name}</Link>
                     {post.club.city && <span>· {post.club.city}</span>}
                   </div>
                   <div className="flex items-center gap-1">

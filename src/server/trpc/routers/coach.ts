@@ -1,13 +1,14 @@
 import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import { coachCareerEntrySchema } from "@/lib/validators/coach";
 
 export const coachRouter = router({
   me: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "COACH") return null;
     return ctx.db.coach.findUnique({
       where: { userId: ctx.session.user.id },
-      include: { region: true },
+      include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
     });
   }),
 
@@ -40,7 +41,7 @@ export const coachRouter = router({
     .query(async ({ ctx, input }) => {
       const coach = await ctx.db.coach.findUnique({
         where: { id: input.id },
-        include: { region: true },
+        include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
       });
       if (!coach) throw new TRPCError({ code: "NOT_FOUND" });
       return coach;
@@ -78,5 +79,49 @@ export const coachRouter = router({
       }
 
       return { items, nextCursor };
+    }),
+
+  addCareerEntry: protectedProcedure
+    .input(coachCareerEntrySchema)
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "COACH") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      const coach = await ctx.db.coach.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!coach) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return ctx.db.coachCareerEntry.create({
+        data: {
+          coachId: coach.id,
+          clubName: input.clubName,
+          season: input.season,
+          role: input.role,
+          level: input.level,
+          notes: input.notes,
+        },
+      });
+    }),
+
+  removeCareerEntry: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "COACH") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      const coach = await ctx.db.coach.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!coach) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const entry = await ctx.db.coachCareerEntry.findUnique({
+        where: { id: input.id },
+      });
+      if (!entry || entry.coachId !== coach.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      return ctx.db.coachCareerEntry.delete({ where: { id: input.id } });
     }),
 });

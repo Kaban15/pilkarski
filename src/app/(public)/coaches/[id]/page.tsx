@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Award,
   User,
+  Briefcase,
 } from "lucide-react";
 
 type Props = { params: Promise<{ id: string }> };
@@ -20,7 +21,7 @@ type Props = { params: Promise<{ id: string }> };
 async function getCoach(id: string) {
   return db.coach.findUnique({
     where: { id },
-    include: { region: true },
+    include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
   });
 }
 
@@ -149,6 +150,49 @@ export default async function CoachProfilePage({ params }: Props) {
             </Card>
           )}
         </div>
+
+        {/* Career timeline */}
+        {coach.careerEntries.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Briefcase className="h-4 w-4 text-blue-500" />
+                Doświadczenie
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative space-y-0">
+                {/* Timeline line */}
+                <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
+                {coach.careerEntries.map((entry, i) => (
+                  <div key={entry.id} className="relative flex gap-4 pb-5 last:pb-0">
+                    {/* Timeline dot */}
+                    <div className={`relative z-10 mt-1.5 h-[15px] w-[15px] shrink-0 rounded-full border-2 ${
+                      i === 0
+                        ? "border-blue-500 bg-blue-500"
+                        : "border-border bg-background"
+                    }`} />
+                    <div className="flex-1">
+                      <div className="flex items-baseline justify-between">
+                        <p className="font-medium">{entry.clubName}</p>
+                        <span className="shrink-0 text-sm font-medium text-muted-foreground">
+                          {entry.season}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{entry.role}</p>
+                      {entry.level && (
+                        <p className="text-sm text-muted-foreground">{entry.level}</p>
+                      )}
+                      {entry.notes && (
+                        <p className="mt-0.5 text-sm text-muted-foreground italic">{entry.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* CTA for non-logged users */}
         <div className="mt-8">
