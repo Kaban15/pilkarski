@@ -67,7 +67,7 @@ export default async function ClubPublicProfilePage({ params }: Props) {
   const club = await getClub(id);
   if (!club) notFound();
 
-  const [sparingsRes, eventsRes, reviewStats, recentReviews] = await Promise.all([
+  const [sparingsRes, eventsRes, reviewStats, recentReviews, matchHistory] = await Promise.all([
     db.sparingOffer.findMany({
       where: { clubId: id, status: "OPEN" },
       take: 5,
@@ -94,7 +94,36 @@ export default async function ClubPublicProfilePage({ params }: Props) {
       take: 5,
       orderBy: { createdAt: "desc" },
     }),
+    db.sparingOffer.findMany({
+      where: {
+        status: "COMPLETED",
+        scoreConfirmed: true,
+        OR: [
+          { clubId: id },
+          { applications: { some: { status: "ACCEPTED", applicantClub: { id } } } },
+        ],
+      },
+      include: {
+        club: { select: { id: true, name: true, logoUrl: true } },
+        applications: {
+          where: { status: "ACCEPTED" },
+          include: { applicantClub: { select: { id: true, name: true, logoUrl: true } } },
+        },
+      },
+      take: 10,
+      orderBy: { matchDate: "desc" },
+    }),
   ]);
+
+  const record = { wins: 0, draws: 0, losses: 0 };
+  for (const match of matchHistory) {
+    const isHome = match.clubId === id;
+    const myScore = isHome ? match.homeScore! : match.awayScore!;
+    const theirScore = isHome ? match.awayScore! : match.homeScore!;
+    if (myScore > theirScore) record.wins++;
+    else if (myScore === theirScore) record.draws++;
+    else record.losses++;
+  }
 
   const leagueGroupHref =
     club.leagueGroup && club.region
@@ -240,6 +269,54 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                         </Badge>
                       </li>
                     ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {matchHistory.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-emerald-500" />
+                    Historia sparingów
+                    <span className="text-sm font-normal text-muted-foreground">
+                      {record.wins}W {record.draws}R {record.losses}P
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="divide-y divide-border">
+                    {matchHistory.map((match) => {
+                      const rival = match.clubId === id
+                        ? match.applications[0]?.applicantClub
+                        : match.club;
+                      const isHome = match.clubId === id;
+                      const myScore = isHome ? match.homeScore! : match.awayScore!;
+                      const theirScore = isHome ? match.awayScore! : match.homeScore!;
+                      const result = myScore > theirScore ? "W" : myScore === theirScore ? "R" : "P";
+                      const resultColor =
+                        result === "W" ? "text-emerald-600" : result === "P" ? "text-red-500" : "text-muted-foreground";
+
+                      return (
+                        <li key={match.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-5 text-center text-xs font-bold ${resultColor}`}>{result}</span>
+                            <span className="text-sm">
+                              vs {rival?.name ?? "Nieznany"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold tabular-nums">
+                              {match.homeScore}:{match.awayScore}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatShortDate(match.matchDate)}
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </CardContent>
               </Card>
