@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21: Sparing Invitations ✅ → Etap 22: Club Membership & Squad ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21: Sparing Invitations ✅ → Etap 22: Club Membership & Squad ✅ → Etap 23: League Directory ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1208,6 +1208,48 @@
 - sparing invitation: interactive transaction z re-check status (race condition fix)
 - team-lineup: walidacja że gracze to ACCEPTED members klubu
 - join-club-button: usunięty unused utils
+
+---
+
+### Etap 23: League Directory — Katalog Drużyn i Struktur Ligowych ✅
+
+**Cel:** Publiczna wyszukiwarka/katalog drużyn przeglądany hierarchicznie: Województwo → Szczebel → Grupa → Lista Klubów.
+
+**Backend (tRPC):**
+- `region.listWithStats` — 16 województw z liczbą klubów (_count)
+- `region.levelsWithStats` — szczeble w regionie z count klubów (through groups)
+- `region.groupsWithStats` — grupy w szczeblu z _count klubów
+- `club.list` rozszerzony o filtr `leagueGroupId` + include leagueGroup
+- `search.global` — wyniki klubów wzbogacone o leagueGroup + leagueLevel
+
+**Frontend — 4 strony publiczne:**
+- `/leagues` — grid 16 województw z badge liczbą klubów
+- `/leagues/[regionSlug]` — szczeble ligowe (tier order), skip 1-group levels
+- `/leagues/[regionSlug]/[levelId]` — grupy z liczbą klubów
+- `/leagues/[regionSlug]/[levelId]/[groupId]` — lista klubów (logo, nazwa, miasto, link)
+- Breadcrumbs na każdym poziomie (reużywalny komponent)
+
+**Integracja:**
+- `/clubs/[id]` — badge region + liga klikalny → linki do /leagues hierarchy
+- "Liga" w sekcji "O klubie" → klikalny link
+- Wyszukiwarka — wyświetla "Klasa A · Grupa I" pod nazwą klubu
+- Sidebar: link "Ligi" (Medal icon) w sekcji "Więcej"
+- Middleware: `/leagues/` dodane do publicPrefixes
+
+**Pliki nowe:**
+- `src/app/(public)/leagues/page.tsx`
+- `src/app/(public)/leagues/[regionSlug]/page.tsx`
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/page.tsx`
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx`
+
+**Pliki zmodyfikowane:**
+- `src/server/trpc/routers/region.ts` — +3 procedury
+- `src/server/trpc/routers/club.ts` — leagueGroupId filter + include
+- `src/server/trpc/routers/search.ts` — leagueGroup include
+- `src/middleware.ts` — /leagues/ prefix
+- `src/components/layout/sidebar.tsx` — Medal icon + "Ligi"
+- `src/app/(public)/clubs/[id]/page.tsx` — kllikalne badge'e
+- `src/app/(dashboard)/search/page.tsx` — liga w wynikach
 
 ---
 
