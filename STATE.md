@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–27 ✅ → Etap 28: Attendance Reminders 24h ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–28 ✅ → Etap 29: Violet Surge Visual Redesign ✅ → Etap 30: League Catalog Redesign ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1513,6 +1513,88 @@
 - `src/app/(dashboard)/profile/page.tsx` — graceful careerEntries fallback
 - `src/lib/format.ts` — +formatEventDateTime()
 - `prisma/migrations/20260327200000_add_coach_career/migration.sql` — tabela coach_career_entries
+
+---
+
+### Etap 29: Violet Surge — Visual Redesign ✅
+
+**Cel:** Redesign wizualny platformy z emerald/black na violet-sky gradient z bold sports identity. Animacje, efekty, premium feel.
+
+**Paleta kolorów:**
+- Primary: violet `#7c3aed` (was emerald `#16a34a`)
+- Primary gradient: violet → sky (`#7c3aed → #0ea5e9`)
+- Background dark: `#0c0a1a` (deep navy-violet, was `#0a0a0a`)
+- Card dark: `#131025`, borders: `#1e1a2e`
+- Accent emerald zachowany (sparingi), + pink (notifications), amber (events), sky (trainings)
+- Light mode: violet-50 bg, violet-600 primary
+
+**Animacje i efekty (6 systemów):**
+- Scroll Reveal — `IntersectionObserver` wrapper (`ScrollReveal` component), elementy fade-in + slide-up przy scroll
+- Hover Glow & Lift — karty unoszą się z kolorowym glow (violet/sky/emerald/pink per typ)
+- Animated Hero — 3 blur blobs (violet/sky/emerald) z `@keyframes blob-1/2/3`, przelewające się kolory
+- Micro-interactions — pulsujące badge'e (`pulse-dot`), button press `scale(0.97)`
+- Page Transitions — `page-enter` animation (slide-up 0.3s) na dashboardzie
+- `prefers-reduced-motion` — wszystkie animacje wyłączone dla użytkowników z preferencją
+
+**Landing page:**
+- Hero: bg `#0c0a1a` z 3 animowanymi blobami, gradient text violet→sky, gradient CTA button
+- Pill badge: violet z pulse-dot
+- Stats: `text-violet-400`
+- Features: ikony w 4 kolorach (violet, sky, emerald, amber), hover glow per karta
+- "Jak to działa": step numbers z gradient violet→sky
+- Role cards: static Tailwind classes (fix dynamic interpolation bug), emerald/violet/sky accents
+- Bottom CTA: gradient button violet→sky
+- ScrollReveal na wszystkich sekcjach
+
+**Dashboard:**
+- Sidebar: gradient logo PS (violet→sky), active border-l-2 violet, pulse-dot na badge'ach, avatar ring violet
+- Feed: gradient stats pills (violet→sky/10), hover glow per typ karty, gradient CTA "Dodaj sparing"
+- Layout: page-enter animation na `{children}`
+
+**Code review (/simplify):**
+- Fix: dynamic Tailwind classes (`text-${accent}-400`) → static class lookup (JIT purging bug)
+- DRY: hover-glow 8 reguł → 6 (shared base via `[class*="hover-glow-"]`)
+- Usunięte: dead `.gradient-border` CSS, dead `--animate-*` zmienne poza selectorem
+- A11y: `@media (prefers-reduced-motion: reduce)` wyłącza scroll reveal, page-enter, pulse-dot, stagger
+
+**Pliki nowe:**
+- `src/components/scroll-reveal.tsx` — IntersectionObserver wrapper
+- `docs/superpowers/specs/2026-03-27-violet-surge-redesign.md` — spec
+- `docs/superpowers/plans/2026-03-27-violet-surge-redesign.md` — plan
+
+**Pliki zmodyfikowane:**
+- `src/styles/globals.css` — nowe tokeny (light+dark), 5 keyframes, utility classes, reduced-motion
+- `src/app/page.tsx` — landing redesign z blobami, gradient text, ScrollReveal
+- `src/components/layout/sidebar.tsx` — gradient logo, violet active, pulse badges
+- `src/app/(dashboard)/feed/page.tsx` — gradient stats, hover glow per typ, gradient CTA
+- `src/app/(dashboard)/layout.tsx` — page-enter animation
+
+---
+
+### Etap 30: League Catalog Redesign — 90minut Style ✅
+
+**Cel:** Wizualna rozbudowa katalogu ligowego w stylu tradycyjnego portalu piłkarskiego.
+
+**`/leagues`:**
+- Hero z ikoną Trophy + "Ligi regionalne 2024/25", totale (regiony + kluby)
+- Grid 4-kolumnowy z Shield ikonami, ChevronRight, liczniki szczebli + klubów per region
+
+**`/leagues/[region]`:**
+- Table-style lista z numerami tier w badge'ach, liczba grup, club count
+- Unified border container (rounded-lg overflow-hidden) zamiast osobnych kart
+
+**`/leagues/[region]/[level]`:**
+- Numerowane grupy w tabeli z liczbami klubów i strzałkami ChevronRight
+
+**`/leagues/[region]/[level]/[group]`:**
+- Numerowana lista klubów (1., 2., ...) z logotypami, miastem, strzałkami
+- Styl tradycyjnego katalogu ligowego
+
+**Pliki zmodyfikowane:**
+- `src/app/(public)/leagues/page.tsx`
+- `src/app/(public)/leagues/[regionSlug]/page.tsx`
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/page.tsx`
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx`
 
 ---
 
