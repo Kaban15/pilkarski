@@ -33,8 +33,26 @@ export const eventRouter = router({
           where: { userId: ctx.session.user.id },
         });
         if (!coach) throw new TRPCError({ code: "FORBIDDEN" });
+
+        // Coach must be accepted member of a club with canManageEvents
+        const membership = await ctx.db.clubMembership.findFirst({
+          where: {
+            memberUserId: ctx.session.user.id,
+            status: "ACCEPTED",
+            canManageEvents: true,
+          },
+          include: { club: { select: { id: true, regionId: true } } },
+        });
+        if (!membership) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Musisz należeć do klubu i mieć uprawnienia do zarządzania wydarzeniami",
+          });
+        }
+
+        clubId = membership.club.id;
         coachId = coach.id;
-        regionId = regionId ?? coach.regionId;
+        regionId = regionId ?? membership.club.regionId;
       } else {
         const club = await ctx.db.club.findUnique({
           where: { userId: ctx.session.user.id },

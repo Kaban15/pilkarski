@@ -61,6 +61,7 @@ export default function EventsPage() {
   const { data: session } = useSession();
   const isPlayer = session?.user?.role === "PLAYER";
   const isClub = session?.user?.role === "CLUB";
+  const isCoach = session?.user?.role === "COACH";
   const [eventsTab, setEventsTab] = useState<"search" | "my">("search");
 
   // Fetch player profile for matching badge (only for PLAYER)
@@ -68,6 +69,13 @@ export default function EventsPage() {
     enabled: isPlayer,
     staleTime: Infinity,
   });
+
+  // Check if coach has event management permission
+  const { data: myClub } = api.clubMembership.myClub.useQuery(undefined, {
+    enabled: isCoach,
+    staleTime: 60_000,
+  });
+  const canCreateEvents = isClub || (isCoach && myClub?.canManageEvents);
 
   const [regionId, setRegionId] = useState<number | undefined>();
   const [type, setType] = useState<EventTypeValue | undefined>();
@@ -134,7 +142,7 @@ export default function EventsPage() {
             Treningi otwarte i nabory w Twoim regionie
           </p>
         </div>
-        {isClub && (
+        {canCreateEvents && (
           <Link href="/events/new">
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -145,7 +153,7 @@ export default function EventsPage() {
         )}
       </div>
 
-      {isClub && (
+      {canCreateEvents && (
         <Tabs value={eventsTab} onValueChange={(v) => setEventsTab(v as "search" | "my")} className="mb-6">
           <TabsList>
             <TabsTrigger value="search">Szukaj</TabsTrigger>
@@ -154,7 +162,7 @@ export default function EventsPage() {
         </Tabs>
       )}
 
-      {eventsTab === "search" || !isClub ? (
+      {eventsTab === "search" || !canCreateEvents ? (
       <>
       <div className="mb-6 space-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">

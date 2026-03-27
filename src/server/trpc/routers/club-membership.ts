@@ -203,7 +203,9 @@ export const clubMembershipRouter = router({
   myClub: protectedProcedure.query(async ({ ctx }) => {
     const membership = await ctx.db.clubMembership.findFirst({
       where: { memberUserId: ctx.session.user.id, status: "ACCEPTED" },
-      include: {
+      select: {
+        id: true,
+        canManageEvents: true,
         club: { select: { id: true, name: true, logoUrl: true, city: true } },
       },
     });

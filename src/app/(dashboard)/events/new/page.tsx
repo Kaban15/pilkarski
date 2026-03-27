@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { createEventSchema, type EventTypeValue } from "@/lib/validators/event";
@@ -19,17 +20,56 @@ import {
 } from "@/lib/labels";
 import { TRAINING_PRESETS, type TrainingPreset } from "@/lib/training-presets";
 import { Zap } from "lucide-react";
+import Link from "next/link";
 
 const RECRUITMENT_TYPES: EventTypeValue[] = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
 export default function NewEventPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [selectedType, setSelectedType] = useState<EventTypeValue>("OPEN_TRAINING");
   const [visibility, setVisibility] = useState("PUBLIC");
   const formRef = useRef<HTMLFormElement>(null);
 
+  const role = session?.user?.role;
+  const isCoach = role === "COACH";
+  const isPlayer = role === "PLAYER";
+
+  const { data: myClub, isLoading: clubLoading } = api.clubMembership.myClub.useQuery(undefined, {
+    enabled: isCoach,
+  });
+
   const { data: regions = [] } = api.region.list.useQuery();
+
+  // PLAYER cannot create events
+  if (isPlayer) {
+    return (
+      <div className="mx-auto max-w-2xl py-8 text-center">
+        <p className="text-muted-foreground">Tylko kluby i trenerzy z uprawnieniami mogą tworzyć wydarzenia.</p>
+        <Button asChild className="mt-4" variant="outline">
+          <Link href="/events">Przeglądaj wydarzenia</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  // COACH must have club membership with canManageEvents
+  if (isCoach && !clubLoading && (!myClub || !myClub.canManageEvents)) {
+    return (
+      <div className="mx-auto max-w-2xl py-8 text-center">
+        <p className="text-lg font-semibold">Brak uprawnień</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {!myClub
+            ? "Musisz najpierw dołączyć do klubu, aby tworzyć treningi i wydarzenia."
+            : "Twój klub nie nadał Ci jeszcze uprawnień do zarządzania wydarzeniami. Skontaktuj się z klubem."}
+        </p>
+        <Button asChild className="mt-4" variant="outline">
+          <Link href={!myClub ? "/search" : "/events"}>{!myClub ? "Szukaj klubu" : "Przeglądaj wydarzenia"}</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const createMut = api.event.create.useMutation({
     onSuccess: (result) => {
@@ -112,7 +152,9 @@ export default function NewEventPage() {
               onChange={(e) => setSelectedType(e.target.value as EventTypeValue)}
               className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
             >
-              {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+              {Object.entries(EVENT_TYPE_LABELS)
+                .filter(([value]) => !isCoach || value === "INDIVIDUAL_TRAINING" || value === "GROUP_TRAINING")
+                .map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>

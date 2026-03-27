@@ -40,19 +40,16 @@ export function CoachOnboarding({ onComplete }: { onComplete: () => void }) {
 
         {step === 1 && (
           <div className="space-y-3">
-            <p className="text-sm font-semibold">Zacznij działać</p>
+            <p className="text-sm font-semibold">Dołącz do klubu</p>
             <p className="text-xs text-muted-foreground">
-              Dodaj swój pierwszy trening lub przeglądaj nabory i tablicę.
+              Znajdź klub i poproś o dołączenie. Gdy klub nada Ci uprawnienia, będziesz mógł tworzyć treningi i wydarzenia w jego imieniu.
             </p>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" asChild>
-                <Link href="/events/new">Dodaj trening</Link>
+                <Link href="/search">Szukaj klubu</Link>
               </Button>
               <Button size="sm" variant="outline" asChild>
                 <Link href="/trainings">Przeglądaj treningi</Link>
-              </Button>
-              <Button size="sm" variant="outline" asChild>
-                <Link href="/community">Tablica</Link>
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setStep(2)}>Pomiń</Button>
             </div>
