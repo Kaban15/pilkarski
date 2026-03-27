@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21: Sparing Invitations ✅ → Etap 22: Club Membership & Squad ✅ → Etap 23: League Directory ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–23 ✅ → Etap 24: Sparing Scores + League SEO ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1267,6 +1267,41 @@
 - `Promise.all` na group + clubs w [groupId] — równoległy fetch
 - Usunięte 3 nieużywane tRPC procedures (listWithStats, levelsWithStats, groupsWithStats)
 - `leagueGroupHref` wyekstrahowany w club profile (było powtórzone 3x)
+
+---
+
+### Etap 24: Sparing Scores + League SEO ✅
+
+**Cel:** Wyniki meczów sparingowych z flow submit/confirm + SEO dla stron ligowych.
+
+**Feature 1 — Wyniki sparingów:**
+- 4 nowe pola na SparingOffer: `homeScore`, `awayScore`, `scoreSubmittedBy`, `scoreConfirmed`
+- `sparing.submitScore` — wpisanie wyniku (walidacja: COMPLETED, uczestnik, brak wyniku)
+- `sparing.confirmScore` — potwierdzenie lub odrzucenie (reset do null)
+- 3 nowe NotificationType: SCORE_SUBMITTED, SCORE_CONFIRMED, SCORE_REJECTED
+- Push notifications przy submit i confirm/reject
+- Komponent `ScoreSection` na `/sparings/[id]` — 3 stany: formularz / oczekuje / potwierdzony
+- Sekcja "Historia sparingów" na `/clubs/[id]` — ostatnie 10 z potwierdzonym wynikiem, bilans W/R/P
+
+**Feature 2 — League SEO:**
+- `sitemap.ts` zmieniony z statycznego na async z DB queries
+- ~480 URL-i: /leagues + 16 regionów + 69 szczebli + 397 grup
+- Priority: root 0.8, regiony 0.7, szczeble 0.6, grupy 0.5
+- Graceful fallback gdy DB niedostępna w build time
+
+**Pliki nowe:**
+- `src/app/(dashboard)/sparings/[id]/_components/score-section.tsx`
+- `prisma/migrations/20260327140000_add_sparing_scores/migration.sql`
+
+**Pliki zmodyfikowane:**
+- `prisma/schema.prisma` — 4 pola + 3 NotificationType
+- `src/server/trpc/routers/sparing.ts` — submitScore + confirmScore
+- `src/lib/labels.ts` — SCORE_* labels + colors
+- `src/app/(dashboard)/sparings/[id]/page.tsx` — ScoreSection integration
+- `src/app/(public)/clubs/[id]/page.tsx` — match history + W/R/P record
+- `src/app/sitemap.ts` — dynamic league URLs
+
+**Migracja:** `20260327140000_add_sparing_scores` — ZASTOSOWANA
 
 ---
 

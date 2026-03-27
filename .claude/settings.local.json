@@ -22,7 +22,19 @@
       "Bash(netstat -ano)",
       "Bash(taskkill:*)",
       "Bash(export DATABASE_URL=\"postgresql://postgres.ozwbukoetxqnjuexsyhm:Ciapek515%21%21%21@aws-1-eu-west-1.pooler.supabase.com:5432/postgres\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git -C \"C:/Users/piotr/CascadeProjects/pilkarski\" add \"src/app/\\(dashboard\\)/search/page.tsx\")",
+      "Bash(git -C:*)",
+      "Bash(git push:*)",
+      "WebSearch",
+      "WebFetch(domain:pl.wikipedia.org)",
+      "WebFetch(domain:www.90minut.pl)",
+      "WebFetch(domain:wielkopolskizpn.pl)",
+      "WebFetch(domain:slzpn.pl)",
+      "WebFetch(domain:www.mzpn.pl)",
+      "WebFetch(domain:wskozpn.pl)",
+      "Bash(source .env)",
+      "Bash(psql \"$DATABASE_URL\" -f prisma/migrations/20260327140000_add_sparing_scores/migration.sql)"
     ]
   }
 }
