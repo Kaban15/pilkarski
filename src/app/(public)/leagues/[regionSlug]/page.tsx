@@ -52,6 +52,7 @@ export default async function RegionLevelsPage({ params }: Props) {
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <Breadcrumbs
           items={[
+            { label: "Menu", href: "/feed" },
             { label: "Ligi", href: "/leagues" },
             { label: region.name },
           ]}

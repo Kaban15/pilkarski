@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
-import { ChevronRight, Trophy, MapPin, Users } from "lucide-react";
-import { BackButton } from "@/components/back-button";
+import { ChevronRight, Trophy, MapPin, Users, Home } from "lucide-react";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { pluralPL } from "@/lib/labels";
 
@@ -29,7 +28,13 @@ export default async function LeaguesPage() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-violet-500/8 via-sky-500/4 to-transparent" />
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-40 w-96 rounded-full bg-violet-500/10 blur-[80px]" />
         <div className="relative mx-auto max-w-5xl px-4 py-12 sm:px-6">
-          <BackButton label="Powrót" variant="dark" />
+          <Link
+            href="/feed"
+            className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            <Home className="h-4 w-4" />
+            Menu główne
+          </Link>
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 shadow-lg shadow-violet-500/25">
               <Trophy className="h-7 w-7 text-white" />
