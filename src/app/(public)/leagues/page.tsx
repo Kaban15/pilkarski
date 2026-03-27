@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
-import { Shield, Users, ChevronRight, Trophy } from "lucide-react";
+import { Shield, ChevronRight, Trophy } from "lucide-react";
 import { BackButton } from "@/components/back-button";
+import { ScrollReveal } from "@/components/scroll-reveal";
+import { PolandMap } from "@/components/leagues/poland-map";
 
 export const metadata: Metadata = {
   title: "Ligi regionalne 2024/25",
@@ -18,6 +20,12 @@ export default async function LeaguesPage() {
   });
 
   const totalClubs = regions.reduce((sum, r) => sum + r._count.clubs, 0);
+
+  const mapRegions = regions.map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    clubCount: r._count.clubs,
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,30 +49,42 @@ export default async function LeaguesPage() {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Map */}
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {regions.map((region) => (
-            <Link
-              key={region.id}
-              href={`/leagues/${region.slug}`}
-              className="group flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-all hover:border-primary/30 hover:shadow-sm"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                <Shield className="h-4 w-4 text-emerald-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-semibold group-hover:text-primary">
-                  {region.name}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {region._count.leagueLevels} szczebli &middot; {region._count.clubs} klubów
-                </p>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
-            </Link>
-          ))}
-        </div>
+        <ScrollReveal>
+          <div className="mb-8 hidden sm:block">
+            <p className="mb-4 text-center text-sm text-muted-foreground">
+              Kliknij województwo na mapie lub wybierz z listy poniżej
+            </p>
+            <PolandMap regions={mapRegions} />
+          </div>
+        </ScrollReveal>
+
+        {/* Grid */}
+        <ScrollReveal delay={1}>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {regions.map((region) => (
+              <Link
+                key={region.id}
+                href={`/leagues/${region.slug}`}
+                className="group flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-all hover:border-primary/30 hover:shadow-sm"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
+                  <Shield className="h-4 w-4 text-violet-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold group-hover:text-primary">
+                    {region.name}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {region._count.leagueLevels} szczebli &middot; {region._count.clubs} klubów
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50 group-hover:text-primary" />
+              </Link>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
     </div>
   );

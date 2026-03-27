@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MapPin, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { pluralPL } from "@/lib/labels";
 
 type Props = { params: Promise<{ regionSlug: string; levelId: string; groupId: string }> };
@@ -17,12 +18,21 @@ async function getData(regionSlug: string, levelId: number, groupId: number) {
   });
   if (!level) return null;
 
+  const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
   const [group, clubs] = await Promise.all([
     db.leagueGroup.findFirst({ where: { id: groupId, leagueLevelId: levelId } }),
     db.club.findMany({
       where: { leagueGroupId: groupId },
       orderBy: { name: "asc" },
-      include: { region: true },
+      include: {
+        region: true,
+        _count: {
+          select: {
+            sparingOffers: { where: { createdAt: { gte: sixMonthsAgo } } },
+            events: { where: { createdAt: { gte: sixMonthsAgo } } },
+          },
+        },
+      },
     }),
   ]);
   if (!group) return null;
@@ -98,9 +108,16 @@ export default async function ClubsInGroupPage({ params }: Props) {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-semibold group-hover:text-primary">
-                    {club.name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-[13px] font-semibold group-hover:text-primary">
+                      {club.name}
+                    </p>
+                    {(club._count.sparingOffers + club._count.events > 0) && (
+                      <Badge variant="secondary" className="shrink-0 text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-0">
+                        Aktywny
+                      </Badge>
+                    )}
+                  </div>
                   {club.city && (
                     <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <MapPin className="h-3 w-3" />
