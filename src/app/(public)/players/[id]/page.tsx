@@ -8,6 +8,7 @@ import { PublicProfileCTA } from "@/components/public-profile-cta";
 import { POSITION_LABELS, FOOT_LABELS } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
 import { ProfileMessageButton } from "@/components/profile-message-button";
+import { ClubInviteButton } from "@/components/club-invite-button";
 import {
   MapPin,
   Globe,
@@ -126,8 +127,9 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
                   {player.city}
                 </p>
               )}
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <ProfileMessageButton recipientUserId={player.userId} />
+                <ClubInviteButton targetUserId={player.userId} />
               </div>
             </div>
           </div>
