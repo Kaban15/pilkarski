@@ -46,3 +46,4 @@ next-env.d.ts
 
 # Temp Prisma config (contains DB password)
 prisma/prisma.config.migrate.*
+.superpowers/
