@@ -137,16 +137,22 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                   </Badge>
                 )}
                 {club.region && (
-                  <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/20">
-                    <Globe className="mr-1 h-3 w-3" />
-                    {club.region.name}
-                  </Badge>
+                  <Link href={`/leagues/${club.region.slug}`}>
+                    <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/20 cursor-pointer">
+                      <Globe className="mr-1 h-3 w-3" />
+                      {club.region.name}
+                    </Badge>
+                  </Link>
                 )}
-                {club.leagueGroup && (
-                  <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/20">
-                    <Trophy className="mr-1 h-3 w-3" />
-                    {club.leagueGroup.leagueLevel.name}
-                  </Badge>
+                {club.leagueGroup && club.region && (
+                  <Link
+                    href={`/leagues/${club.region.slug}/${club.leagueGroup.leagueLevel.id}/${club.leagueGroup.id}`}
+                  >
+                    <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/20 cursor-pointer">
+                      <Trophy className="mr-1 h-3 w-3" />
+                      {club.leagueGroup.leagueLevel.name} &mdash; {club.leagueGroup.name}
+                    </Badge>
+                  </Link>
                 )}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -174,12 +180,15 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {club.leagueGroup && (
+                  {club.leagueGroup && club.region && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">Liga</p>
-                      <p className="font-medium">
+                      <Link
+                        href={`/leagues/${club.region.slug}/${club.leagueGroup.leagueLevel.id}/${club.leagueGroup.id}`}
+                        className="font-medium text-primary hover:underline"
+                      >
                         {club.leagueGroup.leagueLevel.name} &mdash; {club.leagueGroup.name}
-                      </p>
+                      </Link>
                     </div>
                   )}
                   {club.description && (
