@@ -23,6 +23,7 @@ import {
   Megaphone,
   GraduationCap,
   Users,
+  Medal,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -60,6 +61,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/community", icon: Megaphone, label: "Tablica" },
       { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
+      { href: "/leagues", icon: Medal, label: "Ligi" },
       { href: "/search", icon: Search, label: "Szukaj" },
       { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
       { href: "/notifications", icon: Bell, label: "Powiadomienia" },
