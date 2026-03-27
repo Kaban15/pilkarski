@@ -62,6 +62,11 @@ export default function SearchPage() {
                 <Link key={club.id} href={`/clubs/${club.id}`} className="block">
                   <li className="rounded-md border p-3 transition hover:bg-muted">
                     <p className="font-medium">{club.name}</p>
+                    {club.leagueGroup && (
+                      <span className="text-xs text-muted-foreground">
+                        {club.leagueGroup.leagueLevel.name} &middot; {club.leagueGroup.name}
+                      </span>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {club.city ?? ""}{club.region ? ` · ${club.region.name}` : ""}
                     </p>
