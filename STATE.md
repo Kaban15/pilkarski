@@ -1,6 +1,6 @@
 # PilkaSport — Stan Projektu
 
-## Aktualny etap: Fazy 1–20 ✅ → Etap 21–28 ✅ → Etap 29: Violet Surge ✅ → Etap 30: League Catalog ✅ → Etap 31: League Map + Active Badge ✅
+## Aktualny etap: Fazy 1–20 ✅ → Etap 21–31 ✅ → Etap 32: League Navigation + Club Group Chat ✅
 **Ostatnia sesja:** 2026-03-27
 
 ---
@@ -1626,6 +1626,50 @@
 **Pliki zmodyfikowane:**
 - `src/app/(public)/leagues/page.tsx` — mapa + ulepszony hero + kafelki
 - `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx` — badge "Aktywny"
+
+---
+
+### Etap 32: League Navigation + Club Group Chat ✅
+
+**Cel:** Nawigacja "Menu główne" z lig + czat grupowy klubu dla członków kadry.
+
+**League navigation fix:**
+- `/leagues` — link "Menu główne" (Home icon) → `/feed` zamiast BackButton
+- Sub-strony (region, level, group) — "Menu" jako pierwszy element Breadcrumbs → `/feed`
+- Sezon poprawiony: 2024/25 → 2025/26
+- Usunięta duplikacja (grid mapy + lista regionów → jedna lista kart z numerami)
+- Karty regionów: gradient accent line na hover, pill badges, pełne nazwy
+
+**Club Group Chat:**
+- `Conversation.clubId` (unique) — jeden czat grupowy per klub
+- `getClubChat` — find/create konwersację, auto-join uczestnika (warunkowy, nie na każdym poll)
+- `sendToClubChat` — weryfikacja membership/ownership, rate-limited (30 prób)
+- Strona `/club-chat` — violet theme, nazwy nadawców nad bąbelkami, auto-scroll (track lastMessageId), polling 10s
+- Sidebar: "Czat klubu" z ikoną UsersRound
+- Empty state: "Dołącz do klubu" z linkiem do /search
+
+**Code review (/simplify):**
+- Upsert participant → warunkowy create (0 writes po pierwszej wizycie, było 6/min/user)
+- Auto-scroll: track `lastMessageId` zamiast `data.messages` (nie scrolluje co 10s bez nowych wiadomości)
+- `Promise.all` na messages + memberCount
+- Merge conversation + club query w sendToClubChat (1 mniej round trip)
+- Redundant comments usunięte
+
+**Pliki nowe:**
+- `src/app/(dashboard)/club-chat/page.tsx`
+- `prisma/migrations/20260327220000_add_club_chat/migration.sql`
+- `docs/superpowers/plans/2026-03-27-club-group-chat.md`
+
+**Pliki zmodyfikowane:**
+- `prisma/schema.prisma` — Conversation.clubId + Club.groupChat relacja
+- `src/server/trpc/routers/message.ts` — +getClubChat, +sendToClubChat
+- `src/components/layout/sidebar.tsx` — +UsersRound "Czat klubu"
+- `src/app/(public)/leagues/page.tsx` — Home link, sezon 2025/26, redesign kart
+- `src/app/(public)/leagues/[regionSlug]/page.tsx` — Menu w breadcrumbs
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/page.tsx` — Menu w breadcrumbs
+- `src/app/(public)/leagues/[regionSlug]/[levelId]/[groupId]/page.tsx` — Menu w breadcrumbs
+
+**Migracja:** `20260327220000_add_club_chat` — ZASTOSOWANA
 
 ---
 
