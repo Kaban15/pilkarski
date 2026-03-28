@@ -36,6 +36,7 @@ import {
   MapPin,
   Zap,
   ArrowRight,
+  Banknote,
 } from "lucide-react";
 
 type SparingFormProps = {
@@ -50,6 +51,7 @@ type SparingFormProps = {
     ageCategory?: string | null;
     preferredTime?: string | null;
     regionId?: number | null;
+    costPerTeam?: number | null;
   };
   onSuccess?: (id: string) => void;
 };
@@ -63,6 +65,7 @@ type FormData = {
   level: string;
   ageCategory: string;
   regionId: string;
+  costPerTeam: string;
 };
 
 const STEPS = [
@@ -105,6 +108,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     level: defaultValues?.level ?? "",
     ageCategory: defaultValues?.ageCategory ?? "",
     regionId: defaultValues?.regionId ? String(defaultValues.regionId) : "",
+    costPerTeam: defaultValues?.costPerTeam ? String(defaultValues.costPerTeam) : "",
   });
 
   function updateField(field: keyof FormData, value: string) {
@@ -122,6 +126,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
       ageCategory: (form.ageCategory || undefined) as AgeCategory | undefined,
       preferredTime: form.preferredTime || undefined,
       regionId: form.regionId ? Number(form.regionId) : undefined,
+      costPerTeam: form.costPerTeam ? Number(form.costPerTeam) : undefined,
     };
   }
 
@@ -547,6 +552,20 @@ function StepTwoFields({
             placeholder="np. weekendy 10:00-14:00"
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="costPerTeam" className="inline-flex items-center gap-1.5">
+            <Banknote className="h-3.5 w-3.5" />
+            Koszt na drużynę (PLN)
+          </Label>
+          <Input
+            id="costPerTeam"
+            type="number"
+            min={0}
+            value={form.costPerTeam}
+            onChange={(e) => updateField("costPerTeam", e.target.value)}
+            placeholder="0 = darmowy"
+          />
+        </div>
       </div>
     </div>
   );
@@ -588,6 +607,7 @@ function StepThreeSummary({
           {form.level && <SummaryRow label="Poziom" value={SPARING_LEVEL_LABELS[form.level] ?? form.level} />}
           {form.ageCategory && <SummaryRow label="Kategoria wiekowa" value={AGE_CATEGORY_LABELS[form.ageCategory] ?? form.ageCategory} />}
           {form.preferredTime && <SummaryRow label="Preferowane godziny" value={form.preferredTime} />}
+          {form.costPerTeam && Number(form.costPerTeam) > 0 && <SummaryRow label="Koszt na drużynę" value={`${form.costPerTeam} PLN`} />}
         </CardContent>
       </Card>
 

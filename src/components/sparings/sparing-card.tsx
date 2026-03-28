@@ -20,6 +20,7 @@ export type SparingCardItem = {
   level?: string | null;
   ageCategory?: string | null;
   preferredTime?: string | null;
+  costPerTeam?: number | null;
   club: {
     id: string;
     name: string;
@@ -118,6 +119,11 @@ export function SparingCard({
             <span className="flex items-center gap-1.5 truncate">
               <MapPin className="h-3.5 w-3.5 shrink-0 opacity-50" />
               <span className="truncate">{sparing.location}</span>
+            </span>
+          )}
+          {sparing.costPerTeam != null && sparing.costPerTeam > 0 && (
+            <span className="shrink-0 bg-amber-500/10 text-amber-400 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+              {sparing.costPerTeam} PLN
             </span>
           )}
           {countdown && (

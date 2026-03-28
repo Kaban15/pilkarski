@@ -31,6 +31,7 @@ import {
   XCircle,
   Trophy,
   Target,
+  Banknote,
 } from "lucide-react";
 
 type EventApplication = {
@@ -200,6 +201,17 @@ export default function EventDetailPage() {
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Limit miejsc</p>
                   <p className="font-medium">{event.maxParticipants}</p>
+                </div>
+              </div>
+            )}
+            {(event as any).costPerPerson != null && (event as any).costPerPerson > 0 && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+                  <Banknote className="h-4 w-4 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Koszt</p>
+                  <p className="font-medium">{(event as any).costPerPerson} PLN na osobę</p>
                 </div>
               </div>
             )}

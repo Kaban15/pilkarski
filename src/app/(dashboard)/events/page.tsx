@@ -34,6 +34,7 @@ import {
   Trophy,
   Search,
   Target,
+  Banknote,
 } from "lucide-react";
 
 type EventItem = {
@@ -43,6 +44,7 @@ type EventItem = {
   eventDate: string | Date;
   location: string | null;
   maxParticipants: number | null;
+  costPerPerson: number | null;
   club: { id: string; name: string; city: string | null };
   region: { name: string } | null;
 };
@@ -313,6 +315,11 @@ export default function EventsPage() {
                       <span className="flex items-center gap-1.5 truncate">
                         <MapPin className="h-3.5 w-3.5 shrink-0" />
                         <span className="truncate">{ev.location}</span>
+                      </span>
+                    )}
+                    {ev.costPerPerson != null && ev.costPerPerson > 0 && (
+                      <span className="shrink-0 bg-amber-500/10 text-amber-400 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                        {ev.costPerPerson} PLN
                       </span>
                     )}
                     {ev.maxParticipants && (

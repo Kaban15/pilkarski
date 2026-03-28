@@ -22,7 +22,7 @@ import { GroupTable } from "@/components/tournament/group-table";
 import { BracketView } from "@/components/tournament/bracket-view";
 import { TopScorers } from "@/components/tournament/top-scorers";
 import { MatchRow } from "@/components/tournament/match-row";
-import { MapPin, Calendar, Users, Trophy, Info } from "lucide-react";
+import { MapPin, Calendar, Users, Trophy, Info, Banknote } from "lucide-react";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -153,6 +153,11 @@ export default function TournamentDetailPage() {
     onError: (e) => toast.error(e.message),
   });
 
+  const markTeamPaidMut = api.tournament.markTeamPaid.useMutation({
+    onSuccess: () => { invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+
   // ─── loading ────────────────────────────────────────────────────────────────
 
   if (isLoading) {
@@ -248,6 +253,12 @@ export default function TournamentDetailPage() {
             <span className="text-[11px] font-semibold bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-md">
               {TOURNAMENT_FORMAT_LABELS[format] ?? format}
             </span>
+            {(tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && (
+              <span className="text-[11px] font-semibold bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <Banknote className="h-3 w-3" />
+                Wpisowe: {(tournament as any).costPerTeam} PLN
+              </span>
+            )}
             <span className="text-[11px] text-orange-300/70">{creatorName}</span>
           </div>
 
@@ -386,6 +397,21 @@ export default function TournamentDetailPage() {
                     >
                       {STATUS_LABEL_MAP[appStatus] ?? appStatus}
                     </span>
+                    {/* Creator: payment badge + toggle */}
+                    {isCreator && (tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && appStatus === "ACCEPTED" && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${(team as any).costPaid ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
+                          {(team as any).costPaid ? "Opłacone" : "Nieopłacone"}
+                        </span>
+                        <button
+                          onClick={() => markTeamPaidMut.mutate({ teamId: team.id, paid: !(team as any).costPaid })}
+                          disabled={markTeamPaidMut.isPending}
+                          className="text-[10px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
+                        >
+                          {(team as any).costPaid ? "Cofnij" : "Oznacz"}
+                        </button>
+                      </div>
+                    )}
                     {/* Creator accept/reject on PENDING */}
                     {isCreator && appStatus === "PENDING" && (
                       <div className="flex gap-1.5 shrink-0">
@@ -575,6 +601,9 @@ export default function TournamentDetailPage() {
                   />
                 )}
               </>
+            )}
+            {(tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && (
+              <InfoRow label="Wpisowe" value={`${(tournament as any).costPerTeam} PLN`} />
             )}
             <InfoRow label="Organizator" value={creatorName} />
             {tournament.region && (

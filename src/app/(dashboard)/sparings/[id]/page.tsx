@@ -148,6 +148,7 @@ export default function SparingDetailPage() {
         sparing={sparing}
         isOwner={isOwner}
         acceptedApp={acceptedApp}
+        sessionUserId={session?.user?.id}
         showDeleteConfirm={showDeleteConfirm}
         setShowDeleteConfirm={setShowDeleteConfirm}
         showCompleteConfirm={showCompleteConfirm}
@@ -156,6 +157,7 @@ export default function SparingDetailPage() {
         onComplete={handleComplete}
         deleting={deleteMutation.isPending}
         completing={completeMutation.isPending}
+        onRefresh={reload}
       />
 
       <SparingTimeline
