@@ -71,15 +71,15 @@ export function ClubDashboardSections() {
       {pendingApplications.length > 0 && (
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <FileText className="h-5 w-5 text-blue-500" />
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              <FileText className="h-4 w-4 text-blue-500" />
               Zgłoszenia do rozpatrzenia
               <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 dark:text-blue-400">
                 {pendingApplications.length}
               </Badge>
             </h2>
           </div>
-          <Card>
+          <Card className="rounded-xl">
             <CardContent className="divide-y divide-border py-2">
               {pendingApplications.map((app) => (
                 <Link
@@ -118,13 +118,13 @@ export function ClubDashboardSections() {
       {activeSparings.length > 0 && (
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Swords className="h-5 w-5 text-emerald-500" />
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              <Swords className="h-4 w-4 text-emerald-500" />
               Aktywne sparingi
             </h2>
             <div className="flex items-center gap-2">
               <Link href="/sparings/new">
-                <Button size="sm" variant="outline" className="gap-1.5">
+                <Button size="sm" variant="outline" className="gap-1.5 rounded-lg">
                   <Plus className="h-3.5 w-3.5" />
                   Dodaj
                 </Button>
@@ -137,7 +137,7 @@ export function ClubDashboardSections() {
           <div className="grid gap-3 sm:grid-cols-3">
             {activeSparings.map((s) => (
               <Link key={s.id} href={`/sparings/${s.id}`} className="group block">
-                <Card className="h-full transition-colors hover:border-primary/40">
+                <Card className="h-full rounded-xl transition-colors hover:border-primary/40">
                   <CardContent className="p-4">
                     <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
                       {s.title}
@@ -164,13 +164,13 @@ export function ClubDashboardSections() {
       {upcomingEvents.length > 0 && (
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <Trophy className="h-5 w-5 text-violet-500" />
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              <Trophy className="h-4 w-4 text-violet-500" />
               Nadchodzące wydarzenia
             </h2>
             <div className="flex items-center gap-2">
               <Link href="/events/new">
-                <Button size="sm" variant="outline" className="gap-1.5">
+                <Button size="sm" variant="outline" className="gap-1.5 rounded-lg">
                   <Plus className="h-3.5 w-3.5" />
                   Dodaj
                 </Button>
@@ -183,7 +183,7 @@ export function ClubDashboardSections() {
           <div className="grid gap-3 sm:grid-cols-3">
             {upcomingEvents.map((e) => (
               <Link key={e.id} href={`/events/${e.id}`} className="group block">
-                <Card className="h-full transition-colors hover:border-primary/40">
+                <Card className="h-full rounded-xl transition-colors hover:border-primary/40">
                   <CardContent className="p-4">
                     <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
                       {e.title}

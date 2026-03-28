@@ -180,7 +180,7 @@ export const statsRouter = router({
     return { role: "PLAYER" as const, eventApps, unreadMessages };
   }),
 
-  // Club dashboard sections: active sparings, upcoming events, pending applications
+  // Club dashboard sections: active sparings, upcoming events, pending applications + next match, squad count, win record
   clubDashboard: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     if (ctx.session.user.role !== "CLUB") return null;
@@ -190,7 +190,7 @@ export const statsRouter = router({
 
     const now = new Date();
 
-    const [activeSparings, upcomingEvents, pendingApplications] = await Promise.all([
+    const [activeSparings, upcomingEvents, pendingApplications, squadCount, completedSparings, nextMatchOffer] = await Promise.all([
       ctx.db.sparingOffer.findMany({
         where: { clubId: club.id, status: "OPEN" },
         include: {
@@ -221,9 +221,76 @@ export const statsRouter = router({
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
+      // Squad count: accepted club memberships
+      ctx.db.clubMembership.count({
+        where: { clubId: club.id, status: "ACCEPTED" },
+      }),
+      // Completed sparings with confirmed scores for win record
+      ctx.db.sparingOffer.findMany({
+        where: {
+          clubId: club.id,
+          status: "COMPLETED",
+          scoreConfirmed: true,
+          homeScore: { not: null },
+          awayScore: { not: null },
+        },
+        select: { homeScore: true, awayScore: true },
+      }),
+      // Next upcoming MATCHED sparing
+      ctx.db.sparingOffer.findFirst({
+        where: {
+          clubId: club.id,
+          status: "MATCHED",
+          matchDate: { gte: now },
+        },
+        include: {
+          applications: {
+            where: { status: "ACCEPTED" },
+            include: {
+              applicantClub: { select: { id: true, name: true, logoUrl: true } },
+            },
+            take: 1,
+          },
+        },
+        orderBy: { matchDate: "asc" },
+      }),
     ]);
 
-    return { activeSparings, upcomingEvents, pendingApplications };
+    // Compute win record from completed sparings (club is always home in its own offers)
+    let wins = 0, draws = 0, losses = 0;
+    for (const s of completedSparings) {
+      if (s.homeScore == null || s.awayScore == null) continue;
+      if (s.homeScore > s.awayScore) wins++;
+      else if (s.homeScore === s.awayScore) draws++;
+      else losses++;
+    }
+
+    // Build nextMatch data
+    let nextMatch: {
+      id: string;
+      title: string;
+      matchDate: Date;
+      opponentClub: { id: string; name: string; logoUrl: string | null } | null;
+    } | null = null;
+
+    if (nextMatchOffer) {
+      const acceptedApp = nextMatchOffer.applications[0];
+      nextMatch = {
+        id: nextMatchOffer.id,
+        title: nextMatchOffer.title,
+        matchDate: nextMatchOffer.matchDate,
+        opponentClub: acceptedApp?.applicantClub ?? null,
+      };
+    }
+
+    return {
+      activeSparings,
+      upcomingEvents,
+      pendingApplications,
+      squadCount,
+      winRecord: { wins, draws, losses },
+      nextMatch,
+    };
   }),
 
   coachDashboard: protectedProcedure.query(async ({ ctx }) => {

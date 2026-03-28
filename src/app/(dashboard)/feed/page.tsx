@@ -19,6 +19,8 @@ import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
 import { PlayerOnboarding } from "@/components/onboarding/player-onboarding";
 import { CoachOnboarding } from "@/components/onboarding/coach-onboarding";
 import { RecruitmentStats } from "@/components/recruitment/recruitment-stats";
+import { StatsCell } from "@/components/stats-cell";
+import { MatchCard } from "@/components/match-card";
 import {
   Swords,
   Trophy,
@@ -34,6 +36,7 @@ import {
   Target,
   ChevronDown,
   Users,
+  Star,
 } from "lucide-react";
 
 type FeedItem = {
@@ -186,22 +189,15 @@ type DashboardStats = {
   unreadMessages: number;
 };
 
-const STAT_CONFIG_CLUB = [
-  { key: "activeSparings", label: "Aktywne sparingi", icon: Swords, href: "/sparings", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { key: "pendingApplications", label: "Oczekujące zgłoszenia", icon: FileText, href: "/sparings", color: "text-amber-500", bg: "bg-amber-500/10" },
-  { key: "upcomingEvents", label: "Nadchodzące wydarzenia", icon: Trophy, href: "/events", color: "text-violet-500", bg: "bg-violet-500/10" },
-  { key: "unreadMessages", label: "Nowe wiadomości", icon: MessageSquare, href: "/messages", color: "text-blue-500", bg: "bg-blue-500/10" },
-] as const;
-
 const STAT_CONFIG_PLAYER = [
   { key: "eventApps", label: "Zgłoszenia", icon: TrendingUp, href: "/events", color: "text-violet-500", bg: "bg-violet-500/10" },
   { key: "unreadMessages", label: "Nowe wiadomości", icon: MessageSquare, href: "/messages", color: "text-amber-500", bg: "bg-amber-500/10" },
 ] as const;
 
 function StatsBar({ stats }: { stats: DashboardStats | null }) {
-  if (!stats) return null;
+  if (!stats || stats.role === "CLUB") return null;
 
-  const config = stats.role === "CLUB" ? STAT_CONFIG_CLUB : STAT_CONFIG_PLAYER;
+  const config = STAT_CONFIG_PLAYER;
 
   return (
     <div className="mb-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
@@ -358,35 +354,208 @@ function NewClubsInRegion() {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// CLUB DASHBOARD — FotMob/Sofascore card stack
+// ─────────────────────────────────────────────────────────
+
+type ClubDashboardData = {
+  activeSparings: number;
+  pendingApplications: number;
+  squadCount: number;
+  winRecord: { wins: number; draws: number; losses: number };
+  nextMatch: {
+    id: string;
+    title: string;
+    matchDate: Date;
+    opponentClub: { id: string; name: string; logoUrl: string | null } | null;
+  } | null;
+  pendingAlerts: {
+    id: string;
+    type: "counter_proposal" | "new_application" | "message";
+    title: string;
+    description: string;
+    createdAt: Date | string;
+    href: string;
+  }[];
+};
+
+function ClubHeaderCard({
+  clubProfile,
+  stats,
+}: {
+  clubProfile: {
+    name: string;
+    city: string | null;
+    logoUrl: string | null;
+    region: { name: string } | null;
+    leagueGroup: { name: string; leagueLevel?: { name: string } | null } | null;
+  } | null | undefined;
+  stats: { avgRating?: number } | null;
+}) {
+  if (!clubProfile) return null;
+
+  const initials = clubProfile.name.slice(0, 2).toUpperCase();
+  const regionLabel = clubProfile.region?.name ?? null;
+  const leagueLabel = clubProfile.leagueGroup?.name ?? null;
+  const rating = stats?.avgRating ?? null;
+
+  return (
+    <div className="bg-gradient-to-r from-indigo-950 to-slate-900 rounded-xl p-4 relative overflow-hidden mb-3">
+      {/* Dot pattern overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+      <div className="relative flex items-center gap-3">
+        {/* Club logo */}
+        <div className="h-14 w-14 shrink-0 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center">
+          {clubProfile.logoUrl ? (
+            <img src={clubProfile.logoUrl} alt={clubProfile.name} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-lg font-extrabold text-white">{initials}</span>
+          )}
+        </div>
+        {/* Club info */}
+        <div className="min-w-0 flex-1">
+          <p className="text-lg font-extrabold text-white leading-tight line-clamp-1">
+            {clubProfile.name}
+          </p>
+          {(clubProfile.city || regionLabel) && (
+            <p className="text-xs text-white/60 mt-0.5">
+              {[clubProfile.city, regionLabel].filter(Boolean).join(" · ")}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {leagueLabel && (
+              <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80">
+                {leagueLabel}
+              </span>
+            )}
+            {rating != null && rating > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+                <Star className="h-2.5 w-2.5" />
+                {rating.toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClubStatsRow({
+  activeSparings,
+  pendingApplications,
+  squadCount,
+  winRecord,
+}: {
+  activeSparings: number;
+  pendingApplications: number;
+  squadCount: number;
+  winRecord: { wins: number; draws: number; losses: number };
+}) {
+  const { wins, draws, losses } = winRecord;
+  const bilansParts: string[] = [];
+  if (wins > 0 || draws > 0 || losses > 0) {
+    bilansParts.push(`${wins}-${draws}-${losses}`);
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+      <Link href="/sparings">
+        <StatsCell value={activeSparings} label="Aktywne sparingi" color="violet" />
+      </Link>
+      <Link href="/sparings">
+        <StatsCell value={pendingApplications} label="Zgłoszenia" color="amber" />
+      </Link>
+      <Link href="/squad">
+        <StatsCell value={squadCount} label="Kadra" color="sky" />
+      </Link>
+      <div>
+        <StatsCell
+          value={bilansParts.length > 0 ? bilansParts[0] : "—"}
+          label="Bilans W-R-P"
+          color="emerald"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ClubNextMatch({
+  nextMatch,
+  clubProfile,
+}: {
+  nextMatch: ClubDashboardData["nextMatch"];
+  clubProfile: { id?: string; name: string; logoUrl: string | null } | null | undefined;
+}) {
+  if (!nextMatch || !clubProfile) return null;
+
+  const homeClub = {
+    id: "me",
+    name: clubProfile.name,
+    logoUrl: clubProfile.logoUrl,
+    initials: clubProfile.name.slice(0, 2).toUpperCase(),
+  };
+
+  const awayClub = nextMatch.opponentClub
+    ? {
+        id: nextMatch.opponentClub.id,
+        name: nextMatch.opponentClub.name,
+        logoUrl: nextMatch.opponentClub.logoUrl,
+        initials: nextMatch.opponentClub.name.slice(0, 2).toUpperCase(),
+      }
+    : {
+        id: "opp",
+        name: "Rywal",
+        logoUrl: null,
+        initials: "RY",
+      };
+
+  return (
+    <Link href={`/sparings/${nextMatch.id}`} className="block mb-3">
+      <MatchCard
+        homeClub={homeClub}
+        awayClub={awayClub}
+        date={new Date(nextMatch.matchDate)}
+        variant="highlight"
+      />
+    </Link>
+  );
+}
+
 function ClubQuickActions() {
   const [showMore, setShowMore] = useState(false);
 
   return (
-    <div className="mb-8 space-y-3">
-      {/* Primary CTAs */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <Link href="/sparings/new">
-          <Button className="w-full gap-2 rounded-xl py-5 bg-gradient-to-r from-violet-500 to-sky-500 hover:from-violet-600 hover:to-sky-600 text-white">
+    <div className="mb-3">
+      <div className="flex gap-2">
+        <Link href="/sparings/new" className="flex-1">
+          <Button className="w-full h-10 rounded-lg text-sm font-semibold gap-2 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white border-0">
             <Swords className="h-4 w-4" />
-            Dodaj sparing
+            Nowy sparing
           </Button>
         </Link>
         <Link href="/events/new">
-          <Button variant="outline" className="w-full gap-2 rounded-xl py-5">
+          <Button variant="outline" className="h-10 rounded-lg text-sm font-semibold gap-2">
             <Trophy className="h-4 w-4" />
-            Dodaj nabór / trening
+            Nabór
           </Button>
         </Link>
         <Link href="/recruitment">
-          <Button variant="outline" className="w-full gap-2 rounded-xl py-5">
+          <Button variant="outline" className="h-10 rounded-lg text-sm font-semibold gap-2">
             <Target className="h-4 w-4" />
-            Pipeline rekrutacyjny
+            Pipeline
           </Button>
         </Link>
       </div>
 
-      {/* More actions */}
-      <div>
+      <div className="mt-2">
         <button
           onClick={() => setShowMore(!showMore)}
           className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition hover:text-foreground"
@@ -421,6 +590,128 @@ function ClubQuickActions() {
   );
 }
 
+function relativeTime(date: Date | string) {
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffMins < 1) return "przed chwilą";
+  if (diffMins < 60) return `${diffMins} min temu`;
+  if (diffHours < 24) return `${diffHours} godz. temu`;
+  return `${diffDays} dni temu`;
+}
+
+function ClubPendingAlerts({ pendingApplications }: { pendingApplications: any[] }) {
+  if (!pendingApplications || pendingApplications.length === 0) return null;
+
+  const alerts = pendingApplications.slice(0, 5).map((app) => ({
+    id: app.id,
+    type: app.status === "COUNTER_PROPOSED" ? "counter_proposal" : "new_application",
+    title: app.applicantClub.name,
+    description: app.sparingOffer.title,
+    createdAt: app.createdAt ?? new Date(),
+    href: `/sparings/${app.sparingOffer.id}`,
+    dotColor:
+      app.status === "COUNTER_PROPOSED"
+        ? "bg-amber-400"
+        : "bg-emerald-400",
+    statusLabel:
+      app.status === "COUNTER_PROPOSED"
+        ? "Kontrpropozycja"
+        : "Nowe zgłoszenie",
+  }));
+
+  return (
+    <div className="bg-card rounded-xl border mb-3">
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <p className="text-sm font-semibold">Wymagają uwagi</p>
+        <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-red-500/15 text-red-500 text-[11px] font-bold px-1.5">
+          {alerts.length}
+        </span>
+      </div>
+      <div className="divide-y divide-border">
+        {alerts.map((alert) => (
+          <Link
+            key={alert.id}
+            href={alert.href}
+            className="flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-colors"
+          >
+            <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${alert.dotColor}`} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold leading-tight truncate">{alert.title}</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{alert.description}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{alert.statusLabel}</p>
+            </div>
+            <span className="text-[11px] text-muted-foreground shrink-0 mt-0.5">
+              {relativeTime(alert.createdAt)}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type ClubDashboardQueryData = {
+  squadCount: number;
+  winRecord: { wins: number; draws: number; losses: number };
+  nextMatch: {
+    id: string;
+    title: string;
+    matchDate: Date;
+    opponentClub: { id: string; name: string; logoUrl: string | null } | null;
+  } | null;
+  pendingApplications: any[];
+  activeSparings: any[];
+  upcomingEvents: any[];
+} | null | undefined;
+
+function ClubDashboard({
+  clubProfile,
+  dashboardStats,
+  clubDashboard,
+}: {
+  clubProfile: any;
+  dashboardStats: DashboardStats | null;
+  clubDashboard: ClubDashboardQueryData;
+}) {
+  const activeSparings = dashboardStats?.activeSparings ?? 0;
+  const pendingApplications = dashboardStats?.pendingApplications ?? 0;
+  const squadCount = clubDashboard?.squadCount ?? 0;
+  const winRecord = clubDashboard?.winRecord ?? { wins: 0, draws: 0, losses: 0 };
+  const nextMatch = clubDashboard?.nextMatch ?? null;
+  const pendingApplicationsList = clubDashboard?.pendingApplications ?? [];
+
+  // Build a review-based stats object from detailed stats if available
+  const statsForHeader = null; // avgRating would come from stats.detailed, skip for now
+
+  return (
+    <div className="mb-6">
+      {/* 1. Hero header card */}
+      <ClubHeaderCard clubProfile={clubProfile} stats={statsForHeader} />
+
+      {/* 2. Stats row */}
+      <ClubStatsRow
+        activeSparings={activeSparings}
+        pendingApplications={pendingApplications}
+        squadCount={squadCount}
+        winRecord={winRecord}
+      />
+
+      {/* 3. Next match (conditional) */}
+      <ClubNextMatch nextMatch={nextMatch} clubProfile={clubProfile} />
+
+      {/* 4. Quick actions */}
+      <ClubQuickActions />
+
+      {/* 5. Pending alerts (conditional) */}
+      <ClubPendingAlerts pendingApplications={pendingApplicationsList} />
+    </div>
+  );
+}
+
 export default function FeedPage() {
   const { data: session } = useSession();
   const userRole = session?.user?.role;
@@ -432,6 +723,10 @@ export default function FeedPage() {
   const clubProfile = api.club.me.useQuery(undefined, {
     enabled: isClub,
     staleTime: Infinity,
+  });
+  const clubDashboard = api.stats.clubDashboard.useQuery(undefined, {
+    enabled: isClub,
+    staleTime: 30_000,
   });
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [playerOnboardingDone, setPlayerOnboardingDone] = useState(() => {
@@ -449,18 +744,11 @@ export default function FeedPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           {isClub ? "Pulpit" : "Feed"}
         </h1>
-        {isClub && clubProfile.data ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            Witaj, <span className="font-medium text-foreground">{clubProfile.data.name}</span>
-            {feed.data?.regionName && (
-              <span> · {feed.data.regionName}</span>
-            )}
-          </p>
-        ) : feed.data?.regionName ? (
+        {!isClub && feed.data?.regionName ? (
           <p className="mt-1 text-sm text-muted-foreground">
             Aktywności z regionu: <span className="font-medium text-foreground">{feed.data.regionName}</span>
           </p>
@@ -483,7 +771,7 @@ export default function FeedPage() {
       {isClub && !showOnboarding && stats.data &&
         (stats.data as DashboardStats).activeSparings === 0 &&
         (stats.data as DashboardStats).upcomingEvents === 0 && (
-        <Card className="mb-8 border-dashed border-primary/20">
+        <Card className="mb-6 border-dashed border-primary/20">
           <CardContent className="py-5">
             <p className="mb-3 text-sm font-semibold">Pierwsze kroki</p>
             <div className="space-y-2">
@@ -515,12 +803,22 @@ export default function FeedPage() {
         </Card>
       )}
 
-      <StatsBar stats={(stats.data as DashboardStats) ?? null} />
+      {/* CLUB — new FotMob-style card stack */}
+      {isClub && !showOnboarding && (
+        <ClubDashboard
+          clubProfile={clubProfile.data}
+          dashboardStats={(stats.data as DashboardStats) ?? null}
+          clubDashboard={clubDashboard.data as ClubDashboardQueryData}
+        />
+      )}
 
-      {isClub && !showOnboarding && <ClubQuickActions />}
+      {/* CLUB — existing sections below the new card stack */}
       {isClub && <RecruitmentStats />}
       {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
+
+      {/* PLAYER / COACH stats bar */}
+      <StatsBar stats={(stats.data as DashboardStats) ?? null} />
 
       {isCoach && <CoachDashboardStats />}
       {(isPlayer || isCoach) && <ClubInvitations />}
