@@ -17,6 +17,9 @@ export const POINTS_MAP: Record<string, number> = {
   first_nabor_application: 10,
   profile_region_set: 5,
   goal_scored: 5,
+  tournament_created: 15,
+  tournament_win: 20,
+  tournament_goal: 5,
 };
 
 export const POINTS_LABELS: Record<string, string> = {
@@ -37,6 +40,9 @@ export const POINTS_LABELS: Record<string, string> = {
   first_nabor_application: "Pierwsza aplikacja na nabór",
   profile_region_set: "Ustawienie regionu w profilu",
   goal_scored: "Bramka w meczu",
+  tournament_created: "Utworzenie turnieju",
+  tournament_win: "Zwycięstwo w turnieju",
+  tournament_goal: "Bramka w turnieju",
 };
 
 // Badge definitions
@@ -56,6 +62,7 @@ export interface BadgeCheckStats {
   reviewsGiven: number;
   messagesCount: number;
   applicationsCount: number;
+  tournamentsWon?: number;
 }
 
 export const BADGES: BadgeDef[] = [
@@ -68,4 +75,5 @@ export const BADGES: BadgeDef[] = [
   { key: "active_player", name: "Aktywny gracz", description: "Zdobądź 100 punktów", icon: "🔥", check: (s) => s.totalPoints >= 100 },
   { key: "veteran", name: "Weteran", description: "Zdobądź 500 punktów", icon: "🎖️", check: (s) => s.totalPoints >= 500 },
   { key: "applicant", name: "Łowca okazji", description: "Wyślij 10 zgłoszeń", icon: "🎯", check: (s) => s.applicationsCount >= 10 },
+  { key: "tournament_champion", name: "Mistrz turniejów", description: "Wygraj 3 turnieje", icon: "🏆", check: (s) => (s.tournamentsWon ?? 0) >= 3 },
 ];

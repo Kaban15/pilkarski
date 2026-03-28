@@ -8,6 +8,38 @@ datasource db {
 }
 
 // ============================================================
+// TURNIEJE — ENUMS
+// ============================================================
+
+enum TournamentFormat {
+  GROUP_STAGE
+  KNOCKOUT
+  GROUP_AND_KNOCKOUT
+}
+
+enum TournamentStatus {
+  REGISTRATION
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TournamentTeamStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum TournamentMatchPhase {
+  GROUP
+  ROUND_OF_16
+  QUARTER_FINAL
+  SEMI_FINAL
+  THIRD_PLACE
+  FINAL
+}
+
+// ============================================================
 // REGIONY I HIERARCHIA LIGOWA
 // ============================================================
 
@@ -23,6 +55,7 @@ model Region {
   sparingOffers SparingOffer[]
   events       Event[]
   transfers    Transfer[]
+  tournaments  Tournament[]
 
   @@map("regions")
 }
@@ -86,6 +119,9 @@ model User {
   clubMemberships          ClubMembership[]
   eventAttendance          EventAttendance[]
   goals                    MatchGoal[]
+  tournaments              Tournament[]
+  tournamentTeams          TournamentTeam[]
+  tournamentGoals          TournamentGoal[]
 
   @@map("users")
 }
@@ -125,6 +161,7 @@ model Club {
   memberships          ClubMembership[]
   lineups              TeamLineup[]
   groupChat            Conversation?
+  tournamentTeams      TournamentTeam[]
 
   @@map("clubs")
 }
@@ -454,6 +491,11 @@ enum NotificationType {
   SCORE_REJECTED         // wynik odrzucony
   GOAL_ADDED             // bramka w meczu
   CLUB_INVITATION        // zaproszenie do kadry klubu
+  TOURNAMENT_APPLICATION
+  TOURNAMENT_ACCEPTED
+  TOURNAMENT_REJECTED
+  TOURNAMENT_STARTED
+  TOURNAMENT_SCORE_SUBMITTED
 }
 
 model Notification {
@@ -842,4 +884,126 @@ model MatchGoal {
 
   @@index([sparingOfferId])
   @@map("match_goals")
+}
+
+// ============================================================
+// TURNIEJE
+// ============================================================
+
+model Tournament {
+  id               String           @id @default(uuid()) @db.Uuid
+  creatorUserId    String           @map("creator_user_id") @db.Uuid
+  title            String           @db.VarChar(300)
+  description      String?
+  startDate        DateTime         @map("start_date") @db.Timestamptz
+  endDate          DateTime?        @map("end_date") @db.Timestamptz
+  location         String?          @db.VarChar(300)
+  lat              Decimal?         @db.Decimal(9, 6)
+  lng              Decimal?         @db.Decimal(9, 6)
+  regionId         Int?             @map("region_id")
+  format           TournamentFormat
+  maxTeams         Int              @map("max_teams")
+  groupCount       Int              @default(1) @map("group_count")
+  advancingPerGroup Int             @default(2) @map("advancing_per_group")
+  status           TournamentStatus @default(REGISTRATION)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  creator    User               @relation(fields: [creatorUserId], references: [id])
+  region     Region?            @relation(fields: [regionId], references: [id])
+  teams      TournamentTeam[]
+  matches    TournamentMatch[]
+  standings  TournamentStanding[]
+
+  @@index([status])
+  @@index([regionId])
+  @@map("tournaments")
+}
+
+model TournamentTeam {
+  id           String               @id @default(uuid()) @db.Uuid
+  tournamentId String               @map("tournament_id") @db.Uuid
+  clubId       String?              @map("club_id") @db.Uuid
+  userId       String               @map("user_id") @db.Uuid
+  teamName     String               @map("team_name") @db.VarChar(200)
+  status       TournamentTeamStatus @default(PENDING)
+  groupLabel   String?              @map("group_label") @db.VarChar(2)
+  seed         Int?
+  message      String?
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  tournament    Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  club          Club?               @relation(fields: [clubId], references: [id])
+  user          User                @relation(fields: [userId], references: [id])
+  homeMatches   TournamentMatch[]   @relation("HomeTeam")
+  awayMatches   TournamentMatch[]   @relation("AwayTeam")
+  standings     TournamentStanding[]
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@map("tournament_teams")
+}
+
+model TournamentMatch {
+  id           String               @id @default(uuid()) @db.Uuid
+  tournamentId String               @map("tournament_id") @db.Uuid
+  homeTeamId   String               @map("home_team_id") @db.Uuid
+  awayTeamId   String               @map("away_team_id") @db.Uuid
+  phase        TournamentMatchPhase
+  groupLabel   String?              @map("group_label") @db.VarChar(2)
+  round        Int?
+  matchOrder   Int                  @default(0) @map("match_order")
+  matchDate    DateTime?            @map("match_date") @db.Timestamptz
+  location     String?              @db.VarChar(300)
+  homeScore    Int?                 @map("home_score")
+  awayScore    Int?                 @map("away_score")
+  penaltyHome  Int?                 @map("penalty_home")
+  penaltyAway  Int?                 @map("penalty_away")
+  scoreSubmittedBy String?          @map("score_submitted_by") @db.Uuid
+  scoreConfirmed   Boolean          @default(false) @map("score_confirmed")
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
+
+  tournament   Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  homeTeam     TournamentTeam      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam     TournamentTeam      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  goals        TournamentGoal[]
+
+  @@index([tournamentId])
+  @@map("tournament_matches")
+}
+
+model TournamentGoal {
+  id           String          @id @default(uuid()) @db.Uuid
+  matchId      String          @map("match_id") @db.Uuid
+  scorerUserId String          @map("scorer_user_id") @db.Uuid
+  minute       Int?
+  ownGoal      Boolean         @default(false) @map("own_goal")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  match        TournamentMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  scorerUser   User            @relation(fields: [scorerUserId], references: [id])
+
+  @@index([matchId])
+  @@map("tournament_goals")
+}
+
+model TournamentStanding {
+  id           String         @id @default(uuid()) @db.Uuid
+  tournamentId String         @map("tournament_id") @db.Uuid
+  teamId       String         @map("team_id") @db.Uuid
+  groupLabel   String         @map("group_label") @db.VarChar(2)
+  played       Int            @default(0)
+  won          Int            @default(0)
+  drawn        Int            @default(0)
+  lost         Int            @default(0)
+  goalsFor     Int            @default(0) @map("goals_for")
+  goalsAgainst Int            @default(0) @map("goals_against")
+  points       Int            @default(0)
+
+  tournament   Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team         TournamentTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, teamId])
+  @@index([tournamentId, groupLabel])
+  @@map("tournament_standings")
 }

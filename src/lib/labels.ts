@@ -112,6 +112,11 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   SCORE_CONFIRMED: "Wynik potwierdzony",
   SCORE_REJECTED: "Wynik odrzucony",
   GOAL_ADDED: "Bramka",
+  TOURNAMENT_APPLICATION: "Zgłoszenie do turnieju",
+  TOURNAMENT_ACCEPTED: "Przyjęty do turnieju",
+  TOURNAMENT_REJECTED: "Odrzucony z turnieju",
+  TOURNAMENT_STARTED: "Turniej rozpoczęty",
+  TOURNAMENT_SCORE_SUBMITTED: "Wynik turnieju do potwierdzenia",
 };
 
 export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
@@ -134,6 +139,11 @@ export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   SCORE_CONFIRMED: "text-green-800 dark:text-green-200 bg-green-50 dark:bg-green-950",
   SCORE_REJECTED: "text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-950",
   GOAL_ADDED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
+  TOURNAMENT_APPLICATION: "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300",
+  TOURNAMENT_ACCEPTED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
+  TOURNAMENT_REJECTED: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
+  TOURNAMENT_STARTED: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  TOURNAMENT_SCORE_SUBMITTED: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
 };
 
 export const TRANSFER_TYPE_LABELS: Record<string, string> = {
@@ -266,4 +276,33 @@ export const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
   YES: "Tak",
   NO: "Nie",
   MAYBE: "Nie wiem",
+};
+
+export const TOURNAMENT_FORMAT_LABELS: Record<string, string> = {
+  GROUP_STAGE: "Faza grupowa",
+  KNOCKOUT: "Puchar",
+  GROUP_AND_KNOCKOUT: "Grupa + Puchar",
+};
+
+export const TOURNAMENT_STATUS_LABELS: Record<string, string> = {
+  REGISTRATION: "Rejestracja",
+  IN_PROGRESS: "W trakcie",
+  COMPLETED: "Zakończony",
+  CANCELLED: "Anulowany",
+};
+
+export const TOURNAMENT_STATUS_COLORS: Record<string, string> = {
+  REGISTRATION: "bg-emerald-500/10 text-emerald-500",
+  IN_PROGRESS: "bg-amber-500/10 text-amber-500",
+  COMPLETED: "bg-muted text-muted-foreground",
+  CANCELLED: "bg-red-500/10 text-red-500",
+};
+
+export const TOURNAMENT_PHASE_LABELS: Record<string, string> = {
+  GROUP: "Faza grupowa",
+  ROUND_OF_16: "1/8 finału",
+  QUARTER_FINAL: "Ćwierćfinał",
+  SEMI_FINAL: "Półfinał",
+  THIRD_PLACE: "O 3. miejsce",
+  FINAL: "Finał",
 };
