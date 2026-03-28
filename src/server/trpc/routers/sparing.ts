@@ -6,6 +6,7 @@ import {
   applySparingSchema,
   respondApplicationSchema,
 } from "@/lib/validators/sparing";
+import { addGoalSchema, removeGoalSchema, getGoalsSchema } from "@/lib/validators/match-goal";
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
@@ -784,4 +785,168 @@ export const sparingRouter = router({
 
     return { sent, received };
   }),
+
+  // ===== MATCH GOALS =====
+
+  getGoals: publicProcedure
+    .input(getGoalsSchema)
+    .query(async ({ ctx, input }) => {
+      return ctx.db.matchGoal.findMany({
+        where: { sparingOfferId: input.sparingOfferId },
+        include: {
+          scorerUser: {
+            select: {
+              id: true,
+              player: { select: { firstName: true, lastName: true, photoUrl: true } },
+              coach: { select: { firstName: true, lastName: true, photoUrl: true } },
+            },
+          },
+        },
+        orderBy: [
+          { minute: "asc" },
+          { createdAt: "asc" },
+        ],
+      });
+    }),
+
+  addGoal: protectedProcedure
+    .input(addGoalSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Find sparing with club + accepted application (with applicantClub)
+      const sparing = await ctx.db.sparingOffer.findUnique({
+        where: { id: input.sparingOfferId },
+        include: {
+          club: { select: { id: true, userId: true } },
+          applications: {
+            where: { status: "ACCEPTED" },
+            include: { applicantClub: { select: { id: true, userId: true } } },
+          },
+        },
+      });
+      if (!sparing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (sparing.status !== "COMPLETED") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Bramki można dodawać tylko do zakończonych meczów" });
+      }
+      if (!sparing.scoreConfirmed) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Wynik musi być potwierdzony przed dodaniem bramek" });
+      }
+
+      const homeClub = sparing.club;
+      const awayClub = sparing.applications[0]?.applicantClub;
+      if (!awayClub) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Brak zaakceptowanego przeciwnika" });
+      }
+
+      const isHomeOwner = homeClub.userId === userId;
+      const isAwayOwner = awayClub.userId === userId;
+      if (!isHomeOwner && !isAwayOwner) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Tylko właściciel jednego z klubów może dodawać bramki" });
+      }
+
+      // Verify scorer is an ACCEPTED member of one of the two clubs
+      const scorerMembership = await ctx.db.clubMembership.findFirst({
+        where: {
+          memberUserId: input.scorerUserId,
+          status: "ACCEPTED",
+          clubId: { in: [homeClub.id, awayClub.id] },
+        },
+        select: { clubId: true },
+      });
+      if (!scorerMembership) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Strzelec musi być zaakceptowanym członkiem jednego z klubów" });
+      }
+
+      const scorerClubId = scorerMembership.clubId;
+      const isHomeSide = scorerClubId === homeClub.id;
+
+      // For non-own-goal: count existing non-own-goal goals for scorer's side and compare to that side's score
+      if (!input.ownGoal) {
+        const sideScore = isHomeSide ? (sparing.homeScore ?? 0) : (sparing.awayScore ?? 0);
+        const existingGoals = await ctx.db.matchGoal.count({
+          where: {
+            sparingOfferId: input.sparingOfferId,
+            ownGoal: false,
+            scorerUser: {
+              clubMemberships: {
+                some: {
+                  clubId: scorerClubId,
+                  status: "ACCEPTED",
+                },
+              },
+            },
+          },
+        });
+        if (existingGoals >= sideScore) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Liczba bramek przekracza wynik tej drużyny" });
+        }
+      }
+
+      const goal = await ctx.db.matchGoal.create({
+        data: {
+          sparingOfferId: input.sparingOfferId,
+          scorerUserId: input.scorerUserId,
+          minute: input.minute,
+          ownGoal: input.ownGoal,
+        },
+      });
+
+      // Fire-and-forget: notification + push + email to scorer
+      ctx.db.notification.create({
+        data: {
+          userId: input.scorerUserId,
+          type: "GOAL_ADDED",
+          title: "Bramka przypisana!",
+          message: `Twoja bramka w meczu została zarejestrowana${input.minute != null ? ` (${input.minute}')` : ""}`,
+          link: `/sparings/${input.sparingOfferId}`,
+        },
+      }).catch(() => {});
+      sendPushToUser(input.scorerUserId, {
+        title: "Bramka przypisana!",
+        body: `Twoja bramka w meczu została zarejestrowana${input.minute != null ? ` (${input.minute}')` : ""}`,
+        url: `/sparings/${input.sparingOfferId}`,
+      }).catch(() => {});
+      sendEmailToUser(ctx.db, input.scorerUserId, "Bramka przypisana!", {
+        title: "Bramka przypisana!",
+        message: `Twoja bramka w meczu została zarejestrowana${input.minute != null ? ` (minuta ${input.minute})` : ""}`,
+        ctaLabel: "Zobacz mecz",
+        ctaUrl: `${baseUrl}/sparings/${input.sparingOfferId}`,
+      }).catch(() => {});
+
+      // Fire-and-forget: award points for goal_scored
+      awardPoints(ctx.db, input.scorerUserId, "goal_scored", goal.id).catch(() => {});
+
+      return goal;
+    }),
+
+  removeGoal: protectedProcedure
+    .input(removeGoalSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const goal = await ctx.db.matchGoal.findUnique({
+        where: { id: input.goalId },
+        include: {
+          sparingOffer: {
+            include: {
+              club: { select: { userId: true } },
+              applications: {
+                where: { status: "ACCEPTED" },
+                include: { applicantClub: { select: { userId: true } } },
+              },
+            },
+          },
+        },
+      });
+      if (!goal) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const isHomeOwner = goal.sparingOffer.club.userId === userId;
+      const isAwayOwner = goal.sparingOffer.applications[0]?.applicantClub.userId === userId;
+      if (!isHomeOwner && !isAwayOwner) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Tylko właściciel jednego z klubów może usuwać bramki" });
+      }
+
+      return ctx.db.matchGoal.delete({ where: { id: input.goalId } });
+    }),
 });
