@@ -510,3 +510,32 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/components/dashboard/club-sections.tsx` — token alignment
 - `src/components/recruitment/recruitment-stats.tsx` — token alignment
 - `src/server/trpc/routers/stats.ts` — nextMatch, squadCount, winRecord
+
+---
+
+## Etap 34: Backlog Etap A — Unit Tests + File Validation + Shared Hook ✅
+
+**Cel:** Zamknięcie 3 problemów z backlogu: brak unit testów, brak walidacji server-side plików, zduplikowane patterny list.
+
+**1. Vitest Setup + 33 Unit Tests:**
+- Zainstalowany `vitest` (devDependency), `vitest.config.ts` z aliasami `@/`
+- Skrypty: `npm test` (vitest run), `npm run test:watch`
+- `src/__tests__/format.test.ts` — formatDate, formatShortDate, formatEventDateTime (4 testy)
+- `src/__tests__/gamification.test.ts` — POINTS_MAP (16 akcji), BADGES (9 odznak, zero stats, thresholds) (14 testów)
+- `src/__tests__/form-errors.test.ts` — getFieldErrors z ZodError (2 testy)
+- `src/__tests__/award-points.test.ts` — awardPoints z mock Prisma (3 testy)
+- `src/__tests__/is-club-member.test.ts` — isClubMember z mock Prisma (3 testy)
+- `src/__tests__/file-validation.test.ts` — detectFileType magic bytes (7 testów)
+- `tsconfig.json` — `src/__tests__` excluded (vitest handles own types)
+
+**2. Server-side File Validation (Magic Bytes):**
+- `src/lib/file-validation.ts` — `detectFileType(bytes: Uint8Array)` → JPEG/PNG/WebP or null
+- `src/app/api/upload/route.ts` — magic bytes check przed uploadem do Supabase
+- Odrzuca pliki z nieprawidłowymi magic bytes (400 "Nieprawidłowy format pliku")
+
+**3. Shared Pagination Hook:**
+- `src/hooks/use-paginated-list.ts` — `usePaginatedList<T>(query)` wraps useInfiniteScroll + flatMap
+- `src/app/(dashboard)/sparings/page.tsx` — refactored (-18 linii boilerplate)
+- `src/app/(dashboard)/events/page.tsx` — refactored (-18 linii boilerplate)
+
+**Backlog status:** Problem #2 (upload validation) ✅, Problem #4 (unit tests) ✅, Problem #5 (shared hook) ✅

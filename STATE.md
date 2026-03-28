@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-03-28
-**Aktualny etap:** 33 etapów ukończonych
+**Aktualny etap:** 34 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -83,6 +83,9 @@
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
 - E2E: Playwright, 26+ testów
+- Unit: Vitest, 33 testów (format, gamification, form-errors, award-points, is-club-member, file-validation)
+- Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
+- Shared hook `usePaginatedList` — DRY pagination w sparings + events
 
 ---
 
@@ -90,11 +93,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 34 | 2026-03-28 | Backlog Etap A — Vitest (33 testów), magic bytes upload validation, usePaginatedList hook |
 | 33 | 2026-03-28 | FotMob Club Flow Redesign — dashboard, kadra, pipeline, profil publiczny (gray-900 tokens, 4 shared components) |
 | 32 | 2026-03-27 | League Navigation fix + Club Group Chat (violet theme, polling 10s) |
 | 31 | 2026-03-27 | PolandMap grid + badge "Aktywny" przy klubach w katalogu ligowym |
 | 30 | 2026-03-27 | League Catalog Redesign 90minut style (table lists, numbered clubs) |
-| 29 | 2026-03-27 | Violet Surge — full visual redesign (violet→sky palette, 6 animation systems) |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -114,7 +117,7 @@
 | Push | web-push (VAPID, Service Worker) |
 | Auth | Auth.js v5 (next-auth@beta) |
 | Walidacja | Zod v4 |
-| Testy | Playwright (E2E, 26+ testów) |
+| Testy | Playwright (E2E, 26+) + Vitest (unit, 33) |
 | Hosting | Vercel (`pilkarski.vercel.app`) |
 
 ---
@@ -212,10 +215,10 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | # | Problem | Priorytet |
 |---|---------|-----------|
 | 1 | Cookie `__Secure-` nie działa na localhost (HTTP) | Low |
-| 2 | Upload bez walidacji server-side content-type | Medium |
+| ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | 3 | Fire-and-forget notifications połykają błędy | Low |
-| 4 | Brak unit testów (tylko E2E) | Medium |
-| 5 | Zduplikowane patterny list (sparingi/wydarzenia) — shared hook | Low |
+| ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |
+| ~~5~~ | ~~Zduplikowane patterny list — shared hook~~ | ~~✅ Naprawione (Etap 34 — usePaginatedList)~~ |
 
 ---
 
