@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-03-28
-**Aktualny etap:** 36 etapów ukończonych
+**Aktualny etap:** 37 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -21,6 +21,7 @@
 - Zaproszenia (`SparingInvitation` z expiresAt)
 - Wyniki meczów (submit + confirm flow, push + email notifications)
 - Protokół meczowy: strzelcy bramek (MatchGoal) z kadry obu klubów, powiadomienia + gamifikacja
+- Koszty: costPerTeam na sparingach/turniejach, costPerPerson na wydarzeniach, status opłacone/nieopłacone per strona
 - Recenzje (rating 1-5, StarRating komponent)
 - Post-match timeline, "Moje sparingi" z tabs per status
 
@@ -105,11 +106,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 37 | 2026-03-28 | Rozliczenia kosztów — costPerTeam/costPerPerson + payment status tracking (sparingi, wydarzenia, turnieje) |
 | 36 | 2026-03-28 | Moduł Turniejowy — grupa + puchar, 5 modeli, 15 procedur, 5-tabowa strona, feed/kalendarz/sidebar |
 | 35 | 2026-03-28 | Etap B — Email transakcyjne (Resend, 6 triggerów) + Protokół meczowy (strzelcy bramek, MatchGoal) |
 | 34 | 2026-03-28 | Backlog Etap A — Vitest (33 testów), magic bytes upload validation, usePaginatedList hook |
 | 33 | 2026-03-28 | FotMob Club Flow Redesign — dashboard, kadra, pipeline, profil publiczny (gray-900 tokens, 4 shared components) |
-| 32 | 2026-03-27 | League Navigation fix + Club Group Chat (violet theme, polling 10s) |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

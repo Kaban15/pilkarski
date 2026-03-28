@@ -610,3 +610,31 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 **Gamifikacja:** tournament_created (15pkt), tournament_win (20pkt), tournament_goal (5pkt), badge "Mistrz turniejów" (wygraj 3)
 **Powiadomienia:** 5 typów (APPLICATION, ACCEPTED, REJECTED, STARTED, SCORE_SUBMITTED) + push + email
 **Migracja:** `20260328140000_add_tournaments` — 5 tabel, 4 enumy, 5 NotificationTypes — ZASTOSOWANA
+
+---
+
+## Etap 37: Rozliczenia Kosztów ✅
+
+**Cel:** Informacja o kosztach + tracking statusu opłat na sparingach, wydarzeniach i turniejach.
+
+**Schema (6 nowych pól):**
+- `SparingOffer`: costPerTeam (Int?), costPaidHome (Boolean), costPaidAway (Boolean)
+- `Event`: costPerPerson (Int?)
+- `Tournament`: costPerTeam (Int?)
+- `TournamentTeam`: costPaid (Boolean)
+
+**Backend (2 nowe procedury):**
+- `sparing.markCostPaid` — toggle costPaidHome/costPaidAway, walidacja: MATCHED/COMPLETED + owner danego klubu
+- `tournament.markTeamPaid` — toggle costPaid per drużyna, walidacja: tournament creator
+- Cost fields dodane do create/update w sparing, event, tournament routerach
+
+**Frontend:**
+- Formularze: pole "Koszt na drużynę/osobę (PLN)" w sparing-form, events/new, tournaments/new
+- Karty: amber badge "X PLN" na sparing-card + event cards
+- Sparing detail: sekcja "Rozliczenie" widoczna dla uczestników (MATCHED/COMPLETED) — badge Opłacone/Nieopłacone + toggle per strona
+- Event detail: "Koszt: X PLN na osobę" w info
+- Tournament detail: badge wpisowe + toggle paid per drużyna w tab Drużyny (tylko organizator)
+
+**Widoczność:** Kwota publiczna (pomaga w decyzji), status opłat prywatny (tylko uczestnicy/organizator)
+
+**Migracja:** `20260328160000_add_cost_fields` — 6 ALTER TABLE ADD COLUMN — ZASTOSOWANA
