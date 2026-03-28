@@ -85,6 +85,7 @@ model User {
   followedClubs            ClubFollower[]
   clubMemberships          ClubMembership[]
   eventAttendance          EventAttendance[]
+  goals                    MatchGoal[]
 
   @@map("users")
 }
@@ -289,6 +290,7 @@ model SparingOffer {
   invitations  SparingInvitation[]
   favorites    Favorite[]
   reviews      Review[]
+  goals        MatchGoal[]
 
   @@index([regionId, status])
   @@index([matchDate])
@@ -450,6 +452,7 @@ enum NotificationType {
   SCORE_SUBMITTED        // wynik wpisany — czeka na potwierdzenie
   SCORE_CONFIRMED        // wynik potwierdzony
   SCORE_REJECTED         // wynik odrzucony
+  GOAL_ADDED             // bramka w meczu
   CLUB_INVITATION        // zaproszenie do kadry klubu
 }
 
@@ -820,4 +823,23 @@ model ClubFollower {
   @@unique([userId, clubId])
   @@index([clubId])
   @@map("club_followers")
+}
+
+// ============================================================
+// BRAMKI MECZOWE
+// ============================================================
+
+model MatchGoal {
+  id              String        @id @default(uuid()) @db.Uuid
+  sparingOfferId  String        @map("sparing_offer_id") @db.Uuid
+  scorerUserId    String        @map("scorer_user_id") @db.Uuid
+  minute          Int?
+  ownGoal         Boolean       @default(false) @map("own_goal")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  sparingOffer    SparingOffer  @relation(fields: [sparingOfferId], references: [id], onDelete: Cascade)
+  scorerUser      User          @relation(fields: [scorerUserId], references: [id], onDelete: Cascade)
+
+  @@index([sparingOfferId])
+  @@map("match_goals")
 }

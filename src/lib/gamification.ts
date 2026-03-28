@@ -16,6 +16,7 @@ export const POINTS_MAP: Record<string, number> = {
   first_club_post: 10,
   first_nabor_application: 10,
   profile_region_set: 5,
+  goal_scored: 5,
 };
 
 export const POINTS_LABELS: Record<string, string> = {
@@ -35,6 +36,7 @@ export const POINTS_LABELS: Record<string, string> = {
   first_club_post: "Pierwszy post na tablicy",
   first_nabor_application: "Pierwsza aplikacja na nabór",
   profile_region_set: "Ustawienie regionu w profilu",
+  goal_scored: "Bramka w meczu",
 };
 
 // Badge definitions
