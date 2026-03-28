@@ -797,8 +797,8 @@ export const sparingRouter = router({
           scorerUser: {
             select: {
               id: true,
-              player: { select: { firstName: true, lastName: true, photoUrl: true } },
-              coach: { select: { firstName: true, lastName: true, photoUrl: true } },
+              player: { select: { id: true, firstName: true, lastName: true, photoUrl: true } },
+              coach: { select: { id: true, firstName: true, lastName: true, photoUrl: true } },
             },
           },
         },

@@ -171,6 +171,7 @@ export default function SparingDetailPage() {
       {sparing && session?.user && (
         <ScoreSection
           sparingId={id}
+          sparingOfferId={id}
           homeScore={sparing.homeScore}
           awayScore={sparing.awayScore}
           scoreSubmittedBy={sparing.scoreSubmittedBy}
@@ -180,11 +181,17 @@ export default function SparingDetailPage() {
           isRival={sparing.applications?.some(
             (a: SparingApplication) => a.status === "ACCEPTED" && a.applicantClub.userId === session.user.id
           ) ?? false}
+          isParticipant={isParticipant}
           userId={session.user.id}
           ownerClubName={sparing.club.name}
           rivalClubName={
             sparing.applications?.find((a: SparingApplication) => a.status === "ACCEPTED")
               ?.applicantClub.name ?? "Rywal"
+          }
+          homeClubId={sparing.club.id}
+          awayClubId={
+            sparing.applications?.find((a: SparingApplication) => a.status === "ACCEPTED")
+              ?.applicantClub.id ?? null
           }
           onUpdate={reload}
         />
