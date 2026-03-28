@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-03-28
-**Aktualny etap:** 34 etapów ukończonych
+**Aktualny etap:** 35 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -19,7 +19,8 @@
 - CRUD + aplikacje + kontr-propozycje (COUNTER_PROPOSED) + dopasowanie (MATCHED) + zakończenie (COMPLETED)
 - 3-krokowy wizard tworzenia + tryb "Szybki sparing"
 - Zaproszenia (`SparingInvitation` z expiresAt)
-- Wyniki meczów (submit + confirm flow, push notifications)
+- Wyniki meczów (submit + confirm flow, push + email notifications)
+- Protokół meczowy: strzelcy bramek (MatchGoal) z kadry obu klubów, powiadomienia + gamifikacja
 - Recenzje (rating 1-5, StarRating komponent)
 - Post-match timeline, "Moje sparingi" z tabs per status
 
@@ -58,13 +59,14 @@
 - Mapa Polski (grid 4x4), badge "Aktywny" przy klubach
 - Dynamic sitemap (~480 URL-i)
 
-### Powiadomienia & Push
+### Powiadomienia & Push & Email
 - In-app: 15+ typów, fire-and-forget, bell badge z polling 60s
 - Push: web-push + VAPID, Service Worker, auto-cleanup expired subscriptions
+- Email: Resend (6 triggerów: sparing apply/respond/invite, score submit, message, club invite), throttle 15min na wiadomościach
 - Przypomnienia 24h (attendance, inactive clubs, stale pipeline)
 
 ### Gamifikacja
-- Punkty (9 akcji), 9 odznak, leaderboard top 20
+- Punkty (17 akcji w tym goal_scored), 9 odznak, leaderboard top 20
 - `/ranking` — punkty, odznaki, historia
 
 ### UI/Design
@@ -93,11 +95,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 35 | 2026-03-28 | Etap B — Email transakcyjne (Resend, 6 triggerów) + Protokół meczowy (strzelcy bramek, MatchGoal) |
 | 34 | 2026-03-28 | Backlog Etap A — Vitest (33 testów), magic bytes upload validation, usePaginatedList hook |
 | 33 | 2026-03-28 | FotMob Club Flow Redesign — dashboard, kadra, pipeline, profil publiczny (gray-900 tokens, 4 shared components) |
 | 32 | 2026-03-27 | League Navigation fix + Club Group Chat (violet theme, polling 10s) |
 | 31 | 2026-03-27 | PolandMap grid + badge "Aktywny" przy klubach w katalogu ligowym |
-| 30 | 2026-03-27 | League Catalog Redesign 90minut style (table lists, numbered clubs) |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

@@ -539,3 +539,35 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/app/(dashboard)/events/page.tsx` — refactored (-18 linii boilerplate)
 
 **Backlog status:** Problem #2 (upload validation) ✅, Problem #4 (unit tests) ✅, Problem #5 (shared hook) ✅
+
+---
+
+## Etap 35: Email Transakcyjne + Protokół Meczowy (Strzelcy) ✅
+
+**Cel:** Zwiększenie retencji — emaile transakcyjne przy kluczowych akcjach + protokół meczowy ze strzelcami bramek.
+
+**Part 1 — Email transakcyjne (Resend):**
+- Nowa zależność: `resend`
+- `src/server/send-email.ts` — `sendEmailToUser()` helper (fire-and-forget, pattern jak sendPushToUser)
+- `src/lib/email-template.ts` — HTML template z PS logo, violet gradient, CTA button, XSS escaping
+- `src/lib/email-throttle.ts` — debounce 15min na emailach o wiadomościach (in-memory Map z auto-cleanup)
+- 6 triggerów w 3 routerach:
+  - sparing.ts: applyFor, respond, submitScore, invite
+  - message.ts: send (z throttle)
+  - club-membership.ts: invite
+- `src/__tests__/email-template.test.ts` — 3 testy (rendering, XSS escape, branding)
+- `src/__tests__/email-throttle.test.ts` — 4 testy (allow/block/different users/types)
+- Env var: `RESEND_API_KEY` (do konfiguracji na Vercel)
+
+**Part 2 — Protokół meczowy (strzelcy bramek):**
+- Model `MatchGoal` (sparingOfferId, scorerUserId, minute, ownGoal)
+- `GOAL_ADDED` NotificationType, `goal_scored: 5` w POINTS_MAP
+- `sparing.addGoal` — walidacja: COMPLETED+scoreConfirmed, caller=club owner, scorer=ACCEPTED member, goals≤score
+- `sparing.removeGoal` — walidacja: caller=club owner
+- `sparing.getGoals` — publiczny, z scorer info
+- UI w score-section.tsx: lista strzelców + formularz "Dodaj strzelca" (Select z obu kadr, minuta, samobój)
+- UI w club-profile-tabs.tsx: `⚽ Kowalski 23', Nowak 67'` pod wynikami meczów
+- Powiadomienie + push + email do strzelca: "Bramka dodana!"
+- `src/lib/validators/match-goal.ts` — addGoalSchema, removeGoalSchema, getGoalsSchema
+
+**Migracja:** Wymaga `npm run db:migrate -- --url "..." --name add_match_goals`
