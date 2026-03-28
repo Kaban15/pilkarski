@@ -21,6 +21,7 @@ import { clubPostRouter } from "./routers/club-post";
 import { coachRouter } from "./routers/coach";
 import { clubMembershipRouter } from "./routers/club-membership";
 import { teamLineupRouter } from "./routers/team-lineup";
+import { tournamentRouter } from "./routers/tournament";
 
 export const appRouter = router({
   health: healthRouter,
@@ -45,6 +46,7 @@ export const appRouter = router({
   coach: coachRouter,
   clubMembership: clubMembershipRouter,
   teamLineup: teamLineupRouter,
+  tournament: tournamentRouter,
 });
 
 export type AppRouter = typeof appRouter;
