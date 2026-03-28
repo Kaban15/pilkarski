@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { EmptyState } from "@/components/empty-state";
 import { SparingCard, type SparingCardItem } from "@/components/sparings/sparing-card";
 import { ProcessSteps } from "@/components/process-steps";
@@ -146,19 +146,11 @@ function SearchTab() {
     sortOrder,
   };
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = api.sparing.list.useInfiniteQuery(queryInput, {
+  const sparingsQuery = api.sparing.list.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
-
-  const items = (data?.pages.flatMap((p) => p.items) ?? []) as SparingCardItem[];
+  const { items: rawItems, isLoading, isError, refetch, sentinelRef, isFetchingNextPage } = usePaginatedList(sparingsQuery);
+  const items = rawItems as SparingCardItem[];
   const itemIds = items.map((i) => i.id);
 
   const { data: favIds } = api.favorite.check.useQuery(
@@ -166,12 +158,6 @@ function SearchTab() {
     { enabled: itemIds.length > 0 },
   );
   const favoritedIds = new Set(favIds ?? []);
-
-  const sentinelRef = useInfiniteScroll(
-    () => { fetchNextPage(); },
-    !!hasNextPage,
-    isFetchingNextPage,
-  );
 
   const hasActiveFilters = cityInput || dateFrom || dateTo || levelFilter || ageCategoryFilter;
 

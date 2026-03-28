@@ -18,7 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 import type { EventTypeValue } from "@/lib/validators/event";
 import { EmptyState } from "@/components/empty-state";
@@ -104,19 +104,11 @@ export default function EventsPage() {
     sortOrder,
   };
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = api.event.list.useInfiniteQuery(queryInput, {
+  const eventsQuery = api.event.list.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
-
-  const items = (data?.pages.flatMap((p) => p.items) ?? []) as EventItem[];
+  const { items: rawItems, isLoading, isError, refetch, sentinelRef, isFetchingNextPage } = usePaginatedList(eventsQuery);
+  const items = rawItems as EventItem[];
   const itemIds = items.map((i) => i.id);
 
   const { data: favIds } = api.favorite.check.useQuery(
@@ -124,12 +116,6 @@ export default function EventsPage() {
     { enabled: itemIds.length > 0 },
   );
   const favoritedIds = new Set(favIds ?? []);
-
-  const sentinelRef = useInfiniteScroll(
-    () => { fetchNextPage(); },
-    !!hasNextPage,
-    isFetchingNextPage,
-  );
 
   const hasActiveFilters = cityInput || dateFrom || dateTo;
 
