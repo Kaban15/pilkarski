@@ -7,6 +7,8 @@ import {
 } from "@/lib/validators/message";
 import { TRPCError } from "@trpc/server";
 import { getUserDisplayName } from "@/lib/labels";
+import { sendEmailToUser } from "@/server/send-email";
+import { shouldSendEmail } from "@/lib/email-throttle";
 
 export const messageRouter = router({
   // List conversations for current user
@@ -196,6 +198,16 @@ export const messageRouter = router({
           link: `/messages/${conversationId}`,
         },
       }).catch(() => {});
+
+      const baseUrl = process.env.NEXTAUTH_URL || "https://pilkarski.vercel.app";
+      if (shouldSendEmail(input.recipientUserId, "message")) {
+        sendEmailToUser(ctx.db, input.recipientUserId, "Nowa wiadomość na PilkaSport", {
+          title: "Nowa wiadomość",
+          message: `${senderName}: ${input.content.substring(0, 100)}`,
+          ctaLabel: "Odpowiedz",
+          ctaUrl: `${baseUrl}/messages/${conversationId}`,
+        }).catch(() => {});
+      }
 
       return { message, conversationId };
     }),

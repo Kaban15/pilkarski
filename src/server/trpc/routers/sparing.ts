@@ -9,6 +9,9 @@ import {
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
+import { sendEmailToUser } from "@/server/send-email";
+
+const baseUrl = process.env.NEXTAUTH_URL || "https://pilkarski.vercel.app";
 
 export const sparingRouter = router({
   create: rateLimitedProcedure({ maxAttempts: 5 })
@@ -244,6 +247,12 @@ export const sparingRouter = router({
         body: `${club.name} chce zagrać sparing`,
         url: `/sparings/${offer.id}`,
       }).catch(() => {});
+      sendEmailToUser(ctx.db, offer.club.userId, "Nowe zgłoszenie na sparing", {
+        title: "Nowe zgłoszenie na sparing",
+        message: `${club.name} chce zagrać sparing: ${offer.title}`,
+        ctaLabel: "Zobacz zgłoszenie",
+        ctaUrl: `${baseUrl}/sparings/${offer.id}`,
+      }).catch(() => {});
 
       awardPoints(ctx.db, ctx.session.user.id, "application_sent", application.id).catch(() => {});
 
@@ -319,6 +328,12 @@ export const sparingRouter = router({
         title: notifTitle,
         body: notifMessage,
         url: `/sparings/${application.sparingOfferId}`,
+      }).catch(() => {});
+      sendEmailToUser(ctx.db, updated.applicantClub.userId, notifTitle, {
+        title: notifTitle,
+        message: notifMessage,
+        ctaLabel: "Zobacz szczegóły",
+        ctaUrl: `${baseUrl}/sparings/${application.sparingOfferId}`,
       }).catch(() => {});
 
       return updated;
@@ -424,6 +439,12 @@ export const sparingRouter = router({
           title: "Wynik do potwierdzenia",
           body: `Wynik ${input.homeScore}:${input.awayScore}`,
           url: `/sparings/${input.sparingId}`,
+        }).catch(() => {});
+        sendEmailToUser(ctx.db, otherUserId, "Wynik meczu do potwierdzenia", {
+          title: "Wynik meczu do potwierdzenia",
+          message: `Wynik ${input.homeScore}:${input.awayScore} czeka na potwierdzenie`,
+          ctaLabel: "Potwierdź wynik",
+          ctaUrl: `${baseUrl}/sparings/${input.sparingId}`,
         }).catch(() => {});
       }
 
@@ -601,6 +622,12 @@ export const sparingRouter = router({
         title: "Zaproszenie na sparing",
         body: `${club.name} zaprasza na: ${sparing.title}`,
         url: `/sparings/${sparing.id}`,
+      }).catch(() => {});
+      sendEmailToUser(ctx.db, toClub.userId, "Zaproszenie na sparing", {
+        title: "Zaproszenie na sparing",
+        message: `${club.name} zaprasza na: ${sparing.title}`,
+        ctaLabel: "Zobacz zaproszenie",
+        ctaUrl: `${baseUrl}/sparings/${sparing.id}`,
       }).catch(() => {});
 
       return invitation;

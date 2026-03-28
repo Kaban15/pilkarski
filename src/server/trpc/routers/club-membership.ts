@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { router, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { sendPushToUser } from "@/server/send-push";
+import { sendEmailToUser } from "@/server/send-email";
 
 export const clubMembershipRouter = router({
   requestJoin: protectedProcedure
@@ -364,6 +365,13 @@ export const clubMembershipRouter = router({
         title: "Zaproszenie do klubu",
         body: `Klub ${club.name} zaprasza Cię do kadry`,
         url: "/feed",
+      }).catch(() => {});
+      const baseUrl = process.env.NEXTAUTH_URL || "https://pilkarski.vercel.app";
+      sendEmailToUser(ctx.db, input.userId, "Zaproszenie do klubu", {
+        title: "Zaproszenie do klubu",
+        message: `Klub ${club.name} zaprasza Cię do kadry`,
+        ctaLabel: "Zobacz zaproszenie",
+        ctaUrl: `${baseUrl}/feed`,
       }).catch(() => {});
 
       return membership;
