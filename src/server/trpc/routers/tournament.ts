@@ -8,6 +8,7 @@ import { generateRoundRobin, generateKnockoutBracket, recalculateStandings, getN
 import {
   createTournamentSchema, updateTournamentSchema, applyTeamSchema,
   respondApplicationSchema, submitScoreSchema, confirmScoreSchema, tournamentGoalSchema,
+  markTeamPaidSchema,
 } from "@/lib/validators/tournament";
 import { getUserDisplayName } from "@/lib/labels";
 
@@ -75,6 +76,7 @@ export const tournamentRouter = router({
           maxTeams: input.maxTeams,
           groupCount: input.groupCount ?? 1,
           advancingPerGroup: input.advancingPerGroup ?? 2,
+          costPerTeam: input.costPerTeam,
         },
       });
 
@@ -137,6 +139,7 @@ export const tournamentRouter = router({
           ...(fields.maxTeams !== undefined && { maxTeams: fields.maxTeams }),
           ...(fields.groupCount !== undefined && { groupCount: fields.groupCount }),
           ...(fields.advancingPerGroup !== undefined && { advancingPerGroup: fields.advancingPerGroup }),
+          ...(fields.costPerTeam !== undefined && { costPerTeam: fields.costPerTeam }),
         },
       });
     }),
@@ -981,5 +984,22 @@ export const tournamentRouter = router({
         .slice(0, 10);
 
       return sorted;
+    }),
+
+  markTeamPaid: protectedProcedure
+    .input(markTeamPaidSchema)
+    .mutation(async ({ ctx, input }) => {
+      const team = await ctx.db.tournamentTeam.findUnique({
+        where: { id: input.teamId },
+        include: { tournament: { select: { creatorUserId: true } } },
+      });
+      if (!team) throw new TRPCError({ code: "NOT_FOUND" });
+      if (team.tournament.creatorUserId !== ctx.session.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Tylko organizator może oznaczać opłaty" });
+      }
+      return ctx.db.tournamentTeam.update({
+        where: { id: input.teamId },
+        data: { costPaid: input.paid },
+      });
     }),
 });

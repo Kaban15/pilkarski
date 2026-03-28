@@ -5,6 +5,7 @@ import {
   updateSparingSchema,
   applySparingSchema,
   respondApplicationSchema,
+  markCostPaidSchema,
 } from "@/lib/validators/sparing";
 import { addGoalSchema, removeGoalSchema, getGoalsSchema } from "@/lib/validators/match-goal";
 import { TRPCError } from "@trpc/server";
@@ -36,6 +37,7 @@ export const sparingRouter = router({
           ageCategory: input.ageCategory,
           preferredTime: input.preferredTime,
           regionId: input.regionId ?? club.regionId,
+          costPerTeam: input.costPerTeam,
         },
       });
 
@@ -89,6 +91,7 @@ export const sparingRouter = router({
           ageCategory: input.ageCategory,
           preferredTime: input.preferredTime,
           regionId: input.regionId,
+          costPerTeam: input.costPerTeam,
         },
       });
     }),
@@ -948,5 +951,30 @@ export const sparingRouter = router({
       }
 
       return ctx.db.matchGoal.delete({ where: { id: input.goalId } });
+    }),
+
+  markCostPaid: protectedProcedure
+    .input(markCostPaidSchema)
+    .mutation(async ({ ctx, input }) => {
+      const sparing = await ctx.db.sparingOffer.findUnique({
+        where: { id: input.sparingId },
+        include: {
+          club: { select: { userId: true } },
+          applications: { where: { status: "ACCEPTED" }, select: { applicantClub: { select: { userId: true } } } },
+        },
+      });
+      if (!sparing || (sparing.status !== "MATCHED" && sparing.status !== "COMPLETED")) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing musi być dopasowany lub zakończony" });
+      }
+      if (input.side === "home" && sparing.club.userId !== ctx.session.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      if (input.side === "away" && sparing.applications[0]?.applicantClub.userId !== ctx.session.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      return ctx.db.sparingOffer.update({
+        where: { id: input.sparingId },
+        data: input.side === "home" ? { costPaidHome: input.paid } : { costPaidAway: input.paid },
+      });
     }),
 });

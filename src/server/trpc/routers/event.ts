@@ -80,6 +80,7 @@ export const eventRouter = router({
           targetAgeMax: input.targetAgeMax,
           targetLevel: input.targetLevel,
           visibility: input.visibility,
+          costPerPerson: input.costPerPerson,
         },
       });
 
@@ -205,6 +206,7 @@ export const eventRouter = router({
           targetAgeMin: input.targetAgeMin,
           targetAgeMax: input.targetAgeMax,
           targetLevel: input.targetLevel,
+          costPerPerson: input.costPerPerson,
         },
       });
     }),
