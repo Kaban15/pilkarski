@@ -37,9 +37,20 @@ interface UpcomingMatch {
   applications: { applicantClub: { id: string; name: string; logoUrl: string | null } }[];
 }
 
+interface MatchGoal {
+  id: string;
+  minute: number | null;
+  ownGoal: boolean;
+  scorerUser: {
+    player: { firstName: string; lastName: string } | null;
+    coach: { firstName: string; lastName: string } | null;
+  } | null;
+}
+
 interface CompletedMatch extends UpcomingMatch {
   homeScore: number;
   awayScore: number;
+  goals: MatchGoal[];
 }
 
 interface Member {
@@ -192,16 +203,35 @@ export function ClubProfileTabs({
                   const awayClubInfo = rival
                     ? toClubInfo(rival)
                     : { id: "unknown", name: "Przeciwnik", logoUrl: null, initials: "??" };
+                  const goalLine =
+                    match.goals.length > 0
+                      ? match.goals
+                          .map((g) => {
+                            const p = g.scorerUser?.player;
+                            const c = g.scorerUser?.coach;
+                            const lastName = p?.lastName ?? c?.lastName ?? "?";
+                            const suffix = g.ownGoal ? " (s)" : "";
+                            const minute = g.minute != null ? ` ${g.minute}'` : "";
+                            return `${lastName}${suffix}${minute}`;
+                          })
+                          .join(", ")
+                      : null;
                   return (
-                    <MatchCard
-                      key={match.id}
-                      homeClub={homeClubInfo}
-                      awayClub={awayClubInfo}
-                      date={match.matchDate}
-                      homeScore={match.homeScore}
-                      awayScore={match.awayScore}
-                      scoreConfirmed={match.scoreConfirmed}
-                    />
+                    <div key={match.id}>
+                      <MatchCard
+                        homeClub={homeClubInfo}
+                        awayClub={awayClubInfo}
+                        date={match.matchDate}
+                        homeScore={match.homeScore}
+                        awayScore={match.awayScore}
+                        scoreConfirmed={match.scoreConfirmed}
+                      />
+                      {goalLine && (
+                        <p className="text-[11px] text-muted-foreground ml-14 mt-0.5 pb-1.5">
+                          ⚽ {goalLine}
+                        </p>
+                      )}
+                    </div>
                   );
                 })}
               </div>

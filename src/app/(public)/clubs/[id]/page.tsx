@@ -89,6 +89,17 @@ export default async function ClubPublicProfilePage({ params }: Props) {
             where: { status: "ACCEPTED" },
             include: { applicantClub: { select: { id: true, name: true, logoUrl: true } } },
           },
+          goals: {
+            include: {
+              scorerUser: {
+                select: {
+                  player: { select: { firstName: true, lastName: true } },
+                  coach: { select: { firstName: true, lastName: true } },
+                },
+              },
+            },
+            orderBy: [{ minute: { sort: "asc", nulls: "last" } }],
+          },
         },
         take: 10,
         orderBy: { matchDate: "desc" },
