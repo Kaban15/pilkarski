@@ -1,0 +1,512 @@
+# PilkaSport — Changelog
+
+Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na końcu.
+
+---
+
+## Faza 1: Inicjalizacja ✅
+- Next.js 16 + TypeScript + Tailwind CSS 4 + shadcn/ui
+- Prisma 7 z `@prisma/adapter-pg` (Supabase Session Pooler)
+- tRPC v11 (fetch adapter, superjson)
+- Struktura folderów, git repo, `.env`, `.gitignore`
+
+## Faza 2: Auth + Profile ✅
+- Auth.js v5 (credentials provider, JWT sessions)
+- Rejestracja `/register` z wyborem roli (Klub / Zawodnik)
+- Logowanie `/login` (z Suspense boundary dla useSearchParams)
+- Middleware ochrony tras (`getToken()` — Edge-compatible, bez Prisma)
+- `protectedProcedure` w tRPC
+- CRUD profilu Klubu: nazwa, miasto, region, kontakt, strona www, opis
+- CRUD profilu Zawodnika: dane personalne, pozycja, wzrost/waga, noga, bio
+- Historia kariery zawodnika (dodawanie/usuwanie)
+- Cursor-based pagination na listach klubów i zawodników
+- Zod v4 walidacja na wszystkich formularzach
+- Dashboard layout z nawigacją (`DashboardNav`)
+- shadcn/ui: Button, Input, Label, Card, Tabs, Select
+
+## Faza 3: Regiony, Ligi, Grupy ✅
+- Seed: 16 województw (ZPN), 80 szczebli ligowych, 272 grup
+- tRPC region router: `list`, `leagueLevels`, `leagueGroups`, `hierarchy`
+- Kaskadowe dropdowny w profilu klubu: Region → Szczebel → Grupa
+- `dotenv` + `tsx` do uruchamiania seed
+
+## Faza 4: Sparingi i Wydarzenia ✅
+- **Sparingi:**
+  - `sparing.create` / `list` / `getById` / `applyFor` / `respond` / `cancel` / `my`
+  - Tworzenie ogłoszenia (tytuł, data, miejsce, koszty, region)
+  - Aplikowanie klubów + akceptacja/odrzucenie przez właściciela
+  - Auto-reject pozostałych po akceptacji → status MATCHED
+  - UI: `/sparings` (lista + filtr region), `/sparings/new`, `/sparings/[id]`
+- **Wydarzenia:**
+  - `event.create` / `list` / `getById` / `applyFor` / `respond` / `my` / `myApplications`
+  - Typy: trening otwarty, nabór
+  - Zgłoszenia zawodników + akceptacja/odrzucenie przez klub
+  - Limit miejsc (maxParticipants) respektowany
+  - UI: `/events` (lista + filtry region/typ), `/events/new`, `/events/[id]`
+
+## Faza 5: System Wiadomości ✅
+- **tRPC router `message`:**
+  - `getConversations` — lista konwersacji z ostatnią wiadomością i danymi rozmówcy
+  - `getMessages` — wiadomości w konwersacji (cursor-based pagination)
+  - `send` — wyślij wiadomość (auto-tworzenie konwersacji jeśli nie istnieje)
+  - `markAsRead` — oznacz wiadomości od rozmówcy jako przeczytane
+  - `unreadCount` — liczba nieprzeczytanych (do badge'a)
+  - `getConversationWith` — szukanie istniejącej konwersacji z danym userem
+- **UI:**
+  - `/messages` — lista konwersacji (avatar, nazwa, ostatnia wiadomość, data)
+  - `/messages/[conversationId]` — widok czatu (bąbelki, auto-scroll, polling co 5s)
+  - Komponent `SendMessageButton` — przycisk "Napisz wiadomość" (inline formularz → redirect do czatu)
+  - Przycisk dodany na `/sparings/[id]` i `/events/[id]` (kontakt z właścicielem klubu)
+- **Prisma:** modele `Conversation`, `ConversationParticipant`, `Message`
+- **Validators:** `sendMessageSchema`, `getMessagesSchema`, `markAsReadSchema`
+
+## Faza 6: Feed, Filtrowanie, Polish ✅
+- **Feed (`/feed`):**
+  - tRPC `feed.get` — agregacja sparingów, wydarzeń, nowych klubów i zawodników z regionu użytkownika
+  - Unified feed posortowany po dacie, kolorowe tagi typów (sparing/wydarzenie/klub/zawodnik)
+- **Wyszukiwarka (`/search`):**
+  - tRPC `search.global` — szukanie po klubach (nazwa, miasto), zawodnikach (imię, nazwisko), sparingach i wydarzeniach
+  - Case-insensitive matching, wyniki pogrupowane po typie
+- **Responsywność mobilna:**
+  - Hamburger menu z animacją (3 kreski → X), pełne menu mobilne z linkami i wylogowaniem
+- **SEO:**
+  - Root layout: OpenGraph meta, template title (`%s | PilkaSport`), locale `pl_PL`
+  - Landing page: dedykowane meta tagi i OG
+- **Landing page (`/`):**
+  - Hero z CTA (rejestracja + logowanie), sekcja 3 filarów, dolne CTA, footer
+- **Code review & cleanup (`/simplify`):**
+  - Wyekstrahowano wspólne stałe do `src/lib/labels.ts`: `POSITION_LABELS`, `EVENT_TYPE_LABELS`, `SPARING_STATUS_*`, `APPLICATION_STATUS_*`, `getUserDisplayName()`
+  - Usunięto duplikacje z 6 plików UI (feed, search, events, sparings, messages)
+  - Zrównoleglono zapytania w feed router (`Promise.all` dla club/player lookup)
+  - Polling w czacie: change detection (skip `markAsRead` gdy brak nowych wiadomości)
+
+## Faza 7: Publiczne Profile ✅
+- **Strony publiczne (bez logowania):**
+  - `/clubs/[id]` — profil klubu: logo, nazwa, miasto, region, liga, kontakt, www, opis
+  - `/players/[id]` — profil zawodnika: zdjęcie, imię, pozycja, wiek, region, wzrost/waga, noga, bio, historia kariery
+- **Middleware:** dodane `/clubs/` i `/players/` do publicznych prefixów
+- **Linki:** karty klubów/zawodników w feedzie i wyszukiwarce prowadzą do publicznych profili
+- **CTA:** przyciski "Dołącz do PilkaSport" / "Zaloguj się" na stronach publicznych
+- **Layout:** grupa `(public)` z własnym layoutem (bez nawigacji dashboardu)
+
+## Faza 8: Upload Zdjęć ✅
+- **Supabase Storage:** bucket `avatars` (publiczny, 2 MB limit, JPEG/PNG/WebP)
+- **Klient Supabase:** `src/lib/supabase.ts` (`@supabase/supabase-js`)
+- **Komponent `ImageUpload`:** upload z podglądem, walidacja typu i rozmiaru, upsert
+- **Formularz klubu:** upload logo (`logoUrl`) nad formularzem
+- **Formularz zawodnika:** upload zdjęcia (`photoUrl`) nad formularzem
+- **Publiczne profile:** wyświetlanie zdjęcia obok nazwy (placeholder z inicjałami gdy brak)
+- **Validators:** `logoUrl` i `photoUrl` dodane do schematów Zod
+
+## Faza 9: Powiadomienia ✅
+- **Prisma:** model `Notification` (typ, tytuł, treść, link, read) — 19 tabel łącznie
+- **Enum `NotificationType`:** SPARING_APPLICATION, SPARING_ACCEPTED, SPARING_REJECTED, EVENT_APPLICATION, EVENT_ACCEPTED, EVENT_REJECTED, NEW_MESSAGE
+- **tRPC router `notification`:** `list` (cursor-based), `unreadCount`, `markAsRead`, `markAllAsRead`
+- **Automatyczne notyfikacje (fire-and-forget):**
+  - Aplikacja na sparing → powiadomienie do właściciela sparingu
+  - Odpowiedź na aplikację sparingową → powiadomienie do aplikanta
+  - Zgłoszenie na wydarzenie → powiadomienie do właściciela wydarzenia
+  - Odpowiedź na zgłoszenie → powiadomienie do zawodnika
+  - Nowa wiadomość → powiadomienie do odbiorcy
+- **UI:**
+  - Bell icon z badge w nawigacji (desktop + mobile), polling co 30s z change detection
+  - `/notifications` — lista powiadomień z oznaczaniem jako przeczytane (pojedynczo + wszystkie)
+  - Polskie etykiety typów (`NOTIFICATION_TYPE_LABELS`, `NOTIFICATION_TYPE_COLORS` w `labels.ts`)
+- **Code review (`/simplify`):**
+  - Bell icon SVG zdeduplikowany do komponentu `NotifBell`
+  - `getUserDisplayName()` użyte w message.ts
+  - Redundantne zapytania DB usunięte (include club w istniejącym query)
+  - Notyfikacje fire-and-forget (nie blokują response'a)
+
+## Faza 10: Testy E2E ✅
+- **Playwright** (`@playwright/test`) — Chromium, headless
+- **22 testy** pokrywające wszystkie krytyczne ścieżki:
+  - **Auth (5):** rejestracja klub/zawodnik, logowanie, błędne hasło, redirect niezalogowanego, duplikat email
+  - **Sparingi (4):** tworzenie → lista → aplikacja klubu B → akceptacja (status "Dopasowany")
+  - **Wydarzenia (4):** tworzenie → lista → zgłoszenie zawodnika → akceptacja (status "Zaakceptowany")
+  - **Wiadomości (4):** rejestracja kont → tworzenie sparingu → przycisk "Napisz wiadomość" → lista konwersacji
+  - **Powiadomienia (2):** strona `/notifications` dostępna, bell icon w nawigacji
+  - **Publiczne profile (3):** `/clubs/[id]` i `/players/[id]` bez logowania, landing page
+- **Konfiguracja:** `playwright.config.ts` (workers: 1, serial, webServer: `npm run dev`)
+- **Helpery:** `e2e/helpers.ts` — `registerClub`, `registerPlayer`, `login`, `logout`, `uniqueEmail`
+- **Skrypty:** `npm run test:e2e` (headless), `npm run test:e2e:ui` (z UI)
+
+## Faza 11: UX Polish ✅
+- **Toast notifications (sonner):**
+  - `<Toaster>` w root layout (`position="top-right"`, `richColors`, `closeButton`)
+  - `toast.success()` / `toast.error()` na wszystkich akcjach
+  - Usunięto inline success/error state i `alert()` — zastąpione toastami
+- **Skeleton loadery (shadcn/ui Skeleton):**
+  - Komponent `CardSkeleton` z 4 wariantami
+  - Skeleton loadery na: feed, sparingi, wydarzenia, wiadomości, powiadomienia
+- **Infinite scroll:**
+  - Hook `useInfiniteScroll` (IntersectionObserver)
+  - Automatyczne doładowywanie na listach sparingów i wydarzeń
+- **Inline walidacja formularzy:**
+  - Helper `getFieldErrors()` — parsowanie Zod errors na per-field messages
+  - Walidacja client-side z podświetleniem pól i komunikatami
+
+## Faza 12: Deploy + Quick Wins + Code Review ✅
+- **Deploy na Vercel:**
+  - Projekt: `pilkarski.vercel.app` (auto-deploy z GitHub `main`)
+  - GitHub: `https://github.com/Kaban15/pilkarski`
+  - Env vars: `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `AUTH_SECRET`, `AUTH_TRUST_HOST`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `postinstall: "prisma generate"` w package.json
+- **Auth fixes (Vercel):**
+  - `SessionProvider` w root layout — bez niego `signIn()` nie pobierał CSRF tokena
+  - Middleware: cookie name `__Secure-authjs.session-token` + `AUTH_SECRET`
+- **SEO:** `robots.ts`, `sitemap.ts`, `manifest.ts`, `icon.svg`
+- **Strony błędów:** `error.tsx` (globalny error boundary), `not-found.tsx` (404)
+- **Rate limiting:** In-memory rate limiter z auto-cleanup co 5 min
+- **Publiczne profile — session-aware CTA:** `PublicProfileCTA`
+- **Code review (`/simplify`):**
+  - Fix memory leak w rate limiterze
+  - `FOOT_LABELS`, `EVENT_TYPE_COLORS` scentralizowane
+  - `DetailPageSkeleton`, `PublicProfileCTA` wyekstrahowane
+
+## Faza 13: Nowe Funkcjonalności ✅
+- **Edycja i usuwanie sparingów/wydarzeń:**
+  - tRPC `sparing.update` / `delete`, `event.update` / `delete`
+  - Strony edycji: `/sparings/[id]/edit`, `/events/[id]/edit`
+- **Filtrowanie i sortowanie list:**
+  - Parametry: `city`, `dateFrom`, `dateTo`, `sortBy`, `sortOrder`, `clubId`
+  - Panel "Więcej filtrów": miasto (debounce 400ms), zakres dat
+- **Publiczny profil klubu z aktywnością:**
+  - Sekcje "Aktywne sparingi" i "Nadchodzące wydarzenia" na `/clubs/[id]`
+- **System ulubionych:**
+  - Model `Favorite`, toggle, check (batch), list (cursor-based)
+  - Serduszka na kartach sparingów i wydarzeń
+  - Strona `/favorites`
+
+## Faza 14: Ulepszenia Techniczne ✅
+- **Supabase Realtime dla czatu (WebSocket):**
+  - Broadcast channel `chat:${conversationId}`
+  - Fallback poll 30s
+- **Optymalizacja obrazków (client-side):**
+  - `compressImage()` — resize do 800×800, WebP (quality 0.8) via Canvas API
+- **Dynamiczne SEO na publicznych profilach:**
+  - Server components z `generateMetadata()` — dynamiczne title, description, og:image
+
+## Faza 15: Dark Mode, Kalendarz, Statystyki ✅
+- **Dark mode:** class-based, ThemeToggle, script przed hydracją (zero flash)
+- **Kalendarz (`/calendar`):** widok miesięczny, kolorowe tagi, nawigacja
+- **Statystyki na dashboardzie:** `stats.dashboard`, karty per rola
+
+## Redesign Etap 1: UI/Design ✅
+- Design System: Inter font, Slate-based paleta, CSS animacje
+- Sidebar (desktop 240px) + Bottom Nav (mobile)
+- Landing page przeprojektowana
+- Dashboard Feed, Listy, Detail pages, Messages, Profile publiczne, Auth pages — przeprojektowane
+- 8 nowych komponentów shadcn/ui (badge, avatar, separator, tooltip, dialog, sheet, dropdown-menu, textarea)
+
+## Redesign Etap 2: UX i Funkcjonalności ✅
+- Animacje: `scale-in`, `.stagger-children`, `active:scale(0.98)`, smooth transitions
+- Uniwersalny `EmptyState` (6 stron), `ConfirmDialog`, lepsze formularze (Textarea, FormTooltip)
+- Breadcrumbs, real-time unread indicators w bottom-nav
+
+## Task 3.1: System Ocen i Recenzji ✅
+- Model `Review` (rating 1-5, comment, relacje reviewer/reviewed Club + SparingOffer)
+- Router `review`: create, getForSparing, listByClub, averageByClub, myReview
+- `StarRating` komponent, formularz oceny na `/sparings/[id]`, sekcja recenzji na `/clubs/[id]`
+
+## Task 3.2: System Ogłoszeń Transferowych ✅
+- Model `Transfer` (TransferType, TransferStatus, relacje User/Region)
+- Router `transfer`: create, update, delete, close, list, getById, my
+- UI: `/transfers` (lista z filtrami), `/transfers/new`, `/transfers/[id]`, `/transfers/[id]/edit`
+- Kolorowanie: cyan=transfery
+
+## Task 3.3: Statystyki i Analityka Rozszerzona ✅
+- `recharts` (wykresy React)
+- `stats.detailed`: aktywność per miesiąc, top 5 regionów, totale, user stats per rola
+- UI `/stats`: 6 kart totals, BarChart, PieChart, sekcja "Twoje statystyki"
+
+## Task 3.4: Mapa z Lokalizacjami ✅
+- `leaflet`, `react-leaflet` — OpenStreetMap tiles (darmowe)
+- `MapView` komponent z markerami, popupami, hue-rotate ikonami
+- UI `/map`: toggle Sparingi/Wydarzenia, dynamic import (SSR-safe)
+
+## Task 3.5: System Punktacji / Gamifikacja ✅
+- Modele `UserPoints` + `UserBadge`, 9 odznak, `POINTS_MAP`
+- Router `gamification`: myPoints, myBadges, checkBadges, leaderboard
+- UI `/ranking`: punkty, odznaki, top 20 leaderboard
+
+## Task 3.6: PWA + Push Notifications ✅
+- Service Worker (`public/sw.js`): cache, push handler, notification click
+- Model `PushSubscription`, router `push`: subscribe, unsubscribe, status
+- `PushNotificationToggle` komponent, VAPID keys
+
+## Etap 4: Sparing Flow UX/UI Overhaul ✅
+- **I1 Foundation:** `<SparingForm>` shared, detail page rozbity na 4 sub-components, "Moje sparingi" panel, "already applied" state, mutacja `complete`, error handling + auth filtering
+- **I2 UX Uplift:** 3-krokowy wizard, redesign karty (pill-badges, countdown, avatar), post-match timeline, kontr-propozycja terminu (COUNTER_PROPOSED), widok piłkarza, nowe pola (level, ageCategory, preferredTime)
+- E2E: `sparing-advanced.spec.ts` (4 testy)
+
+## Etap 5: UX Hotfixes + Club Followers + Player Recruitments ✅
+- Hotfixy: ConfirmDialog na "Zakończ", datetime-local na counter-proposal, race condition guard
+- Type Safety: typy zamiast `as any`, EmptyState z `actionOnClick`, error retry
+- `ClubFollower` model, follow/unfollow endpoints, `FollowClubButton`
+- Follower notifications przy tworzeniu sparingu/wydarzenia
+- Club dashboard sections (pending apps, active sparings, upcoming events)
+- Player recruitments feed ("Nabory dla Ciebie")
+
+## Etap 6: Backlog Cleanup + Push + Infra Fixes ✅
+- Transaction Pooler (port 6543), server-side image upload, SUPABASE_SERVICE_ROLE_KEY
+- 13 instancji `as any` zastąpionych typami
+- A11y: aria-labels, focus-visible:ring-2
+- Push notifications: `sendPushToUser()` z auto-cleanup
+- E2E: `sparing-advanced.spec.ts`
+
+## Etap 7: Club UX Week 1 — Dashboard & Flow ✅
+- T1: Redesign dashboardu (akcyjne metryki, quick actions, empty state)
+- T2: Fix kontroli ról — events (ukryte dla nie-klubów, shadcn Select)
+- T3: UX "Moje sparingi" (badge pending, sekcja nadchodzących meczy)
+- T4: UX detail page (sortowanie zgłoszeń, avatary, amber banner)
+- T5: "Moje wydarzenia" tab
+- T6: Kalendarz (toggle "Tylko moje", widok agendy)
+- T7: Mobile polish (scroll filtrów, pending badge)
+- T8: Typowanie (usunięcie `any`)
+
+## Etap 8: Club Onboarding Week 2 ✅
+- T1: Landing copy pod kluby ("Umów sparing w 2 minuty")
+- T2: Dynamiczne statystyki z DB na landing
+- T3: Auto-login po rejestracji
+- T4: `ClubOnboarding` — 3-krokowy wizard (miasto/region/liga → CTA → gotowe)
+- T5: Profil klubu — progress bar (6 pól)
+- T6: Kontekstowe powitanie + checklist "Pierwsze kroki"
+- T7: Szybki sparing (toggle pełny/szybki)
+- T8: E2E testy onboardingu (5 testów)
+
+## Etap 9: Visual Redesign "Sexy & Simple" ✅
+- Dark mode: Vercel-style neutral (#0a0a0a)
+- Sparing card: czysta karta bez border-left
+- Landing: 4 features zamiast 6, mniejsze ikony
+- Dashboard feed: bez ikon/strzałek, inline pills stats
+- Sidebar: 10 pozycji (z 14), 3 sekcje (z 4)
+- Event cards: unified style
+
+## Etap 10: Wiadomości z publicznych profili ✅
+- `ProfileMessageButton` — session-aware, inline pole tekstowe, redirect do konwersacji
+- Zintegrowany na `/clubs/[id]` i `/players/[id]`
+
+## Etap 11: Rekrutacja, Marketplace Treningów, Community ✅
+- **Stage 1:** Rozszerzony EventType (TRYOUT, CAMP, CONTINUOUS_RECRUITMENT, INDIVIDUAL/GROUP_TRAINING), nowe pola Event, powiadomienia RECRUITMENT_NEW/MATCH, `ClubRecruitment` widget
+- **Stage 2:** Transfer pola (availableFrom, preferredLevel), `RecruitmentPipeline` model (stages WATCHING→SIGNED), router `recruitment`, UI `/recruitment`, "Na radar" button
+- **Stage 3:** `ClubPost` model z kategoriami, router `clubPost`, `/community`, feed integration, gamifikacja
+
+## Etap 12: Rola Trenera (COACH) ✅
+- `UserRole.COACH`, model `Coach` (specjalizacja, licencja)
+- Auth: register/login z COACH, trzecia karta rejestracji
+- Router `coach`: me, update, getById, list
+- `CoachProfileForm` z upload zdjęcia, Select specjalizacji/licencji
+- Dashboard/Layout: COACH support w stats, feed, sidebar
+- Labels: `COACH_SPECIALIZATION_LABELS`, `COACH_LEVEL_LABELS`, `ROLE_LABELS`
+
+## Etap 13: Product Consolidation ✅
+- Sidebar role-aware, "Rekrutacja"/"Treningi" w sekcji "Główne"
+- `recruitment.stats` + `exportCsv`, `RecruitmentStats` widget
+- `/trainings` — treningi + katalog trenerów
+- Community: limit 5 postów, min content 10, przycisk "Zgłoś"
+- `PlayerOnboarding` + `CoachOnboarding` — 3-krokowe wizardy
+- +4 nowe eventy gamifikacyjne
+
+## Etap 14: Visual Redesign "Pitch Black Precision" ✅
+- Landing: dark-first (#050505), dot grid, gradient orb, fluid clamp() typography
+- Dashboard: StatsBar z ikonami, FeedCard hover reveal, compact QuickActions
+- Sparing card: avatar top-left, region outline badge, countdown pill
+- Sidebar: compact (56px header, 16px icons)
+- Design tokens: zinc-based (#fafafa/#71717a)
+
+## Etap 15: Club Happy Path & Dashboard UX ✅
+- ClubQuickActions: 3 CTA + "Więcej działań"
+- ProcessSteps: reużywalny komponent
+- Coachmark: jednorazowe tooltipy (localStorage)
+
+## Etap 16: Recruitment CRM & Pipeline Board ✅
+- Kanban board z 6 kolumnami + HTML5 drag-and-drop
+- RecruitmentEvent model — timeline zmian etapów
+- Mini-timeline na kartach, avg time to sign, Board/List toggle
+
+## Etap 17: Trainings & COACH Development Hub ✅
+- `event.recommendedTrainings`, `stats.coachDashboard`
+- Training presets (6 szablonów), "Polecane dla Ciebie"
+
+## Etap 18: Community & Social Layer ✅
+- Favorite rozszerzony o clubPostId, bookmark button
+- `club.newInRegion`, NewClubsInRegion widget
+
+## Etap 19: Mobile & Performance Polish ✅
+- Role-aware bottom-nav (CLUB/PLAYER/COACH)
+- OfflineBanner, MobileRefresh
+
+## Etap 20: Backlog Cleanup ✅
+- E2E: coach.spec, recruitment-board.spec, community.spec
+- Publiczny profil trenera `/coaches/[id]`
+- COACH tworzy treningi (Event.clubId optional, Event.coachId)
+- Powiadomienia przypominające: `/api/reminders`
+- event.list: `types` array filter
+- Null-safety fixes po Event.clubId optional
+
+## Etap 21: Sparing Invitations ✅
+- `SparingInvitation` model (fromClub, toClub, expiresAt)
+- `invite`, `respondToInvitation`, `myInvitations`
+- `InviteClubDialog`, `SentInvitations`, `ReceivedInvitations`
+- Club router: `search` parametr w `club.list`
+
+## Etap 22: Club Membership & Squad Management ✅
+- `ClubMembership` model (PENDING/ACCEPTED/REJECTED/LEFT/REMOVED)
+- `TeamLineup` + `TeamLineupPlayer` modele
+- `INTERNAL` ClubPostCategory
+- Routery: `clubMembership` (requestJoin, respond, leave, remove, listMembers...), `teamLineup`
+- `JoinClubButton`, `/squad` z 3 tabami, Sidebar: "Kadra"
+
+## Etap 23: League Directory ✅
+- Publiczny katalog: `/leagues` → region → szczebel → grupa → lista klubów
+- Seed: 16 regionów, 69 szczebli, 397 grup (realne dane 2024/2025)
+- `sortGroupsByNumber()` helper, `pluralPL()` odmiana polska
+- Integracja z `/clubs/[id]` (klikalne badge'e), wyszukiwarka, sidebar
+
+## Etap 24: Sparing Scores + League SEO ✅
+- Wyniki meczów: `homeScore`, `awayScore`, `scoreSubmittedBy`, `scoreConfirmed`
+- `submitScore` + `confirmScore` z push notifications
+- `ScoreSection` komponent, "Historia sparingów" na `/clubs/[id]`
+- Sitemap: ~480 URL-i (dynamic z DB), graceful fallback
+
+## Etap 25: Internal Events, Attendance & Club Permissions ✅
+- `EventVisibility` (PUBLIC/INTERNAL), `AttendanceStatus` (YES/NO/MAYBE)
+- `EventAttendance` model, `checkEventPermission()` helper
+- `AttendanceSection` widget, visibility dropdown w formularzach
+- `ClubMembership.canManageEvents` — delegowanie uprawnień
+
+## Etap 26: Club Invite Members ✅
+- `INVITED` MembershipStatus, `CLUB_INVITATION` NotificationType
+- `searchUsers`, `invite`, `respondToInvite`, `myInvitations`
+- `InviteMemberDialog`, `ClubInviteButton` na profilach, `ClubInvitations` widget
+
+## Etap 27: UX Fixes, Coach Permissions, Career & Profile Links ✅
+- JWT fix (ClubInviteButton), BackButton komponent
+- Usunięcie cen/kosztów (priceInfo, costSplitInfo)
+- Coach tworzy wydarzenia przez klub (canManageEvents membership)
+- `CoachCareerEntry` model z timeline na profilu
+- Klikalne profile na 11 stronach, `getProfileHref()` helper
+
+## Etap 28: Attendance Reminders 24h + Coach Profile Fix ✅
+- Coach profile: graceful fallback dla careerEntries
+- Przypomnienia 24h: batch lookup, dedup, `Promise.allSettled`
+- Push przy tworzeniu INTERNAL eventu do całej kadry
+- `formatEventDateTime()` helper
+
+## Etap 29: Violet Surge — Visual Redesign ✅
+- Paleta: violet `#7c3aed` + violet→sky gradient
+- Dark bg: `#0c0a1a` (deep navy-violet)
+- 6 systemów animacji: ScrollReveal, Hover Glow, Animated Hero blobs, Micro-interactions, Page Transitions
+- `prefers-reduced-motion` wsparcie
+- Landing, Dashboard, Sparing card, Sidebar — pełny redesign
+
+## Etap 30: League Catalog Redesign — 90minut Style ✅
+- `/leagues` — hero z Trophy, grid 4-kolumnowy z Shield ikonami
+- Table-style listy na sub-stronach
+- Numerowana lista klubów z logotypami
+
+## Etap 31: League Map + Active Club Badge ✅
+- `PolandMap` komponent — grid 4x4 z 16 województwami, violet glow on hover
+- Badge "Aktywny" przy klubach (sparingi/wydarzenia w ostatnich 6 mies.)
+- Hero ulepszenia: gradient trophy icon, ScrollReveal
+
+## Etap 32: League Navigation + Club Group Chat ✅
+- League nav: "Menu główne" → `/feed`, sezon 2025/26, redesign kart regionów
+- `Conversation.clubId` — jeden czat grupowy per klub
+- `getClubChat` + `sendToClubChat` endpoints
+- `/club-chat` — violet theme, nazwy nadawców, polling 10s
+- Optymalizacje: warunkowy participant create, lastMessageId scroll tracking
+
+---
+
+## Naprawy z code review (zbiorczy backlog)
+
+### Naprawione (sesja 2026-03-23)
+- Duplikat aplikacji na sparing — check `findUnique` przed `create`
+- Apply widoczne dla PLAYER → `&& isClub` guard
+- Transfery brak w feedzie → dodane
+- Feed brak error handling → error state + retry
+- matchDate akceptuje dowolny string → refine() rejects past dates
+- isParticipant bug → sprawdza `applicantClub.userId`
+
+### Naprawione (sesja 2026-03-25)
+- Hero SVG overlay blokuje kliknięcia → `pointer-events-none`
+- Crash Radix Select `value=""` → sentinel `"__all__"`
+- Widoczność liczby zgłoszeń → usunięto `_count.applications` z listingów
+- Zgłoszenia widoczne w event detail → filtrowanie po auth
+- "0 zaakceptowanych" → sekcja widoczna tylko gdy `maxParticipants` ustawiony
+
+### Migracje DB (wszystkie zastosowane)
+- `0_init` — baseline
+- `20260323201350_add_reviews_transfers_gamification_push`
+- `20260324055816_add_sparing_level_category`
+- `20260324062139_add_counter_proposal`
+- `20260324110435_add_club_followers`
+- `20260326120000_add_coach_role`
+- `20260326180000_recruitment_board`
+- `20260326200000_favorite_club_post`
+- `20260326220000_coach_creates_events`
+- `20260327100000_sparing_invitations`
+- `20260327120000_club_membership`
+- `20260327140000_add_sparing_scores`
+- `20260327160000_add_event_visibility_attendance`
+- `20260327180000_add_invited_status`
+- `20260327200000_add_coach_career`
+- `20260327220000_add_club_chat`
+
+---
+
+## Etap 33: FotMob Club Management Flow Redesign ✅
+
+**Cel:** Redesign club management flow (Dashboard → Kadra → Pipeline → Profil publiczny) w stylu Sofascore/FotMob — dark-first, data-dense, sportowy feel.
+
+**Design tokens:**
+- Dark mode: `#111827` bg (gray-900), `#1f2937` cards, `#374151` borders, `#9ca3af` muted text
+- Typography: uppercase tracking-wider section labels, font-extrabold stats
+- Border radius: `rounded-xl` (12px) na kartach
+
+**Dashboard klubu (`feed/page.tsx`):**
+- ClubHeaderCard — gradient hero (indigo-950→slate-900) z dot-pattern, logo, badges
+- StatsRow — 4 StatsCell (Aktywne/Zgłoszenia/Kadra/Bilans W-R-P)
+- NextMatchCard — MatchCard variant="highlight" (logo vs logo, countdown)
+- QuickActions — gradient primary + outline secondary buttons
+- PendingAlerts — lista alertów z kolorowymi kropkami i relative time
+- Backend: `stats.clubDashboard` rozszerzony o nextMatch, squadCount, winRecord
+
+**Kadra (`squad/page.tsx`):**
+- 3-tab layout → single scrollable page z sekcjami
+- Grupowanie po pozycji: GK (red), DEF (blue), MID (emerald), FWD (amber)
+- Trenerzy z badge "Zarządza" (amber), prośby z inline accept/reject
+- Kolorowe left-bar per sekcja, collapsible "+N więcej"
+
+**Pipeline (`recruitment/page.tsx`):**
+- ProgressBar — proporcjonalny, kolorowy (blue→amber→violet→emerald)
+- StagePills — scrollowalne filtry per etap z liczbami
+- List view jako domyślny (board jako toggle), karty z meta pills i mini-timeline
+- MetricCard — "Średni czas do podpisania" z sky-400
+
+**Profil publiczny klubu (`clubs/[id]/page.tsx`):**
+- 2-kolumnowy layout → single-column z 5 tabami (Mecze/Kadra/Nabory/Opinie/Info)
+- Hero: gradient (indigo-950→slate-900→sky-950), dot-pattern, badge "Aktywny"
+- StatsBar: W/R/P/Kadra inline
+- Tab Mecze: MatchCard z kolorowym wynikiem (emerald=W, red=L, gray=D)
+- Tab Kadra: PositionGroup read-only
+- Tab Info: kontakt, opis, liga (przeniesione z sidebar)
+
+**Nowe pliki (5):**
+- `src/components/stats-cell.tsx` — reużywalny stat display
+- `src/components/match-card.tsx` — match display (compact + highlight)
+- `src/components/squad/position-group.tsx` — position-grouped player list
+- `src/components/recruitment/stage-pill.tsx` — pipeline stage filter
+- `src/app/(public)/clubs/[id]/club-profile-tabs.tsx` — client component dla tabów
+
+**Pliki zmodyfikowane (7):**
+- `src/styles/globals.css` — dark mode tokens
+- `src/app/(dashboard)/feed/page.tsx` — club dashboard redesign
+- `src/app/(dashboard)/squad/page.tsx` — position-grouped layout
+- `src/app/(dashboard)/recruitment/page.tsx` — progress bar + stage pills
+- `src/app/(public)/clubs/[id]/page.tsx` — single-column tabs
+- `src/components/dashboard/club-sections.tsx` — token alignment
+- `src/components/recruitment/recruitment-stats.tsx` — token alignment
+- `src/server/trpc/routers/stats.ts` — nextMatch, squadCount, winRecord
