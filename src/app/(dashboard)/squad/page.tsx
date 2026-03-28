@@ -4,22 +4,19 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { POSITION_LABELS, COACH_SPECIALIZATION_LABELS } from "@/lib/labels";
 import { Users, Check, X, UserMinus, Shield } from "lucide-react";
 import { InviteMemberDialog } from "@/components/squad/invite-member-dialog";
+import { PositionGroup, POSITION_GROUPS } from "@/components/squad/position-group";
 import Link from "next/link";
 
 export default function SquadPage() {
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
-  const [tab, setTab] = useState<"requests" | "players" | "coaches">("players");
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   const utils = api.useUtils();
@@ -63,202 +60,330 @@ export default function SquadPage() {
   const isOwner = club?.userId === session?.user?.id;
 
   if (!isClub) {
-    return <EmptyState icon={Shield} title="Sekcja dla klubów" description="Zarządzanie kadrą dostępne tylko dla kont klubowych." />;
+    return (
+      <EmptyState
+        icon={Shield}
+        title="Sekcja dla klubów"
+        description="Zarządzanie kadrą dostępne tylko dla kont klubowych."
+      />
+    );
   }
 
   const players = members.filter((m) => m.memberType === "PLAYER");
   const coaches = members.filter((m) => m.memberType === "COACH");
-  const pendingCount = requests.length;
+
+  // Group players by position
+  const matchedPlayerIds = new Set<string>();
+  const positionGroupData = POSITION_GROUPS.map((group) => {
+    const groupPlayers = players
+      .filter((m) => {
+        const pos = m.memberUser.player?.primaryPosition ?? null;
+        return pos && group.positions.includes(pos);
+      })
+      .map((m) => {
+        const p = m.memberUser.player!;
+        matchedPlayerIds.add(m.id);
+        return {
+          id: p.id,
+          userId: m.id, // membership id used as key / for remove
+          firstName: p.firstName,
+          lastName: p.lastName,
+          photoUrl: p.photoUrl,
+          position: p.primaryPosition,
+          age: null,
+          height: null,
+          preferredFoot: null,
+        };
+      });
+    return { ...group, groupPlayers };
+  });
+
+  // Players with no matched position → "Inni"
+  const otherPlayers = players
+    .filter((m) => !matchedPlayerIds.has(m.id))
+    .map((m) => {
+      const p = m.memberUser.player;
+      if (!p) return null;
+      return {
+        id: p.id,
+        userId: m.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        photoUrl: p.photoUrl,
+        position: p.primaryPosition ?? null,
+        age: null,
+        height: null,
+        preferredFoot: null,
+      };
+    })
+    .filter(Boolean) as {
+      id: string;
+      userId: string;
+      firstName: string | null;
+      lastName: string | null;
+      photoUrl?: string | null;
+      position?: string | null;
+      age?: number | null;
+      height?: number | null;
+      preferredFoot?: string | null;
+    }[];
+
+  const hasAnyPlayer = players.length > 0;
 
   return (
     <div className="animate-fade-in">
+      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Kadra klubu</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Kadra</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {players.length} zawodników · {coaches.length} trenerów
+            </p>
+          </div>
           {isOwner && (
-            <InviteMemberDialog onInvited={() => {
-              utils.clubMembership.listMembers.invalidate();
-              utils.clubMembership.listRequestsForClub.invalidate();
-            }} />
+            <InviteMemberDialog
+              onInvited={() => {
+                utils.clubMembership.listMembers.invalidate();
+                utils.clubMembership.listRequestsForClub.invalidate();
+              }}
+            />
           )}
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">Zarządzaj zawodnikami i trenerami</p>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="players">Zawodnicy ({players.length})</TabsTrigger>
-          <TabsTrigger value="coaches">Trenerzy ({coaches.length})</TabsTrigger>
-          <TabsTrigger value="requests">
-            Prośby {pendingCount > 0 && <Badge className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-[10px]">{pendingCount}</Badge>}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {/* Requests tab */}
-      {tab === "requests" && (
-        loadingReqs ? (
-          <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)}</div>
-        ) : requests.length === 0 ? (
-          <EmptyState icon={Users} title="Brak próśb" description="Nie ma oczekujących próśb o dołączenie." />
-        ) : (
-          <div className="space-y-3">
-            {requests.map((req) => {
-              const p = req.memberUser.player;
-              const c = req.memberUser.coach;
-              const name = p ? `${p.firstName} ${p.lastName}` : c ? `${c.firstName} ${c.lastName}` : "—";
-              const detail = p?.primaryPosition ? POSITION_LABELS[p.primaryPosition] : c?.specialization ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization : null;
-              const photo = p?.photoUrl ?? c?.photoUrl;
-
-              return (
-                <Card key={req.id}>
-                  <CardContent className="flex items-center gap-4 py-4">
-                    {photo ? (
-                      <img src={photo} alt="" className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground">
-                        {name.split(" ").map((n) => n[0]).join("")}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold">
-                        {p ? (
-                          <Link href={`/players/${p.id}`} className="hover:underline hover:text-primary">{name}</Link>
-                        ) : c ? (
-                          <Link href={`/coaches/${c.id}`} className="hover:underline hover:text-primary">{name}</Link>
-                        ) : name}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="secondary" className="text-[10px]">{req.memberType === "COACH" ? "Trener" : "Zawodnik"}</Badge>
-                        <Badge className={req.status === "INVITED" ? "bg-amber-500/10 text-amber-600" : "bg-blue-500/10 text-blue-600"}>
-                          {req.status === "INVITED" ? "Zaproszony" : "Prośba"}
-                        </Badge>
-                        {detail && <span className="text-[11px] text-muted-foreground">{detail}</span>}
-                      </div>
-                      {req.message && <p className="mt-1 text-[11px] text-muted-foreground italic">"{req.message}"</p>}
-                    </div>
-                    {req.status !== "INVITED" && (
-                      <div className="flex gap-1.5">
-                        <Button size="sm" className="h-8 gap-1" onClick={() => respondMut.mutate({ membershipId: req.id, decision: "ACCEPT" })} disabled={respondMut.isPending}>
-                          <Check className="h-3.5 w-3.5" /> Akceptuj
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => respondMut.mutate({ membershipId: req.id, decision: "REJECT" })} disabled={respondMut.isPending}>
-                          <X className="h-3.5 w-3.5" /> Odrzuć
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )
+      {/* Position Groups */}
+      {loadingMembers ? (
+        <div className="space-y-3 mb-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      ) : !hasAnyPlayer ? (
+        <EmptyState
+          icon={Users}
+          title="Brak zawodników"
+          description="Twój klub nie ma jeszcze zawodników. Zaakceptuj prośby o dołączenie."
+        />
+      ) : (
+        <div className="mb-6">
+          {positionGroupData.map((group) => (
+            <PositionGroup
+              key={group.key}
+              label={group.label}
+              color={group.color}
+              players={group.groupPlayers}
+              showActions={isOwner}
+              onRemove={(membershipId) => setRemovingId(membershipId)}
+              removingId={removingId}
+              collapsedMax={20}
+            />
+          ))}
+          {otherPlayers.length > 0 && (
+            <PositionGroup
+              label="Inni"
+              color="blue"
+              players={otherPlayers}
+              showActions={isOwner}
+              onRemove={(membershipId) => setRemovingId(membershipId)}
+              removingId={removingId}
+              collapsedMax={20}
+            />
+          )}
+        </div>
       )}
 
-      {/* Players tab */}
-      {tab === "players" && (
-        loadingMembers ? (
-          <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}</div>
-        ) : players.length === 0 ? (
-          <EmptyState icon={Users} title="Brak zawodników" description="Twój klub nie ma jeszcze zawodników. Zaakceptuj prośby o dołączenie." />
-        ) : (
-          <div className="space-y-2">
-            {players.map((m) => {
-              const p = m.memberUser.player;
-              if (!p) return null;
-              return (
-                <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border px-4 py-3">
-                  {p.photoUrl ? (
-                    <img src={p.photoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
-                  ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                      {p.firstName[0]}{p.lastName[0]}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-semibold">
-                      <Link href={`/players/${p.id}`} className="hover:underline hover:text-primary">{p.firstName} {p.lastName}</Link>
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {p.primaryPosition ? POSITION_LABELS[p.primaryPosition] : ""}
-                      {p.city ? ` · ${p.city}` : ""}
-                    </p>
-                  </div>
-                  {isOwner && (
-                    <Button
-                      size="sm"
-                      variant={m.canManageEvents ? "default" : "outline"}
-                      className={`text-xs ${m.canManageEvents ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : ""}`}
-                      onClick={() => permMut.mutate({
-                        membershipId: m.id,
-                        canManageEvents: !m.canManageEvents,
-                      })}
-                      disabled={permMut.isPending}
-                    >
-                      {m.canManageEvents ? "✓ Zarządza wydarzeniami" : "Nadaj uprawnienia"}
-                    </Button>
-                  )}
-                  <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground hover:text-destructive" onClick={() => setRemovingId(m.id)}>
-                    <UserMinus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              );
-            })}
+      {/* Coaches Section */}
+      {coaches.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 mb-2">
+            <div className="w-[3px] h-3.5 rounded-sm bg-amber-500" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Trenerzy
+            </span>
+            <span className="text-[11px] text-muted-foreground/60">{coaches.length}</span>
           </div>
-        )
-      )}
-
-      {/* Coaches tab */}
-      {tab === "coaches" && (
-        loadingMembers ? (
-          <div className="space-y-3">{Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)}</div>
-        ) : coaches.length === 0 ? (
-          <EmptyState icon={Users} title="Brak trenerów" description="Twój klub nie ma jeszcze trenerów." />
-        ) : (
-          <div className="space-y-2">
+          <div className="bg-card rounded-xl overflow-hidden divide-y divide-border">
             {coaches.map((m) => {
               const c = m.memberUser.coach;
               if (!c) return null;
+              const name = `${c.firstName} ${c.lastName}`;
+              const initials = `${(c.firstName?.[0] || "").toUpperCase()}${(c.lastName?.[0] || "").toUpperCase()}`;
+              const specialization = c.specialization
+                ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization
+                : null;
+
               return (
-                <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border px-4 py-3">
-                  {c.photoUrl ? (
-                    <img src={c.photoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
-                  ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                      {c.firstName[0]}{c.lastName[0]}
+                <div key={m.id} className="flex items-center px-3 py-2.5 gap-2.5">
+                  <Link
+                    href={`/coaches/${c.id}`}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 hover:text-primary transition-colors"
+                  >
+                    {c.photoUrl ? (
+                      <img
+                        src={c.photoUrl}
+                        alt={name}
+                        className="w-9 h-9 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold shrink-0">
+                        {initials}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold truncate">{name}</div>
+                      {specialization && (
+                        <div className="text-[11px] text-muted-foreground">
+                          {specialization}
+                        </div>
+                      )}
                     </div>
+                  </Link>
+                  {m.canManageEvents && (
+                    <Badge className="bg-amber-500/10 text-amber-600 text-[10px] shrink-0">
+                      Zarządza
+                    </Badge>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-semibold">
-                      <Link href={`/coaches/${c.id}`} className="hover:underline hover:text-primary">{c.firstName} {c.lastName}</Link>
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {c.specialization ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization : "Trener"}
-                    </p>
-                  </div>
                   {isOwner && (
-                    <Button
-                      size="sm"
-                      variant={m.canManageEvents ? "default" : "outline"}
-                      className={`text-xs ${m.canManageEvents ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : ""}`}
-                      onClick={() => permMut.mutate({
-                        membershipId: m.id,
-                        canManageEvents: !m.canManageEvents,
-                      })}
-                      disabled={permMut.isPending}
+                    <button
+                      onClick={() => setRemovingId(m.id)}
+                      className="ml-1 p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
                     >
-                      {m.canManageEvents ? "✓ Zarządza wydarzeniami" : "Nadaj uprawnienia"}
-                    </Button>
+                      <UserMinus className="h-3.5 w-3.5" />
+                    </button>
                   )}
-                  <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground hover:text-destructive" onClick={() => setRemovingId(m.id)}>
-                    <UserMinus className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
               );
             })}
           </div>
-        )
+        </div>
       )}
+
+      {/* Pending Requests */}
+      {loadingReqs ? (
+        <div className="space-y-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      ) : requests.length > 0 ? (
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 mb-2">
+            <div className="w-[3px] h-3.5 rounded-sm bg-violet-500" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Oczekujące
+            </span>
+            <span className="text-[11px] text-muted-foreground/60">{requests.length}</span>
+          </div>
+          <div className="bg-card rounded-xl overflow-hidden divide-y divide-border">
+            {requests.map((req) => {
+              const p = req.memberUser.player;
+              const c = req.memberUser.coach;
+              const name = p
+                ? `${p.firstName} ${p.lastName}`
+                : c
+                ? `${c.firstName} ${c.lastName}`
+                : "—";
+              const initials = name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase();
+              const photo = p?.photoUrl ?? c?.photoUrl;
+              const profileHref = p
+                ? `/players/${p.id}`
+                : c
+                ? `/coaches/${c.id}`
+                : null;
+              const detail = p?.primaryPosition
+                ? POSITION_LABELS[p.primaryPosition]
+                : c?.specialization
+                ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization
+                : null;
+
+              return (
+                <div key={req.id} className="flex items-center px-3 py-2.5 gap-2.5">
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt={name}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold shrink-0">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-semibold truncate">
+                      {profileHref ? (
+                        <Link
+                          href={profileHref}
+                          className="hover:underline hover:text-primary"
+                        >
+                          {name}
+                        </Link>
+                      ) : (
+                        name
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <Badge variant="secondary" className="text-[10px]">
+                        {req.memberType === "COACH" ? "Trener" : "Zawodnik"}
+                      </Badge>
+                      <Badge
+                        className={
+                          req.status === "INVITED"
+                            ? "bg-amber-500/10 text-amber-600 text-[10px]"
+                            : "bg-blue-500/10 text-blue-600 text-[10px]"
+                        }
+                      >
+                        {req.status === "INVITED" ? "ZAPROSZONY" : "PROŚBA"}
+                      </Badge>
+                      {detail && (
+                        <span className="text-[11px] text-muted-foreground">{detail}</span>
+                      )}
+                    </div>
+                    {req.message && (
+                      <p className="mt-1 text-[11px] text-muted-foreground italic">
+                        &ldquo;{req.message}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                  {req.status !== "INVITED" && (
+                    <div className="flex gap-1.5 shrink-0">
+                      <button
+                        className="flex items-center gap-1 bg-emerald-600 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg disabled:opacity-50"
+                        onClick={() =>
+                          respondMut.mutate({
+                            membershipId: req.id,
+                            decision: "ACCEPT",
+                          })
+                        }
+                        disabled={respondMut.isPending}
+                      >
+                        <Check className="h-3 w-3" />
+                      </button>
+                      <button
+                        className="flex items-center gap-1 bg-red-600 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg disabled:opacity-50"
+                        onClick={() =>
+                          respondMut.mutate({
+                            membershipId: req.id,
+                            decision: "REJECT",
+                          })
+                        }
+                        disabled={respondMut.isPending}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <ConfirmDialog
         open={!!removingId}
