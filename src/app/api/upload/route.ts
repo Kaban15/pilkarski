@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth/config";
 import { createClient } from "@supabase/supabase-js";
+import { detectFileType } from "@/lib/file-validation";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,8 +31,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Max file size is 5 MB" }, { status: 400 });
   }
 
+  const arrayBuffer = await file.arrayBuffer();
+  const headerBytes = new Uint8Array(arrayBuffer.slice(0, 12));
+  const detectedType = detectFileType(headerBytes);
+
+  if (!detectedType) {
+    return NextResponse.json(
+      { error: "Nieprawidłowy format pliku. Dozwolone: JPEG, PNG, WebP." },
+      { status: 400 }
+    );
+  }
+
   const path = `${folder}/${entityId}.webp`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const buffer = Buffer.from(arrayBuffer);
 
   const { error: uploadError } = await supabaseAdmin.storage
     .from("avatars")
