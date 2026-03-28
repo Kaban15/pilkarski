@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-03-28
-**Aktualny etap:** 35 etapów ukończonych
+**Aktualny etap:** 36 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -30,6 +30,16 @@
 - Obecność: YES/NO/MAYBE (AttendanceSection)
 - Delegowanie uprawnień (canManageEvents)
 - COACH tworzy treningi przez klub (membership required)
+
+### Turnieje
+- Format: faza grupowa, puchar (drabinka), grupa + puchar (4-16 drużyn)
+- Rejestracja: kluby i ad-hoc drużyny, accept/reject przez organizatora
+- Round-robin + knockout bracket (auto-generowane)
+- Wyniki z dwustronnym potwierdzeniem, karne w fazie pucharowej
+- Tabele grupowe (materialized standings), strzelcy turnieju
+- 5-tabowa strona turnieju (Drużyny/Grupy/Drabinka/Strzelcy/Info)
+- Feed + kalendarz + sidebar integration (orange accent)
+- Gamifikacja: tournament_created/win/goal + badge "Mistrz turniejów"
 
 ### Transfery & Rekrutacja
 - Ogłoszenia transferowe (LOOKING_FOR_CLUB/PLAYER/FREE_AGENT)
@@ -95,11 +105,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 36 | 2026-03-28 | Moduł Turniejowy — grupa + puchar, 5 modeli, 15 procedur, 5-tabowa strona, feed/kalendarz/sidebar |
 | 35 | 2026-03-28 | Etap B — Email transakcyjne (Resend, 6 triggerów) + Protokół meczowy (strzelcy bramek, MatchGoal) |
 | 34 | 2026-03-28 | Backlog Etap A — Vitest (33 testów), magic bytes upload validation, usePaginatedList hook |
 | 33 | 2026-03-28 | FotMob Club Flow Redesign — dashboard, kadra, pipeline, profil publiczny (gray-900 tokens, 4 shared components) |
 | 32 | 2026-03-27 | League Navigation fix + Club Group Chat (violet theme, polling 10s) |
-| 31 | 2026-03-27 | PolandMap grid + badge "Aktywny" przy klubach w katalogu ligowym |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

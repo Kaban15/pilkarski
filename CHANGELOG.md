@@ -571,3 +571,42 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/lib/validators/match-goal.ts` — addGoalSchema, removeGoalSchema, getGoalsSchema
 
 **Migracja:** Wymaga `npm run db:migrate -- --url "..." --name add_match_goals`
+
+---
+
+## Etap 36: Moduł Turniejowy ✅
+
+**Cel:** Pełny system turniejowy — faza grupowa + drabinka pucharowa, rejestracja drużyn, wyniki, tabele, strzelcy, gamifikacja.
+
+**Schema (5 nowych modeli):**
+- `Tournament` — format (GROUP_STAGE/KNOCKOUT/GROUP_AND_KNOCKOUT), maxTeams 4-16, status, groupCount, advancingPerGroup
+- `TournamentTeam` — clubId (opcjonalny, ad-hoc drużyny), status PENDING/ACCEPTED/REJECTED, groupLabel, seed
+- `TournamentMatch` — phase (GROUP→FINAL), wyniki z potwierdzeniem, karne, matchOrder
+- `TournamentGoal` — strzelcy bramek per mecz
+- `TournamentStanding` — materialized tabela grupowa (pkt/bramki/bilans)
+
+**Backend (15 procedur w tournament router):**
+- CRUD: create, update, delete, list, getById
+- Rejestracja: applyTeam, respondToApplication, withdraw
+- Flow: startTournament (round-robin/bracket gen), submitMatchScore, confirmMatchScore, generateKnockoutAfterGroups, completeTournament
+- Bramki: addGoal, removeGoal, getTopScorers
+- Pure logic helpers (TDD, 13 testów): generateRoundRobin, generateKnockoutBracket, recalculateStandings, getNextPhase
+
+**Frontend:**
+- `/tournaments` — lista z filtrami (region, status), infinite scroll, TournamentCard (orange accent)
+- `/tournaments/new` — formularz z format-specific pola (grupy, advancing, maxTeams)
+- `/tournaments/[id]` — hero (amber→orange gradient) + 5 tabów:
+  - Drużyny: lista z accept/reject, "Dołącz" button
+  - Grupy: GroupTable (tabela + mecze per grupa, highlight advancing)
+  - Drabinka: BracketView (kolumny per faza, TBD placeholders)
+  - Strzelcy: TopScorers (top 10, orange accent)
+  - Info: opis, daty, format, organizator
+
+**Integracja:**
+- Sidebar: "Turnieje" (Trophy icon) w sekcji "Więcej"
+- Feed: turnieje w feedzie (typ "tournament", orange badge)
+- Kalendarz: turnieje widoczne (orange)
+
+**Gamifikacja:** tournament_created (15pkt), tournament_win (20pkt), tournament_goal (5pkt), badge "Mistrz turniejów" (wygraj 3)
+**Powiadomienia:** 5 typów (APPLICATION, ACCEPTED, REJECTED, STARTED, SCORE_SUBMITTED) + push + email
+**Migracja:** `20260328140000_add_tournaments` — 5 tabel, 4 enumy, 5 NotificationTypes — ZASTOSOWANA
