@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 
 type FeedItem = {
-  type: "sparing" | "event" | "transfer" | "club" | "player";
+  type: "sparing" | "event" | "transfer" | "club" | "player" | "tournament" | "clubPost";
   data: any;
   createdAt: string | Date;
 };
@@ -66,6 +66,14 @@ const FEED_CONFIG = {
     label: "Nowy zawodnik",
     badge: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
   },
+  tournament: {
+    label: "Turniej",
+    badge: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
+  },
+  clubPost: {
+    label: "Ogłoszenie",
+    badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  },
 };
 
 function FeedCard({ item }: { item: FeedItem }) {
@@ -83,6 +91,10 @@ function FeedCard({ item }: { item: FeedItem }) {
         return `/clubs/${item.data.id}`;
       case "player":
         return `/players/${item.data.id}`;
+      case "tournament":
+        return `/tournaments/${item.data.id}`;
+      case "clubPost":
+        return `/community`;
     }
   };
 
@@ -96,6 +108,10 @@ function FeedCard({ item }: { item: FeedItem }) {
         return item.data.name;
       case "player":
         return `${item.data.firstName} ${item.data.lastName}`;
+      case "tournament":
+        return item.data.title;
+      case "clubPost":
+        return item.data.title;
     }
   };
 
@@ -126,6 +142,17 @@ function FeedCard({ item }: { item: FeedItem }) {
           (item.data.city ? ` · ${item.data.city}` : "") +
           (item.data.region ? ` · ${item.data.region.name}` : "")
         );
+      case "tournament": {
+        const creator = item.data.creator;
+        const organizerName =
+          creator?.club?.name ||
+          (creator?.player ? `${creator.player.firstName} ${creator.player.lastName}` : "") ||
+          (creator?.coach ? `${creator.coach.firstName} ${creator.coach.lastName}` : "") ||
+          "Organizator";
+        return `${organizerName} · ${item.data._count?.teams ?? 0}/${item.data.maxTeams} drużyn`;
+      }
+      case "clubPost":
+        return item.data.club?.name ?? "";
     }
   };
 
@@ -136,7 +163,9 @@ function FeedCard({ item }: { item: FeedItem }) {
         ? "hover-glow-sky"
         : item.type === "transfer"
           ? "hover-glow-emerald"
-          : "hover-glow-pink";
+          : item.type === "tournament"
+            ? "hover-glow-violet"
+            : "hover-glow-pink";
 
   return (
     <Link href={getHref()} className="group block">
@@ -159,13 +188,15 @@ function FeedCard({ item }: { item: FeedItem }) {
           </p>
           <p className="text-[13px] text-muted-foreground line-clamp-1">{getSubtitle()}</p>
         </div>
-        {(item.type === "sparing" || item.type === "event") && (
+        {(item.type === "sparing" || item.type === "event" || item.type === "tournament") && (
           <div className="shrink-0 text-right text-[12px] text-muted-foreground">
             <div className="flex items-center gap-1 justify-end">
               <Calendar className="h-3 w-3 opacity-50" />
               {item.type === "sparing"
                 ? formatDate(item.data.matchDate)
-                : formatDate(item.data.eventDate)}
+                : item.type === "event"
+                  ? formatDate(item.data.eventDate)
+                  : formatDate(item.data.startDate)}
             </div>
             {item.data.location && (
               <div className="mt-0.5 flex items-center gap-1 justify-end">

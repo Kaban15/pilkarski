@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 type CalendarItem = {
   id: string;
-  type: "sparing" | "event";
+  type: "sparing" | "event" | "tournament";
   title: string;
   date: string;
   clubName: string;
@@ -66,8 +66,12 @@ export function CalendarView() {
 
   const { data: sparingsData, isLoading: sparingsLoading } = api.sparing.list.useQuery(sparingQuery);
   const { data: eventsData, isLoading: eventsLoading } = api.event.list.useQuery(eventQuery);
+  const { data: tournamentsData, isLoading: tournamentsLoading } = api.tournament.list.useQuery({
+    status: "IN_PROGRESS",
+    limit: 50,
+  });
 
-  const loading = sparingsLoading || eventsLoading;
+  const loading = sparingsLoading || eventsLoading || tournamentsLoading;
 
   const items = useMemo<CalendarItem[]>(() => {
     const sparings = (sparingsData?.items ?? []).map((s: any) => ({
@@ -85,8 +89,17 @@ export function CalendarView() {
       clubName: e.club?.name ?? "",
       eventType: e.type,
     }));
-    return [...sparings, ...events];
-  }, [sparingsData, eventsData]);
+    const tournaments = (tournamentsData?.items ?? [])
+      .filter((t: any) => t.startDate)
+      .map((t: any) => ({
+        id: t.id,
+        type: "tournament" as const,
+        title: t.title,
+        date: t.startDate,
+        clubName: t.creator?.club?.name ?? "Organizator",
+      }));
+    return [...sparings, ...events, ...tournaments];
+  }, [sparingsData, eventsData, tournamentsData]);
 
   const itemsByDay = useMemo(() => {
     const map = new Map<number, CalendarItem[]>();
@@ -162,7 +175,7 @@ export function CalendarView() {
         <div className="space-y-2">
           {items.length === 0 && !loading ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Brak sparingów i wydarzeń w tym miesiącu.
+              Brak sparingów, wydarzeń i turniejów w tym miesiącu.
             </p>
           ) : (
             items
@@ -170,11 +183,11 @@ export function CalendarView() {
               .map((item) => (
                 <Link
                   key={item.id}
-                  href={item.type === "sparing" ? `/sparings/${item.id}` : `/events/${item.id}`}
+                  href={item.type === "sparing" ? `/sparings/${item.id}` : item.type === "tournament" ? `/tournaments/${item.id}` : `/events/${item.id}`}
                   className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
                 >
                   <div className={`h-2 w-2 rounded-full shrink-0 ${
-                    item.type === "sparing" ? "bg-emerald-500" : "bg-violet-500"
+                    item.type === "sparing" ? "bg-emerald-500" : item.type === "tournament" ? "bg-orange-500" : "bg-violet-500"
                   }`} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{item.title}</p>
@@ -214,11 +227,13 @@ export function CalendarView() {
                   {dayItems.slice(0, 3).map((item) => (
                     <Link
                       key={item.id}
-                      href={item.type === "sparing" ? `/sparings/${item.id}` : `/events/${item.id}`}
+                      href={item.type === "sparing" ? `/sparings/${item.id}` : item.type === "tournament" ? `/tournaments/${item.id}` : `/events/${item.id}`}
                       className={`block truncate rounded px-1 py-0.5 text-[10px] leading-tight font-medium ${
                         item.type === "sparing"
                           ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-                          : "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                          : item.type === "tournament"
+                            ? "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+                            : "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
                       }`}
                       title={`${item.title} — ${item.clubName}`}
                     >
@@ -243,7 +258,7 @@ export function CalendarView() {
 
       {!loading && items.length === 0 && (
         <p className="mt-3 text-sm text-muted-foreground text-center">
-          Brak sparingów i wydarzeń w tym miesiącu.
+          Brak sparingów, wydarzeń i turniejów w tym miesiącu.
         </p>
       )}
     </div>

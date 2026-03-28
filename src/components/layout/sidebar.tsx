@@ -60,6 +60,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: "Więcej",
     items: [
+      { href: "/tournaments", icon: Trophy, label: "Turnieje" },
       { href: "/community", icon: Megaphone, label: "Tablica" },
       { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
       { href: "/leagues", icon: Medal, label: "Ligi" },

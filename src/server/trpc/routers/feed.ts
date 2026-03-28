@@ -23,7 +23,7 @@ export const feedRouter = router({
       const now = new Date();
 
       // Fetch recent items in parallel
-      const [sparings, events, transfers, clubs, players, clubPosts] = await Promise.all([
+      const [sparings, events, transfers, clubs, players, clubPosts, tournaments] = await Promise.all([
         ctx.db.sparingOffer.findMany({
           where: {
             status: "OPEN",
@@ -84,6 +84,25 @@ export const feedRouter = router({
           orderBy: { createdAt: "desc" },
           take: input.limit,
         }),
+        ctx.db.tournament.findMany({
+          where: {
+            status: { in: ["REGISTRATION", "IN_PROGRESS"] },
+            ...(regionId ? { regionId } : {}),
+          },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            creator: {
+              select: {
+                id: true,
+                club: { select: { name: true } },
+                player: { select: { firstName: true, lastName: true } },
+                coach: { select: { firstName: true, lastName: true } },
+              },
+            },
+            _count: { select: { teams: true } },
+          },
+        }),
       ]);
 
       // Merge into unified feed sorted by createdAt
@@ -93,7 +112,8 @@ export const feedRouter = router({
         | { type: "transfer"; data: (typeof transfers)[0]; createdAt: Date }
         | { type: "club"; data: (typeof clubs)[0]; createdAt: Date }
         | { type: "player"; data: (typeof players)[0]; createdAt: Date }
-        | { type: "clubPost"; data: (typeof clubPosts)[0]; createdAt: Date };
+        | { type: "clubPost"; data: (typeof clubPosts)[0]; createdAt: Date }
+        | { type: "tournament"; data: (typeof tournaments)[0]; createdAt: Date };
 
       const items: FeedItem[] = [
         ...sparings.map((s) => ({ type: "sparing" as const, data: s, createdAt: s.createdAt })),
@@ -102,6 +122,7 @@ export const feedRouter = router({
         ...clubs.map((c) => ({ type: "club" as const, data: c, createdAt: c.createdAt })),
         ...players.map((p) => ({ type: "player" as const, data: p, createdAt: p.createdAt })),
         ...clubPosts.map((cp) => ({ type: "clubPost" as const, data: cp, createdAt: cp.createdAt })),
+        ...tournaments.map((t) => ({ type: "tournament" as const, data: t, createdAt: t.createdAt })),
       ];
 
       items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
