@@ -318,6 +318,9 @@ model SparingOffer {
   awayScore        Int?          @map("away_score")
   scoreSubmittedBy String?       @map("score_submitted_by") @db.Uuid
   scoreConfirmed   Boolean       @default(false) @map("score_confirmed")
+  costPerTeam      Int?          @map("cost_per_team")
+  costPaidHome     Boolean       @default(false) @map("cost_paid_home")
+  costPaidAway     Boolean       @default(false) @map("cost_paid_away")
   createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -421,6 +424,7 @@ model Event {
   targetAgeMax     Int?            @map("target_age_max")
   targetLevel      SparingLevel?   @map("target_level")
   priceInfo        String?         @map("price_info") @db.VarChar(200)
+  costPerPerson    Int?            @map("cost_per_person")
   visibility       EventVisibility @default(PUBLIC) @map("visibility")
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz
@@ -906,6 +910,7 @@ model Tournament {
   groupCount       Int              @default(1) @map("group_count")
   advancingPerGroup Int             @default(2) @map("advancing_per_group")
   status           TournamentStatus @default(REGISTRATION)
+  costPerTeam      Int?             @map("cost_per_team")
   createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -930,6 +935,7 @@ model TournamentTeam {
   groupLabel   String?              @map("group_label") @db.VarChar(2)
   seed         Int?
   message      String?
+  costPaid     Boolean              @default(false) @map("cost_paid")
   createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
 
   tournament    Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)

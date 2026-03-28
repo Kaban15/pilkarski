@@ -13,6 +13,7 @@ export const createTournamentSchema = z.object({
   maxTeams: z.number().int().min(4).max(16).refine(n => n % 2 === 0, "Liczba drużyn musi być parzysta"),
   groupCount: z.number().int().min(1).max(8).default(1),
   advancingPerGroup: z.number().int().min(1).max(4).default(2),
+  costPerTeam: z.number().int().min(0).max(10000).optional(),
 });
 
 export const updateTournamentSchema = createTournamentSchema.partial().extend({
@@ -49,4 +50,9 @@ export const tournamentGoalSchema = z.object({
   scorerUserId: z.string().uuid(),
   minute: z.number().int().min(0).max(120).optional(),
   ownGoal: z.boolean().default(false),
+});
+
+export const markTeamPaidSchema = z.object({
+  teamId: z.string().uuid(),
+  paid: z.boolean(),
 });

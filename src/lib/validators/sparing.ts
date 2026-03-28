@@ -23,6 +23,7 @@ export const createSparingSchema = z.object({
   ageCategory: z.enum(AGE_CATEGORIES).optional(),
   preferredTime: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),
+  costPerTeam: z.number().int().min(0).max(10000).optional(),
 });
 
 export const applySparingSchema = z.object({
@@ -52,6 +53,12 @@ export const updateSparingSchema = createSparingSchema.extend({
 
 export type CreateSparingInput = z.infer<typeof createSparingSchema>;
 export type UpdateSparingInput = z.infer<typeof updateSparingSchema>;
+
+export const markCostPaidSchema = z.object({
+  sparingId: z.string().uuid(),
+  side: z.enum(["home", "away"]),
+  paid: z.boolean(),
+});
 
 export type SparingLevel = (typeof SPARING_LEVELS)[number];
 export type AgeCategory = (typeof AGE_CATEGORIES)[number];

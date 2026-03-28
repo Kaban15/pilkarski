@@ -18,6 +18,7 @@ export const createEventSchema = z.object({
   targetAgeMax: z.number().int().min(5).max(60).optional(),
   targetLevel: z.enum(SPARING_LEVELS).optional(),
   visibility: z.enum(["PUBLIC", "INTERNAL"]).default("PUBLIC"),
+  costPerPerson: z.number().int().min(0).max(10000).optional(),
 });
 
 export const applyEventSchema = z.object({
