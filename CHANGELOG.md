@@ -638,3 +638,48 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 **Widoczność:** Kwota publiczna (pomaga w decyzji), status opłat prywatny (tylko uczestnicy/organizator)
 
 **Migracja:** `20260328160000_add_cost_fields` — 6 ALTER TABLE ADD COLUMN — ZASTOSOWANA
+
+## Etap 38: Panel Admina / Moderacji ✅
+
+**Data:** 2026-03-30
+
+**Zakres:** Pełny panel administracyjny — moderacja zgłoszonych postów, zarządzanie użytkownikami (ban/admin), metryki platformy, zarządzanie treścią.
+
+**Schema (3 nowe pola na User, 4 na ClubPost, 1 nowy model):**
+- `User.isAdmin` (Boolean) — uprawnienia admina, dowolna rola
+- `User.isBanned` (Boolean) — blokada logowania z 5-min cache w JWT
+- `ClubPost.hidden` / `hiddenAt` / `hiddenBy` / `reportCount` — soft delete + denormalizacja zgłoszeń
+- `ClubPostReport` — model zgłoszeń (userId, postId, reason), unique constraint na (userId, postId)
+
+**Backend (1 nowy router, 11 procedur):**
+- `admin.reportsList` — zgłoszone posty (reportCount > 0), sort by count DESC
+- `admin.dismissReport` — wyzeruj reportCount, usuń rekordy zgłoszeń
+- `admin.hidePost` — ukryj post (hidden=true), wyczyść zgłoszenia
+- `admin.usersList` — lista userów z search (email/nazwa), cursor pagination
+- `admin.ban` / `admin.unban` — toggle isBanned (guard: nie można siebie)
+- `admin.setAdmin` — toggle isAdmin (guard: nie można odebrać ostatniemu adminowi)
+- `admin.dashboard` — metryki: userzy per rola, sparingi/wydarzenia/turnieje (total + 7d), pending reports
+- `admin.contentList` — lista sparingów/wydarzeń/turniejów z search + pagination
+- `admin.deleteContent` — soft delete (CANCELLED) dla sparingów/turniejów, hard delete dla wydarzeń
+- `adminProcedure` middleware — sprawdza `isAdmin` na sesji
+
+**Zmiany w istniejącym kodzie:**
+- `clubPost.report` — przepisany: persystuje `ClubPostReport` z deduplikacją (upsert), inkrementuje `reportCount`
+- `clubPost.list` — dodany filtr `hidden: false`
+- `feed.get` — dodany filtr `hidden: false` na ClubPost query
+- `favorite.list` — JS-side filter ukrytych ClubPostów
+- `auth/config.ts` — `isAdmin` w JWT/session, `isBanned` check w authorize + 5-min cache w jwt callback
+- `middleware.ts` — Edge-level blokada `/admin` dla non-admin
+- `next-auth.d.ts` — `isAdmin` + `bannedCheckedAt` w typach
+
+**Frontend:**
+- `/admin` — strona z 4 tabami (shadcn Tabs):
+  - **Raporty:** lista zgłoszonych postów, dismiss/hide z ConfirmDialog, expandable szczegóły zgłoszeń, badge count
+  - **Użytkownicy:** search (debounce 300ms), karty z role badge, ban/unban + setAdmin toggles
+  - **Metryki:** StatsCell grid — łącznie (8 metryk) + 7-dniowe (3 metryki)
+  - **Treści:** pill-switcher (sparing/event/tournament), search, delete z ConfirmDialog
+- Sidebar: link "Admin" z ikoną Shield, widoczny tylko dla isAdmin
+
+**Spec:** `docs/superpowers/specs/2026-03-30-admin-panel.md`
+**Plan:** `docs/superpowers/plans/2026-03-30-admin-panel.md`
+**Migracja:** Raw SQL (ALTER TABLE + CREATE TABLE) — ZASTOSOWANA

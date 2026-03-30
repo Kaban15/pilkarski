@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-03-28
-**Aktualny etap:** 37 etapów ukończonych
+**Ostatnia sesja:** 2026-03-30
+**Aktualny etap:** 38 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -90,6 +90,17 @@
 - shadcn/ui: 15 komponentów
 - Dark mode: class-based, ThemeToggle, zero-flash script
 
+### Admin & Moderacja
+- Panel admina `/admin` (4 taby: Raporty, Użytkownicy, Metryki, Treści)
+- `isAdmin` Boolean na User — dowolna rola może być adminem
+- `isBanned` z 5-min cache w JWT — blokada logowania
+- `ClubPostReport` model — zgłoszenia postów z deduplikacją (unique userId+postId)
+- Ukrywanie postów (soft delete: hidden flag), filtrowanie w feed/favorites/list
+- Zarządzanie użytkownikami: ban/unban, nadawanie/odbieranie admina (guard na ostatniego admina)
+- Metryki platformy: łączne i 7-dniowe statystyki
+- Zarządzanie treścią: anulowanie sparingów/turniejów, usuwanie wydarzeń
+- Edge middleware: `/admin` dostępne tylko dla isAdmin
+
 ### Inne
 - Feed z regionu (sparingi, wydarzenia, kluby, zawodnicy, transfery, posty)
 - Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
@@ -106,11 +117,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 38 | 2026-03-30 | Panel Admina — moderacja zgłoszeń, zarządzanie userami (ban/admin), metryki, zarządzanie treścią, ClubPostReport model |
 | 37 | 2026-03-28 | Rozliczenia kosztów — costPerTeam/costPerPerson + payment status tracking (sparingi, wydarzenia, turnieje) |
 | 36 | 2026-03-28 | Moduł Turniejowy — grupa + puchar, 5 modeli, 15 procedur, 5-tabowa strona, feed/kalendarz/sidebar |
 | 35 | 2026-03-28 | Etap B — Email transakcyjne (Resend, 6 triggerów) + Protokół meczowy (strzelcy bramek, MatchGoal) |
 | 34 | 2026-03-28 | Backlog Etap A — Vitest (33 testów), magic bytes upload validation, usePaginatedList hook |
-| 33 | 2026-03-28 | FotMob Club Flow Redesign — dashboard, kadra, pipeline, profil publiczny (gray-900 tokens, 4 shared components) |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -147,11 +158,11 @@ src/middleware.ts                  — ochrona tras (JWT, public prefixes)
 src/server/auth/config.ts         — Auth.js config
 src/server/db/client.ts           — Prisma client singleton
 src/server/trpc/trpc.ts           — tRPC init + procedures
-src/server/trpc/router.ts         — root router (14 routerów)
+src/server/trpc/router.ts         — root router (15 routerów)
 src/server/trpc/routers/          — auth, club, player, coach, region, sparing, event,
                                     message, feed, search, notification, favorite, stats,
                                     review, transfer, gamification, push, recruitment,
-                                    club-post, club-membership, team-lineup
+                                    club-post, club-membership, team-lineup, admin
 src/server/award-points.ts        — gamifikacja helper
 src/server/send-push.ts           — web-push helper
 src/server/is-club-member.ts      — membership helpers
