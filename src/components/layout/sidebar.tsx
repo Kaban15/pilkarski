@@ -25,6 +25,7 @@ import {
   Users,
   Medal,
   UsersRound,
+  Shield,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ interface SidebarProps {
     name?: string | null;
     email?: string | null;
     role: string;
+    isAdmin?: boolean;
   };
 }
 
@@ -68,6 +70,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
       { href: "/club-chat", icon: UsersRound, label: "Czat klubu" },
       { href: "/notifications", icon: Bell, label: "Powiadomienia" },
+      { href: "/admin", icon: Shield, label: "Admin" },
     ],
   },
   {
@@ -114,7 +117,10 @@ export function Sidebar({ user }: SidebarProps) {
             <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted-foreground">
               {section.label}
             </p>
-            {section.items.filter((item) => !item.roles || item.roles.includes(user.role)).map((item) => {
+            {section.items.filter((item) => {
+  if (item.href === "/admin") return user.isAdmin;
+  return !item.roles || item.roles.includes(user.role);
+}).map((item) => {
               const isActive =
                 pathname === item.href ||
                 (item.href !== "/feed" && pathname.startsWith(item.href));
