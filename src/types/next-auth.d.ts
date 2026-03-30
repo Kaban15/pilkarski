@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "CLUB" | "PLAYER" | "COACH";
+      isAdmin: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -14,5 +15,7 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     id: string;
     role: "CLUB" | "PLAYER" | "COACH";
+    isAdmin: boolean;
+    bannedCheckedAt?: number;
   }
 }

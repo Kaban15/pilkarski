@@ -31,6 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!user) return null;
+        if (user.isBanned) return null;
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) return null;
@@ -39,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           role: user.role,
+          isAdmin: user.isAdmin,
           name:
             user.role === "CLUB"
               ? user.club?.name
@@ -54,13 +56,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id as string;
         token.role = (user as { role: "CLUB" | "PLAYER" | "COACH" }).role;
+        token.isAdmin = (user as { isAdmin?: boolean }).isAdmin ?? false;
+        token.bannedCheckedAt = Date.now();
       }
+
+      // Re-check isBanned every 5 minutes
+      const FIVE_MINUTES = 5 * 60 * 1000;
+      if (!token.bannedCheckedAt || Date.now() - token.bannedCheckedAt > FIVE_MINUTES) {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id },
+          select: { isBanned: true, isAdmin: true },
+        });
+        if (dbUser?.isBanned) {
+          return { ...token, id: "", role: "" as "CLUB" };
+        }
+        token.isAdmin = dbUser?.isAdmin ?? false;
+        token.bannedCheckedAt = Date.now();
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
+        session.user.isAdmin = token.isAdmin ?? false;
       }
       return session;
     },
