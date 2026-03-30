@@ -92,6 +92,7 @@ export const clubPostRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = {};
+      where.hidden = false;
       if (input.category) {
         where.category = input.category;
       } else {
@@ -127,12 +128,42 @@ export const clubPostRouter = router({
   report: protectedProcedure
     .input(z.object({
       postId: z.string().uuid(),
-      reason: z.string().min(5, "Podaj powód (min. 5 znaków)").max(500),
+      reason: z.string().max(500).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const post = await ctx.db.clubPost.findUnique({ where: { id: input.postId } });
       if (!post) throw new TRPCError({ code: "NOT_FOUND" });
-      console.warn(`[REPORT] Post ${input.postId} reported by user ${ctx.session.user.id}: ${input.reason}`);
+
+      const existing = await ctx.db.clubPostReport.findUnique({
+        where: {
+          userId_postId: {
+            userId: ctx.session.user.id,
+            postId: input.postId,
+          },
+        },
+      });
+
+      if (existing) {
+        await ctx.db.clubPostReport.update({
+          where: { id: existing.id },
+          data: { reason: input.reason },
+        });
+      } else {
+        await ctx.db.$transaction([
+          ctx.db.clubPostReport.create({
+            data: {
+              userId: ctx.session.user.id,
+              postId: input.postId,
+              reason: input.reason,
+            },
+          }),
+          ctx.db.clubPost.update({
+            where: { id: input.postId },
+            data: { reportCount: { increment: 1 } },
+          }),
+        ]);
+      }
+
       return { success: true };
     }),
 
