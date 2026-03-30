@@ -101,6 +101,8 @@ model User {
   passwordHash String   @map("password_hash") @db.VarChar(255)
   role         UserRole
   isVerified   Boolean  @default(false) @map("is_verified")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  isBanned     Boolean  @default(false) @map("is_banned")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -122,6 +124,7 @@ model User {
   tournaments              Tournament[]
   tournamentTeams          TournamentTeam[]
   tournamentGoals          TournamentGoal[]
+  clubPostReports          ClubPostReport[]
 
   @@map("users")
 }
@@ -766,12 +769,33 @@ model ClubPost {
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  club      Club       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  hidden      Boolean   @default(false)
+  hiddenAt    DateTime? @map("hidden_at") @db.Timestamptz
+  hiddenBy    String?   @map("hidden_by") @db.Uuid
+  reportCount Int       @default(0) @map("report_count")
+
+  club      Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
   favorites Favorite[]
+  reports   ClubPostReport[]
 
   @@index([clubId, createdAt])
   @@index([category])
   @@map("club_posts")
+}
+
+model ClubPostReport {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  reason    String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  post ClubPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@map("club_post_reports")
 }
 
 // ============================================================
