@@ -75,6 +75,7 @@ export const feedRouter = router({
         }),
         ctx.db.clubPost.findMany({
           where: {
+            hidden: false,
             OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
             ...(regionId ? { club: { regionId } } : {}),
           },

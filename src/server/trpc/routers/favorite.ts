@@ -122,11 +122,17 @@ export const favoriteRouter = router({
         orderBy: { createdAt: "desc" },
       });
 
+      // Filter out hidden club posts
+      const filtered = items.filter((item) => {
+        if (item.clubPost && item.clubPost.hidden) return false;
+        return true;
+      });
+
       let nextCursor: string | undefined;
-      if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+      if (filtered.length > input.limit) {
+        nextCursor = filtered.pop()!.id;
       }
 
-      return { items, nextCursor };
+      return { items: filtered, nextCursor };
     }),
 });
