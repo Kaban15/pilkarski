@@ -33,6 +33,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Admin-only routes
+  if (pathname.startsWith("/admin")) {
+    if (!token.isAdmin) {
+      return NextResponse.redirect(new URL("/feed", req.nextUrl.origin));
+    }
+  }
+
   return NextResponse.next();
 }
 
