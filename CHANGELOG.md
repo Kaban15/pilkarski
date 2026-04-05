@@ -745,3 +745,78 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/components/social-links.tsx`
 - `src/server/get-user-club-id.ts`
 - `public/regions/*.png` (16 plików)
+
+---
+
+## Etap 40: X/Twitter-style redesign + Sport Energy + Smart Matching ✅
+
+**Data:** 2026-04-05
+
+### Design: Sport Energy (kolorystyka + mikro-interakcje)
+- Nowe kolory: cyan (`--sport-cyan`) i żółty (`--sport-yellow`) jako secondary akcenty
+- CTA button variant `sport` — gradient violet→cyan
+- Heart bounce animacja na favorite toggle
+- Sparing card: cyan left border, flat hover, countdown pulse < 24h
+- Apply buttons: animacja "Wysłano ✓" / "Zgłoszono ✓" z check-pop
+- Nawigacja: cyan active indicator + notification badge
+- Hero: cyan/yellow blobs, sport-heading (uppercase + gradient stripe)
+- Typografia nagłówków: font-weight 900, letter-spacing -0.02em, uppercase
+
+### Design: X/Twitter-style overhaul
+- Dark mode: pure black `#000000` tło (card, background, sidebar)
+- Flat cards: `rounded-none`, usunięte shadow-sm/md/lg z ~20 plików
+- Minimal borders: `#2f3336` zamiast `#374151`
+- Chat bubbles: X-blue (`#1d9bf0`) dla swoich, `bg-secondary` dla cudzych
+- Tabs: underline indicator (`border-b-2 border-x-blue`) zamiast background
+- Badge: `rounded-md` zamiast `rounded-full`
+- Sidebar: X-style "Więcej" — inline collapsible z identycznym stylem jak główne elementy
+- Landing page: czarne tło, usunięte gradient orbs
+- CSS variable `--x-blue: #1d9bf0` dla spójności (tabs, notifications, chat)
+- Hidden scrollbar na sidebarze (`scrollbar-width: none`)
+
+### Feature: Smart Club Sorting w zaproszeniach sparingowych
+- `club.list` — nowy parametr `prioritizeForClubId`
+- Sortowanie: ten sam LeagueLevel + Region → ten sam LeagueLevel → ten sam Region → reszta
+- Self-exclusion z wyników
+- `getMatchTier()` helper function
+- Invite dialog automatycznie przekazuje club ID
+
+### Feature: "Szukam klubu" toggle
+- `lookingForClub Boolean` na Player i Coach (Prisma migration)
+- Checkbox na profilach: "Szukam klubu" z opisem, disabled bez regionu
+- Prywatność: pole wykluczone z public endpoints (player.getById, list, coach.getById, list, search.global)
+- Notyfikacje: event recruitment → lookingForClub players/coaches w regionie
+- Notyfikacje: transfer LOOKING_FOR_PLAYER → lookingForClub users (z filtrem pozycji)
+
+### Feature: Zapraszanie zawodników na wydarzenia
+- `player.search` — nowy endpoint z filtrami (name, region, league, position, club via membership)
+- lookingForClub boost: gracze szukający klubu w tym samym regionie wyżej w wynikach
+- `event.invitePlayer` — wysyła notyfikację + push
+- `InvitePlayerDialog` — komponent z wyszukiwarką i filtrami (wzorzec jak InviteClubDialog)
+- Fix: `isOwner` na stronie eventu uwzględnia teraz coach creators
+
+### Performance
+- Usunięte `page-enter` animacja z dashboard layout (300ms na każdy route change)
+- Usunięte `stagger-children` z 6 stron (feed, events, sparings, transfers, tournaments, recruitments)
+- Usunięte `skeleton-reveal` — kolidowało z `animate-pulse`
+- Usunięte gradient orbs z sidebara i landing page (GPU-heavy blur filters)
+
+### Fixes
+- Push notification toggle: icon-only w sidebarze (nazwa użytkownika nie jest ściskana)
+- Kalendarz "Dziś": toggle filtra dzisiejszych wydarzeń w widoku listy
+- Sidebar active indicator: podświetla "Więcej" gdy aktywna strona jest w submenu
+
+### Code quality (simplify)
+- CSS variable `--x-blue` zamiast hardcoded `#1d9bf0` w 4 plikach
+- `hover:border-border` zamiast `hover:border-[#2f3336]` w 3 plikach
+- `bg-background` zamiast `bg-[#000000]`/`bg-black` w 4 plikach
+- Usunięte dead `hover:border-opacity-100` z onboardingu
+
+### Nowe pliki
+- `src/components/events/invite-player-dialog.tsx`
+- `docs/superpowers/specs/2026-04-05-sparing-sort-looking-for-club.md`
+- `docs/superpowers/specs/2026-04-05-invite-players-to-events.md`
+- `docs/superpowers/plans/2026-04-05-sport-energy-design.md`
+- `docs/superpowers/plans/2026-04-05-sparing-sort-looking-for-club.md`
+- `docs/superpowers/plans/2026-04-05-invite-players-to-events.md`
+- `prisma/migrations/20260405_add_looking_for_club/migration.sql`

@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-05
-**Aktualny etap:** 39 etapów ukończonych
+**Aktualny etap:** 40 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -48,6 +48,9 @@
 - Pipeline rekrutacyjny: Kanban board (6 etapów WATCHING→SIGNED), drag-and-drop
 - RecruitmentEvent timeline, stats, CSV export
 - "Na radar" button, "Nabory dla Ciebie" (region-matched)
+- "Szukam klubu" toggle na profilu (prywatny, powiadomienia na nabory/transfery w regionie)
+- Smart club sorting w zaproszeniach sparingowych (LeagueLevel + Region priority)
+- Zapraszanie zawodników na wydarzenia (`player.search` + `event.invitePlayer` + `InvitePlayerDialog`)
 
 ### Wiadomości
 - 1:1 czat z Supabase Realtime (WebSocket), fallback poll 30s
@@ -83,14 +86,17 @@
 - `/ranking` — punkty, odznaki, historia
 
 ### UI/Design
-- **Paleta FotMob:** primary violet `#7c3aed`, gradient violet→sky, dark bg `#111827` (gray-900)
-- **Club flow FotMob style:** dashboard (hero+stats+NextMatch+alerts), kadra (position-grouped), pipeline (progress bar+stage pills), profil publiczny (5-tab single-column)
-- Shared components: StatsCell, MatchCard (compact/highlight), PositionGroup, StagePill, RegionLogo, SocialLinks
-- Sidebar desktop (256px, glassmorphism) + Bottom Nav mobile (role-aware)
-- Profil klubu: inline-editable fields (ołówek → input → instant save)
+- **X/Twitter-style dark mode:** pure black `#000000`, flat cards (no shadow, rounded-none), minimal borders `#2f3336`
+- **Sport energy accents:** cyan (`--sport-cyan`) + żółty (`--sport-yellow`) + X-blue (`--x-blue`)
+- **Chat bubbles:** X-blue own, secondary others, rounded-2xl
+- **Tabs:** underline indicator (`border-b-2 border-x-blue`)
+- **Sidebar:** X-style "Więcej" inline collapsible, hidden scrollbar, kompaktowy (44px items)
+- **Micro-interactions:** heart bounce, check-pop, countdown pulse, sport card left border
+- Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog
+- Bottom Nav mobile (role-aware)
+- Profil klubu: inline-editable fields
 - Social links (FB/Insta) na profilach klubów, graczy, trenerów
-- 6 systemów animacji: ScrollReveal, Hover Glow, Animated Hero, Micro-interactions, Page Transitions, `prefers-reduced-motion`
-- Landing: dark-first, animated blobs, gradient text, dot grid
+- Landing: pure black, gradient text, dot grid (no animated blobs)
 - shadcn/ui: 15 komponentów
 - Dark mode: class-based, ThemeToggle, zero-flash script
 
@@ -121,11 +127,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |
 | 39 | 2026-04-05 | Loga ZPN regionów, sociale (FB/Insta), glassmorphism sidebar, inline-edit profil klubu, smart lokalizacje wydarzeń, enhanced invite dialog |
 | 38 | 2026-03-30 | Panel Admina — moderacja zgłoszeń, zarządzanie userami (ban/admin), metryki, zarządzanie treścią, ClubPostReport model |
 | 37 | 2026-03-28 | Rozliczenia kosztów — costPerTeam/costPerPerson + payment status tracking (sparingi, wydarzenia, turnieje) |
 | 36 | 2026-03-28 | Moduł Turniejowy — grupa + puchar, 5 modeli, 15 procedur, 5-tabowa strona, feed/kalendarz/sidebar |
-| 35 | 2026-03-28 | Etap B — Email transakcyjne (Resend, 6 triggerów) + Protokół meczowy (strzelcy bramek, MatchGoal) |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -196,7 +202,8 @@ src/components/layout/sidebar.tsx     — sidebar desktop
 src/components/layout/bottom-nav.tsx  — mobile bottom nav
 src/components/ui/                    — shadcn/ui (15 komponentów)
 src/components/forms/                 — club, player, coach profile forms
-src/components/sparings/              — sparing-form, sparing-card
+src/components/sparings/              — sparing-form, sparing-card, invite-club-dialog
+src/components/events/                — invite-player-dialog
 src/components/onboarding/            — club, player, coach onboarding wizards
 src/components/dashboard/             — club-sections, player-recruitments, club-invitations, recruitment-stats
 src/components/squad/                 — invite-member-dialog, position-group
@@ -232,9 +239,9 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 6. **tRPC** — `applyFor` (nie `apply` — reserved word)
 7. **Auth.js v5 na Vercel** — `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, cookie `__Secure-authjs.session-token`
 8. **SessionProvider** w root layout — wymagany dla `signIn()`/`useSession()`
-9. **Sidebar layout** — desktop fixed 256px (`md:flex`, glassmorphism) + bottom nav mobile (`md:hidden`)
+9. **Sidebar layout** — desktop fixed 256px (`md:flex`, X-style collapsible "Więcej") + bottom nav mobile (`md:hidden`)
 10. **Font Inter** — className na `<html>`, NIE font-family w globals.css
-11. **Kolorowanie typów** — emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości, cyan=transfery, pink=notifications
+11. **Kolorowanie typów** — emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości, cyan=transfery, x-blue=active tabs/chat/notifications
 12. **Notyfikacje fire-and-forget** — `.catch(() => {})`, nie blokują response
 13. **Server-side upload** — `/api/upload` z `SUPABASE_SERVICE_ROLE_KEY` (nie anon key)
 14. **Migracje** — ręcznie przed deploy: `npm run db:migrate -- --url "..." --name <nazwa>`
@@ -270,7 +277,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 5. **UI kolorowanie:** emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości, cyan=transfery.
 6. **Nawigacja:** sidebar.tsx (desktop) + bottom-nav.tsx (mobile). Stary dashboard-nav.tsx jest DEPRECATED.
 7. **Komponenty reużywalne:** EmptyState, ConfirmDialog, Breadcrumbs, FormTooltip, StarRating, BackButton, ScrollReveal. Używaj zamiast inline.
-8. **Animacje:** `.stagger-children` na listach, `animate-fade-in` na stronach, `animate-scale-in` na modalach.
+8. **Animacje:** `animate-fade-in` na stronach, `animate-scale-in` na modalach. Brak `stagger-children` i `page-enter` (usunięte — performance).
 
 ---
 
