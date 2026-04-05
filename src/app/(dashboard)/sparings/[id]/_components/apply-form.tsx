@@ -31,6 +31,7 @@ export function ApplyForm({
   const [message, setMessage] = useState("");
   const [counterDate, setCounterDate] = useState("");
   const [showCounterDate, setShowCounterDate] = useState(false);
+  const [justApplied, setJustApplied] = useState(false);
 
   const applyMutation = api.sparing.applyFor.useMutation({
     onSuccess: () => {
@@ -41,6 +42,7 @@ export function ApplyForm({
           ? "Zgłoszenie z kontr-propozycją terminu wysłane"
           : "Zgłoszenie wysłane"
       );
+      setJustApplied(true);
       onApplied();
     },
     onError: (err) => {
@@ -106,9 +108,23 @@ export function ApplyForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
-          <Button onClick={handleApply} disabled={applyMutation.isPending} className="gap-1.5">
-            <Send className="h-4 w-4" />
-            {applyMutation.isPending ? "Wysyłanie..." : "Aplikuj"}
+          <Button
+            onClick={handleApply}
+            disabled={applyMutation.isPending || justApplied}
+            variant={justApplied ? "secondary" : "default"}
+            className={`gap-1.5 ${justApplied ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : ""}`}
+          >
+            {justApplied ? (
+              <>
+                <svg className="h-4 w-4 check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                Wysłano
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                {applyMutation.isPending ? "Wysyłanie..." : "Aplikuj"}
+              </>
+            )}
           </Button>
         </div>
 
