@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -26,7 +27,7 @@ import {
   Medal,
   UsersRound,
   Shield,
-  Settings,
+  MoreHorizontal,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -45,46 +46,33 @@ type NavItem = {
   roles?: string[];
 };
 
-type NavSection = { label: string; items: NavItem[] };
+const MAIN_NAV: NavItem[] = [
+  { href: "/feed", icon: Home, label: "Pulpit" },
+  { href: "/sparings", icon: Swords, label: "Sparingi", roles: ["CLUB"] },
+  { href: "/events", icon: Trophy, label: "Wydarzenia" },
+  { href: "/recruitment", icon: Target, label: "Rekrutacja" },
+  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
+  { href: "/notifications", icon: Bell, label: "Powiadomienia" },
+  { href: "/profile", icon: User, label: "Profil" },
+];
 
-const NAV_SECTIONS: NavSection[] = [
-  {
-    label: "Główne",
-    items: [
-      { href: "/feed", icon: Home, label: "Pulpit" },
-      { href: "/sparings", icon: Swords, label: "Sparingi", roles: ["CLUB"] },
-      { href: "/events", icon: Trophy, label: "Wydarzenia" },
-      { href: "/recruitment", icon: Target, label: "Rekrutacja" },
-      { href: "/squad", icon: Users, label: "Kadra", roles: ["CLUB"] },
-      { href: "/trainings", icon: GraduationCap, label: "Treningi" },
-      { href: "/calendar", icon: CalendarDays, label: "Kalendarz" },
-    ],
-  },
-  {
-    label: "Więcej",
-    items: [
-      { href: "/tournaments", icon: Trophy, label: "Turnieje" },
-      { href: "/community", icon: Megaphone, label: "Tablica" },
-      { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
-      { href: "/leagues", icon: Medal, label: "Ligi" },
-      { href: "/search", icon: Search, label: "Szukaj" },
-      { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
-      { href: "/club-chat", icon: UsersRound, label: "Czat klubu" },
-      { href: "/notifications", icon: Bell, label: "Powiadomienia" },
-      { href: "/admin", icon: Shield, label: "Admin" },
-    ],
-  },
-  {
-    label: "Konto",
-    items: [
-      { href: "/profile", icon: User, label: "Profil" },
-      { href: "/favorites", icon: Heart, label: "Ulubione" },
-    ],
-  },
+const MORE_NAV: NavItem[] = [
+  { href: "/squad", icon: Users, label: "Kadra", roles: ["CLUB"] },
+  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
+  { href: "/calendar", icon: CalendarDays, label: "Kalendarz" },
+  { href: "/tournaments", icon: Trophy, label: "Turnieje" },
+  { href: "/community", icon: Megaphone, label: "Tablica" },
+  { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
+  { href: "/leagues", icon: Medal, label: "Ligi" },
+  { href: "/search", icon: Search, label: "Szukaj" },
+  { href: "/club-chat", icon: UsersRound, label: "Czat klubu" },
+  { href: "/favorites", icon: Heart, label: "Ulubione" },
+  { href: "/admin", icon: Shield, label: "Admin" },
 ];
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
@@ -98,6 +86,54 @@ export function Sidebar({ user }: SidebarProps) {
     if (href === "/messages" && unreadMessages > 0) return unreadMessages;
     return 0;
   };
+
+  const filterItem = (item: NavItem) => {
+    if (item.href === "/admin") return user.isAdmin;
+    return !item.roles || item.roles.includes(user.role);
+  };
+
+  const renderNavLink = (item: NavItem, onClick?: () => void) => {
+    const isActive =
+      pathname === item.href ||
+      (item.href !== "/feed" && pathname.startsWith(item.href));
+    const badge = getBadge(item.href);
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onClick}
+        className={`group relative flex h-[42px] items-center gap-3 rounded-xl px-4 text-[13px] font-medium transition-all duration-200 ${
+          isActive
+            ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+            : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
+        }`}
+      >
+        {isActive && (
+          <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-primary to-sport-cyan" />
+        )}
+        <item.icon
+          className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+            isActive
+              ? "text-sport-cyan"
+              : "text-white/30 group-hover:text-white/60"
+          }`}
+        />
+        <span className="flex-1 truncate">{item.label}</span>
+        {badge > 0 && (
+          <span className="pulse-dot flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-1.5 text-[10px] font-bold text-white shadow-lg shadow-violet-500/30">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
+      </Link>
+    );
+  };
+
+  // Check if any "more" item is currently active
+  const moreItems = MORE_NAV.filter(filterItem);
+  const moreHasActive = moreItems.some(
+    (item) => pathname === item.href || (item.href !== "/feed" && pathname.startsWith(item.href))
+  );
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-[#0b1120]/95 backdrop-blur-xl md:flex">
@@ -121,56 +157,47 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="relative flex-1 overflow-y-auto px-3 py-5">
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label} className="mb-6">
-            <p className="mb-2 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">
-              {section.label}
-            </p>
-            <div className="space-y-0.5">
-              {section.items
-                .filter((item) => {
-                  if (item.href === "/admin") return user.isAdmin;
-                  return !item.roles || item.roles.includes(user.role);
-                })
-                .map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/feed" && pathname.startsWith(item.href));
-                  const badge = getBadge(item.href);
+        <div className="space-y-0.5">
+          {MAIN_NAV.filter(filterItem).map((item) => renderNavLink(item))}
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`group relative flex h-[42px] items-center gap-3 rounded-xl px-4 text-[13px] font-medium transition-all duration-200 ${
-                        isActive
-                          ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
-                          : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
-                      }`}
-                    >
-                      {/* Active indicator */}
-                      {isActive && (
-                        <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-primary to-sport-cyan" />
-                      )}
-                      <item.icon
-                        className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
-                          isActive
-                            ? "text-sport-cyan"
-                            : "text-white/30 group-hover:text-white/60"
-                        }`}
-                      />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {badge > 0 && (
-                        <span className="pulse-dot flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-1.5 text-[10px] font-bold text-white shadow-lg shadow-violet-500/30">
-                          {badge > 99 ? "99+" : badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-            </div>
+          {/* More button */}
+          <div className="relative">
+            <button
+              onClick={() => setMoreOpen(!moreOpen)}
+              className={`group relative flex h-[42px] w-full items-center gap-3 rounded-xl px-4 text-[13px] font-medium transition-all duration-200 ${
+                moreOpen || moreHasActive
+                  ? "bg-white/[0.08] text-white"
+                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
+              }`}
+            >
+              <MoreHorizontal
+                className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+                  moreOpen || moreHasActive
+                    ? "text-sport-cyan"
+                    : "text-white/30 group-hover:text-white/60"
+                }`}
+              />
+              <span className="flex-1 truncate text-left">Więcej</span>
+            </button>
+
+            {/* More popup */}
+            {moreOpen && (
+              <>
+                {/* Backdrop */}
+                <div className="fixed inset-0 z-40" onClick={() => setMoreOpen(false)} />
+
+                {/* Popup */}
+                <div className="absolute bottom-0 left-full z-50 ml-2 w-56 rounded-xl border border-white/[0.08] bg-[#0b1120] p-2 shadow-2xl shadow-black/50">
+                  <div className="space-y-0.5">
+                    {moreItems.map((item) =>
+                      renderNavLink(item, () => setMoreOpen(false))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        ))}
+        </div>
       </nav>
 
       {/* Separator */}
