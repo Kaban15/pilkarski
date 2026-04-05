@@ -179,34 +179,8 @@ export function Sidebar({ user }: SidebarProps) {
             <span className="flex-1 truncate text-left">Więcej</span>
           </button>
 
-          {/* Expanded items — inline, compact */}
-          {moreOpen && (
-            <div className="ml-3 space-y-0.5 border-l border-white/[0.06] pl-3">
-              {moreItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/feed" && pathname.startsWith(item.href));
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`group flex h-[38px] items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-all duration-200 ${
-                      isActive
-                        ? "bg-white/[0.08] text-white font-bold"
-                        : "text-white/45 hover:bg-white/[0.04] hover:text-white/80"
-                    }`}
-                  >
-                    <item.icon
-                      className={`h-[16px] w-[16px] shrink-0 ${
-                        isActive ? "text-sport-cyan" : "text-white/30 group-hover:text-white/50"
-                      }`}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          {/* Expanded items — same style as main nav */}
+          {moreOpen && moreItems.map((item) => renderNavLink(item))}
         </div>
       </nav>
 
