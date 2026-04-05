@@ -42,6 +42,11 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
   const utils = api.useUtils();
 
+  const { data: myClub } = api.club.me.useQuery(undefined, {
+    staleTime: Infinity,
+    retry: false,
+  });
+
   const { data: regions = [] } = api.region.list.useQuery(undefined, {
     enabled: open,
     staleTime: Infinity,
@@ -58,7 +63,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
   // Search by name
   const searchByName = api.club.list.useQuery(
-    { search, limit: 8 },
+    { search, limit: 8, prioritizeForClubId: myClub?.id },
     { enabled: open && search.length >= 2 },
   );
 
@@ -69,6 +74,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
       leagueLevelId: leagueLevelId ?? undefined,
       leagueGroupId: leagueGroupId ?? undefined,
       limit: 10,
+      prioritizeForClubId: myClub?.id,
     },
     { enabled: open && search.length < 2 && !!regionId },
   );
