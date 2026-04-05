@@ -17,6 +17,7 @@ import { SendMessageButton } from "@/components/send-message-button";
 import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS, SPARING_LEVEL_LABELS } from "@/lib/labels";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { InvitePlayerDialog } from "@/components/events/invite-player-dialog";
 import { AttendanceSection } from "./_components/attendance-section";
 import {
   Calendar,
@@ -149,6 +150,12 @@ export default function EventDetailPage() {
           </div>
         )}
       </div>
+
+      {isOwner && (
+        <div className="mb-6">
+          <InvitePlayerDialog eventId={id} regionId={event.regionId} />
+        </div>
+      )}
 
       <ConfirmDialog
         open={showDeleteConfirm}
