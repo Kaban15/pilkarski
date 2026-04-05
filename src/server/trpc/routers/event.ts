@@ -270,6 +270,39 @@ export const eventRouter = router({
     return locations;
   }),
 
+  updateLocation: protectedProcedure
+    .input(z.object({
+      oldLocation: z.string().min(1),
+      newLocation: z.string().min(1).max(300),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const role = ctx.session.user.role;
+      let clubId: string | null = null;
+
+      if (role === "COACH") {
+        const membership = await ctx.db.clubMembership.findFirst({
+          where: { memberUserId: ctx.session.user.id, status: "ACCEPTED" },
+          select: { clubId: true },
+        });
+        clubId = membership?.clubId ?? null;
+      } else {
+        const club = await ctx.db.club.findUnique({
+          where: { userId: ctx.session.user.id },
+          select: { id: true },
+        });
+        clubId = club?.id ?? null;
+      }
+
+      if (!clubId) throw new TRPCError({ code: "FORBIDDEN" });
+
+      await ctx.db.event.updateMany({
+        where: { clubId, location: input.oldLocation },
+        data: { location: input.newLocation },
+      });
+
+      return { updated: true };
+    }),
+
   list: publicProcedure
     .input(
       z.object({

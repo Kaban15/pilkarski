@@ -18,7 +18,7 @@ import {
   SPARING_LEVEL_LABELS,
 } from "@/lib/labels";
 import { TRAINING_PRESETS, type TrainingPreset } from "@/lib/training-presets";
-import { Zap, MapPin, Plus } from "lucide-react";
+import { Zap, MapPin, Plus, Pencil, Check, X } from "lucide-react";
 import Link from "next/link";
 
 const RECRUITMENT_TYPES: EventTypeValue[] = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
@@ -31,6 +31,8 @@ export default function NewEventPage() {
   const [visibility, setVisibility] = useState("PUBLIC");
   const [location, setLocation] = useState("");
   const [showCustomLocation, setShowCustomLocation] = useState(false);
+  const [editingLoc, setEditingLoc] = useState<string | null>(null);
+  const [editingLocDraft, setEditingLocDraft] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   const role = session?.user?.role;
@@ -41,8 +43,19 @@ export default function NewEventPage() {
     enabled: isCoach,
   });
 
+  const utils = api.useUtils();
+
   const { data: recentLocations = [] } = api.event.recentLocations.useQuery(undefined, {
     staleTime: Infinity,
+  });
+
+  const updateLocMut = api.event.updateLocation.useMutation({
+    onSuccess: () => {
+      utils.event.recentLocations.invalidate();
+      toast.success("Lokalizacja zaktualizowana");
+      setEditingLoc(null);
+    },
+    onError: () => toast.error("Nie udało się zaktualizować"),
   });
 
   // Auto-set last location on load
@@ -240,20 +253,78 @@ export default function NewEventPage() {
 
               {!showCustomLocation && recentLocations.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="space-y-1.5">
                     {recentLocations.map((loc) => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => setLocation(loc)}
-                        className={`rounded-lg border px-3 py-1.5 text-[12px] font-medium transition ${
-                          location === loc
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                        }`}
-                      >
-                        {loc}
-                      </button>
+                      <div key={loc}>
+                        {editingLoc === loc ? (
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              value={editingLocDraft}
+                              onChange={(e) => setEditingLocDraft(e.target.value)}
+                              className="h-8 flex-1 text-[12px]"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  if (editingLocDraft.trim() && editingLocDraft !== loc) {
+                                    updateLocMut.mutate({ oldLocation: loc, newLocation: editingLocDraft.trim() });
+                                    if (location === loc) setLocation(editingLocDraft.trim());
+                                  } else {
+                                    setEditingLoc(null);
+                                  }
+                                }
+                                if (e.key === "Escape") setEditingLoc(null);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (editingLocDraft.trim() && editingLocDraft !== loc) {
+                                  updateLocMut.mutate({ oldLocation: loc, newLocation: editingLocDraft.trim() });
+                                  if (location === loc) setLocation(editingLocDraft.trim());
+                                } else {
+                                  setEditingLoc(null);
+                                }
+                              }}
+                              disabled={updateLocMut.isPending}
+                              className="shrink-0 rounded-md p-1 text-emerald-500 hover:bg-emerald-500/10"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingLoc(null)}
+                              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="group flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setLocation(loc)}
+                              className={`flex-1 rounded-lg border px-3 py-1.5 text-left text-[12px] font-medium transition ${
+                                location === loc
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                              }`}
+                            >
+                              {loc}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingLoc(loc);
+                                setEditingLocDraft(loc);
+                              }}
+                              className="shrink-0 rounded-md p-1 text-muted-foreground/0 transition group-hover:text-muted-foreground hover:bg-muted"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                   <button
