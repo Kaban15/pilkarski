@@ -653,4 +653,53 @@ export const eventRouter = router({
 
       return { items, stats, myStatus };
     }),
+
+  // Invite a player to an event (notification only)
+  invitePlayer: rateLimitedProcedure({ maxAttempts: 20 })
+    .input(
+      z.object({
+        eventId: z.string().uuid(),
+        toUserId: z.string().uuid(),
+        message: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const event = await ctx.db.event.findUnique({
+        where: { id: input.eventId },
+        include: {
+          club: { select: { id: true, name: true, userId: true } },
+          coach: { select: { id: true, userId: true, firstName: true, lastName: true } },
+        },
+      });
+      if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // Ownership check: club owner or coach creator
+      const userId = ctx.session.user.id;
+      const isClubOwner = event.club && event.club.userId === userId;
+      const isCoachCreator = event.coach && event.coach.userId === userId;
+      if (!isClubOwner && !isCoachCreator) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const senderName = event.club?.name ?? `${event.coach?.firstName} ${event.coach?.lastName}`;
+
+      await ctx.db.notification.create({
+        data: {
+          userId: input.toUserId,
+          type: "RECRUITMENT_MATCH",
+          title: `${senderName} zaprasza Cię na ${event.title}`,
+          message: input.message || event.title,
+          link: `/events/${event.id}`,
+        },
+      });
+
+      // Push notification (fire-and-forget)
+      sendPushToUser(input.toUserId, {
+        title: `${senderName} zaprasza Cię na ${event.title}`,
+        body: input.message || event.title,
+        url: `/events/${event.id}`,
+      }).catch(() => {});
+
+      return { success: true };
+    }),
 });
