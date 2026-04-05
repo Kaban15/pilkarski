@@ -37,6 +37,7 @@ export function CalendarView() {
   const [month, setMonth] = useState(now.getMonth());
   const [onlyMine, setOnlyMine] = useState(false);
   const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [todayOnly, setTodayOnly] = useState(false);
 
   const { data: session } = useSession();
   const { data: clubProfile } = api.club.me.useQuery(undefined, {
@@ -114,20 +115,42 @@ export function CalendarView() {
     return map;
   }, [items, year, month]);
 
+  const listItems = useMemo(() => {
+    const filtered = todayOnly
+      ? items.filter((item) => {
+          const d = new Date(item.date);
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+        })
+      : items;
+    return filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [items, todayOnly]);
+
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
   const today = now.getDate();
   const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
 
   const prev = () => {
+    setTodayOnly(false);
     if (month === 0) { setMonth(11); setYear(year - 1); }
     else setMonth(month - 1);
   };
   const next = () => {
+    setTodayOnly(false);
     if (month === 11) { setMonth(0); setYear(year + 1); }
     else setMonth(month + 1);
   };
-  const goToday = () => { setYear(now.getFullYear()); setMonth(now.getMonth()); };
+  const goToday = () => {
+    const alreadyCurrent = year === now.getFullYear() && month === now.getMonth();
+    setYear(now.getFullYear());
+    setMonth(now.getMonth());
+    if (alreadyCurrent) {
+      setTodayOnly((v) => !v);
+    } else {
+      setTodayOnly(true);
+    }
+    if (view === "calendar") setView("list");
+  };
 
   return (
     <div>
@@ -167,20 +190,18 @@ export function CalendarView() {
               Lista
             </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={goToday}>Dziś</Button>
+          <Button variant={todayOnly ? "secondary" : "ghost"} size="sm" onClick={goToday}>Dziś</Button>
         </div>
       </div>
 
       {view === "list" ? (
         <div className="space-y-2">
-          {items.length === 0 && !loading ? (
+          {listItems.length === 0 && !loading ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Brak sparingów, wydarzeń i turniejów w tym miesiącu.
+              {todayOnly ? "Brak wydarzeń na dziś." : "Brak sparingów, wydarzeń i turniejów w tym miesiącu."}
             </p>
           ) : (
-            items
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((item) => (
+            listItems.map((item) => (
                 <Link
                   key={item.id}
                   href={item.type === "sparing" ? `/sparings/${item.id}` : item.type === "tournament" ? `/tournaments/${item.id}` : `/events/${item.id}`}
