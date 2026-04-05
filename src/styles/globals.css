@@ -294,6 +294,14 @@ button, a, [role="button"] {
   animation: skeleton-fade-out 0.3s ease-out reverse;
 }
 
+/* Hidden scrollbar — scroll works, bar invisible */
+.sidebar-scroll {
+  scrollbar-width: none;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Native select dark mode fix */
 select {
   background-color: var(--background);

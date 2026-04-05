@@ -103,7 +103,7 @@ export function Sidebar({ user }: SidebarProps) {
         key={item.href}
         href={item.href}
         onClick={onClick}
-        className={`group relative flex h-[50px] items-center gap-4 rounded-xl px-4 text-[15px] font-medium transition-all duration-200 ${
+        className={`group relative flex h-[44px] items-center gap-3.5 rounded-xl px-4 text-[14px] font-medium transition-all duration-200 ${
           isActive
             ? "bg-white/[0.08] text-white font-bold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
             : "text-white/60 hover:bg-white/[0.06] hover:text-white"
@@ -113,7 +113,7 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-primary to-sport-cyan" />
         )}
         <item.icon
-          className={`h-6 w-6 shrink-0 transition-colors duration-200 ${
+          className={`h-[22px] w-[22px] shrink-0 transition-colors duration-200 ${
             isActive
               ? "text-sport-cyan"
               : "text-white/40 group-hover:text-white/70"
@@ -156,7 +156,7 @@ export function Sidebar({ user }: SidebarProps) {
       <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* Navigation */}
-      <nav className="relative flex-1 overflow-y-auto px-3 py-5">
+      <nav className="relative flex-1 overflow-y-auto px-3 py-4 sidebar-scroll">
         <div className="space-y-0.5">
           {MAIN_NAV.filter(filterItem).map((item) => renderNavLink(item))}
 
