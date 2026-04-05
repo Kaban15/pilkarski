@@ -47,6 +47,7 @@ interface PlayerProfileFormProps {
     bio: string | null;
     facebookUrl: string | null;
     instagramUrl: string | null;
+    lookingForClub: boolean;
     careerEntries: { id: string; clubName: string; season: string; notes: string | null }[];
   };
   regions: { id: number; name: string }[];
@@ -101,6 +102,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       bio: (fd.get("bio") as string) || undefined,
       facebookUrl: (fd.get("facebookUrl") as string) || undefined,
       instagramUrl: (fd.get("instagramUrl") as string) || undefined,
+      lookingForClub: fd.get("lookingForClub") === "on",
     });
   }
 
@@ -266,6 +268,25 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                   defaultValue={player.instagramUrl ?? ""}
                   placeholder="https://instagram.com/..."
                 />
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+              <input
+                type="checkbox"
+                id="lookingForClub"
+                name="lookingForClub"
+                defaultChecked={player.lookingForClub}
+                disabled={!player.regionId}
+                className="mt-1 rounded border-input"
+              />
+              <div>
+                <Label htmlFor="lookingForClub" className="cursor-pointer">Szukam klubu</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {player.regionId
+                    ? "Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych."
+                    : "Ustaw region aby włączyć tę opcję."}
+                </p>
               </div>
             </div>
 

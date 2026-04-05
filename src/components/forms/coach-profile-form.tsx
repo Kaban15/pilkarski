@@ -45,6 +45,7 @@ interface CoachProfileFormProps {
     photoUrl: string | null;
     facebookUrl: string | null;
     instagramUrl: string | null;
+    lookingForClub: boolean;
     careerEntries: CoachCareerEntry[];
   };
   regions: { id: number; name: string }[];
@@ -61,6 +62,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
   const [photoUrl, setPhotoUrl] = useState(coach.photoUrl ?? "");
   const [facebookUrl, setFacebookUrl] = useState(coach.facebookUrl ?? "");
   const [instagramUrl, setInstagramUrl] = useState(coach.instagramUrl ?? "");
+  const [lookingForClub, setLookingForClub] = useState(coach.lookingForClub);
   const [careers, setCareers] = useState<CoachCareerEntry[]>(coach.careerEntries);
 
   // Career entry form
@@ -120,6 +122,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
       photoUrl: photoUrl || undefined,
       facebookUrl: facebookUrl || undefined,
       instagramUrl: instagramUrl || undefined,
+      lookingForClub,
     });
   }
 
@@ -260,6 +263,26 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
                   onChange={(e) => setInstagramUrl(e.target.value)}
                   placeholder="https://instagram.com/..."
                 />
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+              <input
+                type="checkbox"
+                id="lookingForClub"
+                name="lookingForClub"
+                checked={lookingForClub}
+                onChange={(e) => setLookingForClub(e.target.checked)}
+                disabled={!coach.regionId}
+                className="mt-1 rounded border-input"
+              />
+              <div>
+                <Label htmlFor="lookingForClub" className="cursor-pointer">Szukam klubu</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {coach.regionId
+                    ? "Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych."
+                    : "Ustaw region aby włączyć tę opcję."}
+                </p>
               </div>
             </div>
 
