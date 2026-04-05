@@ -63,7 +63,10 @@ export const feedRouter = router({
         }),
         ctx.db.club.findMany({
           where: regionId ? { regionId } : {},
-          include: { region: { select: { name: true, slug: true } } },
+          include: {
+            region: { select: { name: true, slug: true } },
+            leagueGroup: { include: { leagueLevel: { select: { name: true } } } },
+          },
           orderBy: { createdAt: "desc" },
           take: 5,
         }),

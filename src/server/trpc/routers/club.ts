@@ -184,7 +184,8 @@ export const clubRouter = router({
           userId: { not: userId },
         },
         include: {
-          region: { select: { name: true } },
+          region: { select: { name: true, slug: true } },
+          leagueGroup: { include: { leagueLevel: { select: { name: true } } } },
           _count: { select: { followers: true } },
         },
         orderBy: { createdAt: "desc" },

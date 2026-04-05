@@ -22,6 +22,10 @@ type ClubSearchResult = {
   city: string | null;
   logoUrl: string | null;
   region: { name: string; slug: string } | null;
+  leagueGroup: {
+    name: string;
+    leagueLevel: { name: string };
+  } | null;
 };
 
 export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
@@ -256,7 +260,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[13px] font-medium">{club.name}</p>
-                          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
                             {club.city && (
                               <>
                                 <MapPin className="h-3 w-3 shrink-0" />
@@ -268,6 +272,12 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                                 {club.city && <span>·</span>}
                                 <RegionLogo slug={club.region.slug} name={club.region.name} size={12} />
                                 <span>{club.region.name}</span>
+                              </>
+                            )}
+                            {club.leagueGroup && (
+                              <>
+                                <span>·</span>
+                                <span>{club.leagueGroup.leagueLevel.name} — {club.leagueGroup.name}</span>
                               </>
                             )}
                           </p>
@@ -293,13 +303,19 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
               </div>
               <div className="flex-1">
                 <p className="text-[13px] font-semibold">{selectedClub.name}</p>
-                <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
                   {selectedClub.city}
                   {selectedClub.region && (
                     <>
                       {selectedClub.city && <span>·</span>}
                       <RegionLogo slug={selectedClub.region.slug} name={selectedClub.region.name} size={12} />
                       <span>{selectedClub.region.name}</span>
+                    </>
+                  )}
+                  {selectedClub.leagueGroup && (
+                    <>
+                      <span>·</span>
+                      <span>{selectedClub.leagueGroup.leagueLevel.name} — {selectedClub.leagueGroup.name}</span>
                     </>
                   )}
                 </p>

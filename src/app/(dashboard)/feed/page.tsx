@@ -348,7 +348,7 @@ function NewClubsInRegion() {
           Nowe kluby w Twoim regionie
         </p>
         <div className="space-y-2">
-          {items.map((club: { id: string; name: string; city: string | null; logoUrl: string | null; region: { name: string } | null; _count: { followers: number } }) => (
+          {items.map((club: { id: string; name: string; city: string | null; logoUrl: string | null; region: { name: string; slug: string } | null; leagueGroup: { name: string; leagueLevel: { name: string } } | null; _count: { followers: number } }) => (
             <div key={club.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                 {club.logoUrl ? (
@@ -365,6 +365,7 @@ function NewClubsInRegion() {
                 </Link>
                 <p className="text-[11px] text-muted-foreground">
                   {club.city}{club.region ? ` · ${club.region.name}` : ""}
+                  {club.leagueGroup && ` · ${club.leagueGroup.leagueLevel.name} — ${club.leagueGroup.name}`}
                   {club._count.followers > 0 && ` · ${club._count.followers} obs.`}
                 </p>
               </div>
