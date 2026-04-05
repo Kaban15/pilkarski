@@ -92,7 +92,7 @@ export default function EventDetailPage() {
 
   if (!event) return <DetailPageSkeleton />;
 
-  const isOwner = session?.user?.id === event.club?.userId;
+  const isOwner = session?.user?.id === event.club?.userId || session?.user?.id === event.coach?.userId;
   const hasApplications = event.applications.length > 0;
   const myApplication = !isOwner && hasApplications ? event.applications[0] : null;
 
