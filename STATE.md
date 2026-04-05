@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-03-30
-**Aktualny etap:** 38 etapów ukończonych
+**Ostatnia sesja:** 2026-04-05
+**Aktualny etap:** 39 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -29,6 +29,7 @@
 - Typy: OPEN_TRAINING, RECRUITMENT, TRYOUT, CAMP, CONTINUOUS_RECRUITMENT, INDIVIDUAL_TRAINING, GROUP_TRAINING
 - Widoczność: PUBLIC / INTERNAL (tylko kadra)
 - Obecność: YES/NO/MAYBE (AttendanceSection)
+- Smart lokalizacje: auto-ładowanie ostatniej, picker z zapisanymi, edycja inline
 - Delegowanie uprawnień (canManageEvents)
 - COACH tworzy treningi przez klub (membership required)
 
@@ -67,7 +68,8 @@
 ### Ligi (publiczny katalog)
 - 4-poziomowa hierarchia: `/leagues` → region → szczebel → grupa → kluby
 - Seed: 16 regionów, 69 szczebli, 397 grup (dane realne 2024/2025)
-- Mapa Polski (grid 4x4), badge "Aktywny" przy klubach
+- Mapa Polski (grid 4x4) z logami ZPN, badge "Aktywny" przy klubach
+- Loga ZPN regionów we wszystkich widokach lig, profilach, sparingach
 - Dynamic sitemap (~480 URL-i)
 
 ### Powiadomienia & Push & Email
@@ -83,8 +85,10 @@
 ### UI/Design
 - **Paleta FotMob:** primary violet `#7c3aed`, gradient violet→sky, dark bg `#111827` (gray-900)
 - **Club flow FotMob style:** dashboard (hero+stats+NextMatch+alerts), kadra (position-grouped), pipeline (progress bar+stage pills), profil publiczny (5-tab single-column)
-- Shared components: StatsCell, MatchCard (compact/highlight), PositionGroup, StagePill
-- Sidebar desktop (240px) + Bottom Nav mobile (role-aware)
+- Shared components: StatsCell, MatchCard (compact/highlight), PositionGroup, StagePill, RegionLogo, SocialLinks
+- Sidebar desktop (256px, glassmorphism) + Bottom Nav mobile (role-aware)
+- Profil klubu: inline-editable fields (ołówek → input → instant save)
+- Social links (FB/Insta) na profilach klubów, graczy, trenerów
 - 6 systemów animacji: ScrollReveal, Hover Glow, Animated Hero, Micro-interactions, Page Transitions, `prefers-reduced-motion`
 - Landing: dark-first, animated blobs, gradient text, dot grid
 - shadcn/ui: 15 komponentów
@@ -117,11 +121,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 39 | 2026-04-05 | Loga ZPN regionów, sociale (FB/Insta), glassmorphism sidebar, inline-edit profil klubu, smart lokalizacje wydarzeń, enhanced invite dialog |
 | 38 | 2026-03-30 | Panel Admina — moderacja zgłoszeń, zarządzanie userami (ban/admin), metryki, zarządzanie treścią, ClubPostReport model |
 | 37 | 2026-03-28 | Rozliczenia kosztów — costPerTeam/costPerPerson + payment status tracking (sparingi, wydarzenia, turnieje) |
 | 36 | 2026-03-28 | Moduł Turniejowy — grupa + puchar, 5 modeli, 15 procedur, 5-tabowa strona, feed/kalendarz/sidebar |
 | 35 | 2026-03-28 | Etap B — Email transakcyjne (Resend, 6 triggerów) + Protokół meczowy (strzelcy bramek, MatchGoal) |
-| 34 | 2026-03-28 | Backlog Etap A — Vitest (33 testów), magic bytes upload validation, usePaginatedList hook |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -166,6 +170,7 @@ src/server/trpc/routers/          — auth, club, player, coach, region, sparing
 src/server/award-points.ts        — gamifikacja helper
 src/server/send-push.ts           — web-push helper
 src/server/is-club-member.ts      — membership helpers
+src/server/get-user-club-id.ts    — resolve clubId from user role
 src/server/check-event-permission.ts — event permission helper
 src/app/api/upload/route.ts       — server-side image upload
 src/app/api/reminders/route.ts    — cron przypomnienia
@@ -197,6 +202,8 @@ src/components/dashboard/             — club-sections, player-recruitments, cl
 src/components/squad/                 — invite-member-dialog, position-group
 src/components/recruitment/           — recruitment-stats, stage-pill
 src/components/leagues/               — poland-map
+src/components/region-logo.tsx        — logo ZPN regionu (reużywalny)
+src/components/social-links.tsx       — ikony FB/Insta (reużywalny)
 src/components/                       — empty-state, confirm-dialog, breadcrumbs, star-rating,
                                         favorite-button, follow-club-button, back-button,
                                         profile-message-button, club-invite-button, scroll-reveal,
@@ -225,7 +232,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 6. **tRPC** — `applyFor` (nie `apply` — reserved word)
 7. **Auth.js v5 na Vercel** — `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, cookie `__Secure-authjs.session-token`
 8. **SessionProvider** w root layout — wymagany dla `signIn()`/`useSession()`
-9. **Sidebar layout** — desktop fixed 240px (`md:flex`) + bottom nav mobile (`md:hidden`)
+9. **Sidebar layout** — desktop fixed 256px (`md:flex`, glassmorphism) + bottom nav mobile (`md:hidden`)
 10. **Font Inter** — className na `<html>`, NIE font-family w globals.css
 11. **Kolorowanie typów** — emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości, cyan=transfery, pink=notifications
 12. **Notyfikacje fire-and-forget** — `.catch(() => {})`, nie blokują response

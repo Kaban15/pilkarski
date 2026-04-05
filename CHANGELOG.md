@@ -683,3 +683,65 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 **Spec:** `docs/superpowers/specs/2026-03-30-admin-panel.md`
 **Plan:** `docs/superpowers/plans/2026-03-30-admin-panel.md`
 **Migracja:** Raw SQL (ALTER TABLE + CREATE TABLE) — ZASTOSOWANA
+
+---
+
+## Etap 39: Loga regionów, sociale, redesign sidebara, smart lokalizacje ✅ (2026-04-05)
+
+**Loga ZPN regionów:**
+- 16 logotypów ZPN pobrane do `/public/regions/` (slug-based naming)
+- Komponent `<RegionLogo>` z `next/image` — reużywalny w całej apce
+- Loga dodane w: `/leagues` (kafelki, mapa Polski), strony regionów/szczebli/grup, profile publiczne (klub, gracz, trener), karty sparingów, szczegóły eventów/transferów/sparingów
+- `feed.ts` — dodano `slug` do selectów regionu
+- `PolandMap` — logo zamiast ikony MapPin
+
+**Social links (Facebook + Instagram):**
+- `facebookUrl`, `instagramUrl` na modelach Club, Player, Coach (Prisma schema + db push)
+- Walidatory: `updateClubSchema`, `updatePlayerSchema`, coach update schema
+- Formularze profili: pola FB/Insta (inline edit w klubie, input w gracz/trener)
+- Profile publiczne: ikony FB/Insta w hero (widoczne tylko gdy URL podpięty)
+- Komponent `<SocialLinks>` — wyciągnięty z 3 profili do shared
+
+**Redesign zapraszania klubów na sparing:**
+- Przycisk "Zaproś klub" — full-width CTA z ikoną i opisem (zamiast małego buttona)
+- Kaskadowe filtry: Region → Szczebel → Grupa (oprócz wyszukiwania po nazwie)
+- Wyniki z logami regionów i info o lidze/grupie
+- Backend: `leagueLevelId` dodane do `club.list`
+
+**Profil klubu — inline edit:**
+- Osobna karta "Region i liga" z widokiem logo + dane, tryb edycji z kaskadowymi selectami
+- Formularz profilu → widok danych: każde pole z ikoną ołówka, edycja inline z instant save
+- Komponenty `EditableField` i `EditableTextarea` (lokalne w formularzu)
+
+**Redesign sidebara:**
+- Glassmorphism: `bg-[#0b1120]/95` + `backdrop-blur-xl`
+- Dekoracyjne gradient orby (violet/sky blur)
+- Gradient active indicator (violet→sky) zamiast border-l
+- Pill-shaped hover states, gradient badge na powiadomieniach
+- Sekcja użytkownika z gradient avatar ring
+- Szerokość 256px (z 240px)
+
+**Smart lokalizacje w wydarzeniach:**
+- Usunięte: pola Region i Maks. uczestników z formularza nowego wydarzenia
+- Region auto-ustawiany z profilu klubu w backendzie
+- `event.recentLocations` — endpoint pobierający unikalne lokalizacje klubu
+- Picker lokalizacji: auto-ładuje ostatnią, pill buttons z zapisanymi, "+ Inna lokalizacja"
+- Edycja zapisanych lokalizacji inline (ołówek → input, Enter/Esc)
+- `event.updateLocation` — aktualizuje lokalizację we wszystkich eventach klubu
+
+**Dark mode fix:**
+- Globalny CSS fix dla native `<select>` i `<option>` — `background-color: var(--background/--card)`
+
+**Refactoring (simplify):**
+- `<SocialLinks>` — shared component (wyciągnięty z 3 profili)
+- `getUserClubId()` — shared helper (wyciągnięty z 2 endpointów event.ts)
+- Fix: React anti-pattern (state mutation during render → useEffect)
+- Fix: zduplikowana logika zapisu lokalizacji → `saveEditedLoc()`
+- Fix: misaligned query enable condition w invite-club-dialog
+- `staleTime: Infinity` → 5 minut
+
+**Nowe pliki:**
+- `src/components/region-logo.tsx`
+- `src/components/social-links.tsx`
+- `src/server/get-user-club-id.ts`
+- `public/regions/*.png` (16 plików)
