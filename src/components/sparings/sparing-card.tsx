@@ -55,10 +55,11 @@ export function SparingCard({
   showFavorite?: boolean;
 }) {
   const countdown = getCountdown(sparing.matchDate);
+  const isUrgent = countdown !== null && (countdown === "za chwilę" || countdown.endsWith("h"));
 
   return (
     <Link href={`/sparings/${sparing.id}`} className="group block">
-      <div className="h-full rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-sm">
+      <div className="h-full rounded-xl border border-border bg-card p-5 transition-all hover-glow-cyan sport-card-line hover:border-sport-cyan/30">
         {/* Top row: club + favorite */}
         <div className="mb-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -129,7 +130,7 @@ export function SparingCard({
             </span>
           )}
           {countdown && (
-            <span className="ml-auto shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <span className={`ml-auto shrink-0 rounded-md px-2 py-0.5 text-[12px] font-semibold ${isUrgent ? "bg-sport-yellow/10 text-sport-yellow countdown-urgent" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"}`}>
               {countdown}
             </span>
           )}
