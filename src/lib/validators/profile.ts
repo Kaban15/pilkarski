@@ -10,6 +10,8 @@ export const updateClubSchema = z.object({
   contactEmail: z.email().optional(),
   contactPhone: z.string().max(20).optional(),
   website: z.string().url().max(300).optional(),
+  facebookUrl: z.string().url().max(300).optional(),
+  instagramUrl: z.string().url().max(300).optional(),
 });
 
 export const updatePlayerSchema = z.object({
@@ -29,6 +31,8 @@ export const updatePlayerSchema = z.object({
     .enum(["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LM", "RM", "LW", "RW", "ST"])
     .optional(),
   bio: z.string().max(2000).optional(),
+  facebookUrl: z.string().url().max(300).optional(),
+  instagramUrl: z.string().url().max(300).optional(),
 });
 
 export const careerEntrySchema = z.object({

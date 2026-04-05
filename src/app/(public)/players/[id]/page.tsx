@@ -17,6 +17,8 @@ import {
   User,
   Clock,
   Briefcase,
+  Facebook,
+  Instagram,
 } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 
@@ -120,9 +122,19 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
                   {player.city}
                 </p>
               )}
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <ProfileMessageButton recipientUserId={player.userId} />
                 <ClubInviteButton targetUserId={player.userId} />
+                {player.facebookUrl && (
+                  <a href={player.facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                )}
+                {player.instagramUrl && (
+                  <a href={player.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                )}
               </div>
             </div>
           </div>

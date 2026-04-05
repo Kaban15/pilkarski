@@ -45,6 +45,8 @@ interface PlayerProfileFormProps {
     secondaryPosition: string | null;
     photoUrl: string | null;
     bio: string | null;
+    facebookUrl: string | null;
+    instagramUrl: string | null;
     careerEntries: { id: string; clubName: string; season: string; notes: string | null }[];
   };
   regions: { id: number; name: string }[];
@@ -97,6 +99,8 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       primaryPosition: (fd.get("primaryPosition") as string || undefined) as "GK" | "CB" | "LB" | "RB" | "CDM" | "CM" | "CAM" | "LM" | "RM" | "LW" | "RW" | "ST" | undefined,
       secondaryPosition: (fd.get("secondaryPosition") as string || undefined) as "GK" | "CB" | "LB" | "RB" | "CDM" | "CM" | "CAM" | "LM" | "RM" | "LW" | "RW" | "ST" | undefined,
       bio: (fd.get("bio") as string) || undefined,
+      facebookUrl: (fd.get("facebookUrl") as string) || undefined,
+      instagramUrl: (fd.get("instagramUrl") as string) || undefined,
     });
   }
 
@@ -242,6 +246,27 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 defaultValue={player.bio ?? ""}
                 rows={4}
               />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="facebookUrl">Facebook</Label>
+                <Input
+                  id="facebookUrl"
+                  name="facebookUrl"
+                  defaultValue={player.facebookUrl ?? ""}
+                  placeholder="https://facebook.com/..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instagramUrl">Instagram</Label>
+                <Input
+                  id="instagramUrl"
+                  name="instagramUrl"
+                  defaultValue={player.instagramUrl ?? ""}
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
             </div>
 
             <Button type="submit" disabled={updateMut.isPending}>

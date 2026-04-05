@@ -27,6 +27,8 @@ export const coachRouter = router({
         regionId: z.number().int().optional(),
         bio: z.string().max(2000).optional(),
         photoUrl: z.string().url().max(500).optional(),
+        facebookUrl: z.string().url().max(300).optional(),
+        instagramUrl: z.string().url().max(300).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

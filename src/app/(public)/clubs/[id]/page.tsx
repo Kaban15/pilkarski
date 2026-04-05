@@ -8,7 +8,7 @@ import { ProfileMessageButton } from "@/components/profile-message-button";
 import { BackButton } from "@/components/back-button";
 import { StatsCell } from "@/components/stats-cell";
 import { ClubProfileTabs } from "./club-profile-tabs";
-import { Trophy, MapPin, Star } from "lucide-react";
+import { Trophy, MapPin, Star, Facebook, Instagram } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 
 type Props = { params: Promise<{ id: string }> };
@@ -269,6 +269,16 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                 <FollowClubButton clubId={id} />
                 <JoinClubButton clubId={id} />
                 <ProfileMessageButton recipientUserId={club.userId} />
+                {club.facebookUrl && (
+                  <a href={club.facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                )}
+                {club.instagramUrl && (
+                  <a href={club.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                )}
               </div>
             </div>
           </div>

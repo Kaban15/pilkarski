@@ -43,6 +43,8 @@ interface CoachProfileFormProps {
     regionId: number | null;
     bio: string | null;
     photoUrl: string | null;
+    facebookUrl: string | null;
+    instagramUrl: string | null;
     careerEntries: CoachCareerEntry[];
   };
   regions: { id: number; name: string }[];
@@ -57,6 +59,8 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
   const [regionId, setRegionId] = useState(coach.regionId?.toString() ?? "");
   const [bio, setBio] = useState(coach.bio ?? "");
   const [photoUrl, setPhotoUrl] = useState(coach.photoUrl ?? "");
+  const [facebookUrl, setFacebookUrl] = useState(coach.facebookUrl ?? "");
+  const [instagramUrl, setInstagramUrl] = useState(coach.instagramUrl ?? "");
   const [careers, setCareers] = useState<CoachCareerEntry[]>(coach.careerEntries);
 
   // Career entry form
@@ -114,6 +118,8 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
       regionId: regionId ? parseInt(regionId) : undefined,
       bio: bio || undefined,
       photoUrl: photoUrl || undefined,
+      facebookUrl: facebookUrl || undefined,
+      instagramUrl: instagramUrl || undefined,
     });
   }
 
@@ -234,6 +240,27 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
                 placeholder="Opisz swoje doświadczenie trenerskie..."
                 rows={5}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="facebookUrl">Facebook</Label>
+                <Input
+                  id="facebookUrl"
+                  value={facebookUrl}
+                  onChange={(e) => setFacebookUrl(e.target.value)}
+                  placeholder="https://facebook.com/..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instagramUrl">Instagram</Label>
+                <Input
+                  id="instagramUrl"
+                  value={instagramUrl}
+                  onChange={(e) => setInstagramUrl(e.target.value)}
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
             </div>
 
             <Button type="submit" disabled={updateMut.isPending}>

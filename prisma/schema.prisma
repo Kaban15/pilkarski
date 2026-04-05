@@ -145,6 +145,8 @@ model Club {
   contactEmail  String? @map("contact_email") @db.VarChar(255)
   contactPhone  String? @map("contact_phone") @db.VarChar(20)
   website       String? @db.VarChar(300)
+  facebookUrl   String? @map("facebook_url") @db.VarChar(300)
+  instagramUrl  String? @map("instagram_url") @db.VarChar(300)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -205,6 +207,8 @@ model Player {
   primaryPosition   PlayerPosition? @map("primary_position")
   secondaryPosition PlayerPosition? @map("secondary_position")
   bio               String?
+  facebookUrl       String?         @map("facebook_url") @db.VarChar(300)
+  instagramUrl      String?         @map("instagram_url") @db.VarChar(300)
   createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -227,6 +231,8 @@ model Coach {
   regionId       Int?     @map("region_id")
   bio            String?
   photoUrl       String?  @map("photo_url") @db.VarChar(500)
+  facebookUrl    String?  @map("facebook_url") @db.VarChar(300)
+  instagramUrl   String?  @map("instagram_url") @db.VarChar(300)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 

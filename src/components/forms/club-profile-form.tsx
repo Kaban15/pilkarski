@@ -30,6 +30,8 @@ interface ClubProfileFormProps {
     contactEmail: string | null;
     contactPhone: string | null;
     website: string | null;
+    facebookUrl: string | null;
+    instagramUrl: string | null;
   };
   regions: { id: number; name: string; slug: string }[];
 }
@@ -199,6 +201,8 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const [contactEmail, setContactEmail] = useState(club.contactEmail ?? "");
   const [contactPhone, setContactPhone] = useState(club.contactPhone ?? "");
   const [website, setWebsite] = useState(club.website ?? "");
+  const [facebookUrl, setFacebookUrl] = useState(club.facebookUrl ?? "");
+  const [instagramUrl, setInstagramUrl] = useState(club.instagramUrl ?? "");
   const [description, setDescription] = useState(club.description ?? "");
 
   // Region / league state
@@ -250,6 +254,8 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
       website: website || undefined,
+      facebookUrl: facebookUrl || undefined,
+      instagramUrl: instagramUrl || undefined,
       ...overrides,
     });
   }
@@ -474,6 +480,20 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
               value={website}
               placeholder="https://..."
               onSave={(v) => { setWebsite(v); save({ website: v || undefined }); }}
+              isPending={updateMut.isPending}
+            />
+            <EditableField
+              label="Facebook"
+              value={facebookUrl}
+              placeholder="https://facebook.com/..."
+              onSave={(v) => { setFacebookUrl(v); save({ facebookUrl: v || undefined }); }}
+              isPending={updateMut.isPending}
+            />
+            <EditableField
+              label="Instagram"
+              value={instagramUrl}
+              placeholder="https://instagram.com/..."
+              onSave={(v) => { setInstagramUrl(v); save({ instagramUrl: v || undefined }); }}
               isPending={updateMut.isPending}
             />
           </div>
