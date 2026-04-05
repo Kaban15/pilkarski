@@ -31,6 +31,7 @@
   --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sport-cyan: var(--sport-cyan);
   --color-sport-yellow: var(--sport-yellow);
+  --color-x-blue: var(--x-blue);
   --radius: 0.5rem;
 
   --animate-fade-in: fade-in 0.3s ease-out;
@@ -137,6 +138,7 @@
   --sidebar-muted-foreground: #71717a;
   --sport-cyan: #06B6D4;
   --sport-yellow: #FACC15;
+  --x-blue: #1d9bf0;
 }
 
 .dark {
@@ -168,6 +170,7 @@
   --sidebar-muted-foreground: #6b7280;
   --sport-cyan: #22D3EE;
   --sport-yellow: #FDE047;
+  --x-blue: #1d9bf0;
 }
 
 body {

@@ -185,8 +185,8 @@ export default function ConversationPage() {
                   <div
                     className={`max-w-[75%] px-4 py-2.5 ${
                       isOwn
-                        ? "rounded-2xl rounded-br-sm bg-[#1d9bf0] text-white"
-                        : "rounded-2xl rounded-bl-sm bg-[#16181c] text-white"
+                        ? "rounded-2xl rounded-br-sm bg-x-blue text-white"
+                        : "rounded-2xl rounded-bl-sm bg-secondary text-white"
                     }`}
                   >
                     <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">

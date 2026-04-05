@@ -55,7 +55,7 @@ export default function FavoritesPage() {
             if (sparing) {
               return (
                 <Link key={fav.id} href={`/sparings/${sparing.id}`}>
-                  <Card className="transition hover:border-[#2f3336]">
+                  <Card className="transition hover:border-border">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">{sparing.title}</CardTitle>
@@ -81,7 +81,7 @@ export default function FavoritesPage() {
             if (event) {
               return (
                 <Link key={fav.id} href={`/events/${event.id}`}>
-                  <Card className="transition hover:border-[#2f3336]">
+                  <Card className="transition hover:border-border">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -107,7 +107,7 @@ export default function FavoritesPage() {
             const clubPost = (fav as { clubPost?: { id: string; title: string; category: string; content: string | null; club: { id: string; name: string; city: string | null } } }).clubPost;
             if (clubPost) {
               return (
-                <Card key={fav.id} className="transition hover:border-[#2f3336]">
+                <Card key={fav.id} className="transition hover:border-border">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-lg">{clubPost.title}</CardTitle>

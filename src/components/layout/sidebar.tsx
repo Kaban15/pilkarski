@@ -136,7 +136,7 @@ export function Sidebar({ user }: SidebarProps) {
   );
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-black md:flex">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-background md:flex">
 
       {/* Logo header */}
       <div className="relative flex h-16 items-center gap-3 px-6">

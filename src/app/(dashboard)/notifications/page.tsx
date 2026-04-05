@@ -55,7 +55,7 @@ export default function NotificationsPage() {
           {notifications.map((n) => (
             <div
               key={n.id}
-              className={`flex items-start justify-between gap-4 px-4 py-3 transition hover:bg-white/[0.02] ${!n.read ? "bg-[#1d9bf0]/[0.05]" : ""}`}
+              className={`flex items-start justify-between gap-4 px-4 py-3 transition hover:bg-white/[0.02] ${!n.read ? "bg-x-blue/[0.05]" : ""}`}
             >
               <div className="min-w-0 flex-1">
                 {n.link ? (
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
               {!n.read && (
                 <button
                   onClick={() => markAsRead.mutate({ id: n.id })}
-                  className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#1d9bf0]"
+                  className="mt-1 h-3 w-3 shrink-0 rounded-full bg-x-blue"
                   title="Oznacz jako przeczytane"
                 />
               )}

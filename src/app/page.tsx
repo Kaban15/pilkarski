@@ -69,7 +69,7 @@ export default async function LandingPage() {
   ]).catch(() => [0, 0, 0]);
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white selection:bg-violet-500/30 selection:text-white">
+    <div className="min-h-screen bg-background text-white selection:bg-violet-500/30 selection:text-white">
       {/* Dot grid background */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
@@ -80,7 +80,7 @@ export default async function LandingPage() {
       />
 
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#000000]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500 text-xs font-black text-black">
@@ -235,7 +235,7 @@ export default async function LandingPage() {
                   description: "Odbieraj zgłoszenia, porównaj i potwierdź sparing.",
                 },
               ].map((item) => (
-                <div key={item.step} className="bg-[#000000] p-8">
+                <div key={item.step} className="bg-background p-8">
                   <span className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-sky-500 font-mono text-[13px] font-bold text-white">
                     {item.step}
                   </span>
