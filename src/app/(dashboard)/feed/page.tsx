@@ -882,7 +882,7 @@ export default function FeedPage() {
           actionHref="/profile"
         />
       ) : (
-        <div className="stagger-children space-y-3">
+        <div className="space-y-3">
           {(feed.data!.items as FeedItem[]).map((item) => (
             <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
           ))}

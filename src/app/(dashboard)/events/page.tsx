@@ -275,7 +275,7 @@ export default function EventsPage() {
           description="Nie znaleziono wydarzeń z aktualnymi filtrami. Spróbuj zmienić region lub typ."
         />
       ) : (
-        <div className="stagger-children grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {items.map((ev) => (
             <Link key={ev.id} href={`/events/${ev.id}`} className="group">
               <Card className="h-full transition-colors hover:border-primary/40">

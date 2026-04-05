@@ -37,7 +37,7 @@ export function PlayerRecruitments() {
           Wszystkie →
         </Link>
       </div>
-      <div className="stagger-children grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data.items.map((event) => (
           <Link key={event.id} href={`/events/${event.id}`} className="group block">
             <Card className="h-full border-l-[3px] border-l-amber-500 transition-all hover:shadow-md hover:-translate-y-0.5">

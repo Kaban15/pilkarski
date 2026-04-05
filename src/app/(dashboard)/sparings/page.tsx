@@ -316,7 +316,7 @@ function SearchTab() {
           description="Nie znaleziono sparingów z aktualnymi filtrami. Spróbuj zmienić region lub daty."
         />
       ) : (
-        <div className="stagger-children grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {items.map((s) => (
             <SparingCard key={s.id} sparing={s} favorited={favoritedIds.has(s.id)} />
           ))}

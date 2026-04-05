@@ -108,7 +108,7 @@ export default function TournamentsPage() {
           description="Nie znaleziono turniejów z aktualnymi filtrami."
         />
       ) : (
-        <div className="stagger-children grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {items.map((t) => {
             const creator = t.creator;
             const creatorName =
