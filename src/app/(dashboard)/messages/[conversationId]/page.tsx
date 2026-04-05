@@ -183,10 +183,10 @@ export default function ConversationPage() {
                   className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                    className={`max-w-[75%] px-4 py-2.5 ${
                       isOwn
-                        ? "rounded-br-md bg-primary text-primary-foreground"
-                        : "rounded-bl-md bg-secondary text-foreground"
+                        ? "rounded-2xl rounded-br-sm bg-[#1d9bf0] text-white"
+                        : "rounded-2xl rounded-bl-sm bg-[#16181c] text-white"
                     }`}
                   >
                     <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
@@ -194,7 +194,7 @@ export default function ConversationPage() {
                     </p>
                     <p
                       className={`mt-1 text-[10px] ${
-                        isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+                        isOwn ? "text-white/60" : "text-white/40"
                       }`}
                     >
                       {formatDate(msg.createdAt)}

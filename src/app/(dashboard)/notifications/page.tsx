@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/card-skeleton";
 import { formatDate } from "@/lib/format";
@@ -52,49 +51,47 @@ export default function NotificationsPage() {
           description="Kiedy ktoś zaaplikuje na Twój sparing lub wyśle wiadomość, zobaczysz powiadomienie tutaj."
         />
       ) : (
-        <div className="space-y-2">
+        <div className="divide-y divide-border border border-border">
           {notifications.map((n) => (
-            <Card
+            <div
               key={n.id}
-              className={`transition hover:shadow-md ${!n.read ? "border-blue-200 bg-blue-50/30" : ""}`}
+              className={`flex items-start justify-between gap-4 px-4 py-3 transition hover:bg-white/[0.02] ${!n.read ? "bg-[#1d9bf0]/[0.05]" : ""}`}
             >
-              <CardContent className="flex items-start justify-between gap-4 py-3">
-                <div className="min-w-0 flex-1">
-                  {n.link ? (
-                    <Link
-                      href={n.link}
-                      onClick={() => !n.read && markAsRead.mutate({ id: n.id })}
-                      className="block"
-                    >
-                      <p className="font-medium">{n.title}</p>
-                      {n.message && (
-                        <p className="truncate text-sm text-muted-foreground">{n.message}</p>
-                      )}
-                    </Link>
-                  ) : (
-                    <>
-                      <p className="font-medium">{n.title}</p>
-                      {n.message && (
-                        <p className="truncate text-sm text-muted-foreground">{n.message}</p>
-                      )}
-                    </>
-                  )}
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${NOTIFICATION_TYPE_COLORS[n.type] ?? "bg-muted text-muted-foreground"}`}>
-                      {NOTIFICATION_TYPE_LABELS[n.type] ?? n.type}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{formatDate(n.createdAt)}</span>
-                  </div>
-                </div>
-                {!n.read && (
-                  <button
-                    onClick={() => markAsRead.mutate({ id: n.id })}
-                    className="mt-1 h-3 w-3 shrink-0 rounded-full bg-blue-500"
-                    title="Oznacz jako przeczytane"
-                  />
+              <div className="min-w-0 flex-1">
+                {n.link ? (
+                  <Link
+                    href={n.link}
+                    onClick={() => !n.read && markAsRead.mutate({ id: n.id })}
+                    className="block"
+                  >
+                    <p className="font-medium">{n.title}</p>
+                    {n.message && (
+                      <p className="truncate text-sm text-muted-foreground">{n.message}</p>
+                    )}
+                  </Link>
+                ) : (
+                  <>
+                    <p className="font-medium">{n.title}</p>
+                    {n.message && (
+                      <p className="truncate text-sm text-muted-foreground">{n.message}</p>
+                    )}
+                  </>
                 )}
-              </CardContent>
-            </Card>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${NOTIFICATION_TYPE_COLORS[n.type] ?? "bg-muted text-muted-foreground"}`}>
+                    {NOTIFICATION_TYPE_LABELS[n.type] ?? n.type}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{formatDate(n.createdAt)}</span>
+                </div>
+              </div>
+              {!n.read && (
+                <button
+                  onClick={() => markAsRead.mutate({ id: n.id })}
+                  className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#1d9bf0]"
+                  title="Oznacz jako przeczytane"
+                />
+              )}
+            </div>
           ))}
         </div>
       )}

@@ -207,7 +207,7 @@ export default function CommunityPage() {
               <CardContent className="p-4">
                 <div className="mb-2 flex items-start justify-between gap-2">
                   <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    className={`inline-block rounded-md px-2.5 py-0.5 text-xs font-medium ${
                       CLUB_POST_CATEGORY_COLORS[post.category] || "bg-muted text-muted-foreground"
                     }`}
                   >

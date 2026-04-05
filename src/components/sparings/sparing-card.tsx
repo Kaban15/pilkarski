@@ -59,7 +59,7 @@ export function SparingCard({
 
   return (
     <Link href={`/sparings/${sparing.id}`} className="group block">
-      <div className="h-full rounded-xl border border-border bg-card p-5 transition-all hover-glow-cyan sport-card-line hover:border-sport-cyan/30">
+      <div className="h-full border border-border bg-card p-5 transition-all hover:bg-white/[0.03] hover:border-sport-cyan/30 border-l-2 border-l-sport-cyan">
         {/* Top row: club + favorite */}
         <div className="mb-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">

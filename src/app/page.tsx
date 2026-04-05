@@ -69,7 +69,7 @@ export default async function LandingPage() {
   ]).catch(() => [0, 0, 0]);
 
   return (
-    <div className="min-h-screen bg-[#0c0a1a] text-white selection:bg-violet-500/30 selection:text-white">
+    <div className="min-h-screen bg-[#000000] text-white selection:bg-violet-500/30 selection:text-white">
       {/* Dot grid background */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
@@ -80,7 +80,7 @@ export default async function LandingPage() {
       />
 
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0c0a1a]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#000000]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500 text-xs font-black text-black">
@@ -107,16 +107,6 @@ export default async function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Gradient orb */}
-        <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.07] blur-[120px]" />
-
-        {/* Animated blobs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-violet-500/[0.12] blur-[80px] animate-[blob-1_8s_ease-in-out_infinite]" />
-          <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-[#06B6D4]/[0.12] blur-[80px] animate-[blob-2_10s_ease-in-out_infinite]" />
-          <div className="absolute bottom-1/4 left-1/3 h-56 w-56 rounded-full bg-[#FACC15]/[0.06] blur-[80px] animate-[blob-3_12s_ease-in-out_infinite]" />
-        </div>
-
         <div className="mx-auto max-w-6xl px-5 pb-20 pt-24 sm:px-8 sm:pb-28 sm:pt-32 lg:pt-40">
           <div className="mx-auto max-w-[680px] text-center">
             {/* Pill */}
@@ -245,7 +235,7 @@ export default async function LandingPage() {
                   description: "Odbieraj zgłoszenia, porównaj i potwierdź sparing.",
                 },
               ].map((item) => (
-                <div key={item.step} className="bg-[#0c0a1a] p-8">
+                <div key={item.step} className="bg-[#000000] p-8">
                   <span className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-sky-500 font-mono text-[13px] font-bold text-white">
                     {item.step}
                   </span>
@@ -327,9 +317,6 @@ export default async function LandingPage() {
       <ScrollReveal>
         <section className="border-t border-white/[0.06]">
           <div className="relative mx-auto max-w-6xl px-5 py-24 text-center sm:px-8 sm:py-32">
-            {/* Glow */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#06B6D4]/[0.06] to-transparent" />
-
             <h2 className="relative mb-4 text-2xl font-bold tracking-tight sm:text-3xl">
               Szukasz rywala na sparing?
             </h2>
