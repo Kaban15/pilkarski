@@ -11,7 +11,6 @@ import { ClubInviteButton } from "@/components/club-invite-button";
 import { BackButton } from "@/components/back-button";
 import {
   MapPin,
-  Globe,
   Ruler,
   Weight,
   Footprints,
@@ -19,6 +18,7 @@ import {
   Clock,
   Briefcase,
 } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -108,8 +108,8 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
                   </Badge>
                 )}
                 {player.region && (
-                  <Badge className="border-white/20 bg-white/10 text-white/80 hover:bg-white/20">
-                    <Globe className="mr-1 h-3 w-3" />
+                  <Badge className="border-white/20 bg-white/10 text-white/80 hover:bg-white/20 gap-1.5">
+                    <RegionLogo slug={player.region.slug} name={player.region.name} size={14} />
                     {player.region.name}
                   </Badge>
                 )}

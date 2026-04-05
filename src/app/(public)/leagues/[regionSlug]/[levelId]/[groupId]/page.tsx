@@ -6,6 +6,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MapPin, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { pluralPL } from "@/lib/labels";
+import { RegionLogo } from "@/components/region-logo";
 
 type Props = { params: Promise<{ regionSlug: string; levelId: string; groupId: string }> };
 
@@ -70,14 +71,17 @@ export default async function ClubsInGroupPage({ params }: Props) {
           ]}
         />
 
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {level.name} &mdash; {group.name}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {region.name} &middot; {clubs.length}{" "}
-            {pluralPL(clubs.length, "drużyna", "drużyny", "drużyn")}
-          </p>
+        <div className="mb-8 flex items-center gap-4">
+          <RegionLogo slug={regionSlug} name={region.name} size={40} />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {level.name} &mdash; {group.name}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {region.name} &middot; {clubs.length}{" "}
+              {pluralPL(clubs.length, "drużyna", "drużyny", "drużyn")}
+            </p>
+          </div>
         </div>
 
         {clubs.length === 0 ? (

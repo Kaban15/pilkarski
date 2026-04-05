@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import {
   Calendar,
   MapPin,
-  Globe,
   FileText,
   Pencil,
   Trash2,
@@ -28,6 +27,7 @@ import {
   Clock,
   Banknote,
 } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 type SparingInfoProps = {
   sparing: any;
@@ -197,7 +197,7 @@ export function SparingInfo({
             {sparing.region && (
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10">
-                  <Globe className="h-4 w-4 text-orange-500" />
+                  <RegionLogo slug={sparing.region.slug} name={sparing.region.name} size={20} />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Region</p>

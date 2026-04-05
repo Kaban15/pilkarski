@@ -4,6 +4,7 @@ import { db } from "@/server/db/client";
 import { ChevronRight, Trophy, MapPin, Users, Home } from "lucide-react";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { pluralPL } from "@/lib/labels";
+import { RegionLogo } from "@/components/region-logo";
 
 export const metadata: Metadata = {
   title: "Ligi regionalne 2025/26",
@@ -75,9 +76,7 @@ export default async function LeaguesPage() {
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-violet-500/40 via-sky-500/40 to-violet-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
 
                 <div className="mb-3 flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/15 to-sky-500/10 transition-colors group-hover:from-violet-500/25 group-hover:to-sky-500/20">
-                    <span className="text-[13px] font-bold text-violet-400">{String(i + 1).padStart(2, "0")}</span>
-                  </div>
+                  <RegionLogo slug={region.slug} name={region.name} size={40} />
                   <ChevronRight className="h-4 w-4 text-muted-foreground/30 transition-all group-hover:translate-x-0.5 group-hover:text-violet-400" />
                 </div>
 

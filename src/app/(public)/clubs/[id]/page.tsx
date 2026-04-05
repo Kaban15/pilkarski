@@ -8,7 +8,8 @@ import { ProfileMessageButton } from "@/components/profile-message-button";
 import { BackButton } from "@/components/back-button";
 import { StatsCell } from "@/components/stats-cell";
 import { ClubProfileTabs } from "./club-profile-tabs";
-import { Globe, Trophy, MapPin, Star } from "lucide-react";
+import { Trophy, MapPin, Star } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -248,8 +249,8 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                 )}
                 {club.region && (
                   <Link href={`/leagues/${club.region.slug}`}>
-                    <span className="inline-flex items-center gap-1 bg-white/10 text-white rounded-md px-2 py-0.5 text-[11px] font-semibold hover:bg-white/20 transition-colors cursor-pointer">
-                      <Globe className="h-3 w-3" />
+                    <span className="inline-flex items-center gap-1.5 bg-white/10 text-white rounded-md px-2 py-0.5 text-[11px] font-semibold hover:bg-white/20 transition-colors cursor-pointer">
+                      <RegionLogo slug={club.region.slug} name={club.region.name} size={16} />
                       {club.region.name}
                     </span>
                   </Link>

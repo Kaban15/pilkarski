@@ -6,6 +6,7 @@ import { db } from "@/server/db/client";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ChevronRight, Users } from "lucide-react";
 import { pluralPL } from "@/lib/labels";
+import { RegionLogo } from "@/components/region-logo";
 
 type Props = { params: Promise<{ regionSlug: string }> };
 
@@ -58,11 +59,14 @@ export default async function RegionLevelsPage({ params }: Props) {
           ]}
         />
 
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">{region.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {levels.length} {pluralPL(levels.length, "szczebel", "szczeble", "szczebli")} ligowych
-          </p>
+        <div className="mb-8 flex items-center gap-4">
+          <RegionLogo slug={regionSlug} name={region.name} size={48} />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{region.name}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {levels.length} {pluralPL(levels.length, "szczebel", "szczeble", "szczebli")} ligowych
+            </p>
+          </div>
         </div>
 
         {levels.length === 0 ? (

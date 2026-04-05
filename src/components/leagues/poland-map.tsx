@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import Image from "next/image";
 
 interface RegionData {
   slug: string;
@@ -87,7 +87,14 @@ export function PolandMap({ regions }: PolandMapProps) {
                 href={`/leagues/${slug}`}
                 className="group relative flex flex-col items-center justify-center rounded-lg border border-border/50 bg-card/50 px-2 py-4 text-center transition-all duration-200 hover:border-violet-500/40 hover:bg-violet-500/10 hover:shadow-[0_0_20px_rgba(124,58,237,0.1)]"
               >
-                <MapPin className="mb-1.5 h-4 w-4 text-violet-400/60 transition-colors group-hover:text-violet-400" />
+                <Image
+                  src={`/regions/${slug}.png`}
+                  alt={shortName}
+                  width={28}
+                  height={28}
+                  className="mb-1.5"
+                  style={{ objectFit: "contain" }}
+                />
                 <p className="whitespace-pre-line text-[11px] font-semibold leading-tight group-hover:text-violet-300">
                   {shortName}
                 </p>

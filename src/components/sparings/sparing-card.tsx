@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Calendar, MapPin } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 export type SparingCardItem = {
   id: string;
@@ -27,7 +28,7 @@ export type SparingCardItem = {
     city: string | null;
     logoUrl?: string | null;
   };
-  region: { name: string } | null;
+  region: { name: string; slug: string } | null;
 };
 
 function getCountdown(dateStr: string | Date): string | null {
@@ -102,7 +103,8 @@ export function SparingCard({
               </Badge>
             )}
             {sparing.region && (
-              <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground">
+              <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground gap-1">
+                <RegionLogo slug={sparing.region.slug} name={sparing.region.name} size={14} />
                 {sparing.region.name}
               </Badge>
             )}

@@ -8,6 +8,7 @@ import { StarRating } from "@/components/star-rating";
 import { EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from "@/lib/labels";
 import { formatShortDate, formatDate } from "@/lib/format";
 import { Mail, Phone, ExternalLink, Shield, Star, Calendar, MapPin } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 const TABS = [
   { key: "matches", label: "Mecze" },
@@ -500,7 +501,8 @@ export function ClubProfileTabs({
                 {club.leagueGroup.leagueLevel.name} &mdash; {club.leagueGroup.name}
               </Link>
             ) : club.region ? (
-              <Link href={`/leagues/${club.region.slug}`} className="text-sm text-primary hover:underline">
+              <Link href={`/leagues/${club.region.slug}`} className="flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <RegionLogo slug={club.region.slug} name={club.region.name} size={18} />
                 {club.region.name}
               </Link>
             ) : (

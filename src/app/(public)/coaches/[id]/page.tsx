@@ -10,11 +10,11 @@ import { BackButton } from "@/components/back-button";
 import { COACH_SPECIALIZATION_LABELS, COACH_LEVEL_LABELS } from "@/lib/labels";
 import {
   MapPin,
-  GraduationCap,
   Award,
   User,
   Briefcase,
 } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -136,7 +136,7 @@ export default async function CoachProfilePage({ params }: Props) {
               )}
               {coach.region && (
                 <div className="flex items-center gap-2 text-sm">
-                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                  <RegionLogo slug={coach.region.slug} name={coach.region.name} size={18} />
                   <span>{coach.region.name}</span>
                 </div>
               )}

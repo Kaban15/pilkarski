@@ -21,7 +21,6 @@ import { AttendanceSection } from "./_components/attendance-section";
 import {
   Calendar,
   MapPin,
-  Globe,
   Users,
   FileText,
   Pencil,
@@ -33,6 +32,7 @@ import {
   Target,
   Banknote,
 } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
 
 type EventApplication = {
   id: string;
@@ -185,7 +185,7 @@ export default function EventDetailPage() {
             {event.region && (
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10">
-                  <Globe className="h-4 w-4 text-orange-500" />
+                  <RegionLogo slug={event.region.slug} name={event.region.name} size={20} />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Region</p>
