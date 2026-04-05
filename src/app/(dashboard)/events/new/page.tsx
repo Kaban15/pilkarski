@@ -12,14 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormTooltip } from "@/components/form-tooltip";
 import {
   EVENT_TYPE_LABELS,
   POSITION_LABELS,
   SPARING_LEVEL_LABELS,
 } from "@/lib/labels";
 import { TRAINING_PRESETS, type TrainingPreset } from "@/lib/training-presets";
-import { Zap } from "lucide-react";
+import { Zap, MapPin, Plus } from "lucide-react";
 import Link from "next/link";
 
 const RECRUITMENT_TYPES: EventTypeValue[] = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
@@ -30,6 +29,8 @@ export default function NewEventPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [selectedType, setSelectedType] = useState<EventTypeValue>("OPEN_TRAINING");
   const [visibility, setVisibility] = useState("PUBLIC");
+  const [location, setLocation] = useState("");
+  const [showCustomLocation, setShowCustomLocation] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const role = session?.user?.role;
@@ -40,7 +41,16 @@ export default function NewEventPage() {
     enabled: isCoach,
   });
 
-  const { data: regions = [] } = api.region.list.useQuery();
+  const { data: recentLocations = [] } = api.event.recentLocations.useQuery(undefined, {
+    staleTime: Infinity,
+  });
+
+  // Auto-set last location on load
+  const [autoSet, setAutoSet] = useState(false);
+  if (!autoSet && recentLocations.length > 0 && !location) {
+    setLocation(recentLocations[0]);
+    setAutoSet(true);
+  }
 
   // PLAYER cannot create events
   if (isPlayer) {
@@ -97,7 +107,6 @@ export default function NewEventPage() {
     };
     setInput("title", preset.name);
     setInput("description", preset.description);
-    if (preset.maxParticipants) setInput("maxParticipants", String(preset.maxParticipants));
     toast.success(`Szablon "${preset.name}" zastosowany`);
   }
 
@@ -111,9 +120,7 @@ export default function NewEventPage() {
       title: fd.get("title") as string,
       description: (fd.get("description") as string) || undefined,
       eventDate: fd.get("eventDate") as string,
-      location: (fd.get("location") as string) || undefined,
-      maxParticipants: fd.get("maxParticipants") ? Number(fd.get("maxParticipants")) : undefined,
-      regionId: fd.get("regionId") ? Number(fd.get("regionId")) : undefined,
+      location: location || undefined,
       visibility,
     };
 
@@ -223,29 +230,66 @@ export default function NewEventPage() {
                 <p className="text-xs text-red-600">{fieldErrors.eventDate}</p>
               )}
             </div>
+
+            {/* Location picker */}
             <div className="space-y-2">
-              <Label htmlFor="location">Miejsce</Label>
-              <Input id="location" name="location" placeholder="np. Stadion Miejski, Kraków" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="regionId">Region</Label>
-              <select
-                id="regionId"
-                name="regionId"
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
-              >
-                <option value="">Wybierz region</option>
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="maxParticipants" className="inline-flex items-center gap-1.5">
-                Maks. uczestników
-                <FormTooltip text="Pozostaw puste, jeśli nie chcesz ograniczać liczby zgłoszeń." />
+              <Label className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
+                Miejsce
               </Label>
-              <Input id="maxParticipants" name="maxParticipants" type="number" min={1} placeholder="np. 30" />
+
+              {!showCustomLocation && recentLocations.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {recentLocations.map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => setLocation(loc)}
+                        className={`rounded-lg border px-3 py-1.5 text-[12px] font-medium transition ${
+                          location === loc
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomLocation(true);
+                      setLocation("");
+                    }}
+                    className="flex items-center gap-1.5 text-[12px] font-medium text-primary hover:underline"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Inna lokalizacja
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="np. Stadion Miejski, Kraków"
+                    autoFocus={showCustomLocation}
+                  />
+                  {showCustomLocation && recentLocations.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomLocation(false);
+                        setLocation(recentLocations[0]);
+                      }}
+                      className="text-[12px] font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      Wybierz z zapisanych
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

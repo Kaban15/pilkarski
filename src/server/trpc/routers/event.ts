@@ -231,6 +231,45 @@ export const eventRouter = router({
       return ctx.db.event.delete({ where: { id: input.id } });
     }),
 
+  recentLocations: protectedProcedure.query(async ({ ctx }) => {
+    const role = ctx.session.user.role;
+    let clubId: string | null = null;
+
+    if (role === "COACH") {
+      const membership = await ctx.db.clubMembership.findFirst({
+        where: { memberUserId: ctx.session.user.id, status: "ACCEPTED" },
+        select: { clubId: true },
+      });
+      clubId = membership?.clubId ?? null;
+    } else {
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      clubId = club?.id ?? null;
+    }
+
+    if (!clubId) return [];
+
+    const events = await ctx.db.event.findMany({
+      where: { clubId, location: { not: null } },
+      select: { location: true },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+
+    // Deduplicate and return unique locations, most recent first
+    const seen = new Set<string>();
+    const locations: string[] = [];
+    for (const e of events) {
+      if (e.location && !seen.has(e.location)) {
+        seen.add(e.location);
+        locations.push(e.location);
+      }
+    }
+    return locations;
+  }),
+
   list: publicProcedure
     .input(
       z.object({
