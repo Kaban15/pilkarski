@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
@@ -16,18 +16,6 @@ import {
 import { ImageUpload } from "@/components/image-upload";
 import { RegionLogo } from "@/components/region-logo";
 import { Pencil, Check, X, Trophy, MapPin } from "lucide-react";
-
-interface LeagueGroup {
-  id: number;
-  name: string;
-}
-
-interface LeagueLevel {
-  id: number;
-  name: string;
-  tier: number;
-  groups: LeagueGroup[];
-}
 
 interface ClubProfileFormProps {
   club: {
@@ -46,19 +34,176 @@ interface ClubProfileFormProps {
   regions: { id: number; name: string; slug: string }[];
 }
 
+/* ── Inline editable field ── */
+function EditableField({
+  label,
+  value,
+  placeholder,
+  type = "text",
+  onSave,
+  isPending,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  type?: string;
+  onSave: (v: string) => void;
+  isPending: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  function save() {
+    onSave(draft);
+    setEditing(false);
+  }
+
+  function cancel() {
+    setDraft(value);
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="space-y-1.5">
+        <Label>{label}</Label>
+        <div className="flex items-center gap-2">
+          <Input
+            ref={inputRef}
+            type={type}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); save(); }
+              if (e.key === "Escape") cancel();
+            }}
+            className="flex-1"
+          />
+          <button
+            onClick={save}
+            disabled={isPending}
+            className="shrink-0 rounded-md p-1.5 text-emerald-500 hover:bg-emerald-500/10"
+          >
+            <Check className="h-4 w-4" />
+          </button>
+          <button
+            onClick={cancel}
+            className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-muted-foreground">{label}</Label>
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="group flex w-full items-center justify-between rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted/50"
+      >
+        <span className={value ? "text-sm" : "text-sm text-muted-foreground"}>
+          {value || placeholder || "—"}
+        </span>
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground/0 transition group-hover:text-muted-foreground" />
+      </button>
+    </div>
+  );
+}
+
+/* ── Editable textarea ── */
+function EditableTextarea({
+  label,
+  value,
+  placeholder,
+  onSave,
+  isPending,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onSave: (v: string) => void;
+  isPending: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  function save() {
+    onSave(draft);
+    setEditing(false);
+  }
+
+  function cancel() {
+    setDraft(value);
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="space-y-1.5">
+        <Label>{label}</Label>
+        <Textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={4}
+          autoFocus
+        />
+        <div className="flex gap-2">
+          <Button size="sm" variant="ghost" className="gap-1 text-xs text-emerald-500" onClick={save} disabled={isPending}>
+            <Check className="h-3.5 w-3.5" /> Zapisz
+          </Button>
+          <Button size="sm" variant="ghost" className="gap-1 text-xs text-muted-foreground" onClick={cancel}>
+            <X className="h-3.5 w-3.5" /> Anuluj
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-muted-foreground">{label}</Label>
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="group flex w-full items-start justify-between rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted/50"
+      >
+        <span className={value ? "whitespace-pre-wrap text-sm" : "text-sm text-muted-foreground"}>
+          {value || placeholder || "—"}
+        </span>
+        <Pencil className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/0 transition group-hover:text-muted-foreground" />
+      </button>
+    </div>
+  );
+}
+
+/* ── Main component ── */
 export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const [logoUrl, setLogoUrl] = useState<string | null>(club.logoUrl);
 
-  // Cascading state
+  // Field values (kept in sync after save)
+  const [name, setName] = useState(club.name);
+  const [city, setCity] = useState(club.city ?? "");
+  const [contactEmail, setContactEmail] = useState(club.contactEmail ?? "");
+  const [contactPhone, setContactPhone] = useState(club.contactPhone ?? "");
+  const [website, setWebsite] = useState(club.website ?? "");
+  const [description, setDescription] = useState(club.description ?? "");
+
+  // Region / league state
   const [regionId, setRegionId] = useState<number | null>(club.regionId);
   const [leagueLevelId, setLeagueLevelId] = useState<number | null>(
     club.leagueGroup?.leagueLevel.id ?? null
   );
   const [leagueGroupId, setLeagueGroupId] = useState<number | null>(club.leagueGroupId);
-
-  // Edit mode for region/league section
   const [editingLeague, setEditingLeague] = useState(false);
-  // Saved snapshot for cancel
   const [savedRegionId, setSavedRegionId] = useState(regionId);
   const [savedLevelId, setSavedLevelId] = useState(leagueLevelId);
   const [savedGroupId, setSavedGroupId] = useState(leagueGroupId);
@@ -68,7 +213,6 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     { enabled: !!regionId }
   );
 
-  // Reset cascading fields when region changes
   useEffect(() => {
     if (!regionId) {
       setLeagueLevelId(null);
@@ -77,7 +221,6 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   }, [regionId]);
 
   const selectedLevel = hierarchy.find((l) => l.id === leagueLevelId);
-
   const currentRegion = regions.find((r) => r.id === regionId);
   const currentLevelName =
     hierarchy.find((l) => l.id === leagueLevelId)?.name ??
@@ -85,6 +228,27 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const currentGroupName =
     (selectedLevel?.groups ?? []).find((g) => g.id === leagueGroupId)?.name ??
     club.leagueGroup?.name;
+
+  const updateMut = api.club.update.useMutation({
+    onSuccess: () => toast.success("Zapisano"),
+    onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
+  });
+
+  /** Save all current values */
+  function save(overrides: Record<string, unknown> = {}) {
+    updateMut.mutate({
+      name,
+      logoUrl: logoUrl ?? undefined,
+      description: description || undefined,
+      city: city || undefined,
+      regionId: regionId ?? undefined,
+      leagueGroupId: leagueGroupId ?? undefined,
+      contactEmail: contactEmail || undefined,
+      contactPhone: contactPhone || undefined,
+      website: website || undefined,
+      ...overrides,
+    });
+  }
 
   function startEditLeague() {
     setSavedRegionId(regionId);
@@ -102,39 +266,23 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
 
   function confirmEditLeague() {
     setEditingLeague(false);
+    save({
+      regionId: regionId ?? undefined,
+      leagueGroupId: leagueGroupId ?? undefined,
+    });
   }
 
-  const updateMut = api.club.update.useMutation({
-    onSuccess: () => toast.success("Profil klubu zapisany"),
-    onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
-  });
-
+  // Progress
   const profileFields = [
-    { key: "regionId", label: "Region", filled: !!club.regionId },
-    { key: "city", label: "Miasto", filled: !!club.city },
-    { key: "logoUrl", label: "Logo", filled: !!club.logoUrl },
-    { key: "description", label: "Opis", filled: !!club.description },
-    { key: "contactEmail", label: "E-mail kontaktowy", filled: !!club.contactEmail },
-    { key: "leagueGroupId", label: "Liga", filled: !!club.leagueGroupId },
+    { key: "regionId", label: "Region", filled: !!regionId },
+    { key: "city", label: "Miasto", filled: !!city },
+    { key: "logoUrl", label: "Logo", filled: !!logoUrl },
+    { key: "description", label: "Opis", filled: !!description },
+    { key: "contactEmail", label: "E-mail kontaktowy", filled: !!contactEmail },
+    { key: "leagueGroupId", label: "Liga", filled: !!leagueGroupId },
   ];
   const filledCount = profileFields.filter((f) => f.filled).length;
   const progress = Math.round((filledCount / profileFields.length) * 100);
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    updateMut.mutate({
-      name: fd.get("name") as string,
-      logoUrl: logoUrl ?? undefined,
-      description: (fd.get("description") as string) || undefined,
-      city: (fd.get("city") as string) || undefined,
-      regionId: regionId ?? undefined,
-      leagueGroupId: leagueGroupId ?? undefined,
-      contactEmail: (fd.get("contactEmail") as string) || undefined,
-      contactPhone: (fd.get("contactPhone") as string) || undefined,
-      website: (fd.get("website") as string) || undefined,
-    });
-  }
 
   return (
     <>
@@ -142,36 +290,24 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         <Card className="mb-6 border-primary/20">
           <CardContent className="py-4">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-medium">
-                Profil uzupełniony w {progress}%
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {filledCount} z {profileFields.length}
-              </p>
+              <p className="text-sm font-medium">Profil uzupełniony w {progress}%</p>
+              <p className="text-xs text-muted-foreground">{filledCount} z {profileFields.length}</p>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${progress}%` }}
-              />
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {profileFields
-                .filter((f) => !f.filled)
-                .map((f) => (
-                  <span
-                    key={f.key}
-                    className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400"
-                  >
-                    {f.label}
-                  </span>
-                ))}
+              {profileFields.filter((f) => !f.filled).map((f) => (
+                <span key={f.key} className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+                  {f.label}
+                </span>
+              ))}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Region & League Card */}
+      {/* ── Region & League ── */}
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -180,25 +316,21 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
           </CardTitle>
           {!editingLeague ? (
             <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={startEditLeague}>
-              <Pencil className="h-3.5 w-3.5" />
-              Edytuj
+              <Pencil className="h-3.5 w-3.5" /> Edytuj
             </Button>
           ) : (
             <div className="flex gap-1.5">
               <Button variant="ghost" size="sm" className="gap-1 text-xs text-emerald-600" onClick={confirmEditLeague}>
-                <Check className="h-3.5 w-3.5" />
-                OK
+                <Check className="h-3.5 w-3.5" /> Zapisz
               </Button>
               <Button variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground" onClick={cancelEditLeague}>
-                <X className="h-3.5 w-3.5" />
-                Anuluj
+                <X className="h-3.5 w-3.5" /> Anuluj
               </Button>
             </div>
           )}
         </CardHeader>
         <CardContent>
           {!editingLeague ? (
-            /* Display mode */
             <div className="flex items-center gap-4">
               {currentRegion ? (
                 <RegionLogo slug={currentRegion.slug} name={currentRegion.name} size={48} />
@@ -213,8 +345,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                     <p className="text-sm font-semibold">{currentRegion.name}</p>
                     {currentLevelName ? (
                       <p className="text-[13px] text-muted-foreground">
-                        {currentLevelName}
-                        {currentGroupName && ` — ${currentGroupName}`}
+                        {currentLevelName}{currentGroupName && ` — ${currentGroupName}`}
                       </p>
                     ) : (
                       <p className="text-[12px] text-muted-foreground">Szczebel ligowy nie ustawiony</p>
@@ -223,21 +354,15 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">Brak regionu</p>
-                    <p className="text-[12px] text-muted-foreground">
-                      Kliknij „Edytuj", aby ustawić region i ligę
-                    </p>
+                    <p className="text-[12px] text-muted-foreground">Kliknij „Edytuj", aby ustawić region i ligę</p>
                   </>
                 )}
               </div>
             </div>
           ) : (
-            /* Edit mode */
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label>Region (ZPN)</Label>
-                <p className="text-[11px] text-muted-foreground">
-                  Feed i sparingi filtrują po regionie
-                </p>
                 <select
                   value={regionId ?? ""}
                   onChange={(e) => {
@@ -250,13 +375,10 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                 >
                   <option value="">Wybierz region</option>
                   {regions.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
+                    <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
                 </select>
               </div>
-
               {regionId && hierarchy.length > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
@@ -272,28 +394,21 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                     >
                       <option value="">Wybierz szczebel</option>
                       {hierarchy.map((l) => (
-                        <option key={l.id} value={l.id}>
-                          {l.name}
-                        </option>
+                        <option key={l.id} value={l.id}>{l.name}</option>
                       ))}
                     </select>
                   </div>
-
                   {selectedLevel && selectedLevel.groups.length > 0 && (
                     <div className="space-y-1.5">
                       <Label>Grupa</Label>
                       <select
                         value={leagueGroupId ?? ""}
-                        onChange={(e) =>
-                          setLeagueGroupId(e.target.value ? Number(e.target.value) : null)
-                        }
+                        onChange={(e) => setLeagueGroupId(e.target.value ? Number(e.target.value) : null)}
                         className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <option value="">Wybierz grupę</option>
                         {selectedLevel.groups.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.name}
-                          </option>
+                          <option key={g.id} value={g.id}>{g.name}</option>
                         ))}
                       </select>
                     </div>
@@ -305,70 +420,69 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         </CardContent>
       </Card>
 
+      {/* ── Club Profile ── */}
       <Card>
-      <CardHeader>
-        <CardTitle>Profil klubu</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <CardHeader>
+          <CardTitle>Profil klubu</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
           <ImageUpload
             currentUrl={logoUrl}
             folder="clubs"
             entityId={club.id}
-            onUploaded={setLogoUrl}
+            onUploaded={(url) => {
+              setLogoUrl(url);
+              save({ logoUrl: url });
+            }}
           />
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nazwa klubu</Label>
-              <Input id="name" name="name" defaultValue={club.name} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="city">Miasto</Label>
-              <Input id="city" name="city" defaultValue={club.city ?? ""} />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">E-mail kontaktowy</Label>
-              <Input
-                id="contactEmail"
-                name="contactEmail"
-                type="email"
-                defaultValue={club.contactEmail ?? ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Telefon</Label>
-              <Input
-                id="contactPhone"
-                name="contactPhone"
-                defaultValue={club.contactPhone ?? ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="website">Strona www</Label>
-              <Input
-                id="website"
-                name="website"
-                defaultValue={club.website ?? ""}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Opis</Label>
-            <Textarea
-              id="description"
-              name="description"
-              defaultValue={club.description ?? ""}
-              rows={4}
+          <div className="grid gap-x-6 gap-y-1 md:grid-cols-2">
+            <EditableField
+              label="Nazwa klubu"
+              value={name}
+              onSave={(v) => { setName(v); save({ name: v }); }}
+              isPending={updateMut.isPending}
+            />
+            <EditableField
+              label="Miasto"
+              value={city}
+              placeholder="np. Poznań"
+              onSave={(v) => { setCity(v); save({ city: v || undefined }); }}
+              isPending={updateMut.isPending}
+            />
+            <EditableField
+              label="E-mail kontaktowy"
+              value={contactEmail}
+              type="email"
+              placeholder="email@klub.pl"
+              onSave={(v) => { setContactEmail(v); save({ contactEmail: v || undefined }); }}
+              isPending={updateMut.isPending}
+            />
+            <EditableField
+              label="Telefon"
+              value={contactPhone}
+              placeholder="np. 600 100 200"
+              onSave={(v) => { setContactPhone(v); save({ contactPhone: v || undefined }); }}
+              isPending={updateMut.isPending}
+            />
+            <EditableField
+              label="Strona www"
+              value={website}
+              placeholder="https://..."
+              onSave={(v) => { setWebsite(v); save({ website: v || undefined }); }}
+              isPending={updateMut.isPending}
             />
           </div>
 
-          <Button type="submit" disabled={updateMut.isPending}>
-            {updateMut.isPending ? "Zapisywanie..." : "Zapisz profil"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <EditableTextarea
+            label="Opis"
+            value={description}
+            placeholder="Opisz swój klub..."
+            onSave={(v) => { setDescription(v); save({ description: v || undefined }); }}
+            isPending={updateMut.isPending}
+          />
+        </CardContent>
+      </Card>
     </>
   );
 }
