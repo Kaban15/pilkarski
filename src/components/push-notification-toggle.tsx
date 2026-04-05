@@ -80,22 +80,15 @@ export function PushNotificationToggle() {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon-xs"
       onClick={handleToggle}
       disabled={loading}
-      className="gap-1.5 text-xs"
       title={subscribed ? "Wyłącz powiadomienia push" : "Włącz powiadomienia push"}
     >
       {subscribed ? (
-        <>
-          <Bell className="h-3.5 w-3.5 text-primary" />
-          Push ON
-        </>
+        <Bell className="h-3.5 w-3.5 text-primary" />
       ) : (
-        <>
-          <BellOff className="h-3.5 w-3.5" />
-          Push OFF
-        </>
+        <BellOff className="h-3.5 w-3.5" />
       )}
     </Button>
   );
