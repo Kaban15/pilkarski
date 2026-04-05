@@ -69,7 +69,31 @@ limit: number (1-30, default 20)
 5. Strip `lookingForClub` from response before returning (privacy)
 6. Return array of players with: id, firstName, lastName, primaryPosition, region, club name (from accepted membership if exists)
 
-**Club membership join:** The Player model doesn't directly link to a Club. The link goes through `User → ClubMembership → Club`. Check `prisma/schema.prisma` for the `ClubMembership` model structure. If no membership model exists, players may not have club associations — in that case, skip club-based filtering and just show player data.
+**Club membership join:** The Player model has no direct club relation. The path is `Player → user → clubMemberships → club → leagueGroup → leagueLevel`. In Prisma this requires nested where/include:
+```
+where: {
+  user: {
+    clubMemberships: {
+      some: { status: "ACCEPTED", club: { leagueGroup: { leagueLevelId: ... } } }
+    }
+  }
+}
+```
+Include chain for displaying club name in results:
+```
+include: {
+  region: true,
+  user: {
+    include: {
+      clubMemberships: {
+        where: { status: "ACCEPTED" },
+        take: 1,
+        include: { club: { select: { name: true, city: true } } }
+      }
+    }
+  }
+}
+```
 
 ## Frontend
 
@@ -95,11 +119,10 @@ limit: number (1-30, default 20)
 ### Integration points
 
 **File:** `src/app/(dashboard)/events/[id]/page.tsx`
-- Add `<InvitePlayerDialog eventId={id} />` visible only when `isOwner === true`
+- Add `<InvitePlayerDialog eventId={id} />` visible only when user is the event owner
+- **Fix `isOwner` check:** Current code only checks `session?.user?.id === event.club?.userId` (club owners). Coach-created events set `event.coachId` but `isOwner` doesn't account for this. Fix to also check `session?.user?.id === event.coach?.userId` so coach-created trainings show the invite button.
 - Place after existing action buttons
-
-**File:** Training detail page (if exists as separate page)
-- Same pattern — add dialog for training owner
+- No separate training detail page exists — trainings are events with type `INDIVIDUAL_TRAINING` / `GROUP_TRAINING` and live at `/events/[id]`, so this single integration point covers both
 
 ## Data Flow
 
