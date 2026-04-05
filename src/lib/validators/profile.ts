@@ -33,6 +33,7 @@ export const updatePlayerSchema = z.object({
   bio: z.string().max(2000).optional(),
   facebookUrl: z.string().url().max(300).optional(),
   instagramUrl: z.string().url().max(300).optional(),
+  lookingForClub: z.boolean().optional(),
 });
 
 export const careerEntrySchema = z.object({

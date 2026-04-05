@@ -29,6 +29,7 @@ export const coachRouter = router({
         photoUrl: z.string().url().max(500).optional(),
         facebookUrl: z.string().url().max(300).optional(),
         instagramUrl: z.string().url().max(300).optional(),
+        lookingForClub: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -52,7 +53,8 @@ export const coachRouter = router({
       if (!coach) throw new TRPCError({ code: "NOT_FOUND" });
       let careerEntries: { id: string; clubName: string; season: string; role: string; level: string | null; notes: string | null; createdAt: Date }[] = [];
       try { careerEntries = await ctx.db.coachCareerEntry.findMany({ where: { coachId: input.id }, orderBy: { season: "desc" } }); } catch {}
-      return { ...coach, careerEntries };
+      const { lookingForClub: _, ...publicCoach } = coach;
+      return { ...publicCoach, careerEntries };
     }),
 
   list: publicProcedure
@@ -73,13 +75,15 @@ export const coachRouter = router({
         where.city = { contains: input.city, mode: "insensitive" };
       }
 
-      const items = await ctx.db.coach.findMany({
+      const rawItems = await ctx.db.coach.findMany({
         where,
         include: { region: true },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
         orderBy: { createdAt: "desc" },
       });
+
+      const items = rawItems.map(({ lookingForClub: _, ...c }) => c);
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
