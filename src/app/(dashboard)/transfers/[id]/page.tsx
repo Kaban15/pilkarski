@@ -103,7 +103,7 @@ export default function TransferDetailPage() {
             <Badge variant="secondary" className={TRANSFER_TYPE_COLORS[transfer.type]}>
               {TRANSFER_TYPE_LABELS[transfer.type]}
             </Badge>
-            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${TRANSFER_STATUS_COLORS[transfer.status]}`}>
+            <span className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold ${TRANSFER_STATUS_COLORS[transfer.status]}`}>
               {TRANSFER_STATUS_LABELS[transfer.status]}
             </span>
           </div>

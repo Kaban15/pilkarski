@@ -130,7 +130,7 @@ function BoardCard({
       draggable={draggable}
       onDragStart={onDragStart}
       className={`rounded-lg border border-border bg-card p-3 transition-all hover:border-primary/30 ${
-        draggable ? "cursor-grab active:cursor-grabbing active:shadow-md" : ""
+        draggable ? "cursor-grab active:cursor-grabbing" : ""
       }`}
     >
       <div className="flex items-start gap-3">

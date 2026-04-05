@@ -176,7 +176,7 @@ export default function TransfersPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map((t: any) => (
             <Link key={t.id} href={`/transfers/${t.id}`}>
-              <Card className="group border-l-[3px] border-l-cyan-500 transition hover:border-primary/50 hover:shadow-md">
+              <Card className="group border-l-[3px] border-l-cyan-500 transition hover:border-primary/50">
                 <CardContent className="py-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">

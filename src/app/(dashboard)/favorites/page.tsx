@@ -55,7 +55,7 @@ export default function FavoritesPage() {
             if (sparing) {
               return (
                 <Link key={fav.id} href={`/sparings/${sparing.id}`}>
-                  <Card className="transition hover:shadow-md">
+                  <Card className="transition hover:border-[#2f3336]">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">{sparing.title}</CardTitle>
@@ -68,7 +68,7 @@ export default function FavoritesPage() {
                       {sparing.location && <p>{sparing.location}</p>}
                       <div className="flex items-center justify-between pt-2">
                         <span className="text-xs text-muted-foreground">{sparing.region?.name}</span>
-                        <span className="rounded-full bg-blue-50 dark:bg-blue-950 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                        <span className="rounded-md bg-blue-50 dark:bg-blue-950 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
                           Sparing
                         </span>
                       </div>
@@ -81,7 +81,7 @@ export default function FavoritesPage() {
             if (event) {
               return (
                 <Link key={fav.id} href={`/events/${event.id}`}>
-                  <Card className="transition hover:shadow-md">
+                  <Card className="transition hover:border-[#2f3336]">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -94,7 +94,7 @@ export default function FavoritesPage() {
                       {event.location && <p>{event.location}</p>}
                       <div className="flex items-center justify-between pt-2">
                         <span className="text-xs text-muted-foreground">{event.region?.name}</span>
-                        <span className="rounded-full bg-purple-50 dark:bg-purple-950 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300">
+                        <span className="rounded-md bg-purple-50 dark:bg-purple-950 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300">
                           {EVENT_TYPE_LABELS[event.type]}
                         </span>
                       </div>
@@ -107,7 +107,7 @@ export default function FavoritesPage() {
             const clubPost = (fav as { clubPost?: { id: string; title: string; category: string; content: string | null; club: { id: string; name: string; city: string | null } } }).clubPost;
             if (clubPost) {
               return (
-                <Card key={fav.id} className="transition hover:shadow-md">
+                <Card key={fav.id} className="transition hover:border-[#2f3336]">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-lg">{clubPost.title}</CardTitle>
@@ -119,7 +119,7 @@ export default function FavoritesPage() {
                     {clubPost.content && <p className="line-clamp-2">{clubPost.content}</p>}
                     <div className="flex items-center justify-between pt-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${
                           CLUB_POST_CATEGORY_COLORS[clubPost.category] || "bg-muted text-muted-foreground"
                         }`}
                       >

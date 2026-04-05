@@ -80,7 +80,7 @@ export function SparingInfo({
               {sparing.title}
             </h1>
             <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${SPARING_STATUS_COLORS[sparing.status]}`}
+              className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold ${SPARING_STATUS_COLORS[sparing.status]}`}
             >
               {SPARING_STATUS_LABELS[sparing.status]}
             </span>

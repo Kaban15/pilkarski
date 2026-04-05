@@ -86,7 +86,7 @@ export default async function CoachProfilePage({ params }: Props) {
               <img
                 src={coach.photoUrl}
                 alt={name}
-                className="h-28 w-28 rounded-full border-4 border-white/20 object-cover shadow-xl sm:h-32 sm:w-32"
+                className="h-28 w-28 rounded-full border-4 border-white/20 object-cover sm:h-32 sm:w-32"
               />
             ) : (
               <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-3xl font-bold text-white sm:h-32 sm:w-32">

@@ -37,7 +37,7 @@ export default async function LeaguesPage() {
             Menu główne
           </Link>
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 shadow-lg shadow-violet-500/25">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500">
               <Trophy className="h-7 w-7 text-white" />
             </div>
             <div>

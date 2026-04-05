@@ -86,10 +86,10 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
               <img
                 src={player.photoUrl}
                 alt={`${player.firstName} ${player.lastName}`}
-                className="h-24 w-24 rounded-2xl border-2 border-white/20 object-cover shadow-lg sm:h-28 sm:w-28"
+                className="h-24 w-24 rounded-2xl border-2 border-white/20 object-cover sm:h-28 sm:w-28"
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-3xl font-bold text-white shadow-lg sm:h-28 sm:w-28">
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-3xl font-bold text-white sm:h-28 sm:w-28">
                 {player.firstName.charAt(0)}{player.lastName.charAt(0)}
               </div>
             )}
@@ -137,7 +137,7 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
         {stats.length > 0 && (
           <div className="-mt-12 mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {stats.map((stat) => (
-              <Card key={stat.label} className="text-center shadow-md">
+              <Card key={stat.label} className="text-center">
                 <CardContent className="py-4">
                   <stat.icon className="mx-auto mb-1.5 h-5 w-5 text-muted-foreground" />
                   <p className="text-lg font-bold">{stat.value}</p>

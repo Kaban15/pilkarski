@@ -68,7 +68,7 @@ function LoginForm() {
           </Link>
         </div>
 
-        <Card className="shadow-lg">
+        <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Witaj z powrotem</CardTitle>
             <CardDescription>Zaloguj się do swojego konta</CardDescription>

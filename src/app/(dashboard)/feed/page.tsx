@@ -225,7 +225,7 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
         const value = (stats as unknown as Record<string, number>)[c.key] ?? 0;
         return (
           <Link key={c.key} href={c.href}>
-            <div className="flex items-center gap-3 rounded-xl border bg-gradient-to-r from-violet-500/10 to-sky-500/10 border-violet-500/20 px-4 py-3 transition-all hover:border-primary/30 hover:shadow-sm">
+            <div className="flex items-center gap-3 rounded-xl border bg-gradient-to-r from-violet-500/10 to-sky-500/10 border-violet-500/20 px-4 py-3 transition-all hover:border-primary/30">
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${c.bg}`}>
                 <c.icon className={`h-4 w-4 ${c.color}`} />
               </div>

@@ -55,7 +55,7 @@ function RecommendedTrainings() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((t) => (
           <Link key={t.id} href={`/events/${t.id}`}>
-            <Card className="h-full transition-all hover:border-primary/30 hover:shadow-sm">
+            <Card className="h-full transition-all hover:border-primary/30">
               <CardContent className="p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <Badge variant="secondary" className="text-[10px]">

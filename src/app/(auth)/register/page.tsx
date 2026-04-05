@@ -88,7 +88,7 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <Card className="shadow-lg">
+        <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Dołącz do PilkaSport</CardTitle>
             <CardDescription>Wybierz typ konta i zarejestruj się</CardDescription>

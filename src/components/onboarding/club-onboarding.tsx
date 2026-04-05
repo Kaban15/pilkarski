@@ -234,7 +234,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Link href="/sparings/new" className="group">
-                  <Card className="h-full border-2 border-emerald-200 transition-all hover:border-emerald-400 hover:shadow-md dark:border-emerald-800 dark:hover:border-emerald-600">
+                  <Card className="h-full border-2 border-emerald-200 transition-all hover:border-emerald-400 hover:border-opacity-100 dark:border-emerald-800 dark:hover:border-emerald-600">
                     <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10">
                         <Swords className="h-7 w-7 text-emerald-500" />
@@ -251,7 +251,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                   </Card>
                 </Link>
                 <Link href="/events/new" className="group">
-                  <Card className="h-full border-2 border-violet-200 transition-all hover:border-violet-400 hover:shadow-md dark:border-violet-800 dark:hover:border-violet-600">
+                  <Card className="h-full border-2 border-violet-200 transition-all hover:border-violet-400 hover:border-opacity-100 dark:border-violet-800 dark:hover:border-violet-600">
                     <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/10">
                         <Trophy className="h-7 w-7 text-violet-500" />

@@ -66,7 +66,7 @@ export default function MessagesPage() {
 
             return (
               <Link key={conv.id} href={`/messages/${conv.id}`} className="group block">
-                <Card className="transition-all hover:shadow-md hover:-translate-y-0.5">
+                <Card className="transition-all">
                   <CardContent className="flex items-center gap-4 py-4">
                     <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
                       isClub

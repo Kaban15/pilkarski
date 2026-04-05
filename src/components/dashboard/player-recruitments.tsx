@@ -40,7 +40,7 @@ export function PlayerRecruitments() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data.items.map((event) => (
           <Link key={event.id} href={`/events/${event.id}`} className="group block">
-            <Card className="h-full border-l-[3px] border-l-amber-500 transition-all hover:shadow-md hover:-translate-y-0.5">
+            <Card className="h-full border-l-[3px] border-l-amber-500 transition-all">
               <CardContent className="py-3">
                 <div className="mb-2 flex items-start gap-2">
                   {event.club?.logoUrl ? (

@@ -121,7 +121,7 @@ export function Sidebar({ user }: SidebarProps) {
         />
         <span className="flex-1 truncate">{item.label}</span>
         {badge > 0 && (
-          <span className="pulse-dot flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-1.5 text-[10px] font-bold text-white shadow-lg shadow-violet-500/30">
+          <span className="pulse-dot flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-1.5 text-[10px] font-bold text-white">
             {badge > 99 ? "99+" : badge}
           </span>
         )}
@@ -140,7 +140,7 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* Logo header */}
       <div className="relative flex h-16 items-center gap-3 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-sm font-black text-white shadow-lg shadow-violet-500/25">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-sm font-black text-white">
           PS
         </div>
         <div>

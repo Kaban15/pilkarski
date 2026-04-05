@@ -216,10 +216,10 @@ export default async function ClubPublicProfilePage({ params }: Props) {
               <img
                 src={club.logoUrl}
                 alt={club.name}
-                className="h-24 w-24 rounded-2xl border-2 border-white/20 object-cover shadow-lg sm:h-28 sm:w-28 shrink-0"
+                className="h-24 w-24 rounded-2xl border-2 border-white/20 object-cover sm:h-28 sm:w-28 shrink-0"
               />
             ) : (
-              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-4xl font-bold text-white shadow-lg sm:h-28 sm:w-28">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-4xl font-bold text-white sm:h-28 sm:w-28">
                 {club.name.charAt(0)}
               </div>
             )}
