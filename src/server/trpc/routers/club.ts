@@ -3,6 +3,19 @@ import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { updateClubSchema } from "@/lib/validators/profile";
 import { TRPCError } from "@trpc/server";
 
+function getMatchTier(
+  club: { regionId: number | null; leagueGroup: { leagueLevelId: number } | null },
+  targetLevelId: number | undefined | null,
+  targetRegionId: number | undefined | null,
+): number {
+  const sameLevel = targetLevelId != null && club.leagueGroup?.leagueLevelId === targetLevelId;
+  const sameRegion = targetRegionId != null && club.regionId === targetRegionId;
+  if (sameLevel && sameRegion) return 1;
+  if (sameLevel) return 2;
+  if (sameRegion) return 3;
+  return 4;
+}
+
 export const clubRouter = router({
   // Get own club profile
   me: protectedProcedure.query(async ({ ctx }) => {
@@ -51,6 +64,7 @@ export const clubRouter = router({
         search: z.string().max(100).optional(),
         cursor: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(50).default(20),
+        prioritizeForClubId: z.string().uuid().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -64,14 +78,36 @@ export const clubRouter = router({
       if (input.search) {
         where.name = { contains: input.search, mode: "insensitive" };
       }
+      if (input.prioritizeForClubId) {
+        where.id = { not: input.prioritizeForClubId };
+      }
 
-      const clubs = await ctx.db.club.findMany({
+      let clubs = await ctx.db.club.findMany({
         where: Object.keys(where).length > 0 ? where : undefined,
         include: { region: true, leagueGroup: { include: { leagueLevel: true } } },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
         orderBy: { createdAt: "desc" },
       });
+
+      // Priority sorting: same league level + region first
+      if (input.prioritizeForClubId && !input.cursor) {
+        const myClub = await ctx.db.club.findUnique({
+          where: { id: input.prioritizeForClubId },
+          include: { leagueGroup: { include: { leagueLevel: true } } },
+        });
+        if (myClub) {
+          const myLevelId = myClub.leagueGroup?.leagueLevelId;
+          const myRegionId = myClub.regionId;
+
+          clubs.sort((a, b) => {
+            const aTier = getMatchTier(a, myLevelId, myRegionId);
+            const bTier = getMatchTier(b, myLevelId, myRegionId);
+            if (aTier !== bTier) return aTier - bTier;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+        }
+      }
 
       let nextCursor: string | undefined;
       if (clubs.length > input.limit) {
