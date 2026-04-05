@@ -113,8 +113,8 @@ export default async function LandingPage() {
         {/* Animated blobs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-violet-500/[0.12] blur-[80px] animate-[blob-1_8s_ease-in-out_infinite]" />
-          <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-sky-500/[0.10] blur-[80px] animate-[blob-2_10s_ease-in-out_infinite]" />
-          <div className="absolute bottom-1/4 left-1/3 h-56 w-56 rounded-full bg-emerald-500/[0.08] blur-[80px] animate-[blob-3_12s_ease-in-out_infinite]" />
+          <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-[#06B6D4]/[0.12] blur-[80px] animate-[blob-2_10s_ease-in-out_infinite]" />
+          <div className="absolute bottom-1/4 left-1/3 h-56 w-56 rounded-full bg-[#FACC15]/[0.06] blur-[80px] animate-[blob-3_12s_ease-in-out_infinite]" />
         </div>
 
         <div className="mx-auto max-w-6xl px-5 pb-20 pt-24 sm:px-8 sm:pb-28 sm:pt-32 lg:pt-40">
@@ -141,7 +141,7 @@ export default async function LandingPage() {
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/register"
-                className="group flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-sky-500 px-7 py-3 text-[14px] font-semibold text-white transition-all hover:from-violet-600 hover:to-sky-600 hover:shadow-[0_0_24px_rgba(139,92,246,0.3)]"
+                className="group flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-sky-500 px-7 py-3 text-[14px] font-semibold text-white transition-all hover:from-violet-600 hover:to-sky-600 hover:shadow-[0_0_24px_rgba(6,182,212,0.3)]"
               >
                 Zarejestruj się za darmo
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -167,7 +167,7 @@ export default async function LandingPage() {
               { value: String(events || "0"), label: "wydarzeń" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <p className="text-3xl font-bold tabular-nums tracking-tight text-violet-400 sm:text-4xl">
+                <p className="text-3xl font-bold tabular-nums tracking-tight text-sport-cyan sm:text-4xl">
                   {stat.value}
                 </p>
                 <p className="mt-1 text-[13px] font-medium uppercase tracking-widest text-white/30">
@@ -186,7 +186,7 @@ export default async function LandingPage() {
             <p className="mb-3 text-[13px] font-semibold uppercase tracking-widest text-violet-400">
               Funkcje
             </p>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl sport-heading">
               Wszystko czego potrzebuje Twój klub
             </h2>
           </div>
@@ -222,7 +222,7 @@ export default async function LandingPage() {
               <p className="mb-3 text-[13px] font-semibold uppercase tracking-widest text-violet-400">
                 Jak to działa
               </p>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl sport-heading">
                 Trzy kroki do sparingu
               </h2>
             </div>
@@ -268,7 +268,7 @@ export default async function LandingPage() {
               <p className="mb-3 text-[13px] font-semibold uppercase tracking-widest text-violet-400">
                 Dla kogo
               </p>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl sport-heading">
                 Trzy role, jeden cel
               </h2>
             </div>
@@ -328,7 +328,7 @@ export default async function LandingPage() {
         <section className="border-t border-white/[0.06]">
           <div className="relative mx-auto max-w-6xl px-5 py-24 text-center sm:px-8 sm:py-32">
             {/* Glow */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-violet-500/[0.04] to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#06B6D4]/[0.06] to-transparent" />
 
             <h2 className="relative mb-4 text-2xl font-bold tracking-tight sm:text-3xl">
               Szukasz rywala na sparing?
