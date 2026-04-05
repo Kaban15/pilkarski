@@ -10,6 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
 import { isClubMember } from "@/server/is-club-member";
+import { getUserClubId } from "@/server/get-user-club-id";
 
 export const eventRouter = router({
   // Create event (club only)
@@ -232,23 +233,7 @@ export const eventRouter = router({
     }),
 
   recentLocations: protectedProcedure.query(async ({ ctx }) => {
-    const role = ctx.session.user.role;
-    let clubId: string | null = null;
-
-    if (role === "COACH") {
-      const membership = await ctx.db.clubMembership.findFirst({
-        where: { memberUserId: ctx.session.user.id, status: "ACCEPTED" },
-        select: { clubId: true },
-      });
-      clubId = membership?.clubId ?? null;
-    } else {
-      const club = await ctx.db.club.findUnique({
-        where: { userId: ctx.session.user.id },
-        select: { id: true },
-      });
-      clubId = club?.id ?? null;
-    }
-
+    const clubId = await getUserClubId(ctx.db, ctx.session.user.id, ctx.session.user.role);
     if (!clubId) return [];
 
     const events = await ctx.db.event.findMany({
@@ -276,23 +261,7 @@ export const eventRouter = router({
       newLocation: z.string().min(1).max(300),
     }))
     .mutation(async ({ ctx, input }) => {
-      const role = ctx.session.user.role;
-      let clubId: string | null = null;
-
-      if (role === "COACH") {
-        const membership = await ctx.db.clubMembership.findFirst({
-          where: { memberUserId: ctx.session.user.id, status: "ACCEPTED" },
-          select: { clubId: true },
-        });
-        clubId = membership?.clubId ?? null;
-      } else {
-        const club = await ctx.db.club.findUnique({
-          where: { userId: ctx.session.user.id },
-          select: { id: true },
-        });
-        clubId = club?.id ?? null;
-      }
-
+      const clubId = await getUserClubId(ctx.db, ctx.session.user.id, ctx.session.user.role);
       if (!clubId) throw new TRPCError({ code: "FORBIDDEN" });
 
       await ctx.db.event.updateMany({

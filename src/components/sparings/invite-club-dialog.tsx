@@ -70,7 +70,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
       leagueGroupId: leagueGroupId ?? undefined,
       limit: 10,
     },
-    { enabled: open && search.length < 2 && (!!regionId || !!leagueGroupId) },
+    { enabled: open && search.length < 2 && !!regionId },
   );
 
   const clubs =

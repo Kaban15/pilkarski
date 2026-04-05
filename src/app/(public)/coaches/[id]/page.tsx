@@ -13,10 +13,9 @@ import {
   Award,
   User,
   Briefcase,
-  Facebook,
-  Instagram,
 } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
+import { SocialLinks } from "@/components/social-links";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -112,16 +111,7 @@ export default async function CoachProfilePage({ params }: Props) {
               <div className="mt-3 flex items-center justify-center gap-2 sm:justify-start">
                 <ProfileMessageButton recipientUserId={coach.userId} />
                 <ClubInviteButton targetUserId={coach.userId} />
-                {coach.facebookUrl && (
-                  <a href={coach.facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20">
-                    <Facebook className="h-4 w-4" />
-                  </a>
-                )}
-                {coach.instagramUrl && (
-                  <a href={coach.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white transition hover:bg-white/20">
-                    <Instagram className="h-4 w-4" />
-                  </a>
-                )}
+                <SocialLinks facebookUrl={coach.facebookUrl} instagramUrl={coach.instagramUrl} />
               </div>
             </div>
           </div>

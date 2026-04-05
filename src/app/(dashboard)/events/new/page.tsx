@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ export default function NewEventPage() {
   const utils = api.useUtils();
 
   const { data: recentLocations = [] } = api.event.recentLocations.useQuery(undefined, {
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   });
 
   const updateLocMut = api.event.updateLocation.useMutation({
@@ -58,12 +58,24 @@ export default function NewEventPage() {
     onError: () => toast.error("Nie udało się zaktualizować"),
   });
 
+  function saveEditedLoc(oldLoc: string) {
+    const trimmed = editingLocDraft.trim();
+    if (trimmed && trimmed !== oldLoc) {
+      updateLocMut.mutate({ oldLocation: oldLoc, newLocation: trimmed });
+      if (location === oldLoc) setLocation(trimmed);
+    } else {
+      setEditingLoc(null);
+    }
+  }
+
   // Auto-set last location on load
   const [autoSet, setAutoSet] = useState(false);
-  if (!autoSet && recentLocations.length > 0 && !location) {
-    setLocation(recentLocations[0]);
-    setAutoSet(true);
-  }
+  useEffect(() => {
+    if (!autoSet && recentLocations.length > 0 && !location) {
+      setLocation(recentLocations[0]);
+      setAutoSet(true);
+    }
+  }, [recentLocations, autoSet, location]);
 
   // PLAYER cannot create events
   if (isPlayer) {
@@ -264,28 +276,13 @@ export default function NewEventPage() {
                               className="h-8 flex-1 text-[12px]"
                               autoFocus
                               onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  if (editingLocDraft.trim() && editingLocDraft !== loc) {
-                                    updateLocMut.mutate({ oldLocation: loc, newLocation: editingLocDraft.trim() });
-                                    if (location === loc) setLocation(editingLocDraft.trim());
-                                  } else {
-                                    setEditingLoc(null);
-                                  }
-                                }
+                                if (e.key === "Enter") { e.preventDefault(); saveEditedLoc(loc); }
                                 if (e.key === "Escape") setEditingLoc(null);
                               }}
                             />
                             <button
                               type="button"
-                              onClick={() => {
-                                if (editingLocDraft.trim() && editingLocDraft !== loc) {
-                                  updateLocMut.mutate({ oldLocation: loc, newLocation: editingLocDraft.trim() });
-                                  if (location === loc) setLocation(editingLocDraft.trim());
-                                } else {
-                                  setEditingLoc(null);
-                                }
-                              }}
+                              onClick={() => saveEditedLoc(loc)}
                               disabled={updateLocMut.isPending}
                               className="shrink-0 rounded-md p-1 text-emerald-500 hover:bg-emerald-500/10"
                             >
