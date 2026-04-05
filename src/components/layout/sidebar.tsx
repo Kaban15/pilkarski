@@ -103,20 +103,20 @@ export function Sidebar({ user }: SidebarProps) {
         key={item.href}
         href={item.href}
         onClick={onClick}
-        className={`group relative flex h-[42px] items-center gap-3 rounded-xl px-4 text-[13px] font-medium transition-all duration-200 ${
+        className={`group relative flex h-[50px] items-center gap-4 rounded-xl px-4 text-[15px] font-medium transition-all duration-200 ${
           isActive
-            ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
-            : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
+            ? "bg-white/[0.08] text-white font-bold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+            : "text-white/60 hover:bg-white/[0.06] hover:text-white"
         }`}
       >
         {isActive && (
           <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-primary to-sport-cyan" />
         )}
         <item.icon
-          className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+          className={`h-6 w-6 shrink-0 transition-colors duration-200 ${
             isActive
               ? "text-sport-cyan"
-              : "text-white/30 group-hover:text-white/60"
+              : "text-white/40 group-hover:text-white/70"
           }`}
         />
         <span className="flex-1 truncate">{item.label}</span>
@@ -164,17 +164,17 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="relative">
             <button
               onClick={() => setMoreOpen(!moreOpen)}
-              className={`group relative flex h-[42px] w-full items-center gap-3 rounded-xl px-4 text-[13px] font-medium transition-all duration-200 ${
+              className={`group relative flex h-[50px] w-full items-center gap-4 rounded-xl px-4 text-[15px] font-medium transition-all duration-200 ${
                 moreOpen || moreHasActive
                   ? "bg-white/[0.08] text-white"
-                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
+                  : "text-white/60 hover:bg-white/[0.06] hover:text-white"
               }`}
             >
               <MoreHorizontal
-                className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+                className={`h-6 w-6 shrink-0 transition-colors duration-200 ${
                   moreOpen || moreHasActive
                     ? "text-sport-cyan"
-                    : "text-white/30 group-hover:text-white/60"
+                    : "text-white/40 group-hover:text-white/70"
                 }`}
               />
               <span className="flex-1 truncate text-left">Więcej</span>
@@ -186,9 +186,9 @@ export function Sidebar({ user }: SidebarProps) {
                 {/* Backdrop */}
                 <div className="fixed inset-0 z-40" onClick={() => setMoreOpen(false)} />
 
-                {/* Popup */}
-                <div className="absolute bottom-0 left-full z-50 ml-2 w-56 rounded-xl border border-white/[0.08] bg-[#0b1120] p-2 shadow-2xl shadow-black/50">
-                  <div className="space-y-0.5">
+                {/* Popup — positioned above the button */}
+                <div className="absolute bottom-full left-0 z-50 mb-2 w-full rounded-2xl border border-white/[0.08] bg-[#111827] p-2 shadow-2xl shadow-black/60">
+                  <div className="space-y-0.5 max-h-[60vh] overflow-y-auto">
                     {moreItems.map((item) =>
                       renderNavLink(item, () => setMoreOpen(false))
                     )}
