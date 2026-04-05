@@ -57,6 +57,49 @@ export const transferRouter = router({
         }).catch(() => {});
       }
 
+      // Notify players/coaches looking for club when club seeks players (fire-and-forget)
+      if (input.type === "LOOKING_FOR_PLAYER" && input.regionId) {
+        const clubName = user?.club?.name ?? input.title;
+        const playerWhere: Record<string, unknown> = { regionId: input.regionId, lookingForClub: true };
+        if (input.position) {
+          playerWhere.primaryPosition = input.position;
+        }
+
+        ctx.db.player.findMany({
+          where: playerWhere,
+          select: { userId: true },
+          take: 50,
+        }).then((players: { userId: string }[]) => {
+          if (players.length === 0) return;
+          ctx.db.notification.createMany({
+            data: players.map((p: { userId: string }) => ({
+              userId: p.userId,
+              type: "RECRUITMENT_MATCH" as const,
+              title: `${clubName} szuka zawodnika w Twoim regionie`,
+              message: input.title,
+              link: `/transfers/${transfer.id}`,
+            })),
+          }).catch(() => {});
+        }).catch(() => {});
+
+        ctx.db.coach.findMany({
+          where: { regionId: input.regionId, lookingForClub: true },
+          select: { userId: true },
+          take: 50,
+        }).then((coaches: { userId: string }[]) => {
+          if (coaches.length === 0) return;
+          ctx.db.notification.createMany({
+            data: coaches.map((c: { userId: string }) => ({
+              userId: c.userId,
+              type: "RECRUITMENT_MATCH" as const,
+              title: `${clubName} szuka zawodnika w Twoim regionie`,
+              message: input.title,
+              link: `/transfers/${transfer.id}`,
+            })),
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+
       return transfer;
     }),
 
