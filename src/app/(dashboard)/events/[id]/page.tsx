@@ -53,6 +53,7 @@ export default function EventDetailPage() {
   const { data: session } = useSession();
   const [message, setMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [justApplied, setJustApplied] = useState(false);
 
   const utils = api.useUtils();
   const { data: event } = api.event.getById.useQuery({ id }, { enabled: !!id });
@@ -64,6 +65,7 @@ export default function EventDetailPage() {
 
   const applyMut = api.event.applyFor.useMutation({
     onSuccess: () => {
+      setJustApplied(true);
       utils.event.getById.invalidate({ id });
       setMessage("");
       toast.success("Zgłoszenie wysłane");
@@ -287,9 +289,23 @@ export default function EventDetailPage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
-              <Button onClick={() => applyMut.mutate({ eventId: id, message: message || undefined })} disabled={applyMut.isPending} className="gap-1.5">
-                <Send className="h-4 w-4" />
-                {applyMut.isPending ? "Wysyłanie..." : "Zgłoś się"}
+              <Button
+                onClick={() => applyMut.mutate({ eventId: id, message: message || undefined })}
+                disabled={applyMut.isPending || justApplied}
+                variant={justApplied ? "secondary" : "default"}
+                className={`gap-1.5 ${justApplied ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : ""}`}
+              >
+                {justApplied ? (
+                  <>
+                    <svg className="h-4 w-4 check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                    Zgłoszono
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    {applyMut.isPending ? "Wysyłanie..." : "Zgłoś się"}
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
