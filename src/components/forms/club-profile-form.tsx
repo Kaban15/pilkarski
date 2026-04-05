@@ -14,6 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ImageUpload } from "@/components/image-upload";
+import { RegionLogo } from "@/components/region-logo";
+import { Pencil, Check, X, Trophy, MapPin } from "lucide-react";
 
 interface LeagueGroup {
   id: number;
@@ -36,12 +38,12 @@ interface ClubProfileFormProps {
     city: string | null;
     regionId: number | null;
     leagueGroupId: number | null;
-    leagueGroup: { id: number; leagueLevel: { id: number } } | null;
+    leagueGroup: { id: number; name: string; leagueLevel: { id: number; name: string } } | null;
     contactEmail: string | null;
     contactPhone: string | null;
     website: string | null;
   };
-  regions: { id: number; name: string }[];
+  regions: { id: number; name: string; slug: string }[];
 }
 
 export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
@@ -53,6 +55,13 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     club.leagueGroup?.leagueLevel.id ?? null
   );
   const [leagueGroupId, setLeagueGroupId] = useState<number | null>(club.leagueGroupId);
+
+  // Edit mode for region/league section
+  const [editingLeague, setEditingLeague] = useState(false);
+  // Saved snapshot for cancel
+  const [savedRegionId, setSavedRegionId] = useState(regionId);
+  const [savedLevelId, setSavedLevelId] = useState(leagueLevelId);
+  const [savedGroupId, setSavedGroupId] = useState(leagueGroupId);
 
   const { data: hierarchy = [] } = api.region.hierarchy.useQuery(
     { regionId: regionId! },
@@ -68,6 +77,32 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   }, [regionId]);
 
   const selectedLevel = hierarchy.find((l) => l.id === leagueLevelId);
+
+  const currentRegion = regions.find((r) => r.id === regionId);
+  const currentLevelName =
+    hierarchy.find((l) => l.id === leagueLevelId)?.name ??
+    club.leagueGroup?.leagueLevel.name;
+  const currentGroupName =
+    (selectedLevel?.groups ?? []).find((g) => g.id === leagueGroupId)?.name ??
+    club.leagueGroup?.name;
+
+  function startEditLeague() {
+    setSavedRegionId(regionId);
+    setSavedLevelId(leagueLevelId);
+    setSavedGroupId(leagueGroupId);
+    setEditingLeague(true);
+  }
+
+  function cancelEditLeague() {
+    setRegionId(savedRegionId);
+    setLeagueLevelId(savedLevelId);
+    setLeagueGroupId(savedGroupId);
+    setEditingLeague(false);
+  }
+
+  function confirmEditLeague() {
+    setEditingLeague(false);
+  }
 
   const updateMut = api.club.update.useMutation({
     onSuccess: () => toast.success("Profil klubu zapisany"),
@@ -135,6 +170,141 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Region & League Card */}
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-primary" />
+            Region i liga
+          </CardTitle>
+          {!editingLeague ? (
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={startEditLeague}>
+              <Pencil className="h-3.5 w-3.5" />
+              Edytuj
+            </Button>
+          ) : (
+            <div className="flex gap-1.5">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs text-emerald-600" onClick={confirmEditLeague}>
+                <Check className="h-3.5 w-3.5" />
+                OK
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground" onClick={cancelEditLeague}>
+                <X className="h-3.5 w-3.5" />
+                Anuluj
+              </Button>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          {!editingLeague ? (
+            /* Display mode */
+            <div className="flex items-center gap-4">
+              {currentRegion ? (
+                <RegionLogo slug={currentRegion.slug} name={currentRegion.name} size={48} />
+              ) : (
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted">
+                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                {currentRegion ? (
+                  <>
+                    <p className="text-sm font-semibold">{currentRegion.name}</p>
+                    {currentLevelName ? (
+                      <p className="text-[13px] text-muted-foreground">
+                        {currentLevelName}
+                        {currentGroupName && ` — ${currentGroupName}`}
+                      </p>
+                    ) : (
+                      <p className="text-[12px] text-muted-foreground">Szczebel ligowy nie ustawiony</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">Brak regionu</p>
+                    <p className="text-[12px] text-muted-foreground">
+                      Kliknij „Edytuj", aby ustawić region i ligę
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Edit mode */
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Region (ZPN)</Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Feed i sparingi filtrują po regionie
+                </p>
+                <select
+                  value={regionId ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value ? Number(e.target.value) : null;
+                    setRegionId(val);
+                    setLeagueLevelId(null);
+                    setLeagueGroupId(null);
+                  }}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Wybierz region</option>
+                  {regions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {regionId && hierarchy.length > 0 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Szczebel ligowy</Label>
+                    <select
+                      value={leagueLevelId ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value ? Number(e.target.value) : null;
+                        setLeagueLevelId(val);
+                        setLeagueGroupId(null);
+                      }}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="">Wybierz szczebel</option>
+                      {hierarchy.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedLevel && selectedLevel.groups.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label>Grupa</Label>
+                      <select
+                        value={leagueGroupId ?? ""}
+                        onChange={(e) =>
+                          setLeagueGroupId(e.target.value ? Number(e.target.value) : null)
+                        }
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">Wybierz grupę</option>
+                        {selectedLevel.groups.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
       <CardHeader>
         <CardTitle>Profil klubu</CardTitle>
@@ -155,73 +325,6 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
             <div className="space-y-2">
               <Label htmlFor="city">Miasto</Label>
               <Input id="city" name="city" defaultValue={club.city ?? ""} />
-            </div>
-
-            {/* Region */}
-            <div className="space-y-2">
-              <Label>Region (ZPN)</Label>
-              <p className="text-[11px] text-muted-foreground">
-                Feed i sparingi filtrują po regionie
-              </p>
-              <select
-                value={regionId ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value ? Number(e.target.value) : null;
-                  setRegionId(val);
-                  setLeagueLevelId(null);
-                  setLeagueGroupId(null);
-                }}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Wybierz region</option>
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* League Level */}
-            <div className="space-y-2">
-              <Label>Szczebel ligowy</Label>
-              <select
-                value={leagueLevelId ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value ? Number(e.target.value) : null;
-                  setLeagueLevelId(val);
-                  setLeagueGroupId(null);
-                }}
-                disabled={!regionId || hierarchy.length === 0}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Wybierz szczebel</option>
-                {hierarchy.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* League Group */}
-            <div className="space-y-2">
-              <Label>Grupa</Label>
-              <select
-                value={leagueGroupId ?? ""}
-                onChange={(e) =>
-                  setLeagueGroupId(e.target.value ? Number(e.target.value) : null)
-                }
-                disabled={!selectedLevel}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Wybierz grupę</option>
-                {selectedLevel?.groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="space-y-2">
