@@ -147,7 +147,7 @@ export const eventRouter = router({
 
       // Notify matching players in region (fire-and-forget, recruitment only)
       if (isRecruitment && regionId) {
-        const playerWhere: Record<string, unknown> = { regionId };
+        const playerWhere: Record<string, unknown> = { regionId, lookingForClub: true };
         if (input.targetPosition) {
           playerWhere.primaryPosition = input.targetPosition;
         }
@@ -162,8 +162,28 @@ export const eventRouter = router({
             data: players.map((p: { userId: string }) => ({
               userId: p.userId,
               type: "RECRUITMENT_MATCH" as const,
-              title: "Nabór w Twoim regionie",
-              message: `${clubData.name} szuka zawodników: ${input.title}`,
+              title: `${clubData.name} ogłosił nabór w Twoim regionie`,
+              message: input.title,
+              link: `/events/${event.id}`,
+            })),
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+
+      // Notify matching coaches in region (fire-and-forget)
+      if (isRecruitment && regionId) {
+        ctx.db.coach.findMany({
+          where: { regionId, lookingForClub: true },
+          select: { userId: true },
+          take: 50,
+        }).then((coaches: { userId: string }[]) => {
+          if (coaches.length === 0) return;
+          ctx.db.notification.createMany({
+            data: coaches.map((c: { userId: string }) => ({
+              userId: c.userId,
+              type: "RECRUITMENT_MATCH" as const,
+              title: `${clubData.name} ogłosił nabór w Twoim regionie`,
+              message: input.title,
               link: `/events/${event.id}`,
             })),
           }).catch(() => {});
