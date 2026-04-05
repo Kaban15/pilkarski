@@ -105,16 +105,18 @@ function EditableField({
   return (
     <div className="space-y-1.5">
       <Label className="text-muted-foreground">{label}</Label>
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="group flex w-full items-center justify-between rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted/50"
-      >
-        <span className={value ? "text-sm" : "text-sm text-muted-foreground"}>
+      <div className="group flex items-center gap-2 px-3 py-2">
+        <span className={value ? "flex-1 text-sm" : "flex-1 text-sm text-muted-foreground"}>
           {value || placeholder || "—"}
         </span>
-        <Pencil className="h-3.5 w-3.5 text-muted-foreground/0 transition group-hover:text-muted-foreground" />
-      </button>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="shrink-0 rounded-md p-1 text-muted-foreground/0 transition hover:bg-muted hover:text-muted-foreground group-hover:text-muted-foreground/60"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -171,16 +173,18 @@ function EditableTextarea({
   return (
     <div className="space-y-1.5">
       <Label className="text-muted-foreground">{label}</Label>
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="group flex w-full items-start justify-between rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted/50"
-      >
-        <span className={value ? "whitespace-pre-wrap text-sm" : "text-sm text-muted-foreground"}>
+      <div className="group flex items-start gap-2 px-3 py-2">
+        <span className={value ? "flex-1 whitespace-pre-wrap text-sm" : "flex-1 text-sm text-muted-foreground"}>
           {value || placeholder || "—"}
         </span>
-        <Pencil className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/0 transition group-hover:text-muted-foreground" />
-      </button>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="mt-0.5 shrink-0 rounded-md p-1 text-muted-foreground/0 transition hover:bg-muted hover:text-muted-foreground group-hover:text-muted-foreground/60"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
