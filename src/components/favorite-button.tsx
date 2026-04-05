@@ -12,6 +12,7 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = false }: FavoriteButtonProps) {
   const [favorited, setFavorited] = useState(initialFavorited);
+  const [bouncing, setBouncing] = useState(false);
 
   useEffect(() => {
     setFavorited(initialFavorited);
@@ -19,6 +20,10 @@ export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = fal
 
   const toggle = api.favorite.toggle.useMutation({
     onSuccess: (result) => {
+      if (result.favorited) {
+        setBouncing(true);
+        setTimeout(() => setBouncing(false), 400);
+      }
       setFavorited(result.favorited);
       toast.success(result.favorited ? "Dodano do ulubionych" : "Usunięto z ulubionych");
     },
@@ -47,7 +52,7 @@ export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = fal
         fill={favorited ? "currentColor" : "none"}
         stroke="currentColor"
         strokeWidth={2}
-        className={`h-5 w-5 ${favorited ? "text-destructive" : "text-muted-foreground"}`}
+        className={`h-5 w-5 ${favorited ? "text-destructive" : "text-muted-foreground"} ${bouncing ? "heart-bounce" : ""}`}
       >
         <path
           strokeLinecap="round"
