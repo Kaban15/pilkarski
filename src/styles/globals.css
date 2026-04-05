@@ -29,12 +29,18 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-muted: var(--sidebar-muted);
   --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
+  --color-sport-cyan: var(--sport-cyan);
+  --color-sport-yellow: var(--sport-yellow);
   --radius: 0.75rem;
 
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.3s ease-out;
   --animate-slide-in-left: slide-in-left 0.2s ease-out;
   --animate-scale-in: scale-in 0.2s ease-out;
+  --animate-heart-bounce: heart-bounce 0.4s ease-out;
+  --animate-check-pop: check-pop 0.3s ease-out;
+  --animate-badge-slide-in: badge-slide-in 0.3s ease-out;
+  --animate-countdown-pulse: countdown-pulse 1.5s ease-in-out infinite;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -75,6 +81,30 @@
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.3); }
   }
+  @keyframes heart-bounce {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(0.9); }
+    75% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  @keyframes check-pop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes badge-slide-in {
+    from { opacity: 0; transform: translateX(8px) scale(0.8); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+  }
+  @keyframes countdown-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes skeleton-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
 
 }
 
@@ -105,6 +135,8 @@
   --sidebar-accent-foreground: #5b21b6;
   --sidebar-muted: #f5f3ff;
   --sidebar-muted-foreground: #71717a;
+  --sport-cyan: #06B6D4;
+  --sport-yellow: #FACC15;
 }
 
 .dark {
@@ -134,6 +166,8 @@
   --sidebar-accent-foreground: #a78bfa;
   --sidebar-muted: #1e293b;
   --sidebar-muted-foreground: #6b7280;
+  --sport-cyan: #22D3EE;
+  --sport-yellow: #FDE047;
 }
 
 body {
@@ -199,6 +233,8 @@ button, a, [role="button"] {
 .hover-glow-sky:hover { box-shadow: 0 0 24px rgba(14,165,233,0.15); }
 .hover-glow-emerald:hover { box-shadow: 0 0 24px rgba(16,185,129,0.15); }
 .hover-glow-pink:hover { box-shadow: 0 0 24px rgba(244,114,182,0.15); }
+.hover-glow-cyan:hover { box-shadow: 0 0 24px rgba(6,182,212,0.20); }
+.hover-glow-yellow:hover { box-shadow: 0 0 24px rgba(250,204,21,0.15); }
 
 /* Pulse notification dot */
 .pulse-dot {
@@ -208,6 +244,54 @@ button, a, [role="button"] {
 /* Page enter */
 .page-enter {
   animation: slide-up 0.3s ease-out;
+}
+
+/* Sport card accent line */
+.sport-card-line {
+  border-top: 2px solid var(--sport-cyan);
+}
+
+/* Gradient stripe under section headings */
+.sport-heading::after {
+  content: "";
+  display: block;
+  margin-top: 0.5rem;
+  height: 3px;
+  width: 3rem;
+  border-radius: 2px;
+  background: linear-gradient(to right, #7c3aed, var(--sport-cyan));
+}
+
+/* Section heading typography */
+.sport-heading {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Heart bounce */
+.heart-bounce {
+  animation: heart-bounce 0.4s ease-out;
+}
+
+/* Check pop for sign-up confirmation */
+.check-pop {
+  animation: check-pop 0.3s ease-out;
+}
+
+/* Badge slide in */
+.badge-slide-in {
+  animation: badge-slide-in 0.3s ease-out;
+}
+
+/* Countdown urgent pulse (< 24h) */
+.countdown-urgent {
+  animation: countdown-pulse 1.5s ease-in-out infinite;
+}
+
+/* Skeleton fade-out transition */
+.skeleton-reveal {
+  animation: skeleton-fade-out 0.3s ease-out reverse;
 }
 
 /* Native select dark mode fix */
@@ -226,4 +310,5 @@ select option {
   .page-enter { animation: none; }
   .pulse-dot { animation: none; }
   .stagger-children > * { animation: none; opacity: 1; }
+  .heart-bounce, .check-pop, .badge-slide-in, .countdown-urgent, .skeleton-reveal { animation: none; }
 }
