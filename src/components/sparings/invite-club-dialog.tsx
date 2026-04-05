@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Send, Search, Clock, Check, X, MapPin } from "lucide-react";
+import { RegionLogo } from "@/components/region-logo";
+import { Send, Search, Clock, Check, X, MapPin, Users, Filter } from "lucide-react";
 
 interface InviteClubDialogProps {
   sparingOfferId: string;
@@ -20,7 +21,7 @@ type ClubSearchResult = {
   name: string;
   city: string | null;
   logoUrl: string | null;
-  region: { name: string } | null;
+  region: { name: string; slug: string } | null;
 };
 
 export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
@@ -30,12 +31,51 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
   const [message, setMessage] = useState("");
   const [expiresInHours, setExpiresInHours] = useState(48);
 
+  // Filter state
+  const [regionId, setRegionId] = useState<number | null>(null);
+  const [leagueLevelId, setLeagueLevelId] = useState<number | null>(null);
+  const [leagueGroupId, setLeagueGroupId] = useState<number | null>(null);
+
   const utils = api.useUtils();
 
-  const searchResults = api.club.list.useQuery(
-    { search, limit: 5 },
-    { enabled: search.length >= 2 }
+  const { data: regions = [] } = api.region.list.useQuery(undefined, {
+    enabled: open,
+    staleTime: Infinity,
+  });
+
+  const { data: hierarchy = [] } = api.region.hierarchy.useQuery(
+    { regionId: regionId! },
+    { enabled: open && !!regionId },
   );
+
+  const selectedLevel = hierarchy.find((l: { id: number }) => l.id === leagueLevelId) as
+    | { id: number; name: string; groups: { id: number; name: string }[] }
+    | undefined;
+
+  // Search by name
+  const searchByName = api.club.list.useQuery(
+    { search, limit: 8 },
+    { enabled: open && search.length >= 2 },
+  );
+
+  // Browse by filters (when no text search)
+  const browseByFilter = api.club.list.useQuery(
+    {
+      regionId: regionId ?? undefined,
+      leagueLevelId: leagueLevelId ?? undefined,
+      leagueGroupId: leagueGroupId ?? undefined,
+      limit: 10,
+    },
+    { enabled: open && search.length < 2 && (!!regionId || !!leagueGroupId) },
+  );
+
+  const clubs =
+    search.length >= 2
+      ? searchByName.data?.clubs ?? []
+      : browseByFilter.data?.clubs ?? [];
+  const isLoading =
+    search.length >= 2 ? searchByName.isLoading : browseByFilter.isLoading;
+  const showResults = search.length >= 2 || !!regionId;
 
   const inviteMut = api.sparing.invite.useMutation({
     onSuccess: () => {
@@ -44,6 +84,9 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
       setSelectedClub(null);
       setMessage("");
       setSearch("");
+      setRegionId(null);
+      setLeagueLevelId(null);
+      setLeagueGroupId(null);
       utils.sparing.myInvitations.invalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -61,10 +104,20 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
   if (!open) {
     return (
-      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
-        <Send className="h-3.5 w-3.5" />
-        Zaproś klub
-      </Button>
+      <button
+        onClick={() => setOpen(true)}
+        className="group flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 px-5 py-4 transition-all hover:border-primary/60 hover:bg-primary/10"
+      >
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 transition-colors group-hover:bg-primary/25">
+          <Send className="h-5 w-5 text-primary" />
+        </div>
+        <div className="text-left">
+          <p className="text-sm font-semibold text-primary">Zaproś klub na sparing</p>
+          <p className="text-[12px] text-muted-foreground">
+            Wyszukaj po nazwie lub przeglądaj kluby z regionu i ligi
+          </p>
+        </div>
+      </button>
     );
   }
 
@@ -80,8 +133,9 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
         {!selectedClub ? (
           <>
+            {/* Search by name */}
             <div className="space-y-2">
-              <Label>Szukaj klubu</Label>
+              <Label>Szukaj po nazwie</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -93,36 +147,134 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
               </div>
             </div>
 
-            {search.length >= 2 && (
-              <div className="max-h-48 space-y-1 overflow-y-auto">
-                {searchResults.isLoading ? (
-                  <p className="py-2 text-center text-xs text-muted-foreground">Szukam...</p>
-                ) : (searchResults.data?.clubs ?? []).length === 0 ? (
-                  <p className="py-2 text-center text-xs text-muted-foreground">Brak wyników</p>
-                ) : (
-                  (searchResults.data?.clubs ?? []).map((club: ClubSearchResult) => (
-                    <button
-                      key={club.id}
-                      onClick={() => setSelectedClub(club)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted"
+            {/* Divider */}
+            {search.length < 2 && (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[11px] font-medium text-muted-foreground">lub przeglądaj</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                {/* Filter by region / league / group */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <Filter className="h-3.5 w-3.5" />
+                    Filtruj po regionie i lidze
+                  </div>
+
+                  {/* Region */}
+                  <select
+                    value={regionId ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value ? Number(e.target.value) : null;
+                      setRegionId(val);
+                      setLeagueLevelId(null);
+                      setLeagueGroupId(null);
+                    }}
+                    className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Wybierz region (ZPN)</option>
+                    {regions.map((r: { id: number; name: string }) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* League level */}
+                  {regionId && hierarchy.length > 0 && (
+                    <select
+                      value={leagueLevelId ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value ? Number(e.target.value) : null;
+                        setLeagueLevelId(val);
+                        setLeagueGroupId(null);
+                      }}
+                      className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-                        {club.logoUrl ? (
-                          <img src={club.logoUrl} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-[10px] font-bold text-muted-foreground">
-                            {club.name.slice(0, 2).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-medium">{club.name}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {club.city}{club.region ? ` · ${club.region.name}` : ""}
-                        </p>
-                      </div>
-                    </button>
-                  ))
+                      <option value="">Wszystkie szczeble</option>
+                      {hierarchy.map((l: { id: number; name: string }) => (
+                        <option key={l.id} value={l.id}>
+                          {l.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {/* League group */}
+                  {selectedLevel && selectedLevel.groups.length > 1 && (
+                    <select
+                      value={leagueGroupId ?? ""}
+                      onChange={(e) =>
+                        setLeagueGroupId(e.target.value ? Number(e.target.value) : null)
+                      }
+                      className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="">Wszystkie grupy</option>
+                      {selectedLevel.groups.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Results */}
+            {showResults && (
+              <div className="max-h-60 space-y-1 overflow-y-auto">
+                {isLoading ? (
+                  <p className="py-3 text-center text-xs text-muted-foreground">Szukam...</p>
+                ) : clubs.length === 0 ? (
+                  <p className="py-3 text-center text-xs text-muted-foreground">
+                    {search.length >= 2 ? "Brak wyników" : "Brak klubów w wybranym filtrze"}
+                  </p>
+                ) : (
+                  <>
+                    <p className="pb-1 text-[11px] font-medium text-muted-foreground">
+                      {search.length >= 2
+                        ? `Wyniki wyszukiwania (${clubs.length})`
+                        : `Kluby (${clubs.length})`}
+                    </p>
+                    {clubs.map((club: ClubSearchResult) => (
+                      <button
+                        key={club.id}
+                        onClick={() => setSelectedClub(club)}
+                        className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted"
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                          {club.logoUrl ? (
+                            <img src={club.logoUrl} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              {club.name.slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-medium">{club.name}</p>
+                          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            {club.city && (
+                              <>
+                                <MapPin className="h-3 w-3 shrink-0" />
+                                <span>{club.city}</span>
+                              </>
+                            )}
+                            {club.region && (
+                              <>
+                                {club.city && <span>·</span>}
+                                <RegionLogo slug={club.region.slug} name={club.region.name} size={12} />
+                                <span>{club.region.name}</span>
+                              </>
+                            )}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </>
                 )}
               </div>
             )}
@@ -141,8 +293,15 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
               </div>
               <div className="flex-1">
                 <p className="text-[13px] font-semibold">{selectedClub.name}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  {selectedClub.city}{selectedClub.region ? ` · ${selectedClub.region.name}` : ""}
+                <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  {selectedClub.city}
+                  {selectedClub.region && (
+                    <>
+                      {selectedClub.city && <span>·</span>}
+                      <RegionLogo slug={selectedClub.region.slug} name={selectedClub.region.name} size={12} />
+                      <span>{selectedClub.region.name}</span>
+                    </>
+                  )}
                 </p>
               </div>
               <button onClick={() => setSelectedClub(null)} className="text-muted-foreground hover:text-foreground">

@@ -46,6 +46,7 @@ export const clubRouter = router({
     .input(
       z.object({
         regionId: z.number().int().optional(),
+        leagueLevelId: z.number().int().optional(),
         leagueGroupId: z.number().int().optional(),
         search: z.string().max(100).optional(),
         cursor: z.string().uuid().optional(),
@@ -55,7 +56,11 @@ export const clubRouter = router({
     .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = {};
       if (input.regionId) where.regionId = input.regionId;
-      if (input.leagueGroupId) where.leagueGroupId = input.leagueGroupId;
+      if (input.leagueGroupId) {
+        where.leagueGroupId = input.leagueGroupId;
+      } else if (input.leagueLevelId) {
+        where.leagueGroup = { leagueLevelId: input.leagueLevelId };
+      }
       if (input.search) {
         where.name = { contains: input.search, mode: "insensitive" };
       }
