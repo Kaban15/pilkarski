@@ -71,6 +71,7 @@ export const searchRouter = router({
         }),
       ]);
 
-      return { clubs, players, sparings, events };
+      const publicPlayers = players.map(({ lookingForClub: _, ...p }) => p);
+      return { clubs, players: publicPlayers, sparings, events };
     }),
 });

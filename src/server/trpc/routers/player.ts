@@ -24,7 +24,8 @@ export const playerRouter = router({
         include: { region: true, careerEntries: { orderBy: { season: "desc" } } },
       });
       if (!player) throw new TRPCError({ code: "NOT_FOUND" });
-      return player;
+      const { lookingForClub: _, ...publicPlayer } = player;
+      return publicPlayer;
     }),
 
   // Update own player profile
@@ -95,13 +96,15 @@ export const playerRouter = router({
       if (input.regionId) where.regionId = input.regionId;
       if (input.position) where.primaryPosition = input.position;
 
-      const players = await ctx.db.player.findMany({
+      const rawPlayers = await ctx.db.player.findMany({
         where,
         include: { region: true },
         take: input.limit + 1,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
         orderBy: { createdAt: "desc" },
       });
+
+      const players = rawPlayers.map(({ lookingForClub: _, ...p }) => p);
 
       let nextCursor: string | undefined;
       if (players.length > input.limit) {
