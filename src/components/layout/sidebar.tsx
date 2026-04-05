@@ -150,12 +150,12 @@ export function Sidebar({ user }: SidebarProps) {
                     >
                       {/* Active indicator */}
                       {isActive && (
-                        <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-violet-400 to-sky-400" />
+                        <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-primary to-sport-cyan" />
                       )}
                       <item.icon
                         className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
                           isActive
-                            ? "text-violet-400"
+                            ? "text-sport-cyan"
                             : "text-white/30 group-hover:text-white/60"
                         }`}
                       />
