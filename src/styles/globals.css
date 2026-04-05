@@ -31,7 +31,7 @@
   --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sport-cyan: var(--sport-cyan);
   --color-sport-yellow: var(--sport-yellow);
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.3s ease-out;
@@ -140,31 +140,31 @@
 }
 
 .dark {
-  --background: #111827;
+  --background: #000000;
   --foreground: #ededed;
-  --card: #1f2937;
+  --card: #000000;
   --card-foreground: #ededed;
-  --popover: #1f2937;
+  --popover: #111111;
   --popover-foreground: #ededed;
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
-  --secondary: #1e293b;
+  --secondary: #16181c;
   --secondary-foreground: #a1a1a1;
-  --muted: #1e293b;
+  --muted: #16181c;
   --muted-foreground: #9ca3af;
-  --accent: #1a1040;
+  --accent: #16181c;
   --accent-foreground: #a78bfa;
   --destructive: #dc2626;
   --destructive-foreground: #fef2f2;
-  --border: #374151;
-  --input: #374151;
+  --border: #2f3336;
+  --input: #2f3336;
   --ring: #7c3aed;
-  --sidebar-background: #0f1623;
+  --sidebar-background: #000000;
   --sidebar-foreground: #a1a1a1;
-  --sidebar-border: #1e293b;
-  --sidebar-accent: rgba(124,58,237,0.15);
+  --sidebar-border: #2f3336;
+  --sidebar-accent: rgba(255,255,255,0.08);
   --sidebar-accent-foreground: #a78bfa;
-  --sidebar-muted: #1e293b;
+  --sidebar-muted: #16181c;
   --sidebar-muted-foreground: #6b7280;
   --sport-cyan: #22D3EE;
   --sport-yellow: #FDE047;

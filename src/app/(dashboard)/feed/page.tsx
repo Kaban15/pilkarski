@@ -156,20 +156,9 @@ function FeedCard({ item }: { item: FeedItem }) {
     }
   };
 
-  const hoverGlowClass =
-    item.type === "sparing"
-      ? "hover-glow-violet"
-      : item.type === "event"
-        ? "hover-glow-sky"
-        : item.type === "transfer"
-          ? "hover-glow-emerald"
-          : item.type === "tournament"
-            ? "hover-glow-violet"
-            : "hover-glow-pink";
-
   return (
     <Link href={getHref()} className="group block">
-      <div className={`flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-all hover:border-border hover:bg-card ${hoverGlowClass}`}>
+      <div className="flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-all hover:border-border hover:bg-white/[0.03]">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
             <span

@@ -103,7 +103,7 @@ export function Sidebar({ user }: SidebarProps) {
         key={item.href}
         href={item.href}
         onClick={onClick}
-        className={`group relative flex h-[44px] items-center gap-3.5 rounded-xl px-4 text-[14px] font-medium transition-all duration-200 ${
+        className={`group relative flex h-[44px] items-center gap-3.5 rounded-lg px-4 text-[14px] font-medium transition-all duration-200 ${
           isActive
             ? "bg-white/[0.08] text-white font-bold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
             : "text-white/60 hover:bg-white/[0.06] hover:text-white"
@@ -136,10 +136,7 @@ export function Sidebar({ user }: SidebarProps) {
   );
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-[#0b1120]/95 backdrop-blur-xl md:flex">
-      {/* Decorative gradient orb */}
-      <div className="pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-violet-600/10 blur-[80px]" />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-sky-600/8 blur-[60px]" />
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-black md:flex">
 
       {/* Logo header */}
       <div className="relative flex h-16 items-center gap-3 px-6">
