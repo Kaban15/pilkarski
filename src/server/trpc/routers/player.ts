@@ -114,4 +114,87 @@ export const playerRouter = router({
 
       return { players, nextCursor };
     }),
+
+  // Search players for invitation (with club/league filtering and lookingForClub boost)
+  search: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().max(100).optional(),
+        regionId: z.number().int().optional(),
+        leagueLevelId: z.number().int().optional(),
+        leagueGroupId: z.number().int().optional(),
+        position: z
+          .enum(["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LM", "RM", "LW", "RW", "ST"])
+          .optional(),
+        prioritizeForRegionId: z.number().int().optional(),
+        limit: z.number().int().min(1).max(30).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: any = {};
+
+      if (input.search && input.search.length >= 2) {
+        where.OR = [
+          { firstName: { contains: input.search, mode: "insensitive" } },
+          { lastName: { contains: input.search, mode: "insensitive" } },
+        ];
+      }
+      if (input.regionId) where.regionId = input.regionId;
+      if (input.position) where.primaryPosition = input.position;
+
+      // Filter by club league level/group via membership
+      if (input.leagueGroupId) {
+        where.user = {
+          clubMemberships: {
+            some: { status: "ACCEPTED", club: { leagueGroupId: input.leagueGroupId } },
+          },
+        };
+      } else if (input.leagueLevelId) {
+        where.user = {
+          clubMemberships: {
+            some: {
+              status: "ACCEPTED",
+              club: { leagueGroup: { leagueLevelId: input.leagueLevelId } },
+            },
+          },
+        };
+      }
+
+      const rawPlayers = await ctx.db.player.findMany({
+        where,
+        include: {
+          region: true,
+          user: {
+            include: {
+              clubMemberships: {
+                where: { status: "ACCEPTED" },
+                take: 1,
+                include: { club: { select: { name: true, city: true } } },
+              },
+            },
+          },
+        },
+        take: input.limit,
+        orderBy: { createdAt: "desc" },
+      });
+
+      // Sort: lookingForClub + same region first
+      const players = rawPlayers
+        .sort((a, b) => {
+          if (input.prioritizeForRegionId) {
+            const aBoost = a.lookingForClub && a.regionId === input.prioritizeForRegionId ? 0 : 1;
+            const bBoost = b.lookingForClub && b.regionId === input.prioritizeForRegionId ? 0 : 1;
+            if (aBoost !== bBoost) return aBoost - bBoost;
+          }
+          return 0;
+        })
+        .map(({ lookingForClub: _, user, ...p }) => ({
+          ...p,
+          userId: user.id,
+          clubName: user.clubMemberships[0]?.club?.name ?? null,
+          clubCity: user.clubMemberships[0]?.club?.city ?? null,
+        }));
+
+      return players;
+    }),
 });
