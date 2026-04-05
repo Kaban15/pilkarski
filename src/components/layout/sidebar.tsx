@@ -160,43 +160,53 @@ export function Sidebar({ user }: SidebarProps) {
         <div className="space-y-0.5">
           {MAIN_NAV.filter(filterItem).map((item) => renderNavLink(item))}
 
-          {/* More button */}
-          <div className="relative">
-            <button
-              onClick={() => setMoreOpen(!moreOpen)}
-              className={`group relative flex h-[50px] w-full items-center gap-4 rounded-xl px-4 text-[15px] font-medium transition-all duration-200 ${
+          {/* More toggle */}
+          <button
+            onClick={() => setMoreOpen(!moreOpen)}
+            className={`group relative flex h-[50px] w-full items-center gap-4 rounded-xl px-4 text-[15px] font-medium transition-all duration-200 ${
+              moreOpen || moreHasActive
+                ? "bg-white/[0.08] text-white"
+                : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+            }`}
+          >
+            <MoreHorizontal
+              className={`h-6 w-6 shrink-0 transition-all duration-200 ${moreOpen ? "rotate-90" : ""} ${
                 moreOpen || moreHasActive
-                  ? "bg-white/[0.08] text-white"
-                  : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+                  ? "text-sport-cyan"
+                  : "text-white/40 group-hover:text-white/70"
               }`}
-            >
-              <MoreHorizontal
-                className={`h-6 w-6 shrink-0 transition-colors duration-200 ${
-                  moreOpen || moreHasActive
-                    ? "text-sport-cyan"
-                    : "text-white/40 group-hover:text-white/70"
-                }`}
-              />
-              <span className="flex-1 truncate text-left">Więcej</span>
-            </button>
+            />
+            <span className="flex-1 truncate text-left">Więcej</span>
+          </button>
 
-            {/* More popup */}
-            {moreOpen && (
-              <>
-                {/* Backdrop */}
-                <div className="fixed inset-0 z-40" onClick={() => setMoreOpen(false)} />
-
-                {/* Popup — positioned above the button */}
-                <div className="absolute bottom-full left-0 z-50 mb-2 w-full rounded-2xl border border-white/[0.08] bg-[#111827] p-2 shadow-2xl shadow-black/60">
-                  <div className="space-y-0.5 max-h-[60vh] overflow-y-auto">
-                    {moreItems.map((item) =>
-                      renderNavLink(item, () => setMoreOpen(false))
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          {/* Expanded items — inline, compact */}
+          {moreOpen && (
+            <div className="ml-3 space-y-0.5 border-l border-white/[0.06] pl-3">
+              {moreItems.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/feed" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`group flex h-[38px] items-center gap-3 rounded-lg px-3 text-[13px] font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-white/[0.08] text-white font-bold"
+                        : "text-white/45 hover:bg-white/[0.04] hover:text-white/80"
+                    }`}
+                  >
+                    <item.icon
+                      className={`h-[16px] w-[16px] shrink-0 ${
+                        isActive ? "text-sport-cyan" : "text-white/30 group-hover:text-white/50"
+                      }`}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </nav>
 
