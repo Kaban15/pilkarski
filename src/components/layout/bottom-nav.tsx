@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
-import type { TranslationKey } from "@/lib/translations";
 import {
   Home,
   Swords,
@@ -20,31 +19,31 @@ import {
 type NavItem = {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  labelKey: TranslationKey;
+  label: string;
 };
 
-const FEED: NavItem = { href: "/feed", icon: Home, labelKey: "nav.feed" };
-const MSGS: NavItem = { href: "/messages", icon: MessageSquare, labelKey: "nav.messages" };
-const NOTIFS: NavItem = { href: "/notifications", icon: Bell, labelKey: "nav.notifications.short" };
+const FEED: NavItem = { href: "/feed", icon: Home, label: "Pulpit" };
+const MSGS: NavItem = { href: "/messages", icon: MessageSquare, label: "Wiadomości" };
+const NOTIFS: NavItem = { href: "/notifications", icon: Bell, label: "Powiadom." };
 
 const NAV_CLUB: NavItem[] = [
   FEED,
-  { href: "/sparings", icon: Swords, labelKey: "nav.sparings" },
-  { href: "/recruitment", icon: Target, labelKey: "nav.recruitment" },
+  { href: "/sparings", icon: Swords, label: "Sparingi" },
+  { href: "/recruitment", icon: Target, label: "Rekrutacja" },
   MSGS, NOTIFS,
 ];
 
 const NAV_PLAYER: NavItem[] = [
   FEED,
-  { href: "/events", icon: Trophy, labelKey: "nav.events.mobile" },
-  { href: "/trainings", icon: GraduationCap, labelKey: "nav.trainings" },
+  { href: "/events", icon: Trophy, label: "Nabory" },
+  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
   MSGS, NOTIFS,
 ];
 
 const NAV_COACH: NavItem[] = [
   FEED,
-  { href: "/trainings", icon: GraduationCap, labelKey: "nav.trainings" },
-  { href: "/community", icon: Megaphone, labelKey: "nav.community" },
+  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
+  { href: "/community", icon: Megaphone, label: "Tablica" },
   MSGS, NOTIFS,
 ];
 
@@ -101,7 +100,7 @@ export function BottomNav() {
                   </span>
                 )}
               </div>
-              {t(item.labelKey)}
+              {t(item.label)}
             </Link>
           );
         })}

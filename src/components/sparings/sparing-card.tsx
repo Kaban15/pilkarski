@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import {
   SPARING_LEVEL_LABELS,
@@ -54,6 +55,7 @@ export function SparingCard({
   favorited?: boolean;
   showFavorite?: boolean;
 }) {
+  const { t } = useI18n();
   const countdown = getCountdown(sparing.matchDate);
   const isUrgent = countdown !== null && (countdown === "za chwilę" || countdown.endsWith("h"));
 
@@ -95,12 +97,12 @@ export function SparingCard({
           <div className="mb-3 flex flex-wrap gap-1.5">
             {sparing.level && (
               <Badge variant="secondary" className={`text-[11px] font-medium ${SPARING_LEVEL_COLORS[sparing.level]}`}>
-                {SPARING_LEVEL_LABELS[sparing.level]}
+                {t(SPARING_LEVEL_LABELS[sparing.level])}
               </Badge>
             )}
             {sparing.ageCategory && (
               <Badge variant="secondary" className="text-[11px] font-medium">
-                {AGE_CATEGORY_LABELS[sparing.ageCategory]}
+                {t(AGE_CATEGORY_LABELS[sparing.ageCategory])}
               </Badge>
             )}
             {sparing.region && (
@@ -131,7 +133,7 @@ export function SparingCard({
           )}
           {countdown && (
             <span className={`ml-auto shrink-0 rounded-md px-2 py-0.5 text-[12px] font-semibold ${isUrgent ? "bg-sport-yellow/10 text-sport-yellow countdown-urgent" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"}`}>
-              {countdown}
+              {t(countdown!)}
             </span>
           )}
         </div>

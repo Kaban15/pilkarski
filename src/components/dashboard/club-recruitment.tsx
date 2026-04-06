@@ -5,12 +5,16 @@ import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
+import { getEventTypeLabels, getPositionLabels } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import { Target, ArrowRight, Calendar } from "lucide-react";
 
 const RECRUITMENT_TYPES = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
 export function ClubRecruitment() {
+  const { t, locale } = useI18n();
+  const eventTypeLabels = getEventTypeLabels(locale);
+  const positionLabels = getPositionLabels(locale);
   const { data: myEvents } = api.event.my.useQuery(undefined, { staleTime: 60_000 });
   const { data: suggested } = api.feed.suggestedPlayers.useQuery(
     { limit: 6 },
@@ -31,20 +35,20 @@ export function ClubRecruitment() {
     <section className="mb-8 space-y-4">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
         <Target className="h-5 w-5 text-purple-500" />
-        Rekrutacja
+        {t("Rekrutacja")}
       </h2>
 
       {activeRecruitments.length > 0 && (
         <div>
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-sm font-medium text-muted-foreground">
-              Twoje aktywne nabory
+              {t("Twoje aktywne nabory")}
             </h3>
             <Link
               href="/events?type=RECRUITMENT"
               className="text-xs text-primary hover:underline"
             >
-              Wszystkie <ArrowRight className="inline h-3 w-3" />
+              {t("Wszystkie")} <ArrowRight className="inline h-3 w-3" />
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -70,7 +74,7 @@ export function ClubRecruitment() {
                         variant="secondary"
                         className="shrink-0 text-[10px]"
                       >
-                        {EVENT_TYPE_LABELS[event.type]}
+                        {eventTypeLabels[event.type]}
                       </Badge>
                     </div>
                   </CardContent>
@@ -85,13 +89,13 @@ export function ClubRecruitment() {
         <div>
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-sm font-medium text-muted-foreground">
-              Sugerowani zawodnicy w regionie
+              {t("Sugerowani zawodnicy w regionie")}
             </h3>
             <Link
               href="/transfers?type=LOOKING_FOR_CLUB"
               className="text-xs text-primary hover:underline"
             >
-              Wszyscy <ArrowRight className="inline h-3 w-3" />
+              {t("Wszyscy")} <ArrowRight className="inline h-3 w-3" />
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -128,7 +132,7 @@ export function ClubRecruitment() {
                             variant="secondary"
                             className="text-[10px]"
                           >
-                            {POSITION_LABELS[t.user.player.primaryPosition]}
+                            {positionLabels[t.user.player.primaryPosition]}
                           </Badge>
                         )}
                         {t.region && (

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { registerSchema } from "@/lib/validators/auth";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
 import { Shield, Users, UserPlus, GraduationCap } from "lucide-react";
 
 export default function RegisterPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -29,7 +31,7 @@ export default function RegisterPage() {
 
   const registerMut = api.auth.register.useMutation({
     onSuccess: async () => {
-      toast.success("Rejestracja udana! Logowanie...");
+      toast.success(t("Rejestracja udana! Logowanie..."));
       const creds = credentialsRef.current;
       if (creds) {
         const result = await signIn("credentials", {
@@ -46,7 +48,7 @@ export default function RegisterPage() {
       router.push("/login?registered=true");
     },
     onError: (err) => {
-      setError(err.message || "Wystąpił błąd podczas rejestracji");
+      setError(err.message || t("Wystąpił błąd podczas rejestracji"));
     },
   });
 
@@ -90,16 +92,16 @@ export default function RegisterPage() {
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Dołącz do PilkaSport</CardTitle>
-            <CardDescription>Wybierz typ konta i zarejestruj się</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("Dołącz do PilkaSport")}</CardTitle>
+            <CardDescription>{t("Wybierz typ konta i zarejestruj się")}</CardDescription>
           </CardHeader>
           <CardContent>
             {/* Role selector */}
             <div className="mb-6 grid grid-cols-3 gap-3">
               {([
-                { value: "CLUB" as const, Icon: Shield, label: "Klub" },
-                { value: "PLAYER" as const, Icon: Users, label: "Zawodnik" },
-                { value: "COACH" as const, Icon: GraduationCap, label: "Trener" },
+                { value: "CLUB" as const, Icon: Shield, label: t("Klub") },
+                { value: "PLAYER" as const, Icon: Users, label: t("Zawodnik") },
+                { value: "COACH" as const, Icon: GraduationCap, label: t("Trener") },
               ]).map(({ value, Icon, label }) => (
                 <button
                   key={value}
@@ -119,7 +121,7 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">{t("E-mail")}</Label>
                 <Input
                   id="email"
                   name="email"
@@ -134,13 +136,13 @@ export default function RegisterPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Hasło</Label>
+                <Label htmlFor="password">{t("Hasło")}</Label>
                 <Input
                   id="password"
                   name="password"
                   type="password"
                   required
-                  placeholder="Minimum 8 znaków"
+                  placeholder={t("Minimum 8 znaków")}
                   autoComplete="new-password"
                   className={fieldErrors.password ? "border-destructive" : ""}
                 />
@@ -151,7 +153,7 @@ export default function RegisterPage() {
 
               {role === "CLUB" && (
                 <div className="space-y-2">
-                  <Label htmlFor="clubName">Nazwa klubu</Label>
+                  <Label htmlFor="clubName">{t("Nazwa klubu")}</Label>
                   <Input
                     id="clubName"
                     name="clubName"
@@ -168,7 +170,7 @@ export default function RegisterPage() {
               {(role === "PLAYER" || role === "COACH") && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">Imię</Label>
+                    <Label htmlFor="firstName">{t("Imię")}</Label>
                     <Input
                       id="firstName"
                       name="firstName"
@@ -181,7 +183,7 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Nazwisko</Label>
+                    <Label htmlFor="lastName">{t("Nazwisko")}</Label>
                     <Input
                       id="lastName"
                       name="lastName"
@@ -204,14 +206,14 @@ export default function RegisterPage() {
 
               <Button type="submit" className="w-full gap-2" disabled={registerMut.isPending}>
                 <UserPlus className="h-4 w-4" />
-                {registerMut.isPending ? "Rejestracja..." : "Zarejestruj się"}
+                {registerMut.isPending ? t("Rejestracja...") : t("Zarejestruj się")}
               </Button>
             </form>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Masz już konto?{" "}
+              {t("Masz już konto?")}{" "}
               <Link href="/login" className="font-semibold text-primary hover:underline">
-                Zaloguj się
+                {t("Zaloguj się")}
               </Link>
             </p>
           </CardContent>

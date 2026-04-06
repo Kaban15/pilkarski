@@ -9,7 +9,8 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
-import { EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
+import { getEventTypeLabels, getPositionLabels } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/empty-state";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
@@ -77,6 +78,9 @@ const FEED_CONFIG = {
 };
 
 function FeedCard({ item }: { item: FeedItem }) {
+  const { t, locale } = useI18n();
+  const eventTypeLabels = getEventTypeLabels(locale);
+  const positionLabels = getPositionLabels(locale);
   const config = FEED_CONFIG[item.type];
 
   const getHref = () => {
@@ -121,7 +125,7 @@ function FeedCard({ item }: { item: FeedItem }) {
         return item.data.club.name + (item.data.club.city ? ` · ${item.data.club.city}` : "");
       case "event":
         return (
-          (EVENT_TYPE_LABELS[item.data.type] ?? "Wydarzenie") +
+          (eventTypeLabels[item.data.type] ?? t("Wydarzenie")) +
           " · " +
           item.data.club.name
         );
@@ -138,7 +142,7 @@ function FeedCard({ item }: { item: FeedItem }) {
         );
       case "player":
         return (
-          (POSITION_LABELS[item.data.primaryPosition] ?? "") +
+          (positionLabels[item.data.primaryPosition] ?? "") +
           (item.data.city ? ` · ${item.data.city}` : "") +
           (item.data.region ? ` · ${item.data.region.name}` : "")
         );
@@ -148,8 +152,8 @@ function FeedCard({ item }: { item: FeedItem }) {
           creator?.club?.name ||
           (creator?.player ? `${creator.player.firstName} ${creator.player.lastName}` : "") ||
           (creator?.coach ? `${creator.coach.firstName} ${creator.coach.lastName}` : "") ||
-          "Organizator";
-        return `${organizerName} · ${item.data._count?.teams ?? 0}/${item.data.maxTeams} drużyn`;
+          t("Organizator");
+        return `${organizerName} · ${item.data._count?.teams ?? 0}/${item.data.maxTeams} ${t("drużyn")}`;
       }
       case "clubPost":
         return item.data.club?.name ?? "";
@@ -165,8 +169,8 @@ function FeedCard({ item }: { item: FeedItem }) {
               className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${config.badge}`}
             >
               {item.type === "event"
-                ? (EVENT_TYPE_LABELS[item.data.type] ?? config.label)
-                : config.label}
+                ? (eventTypeLabels[item.data.type] ?? t(config.label))
+                : t(config.label)}
             </span>
             <span className="text-[11px] text-muted-foreground">
               {formatDate(item.createdAt)}
@@ -215,6 +219,7 @@ const STAT_CONFIG_PLAYER = [
 ] as const;
 
 function StatsBar({ stats }: { stats: DashboardStats | null }) {
+  const { t } = useI18n();
   if (!stats || stats.role === "CLUB") return null;
 
   const config = STAT_CONFIG_PLAYER;
@@ -231,7 +236,7 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
               </div>
               <div>
                 <p className="text-xl font-bold tabular-nums leading-none text-foreground">{value}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{c.label}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{t(c.label)}</p>
               </div>
             </div>
           </Link>
@@ -242,6 +247,7 @@ function StatsBar({ stats }: { stats: DashboardStats | null }) {
 }
 
 function CoachDashboardStats() {
+  const { t } = useI18n();
   const { data: stats } = api.stats.coachDashboard.useQuery(undefined, {
     staleTime: 60_000,
   });
@@ -253,7 +259,7 @@ function CoachDashboardStats() {
       <CardContent className="py-4">
         <div className="mb-3 flex items-center gap-2">
           <GraduationCap className="h-4 w-4 text-primary" />
-          <p className="text-sm font-semibold">Statystyki treningowe</p>
+          <p className="text-sm font-semibold">{t("Statystyki treningowe")}</p>
           {stats.regionName && (
             <span className="ml-auto text-[11px] text-muted-foreground">{stats.regionName}</span>
           )}
@@ -261,11 +267,11 @@ function CoachDashboardStats() {
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-border px-3 py-2">
             <p className="text-xl font-bold tabular-nums">{stats.activeTrainings}</p>
-            <p className="text-[11px] text-muted-foreground">Aktywne treningi</p>
+            <p className="text-[11px] text-muted-foreground">{t("Aktywne treningi")}</p>
           </div>
           <div className="rounded-lg border border-border px-3 py-2">
             <p className="text-xl font-bold tabular-nums">{stats.weeklySignups}</p>
-            <p className="text-[11px] text-muted-foreground">Zapisy w tym tyg.</p>
+            <p className="text-[11px] text-muted-foreground">{t("Zapisy w tym tyg.")}</p>
           </div>
         </div>
       </CardContent>
@@ -274,6 +280,7 @@ function CoachDashboardStats() {
 }
 
 function PlayerDevelopment() {
+  const { t } = useI18n();
   const trainings = api.event.list.useQuery({
     type: "INDIVIDUAL_TRAINING",
     sortBy: "eventDate",
@@ -290,10 +297,10 @@ function PlayerDevelopment() {
         <div className="mb-3 flex items-center justify-between">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <GraduationCap className="h-4 w-4 text-primary" />
-            Rozwój — treningi indywidualne
+            {t("Rozwój — treningi indywidualne")}
           </p>
           <Link href="/trainings" className="text-xs text-primary hover:underline">
-            Wszystkie →
+            {t("Wszystkie →")}
           </Link>
         </div>
         <div className="space-y-2">
@@ -316,13 +323,14 @@ function PlayerDevelopment() {
 }
 
 function NewClubsInRegion() {
+  const { t } = useI18n();
   const { data } = api.club.newInRegion.useQuery({ limit: 4 }, { staleTime: 300_000 });
   const utils = api.useUtils();
 
   const followMut = api.club.follow.useMutation({
     onSuccess: () => {
       utils.club.newInRegion.invalidate();
-      toast.success("Obserwujesz klub");
+      toast.success(t("Obserwujesz klub"));
     },
   });
 
@@ -334,7 +342,7 @@ function NewClubsInRegion() {
       <CardContent className="py-4">
         <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
           <Users className="h-4 w-4 text-blue-500" />
-          Nowe kluby w Twoim regionie
+          {t("Nowe kluby w Twoim regionie")}
         </p>
         <div className="space-y-2">
           {items.map((club: any) => (
@@ -365,7 +373,7 @@ function NewClubsInRegion() {
                 onClick={() => followMut.mutate({ clubId: club.id })}
                 disabled={followMut.isPending}
               >
-                Obserwuj
+                {t("Obserwuj")}
               </Button>
             </div>
           ))}
@@ -480,6 +488,7 @@ function ClubStatsRow({
   squadCount: number;
   winRecord: { wins: number; draws: number; losses: number };
 }) {
+  const { t } = useI18n();
   const { wins, draws, losses } = winRecord;
   const bilansParts: string[] = [];
   if (wins > 0 || draws > 0 || losses > 0) {
@@ -489,18 +498,18 @@ function ClubStatsRow({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
       <Link href="/sparings">
-        <StatsCell value={activeSparings} label="Aktywne sparingi" color="violet" />
+        <StatsCell value={activeSparings} label={t("Aktywne sparingi")} color="violet" />
       </Link>
       <Link href="/sparings">
-        <StatsCell value={pendingApplications} label="Zgłoszenia" color="amber" />
+        <StatsCell value={pendingApplications} label={t("Zgłoszenia")} color="amber" />
       </Link>
       <Link href="/squad">
-        <StatsCell value={squadCount} label="Kadra" color="sky" />
+        <StatsCell value={squadCount} label={t("Kadra")} color="sky" />
       </Link>
       <div>
         <StatsCell
           value={bilansParts.length > 0 ? bilansParts[0] : "—"}
-          label="Bilans W-R-P"
+          label={t("Bilans W-R-P")}
           color="emerald"
         />
       </div>
@@ -515,6 +524,7 @@ function ClubNextMatch({
   nextMatch: ClubDashboardData["nextMatch"];
   clubProfile: { id?: string; name: string; logoUrl: string | null } | null | undefined;
 }) {
+  const { t } = useI18n();
   if (!nextMatch || !clubProfile) return null;
 
   const homeClub = {
@@ -533,7 +543,7 @@ function ClubNextMatch({
       }
     : {
         id: "opp",
-        name: "Rywal",
+        name: t("Rywal"),
         logoUrl: null,
         initials: "RY",
       };
@@ -551,6 +561,7 @@ function ClubNextMatch({
 }
 
 function ClubQuickActions() {
+  const { t } = useI18n();
   const [showMore, setShowMore] = useState(false);
 
   return (
@@ -559,13 +570,13 @@ function ClubQuickActions() {
         <Link href="/sparings/new" className="flex-1">
           <Button className="w-full h-10 rounded-lg text-sm font-semibold gap-2 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white border-0">
             <Swords className="h-4 w-4" />
-            Nowy sparing
+            {t("Nowy sparing")}
           </Button>
         </Link>
         <Link href="/events/new">
           <Button variant="outline" className="h-10 rounded-lg text-sm font-semibold gap-2">
             <Trophy className="h-4 w-4" />
-            Nabór
+            {t("Nabór")}
           </Button>
         </Link>
         <Link href="/recruitment">
@@ -582,26 +593,26 @@ function ClubQuickActions() {
           className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition hover:text-foreground"
         >
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showMore ? "rotate-180" : ""}`} />
-          Więcej działań
+          {t("Więcej działań")}
         </button>
         {showMore && (
           <div className="mt-2 flex flex-wrap gap-2">
             <Link href="/calendar">
               <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
                 <Calendar className="h-3.5 w-3.5" />
-                Kalendarz
+                {t("Kalendarz")}
               </Button>
             </Link>
             <Link href="/search">
               <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
                 <Search className="h-3.5 w-3.5" />
-                Szukaj rywala
+                {t("Szukaj rywala")}
               </Button>
             </Link>
             <Link href="/community">
               <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
                 <MessageSquare className="h-3.5 w-3.5" />
-                Tablica
+                {t("Tablica")}
               </Button>
             </Link>
           </div>
@@ -625,6 +636,7 @@ function relativeTime(date: Date | string) {
 }
 
 function ClubPendingAlerts({ pendingApplications }: { pendingApplications: any[] }) {
+  const { t } = useI18n();
   if (!pendingApplications || pendingApplications.length === 0) return null;
 
   const alerts = pendingApplications.slice(0, 5).map((app) => ({
@@ -640,14 +652,14 @@ function ClubPendingAlerts({ pendingApplications }: { pendingApplications: any[]
         : "bg-emerald-400",
     statusLabel:
       app.status === "COUNTER_PROPOSED"
-        ? "Kontrpropozycja"
-        : "Nowe zgłoszenie",
+        ? t("Kontrpropozycja")
+        : t("Nowe zgłoszenie"),
   }));
 
   return (
     <div className="bg-card rounded-xl border mb-3">
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
-        <p className="text-sm font-semibold">Wymagają uwagi</p>
+        <p className="text-sm font-semibold">{t("Wymagają uwagi")}</p>
         <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-red-500/15 text-red-500 text-[11px] font-bold px-1.5">
           {alerts.length}
         </span>
@@ -734,6 +746,7 @@ function ClubDashboard({
 }
 
 export default function FeedPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
   const isClub = userRole === "CLUB";
@@ -767,11 +780,11 @@ export default function FeedPage() {
     <div className="animate-fade-in">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          {isClub ? "Pulpit" : "Feed"}
+          {isClub ? t("Pulpit") : "Feed"}
         </h1>
         {!isClub && feed.data?.regionName ? (
           <p className="mt-1 text-sm text-muted-foreground">
-            Aktywności z regionu: <span className="font-medium text-foreground">{feed.data.regionName}</span>
+            {t("Aktywności z regionu:")} <span className="font-medium text-foreground">{feed.data.regionName}</span>
           </p>
         ) : null}
       </div>
@@ -794,13 +807,13 @@ export default function FeedPage() {
         (stats.data as DashboardStats).upcomingEvents === 0 && (
         <Card className="mb-6 border-dashed border-primary/20">
           <CardContent className="py-5">
-            <p className="mb-3 text-sm font-semibold">Pierwsze kroki</p>
+            <p className="mb-3 text-sm font-semibold">{t("Pierwsze kroki")}</p>
             <div className="space-y-2">
               {[
-                { done: true, label: "Zarejestruj konto" },
-                { done: !!clubProfile.data?.regionId, label: "Uzupełnij profil klubu", href: "/profile" },
-                { done: false, label: "Dodaj pierwszy sparing", href: "/sparings/new" },
-                { done: false, label: "Dodaj pierwsze wydarzenie", href: "/events/new" },
+                { done: true, label: t("Zarejestruj konto") },
+                { done: !!clubProfile.data?.regionId, label: t("Uzupełnij profil klubu"), href: "/profile" },
+                { done: false, label: t("Dodaj pierwszy sparing"), href: "/sparings/new" },
+                { done: false, label: t("Dodaj pierwsze wydarzenie"), href: "/events/new" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2.5">
                   {item.done ? (
@@ -856,18 +869,18 @@ export default function FeedPage() {
       ) : feed.error ? (
         <Card className="border-destructive/20">
           <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-sm text-destructive">Nie udało się załadować feedu</p>
+            <p className="text-sm text-destructive">{t("Nie udało się załadować feedu")}</p>
             <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
-              Spróbuj ponownie
+              {t("Spróbuj ponownie")}
             </Button>
           </CardContent>
         </Card>
       ) : (feed.data?.items?.length ?? 0) === 0 ? (
         <EmptyState
           icon={Swords}
-          title="Brak aktywności"
-          description="Uzupełnij profil i wybierz region, aby zobaczyć dopasowane sparingi, wydarzenia i nowych członków."
-          actionLabel="Uzupełnij profil"
+          title={t("Brak aktywności")}
+          description={t("Uzupełnij profil i wybierz region, aby zobaczyć dopasowane sparingi, wydarzenia i nowych członków.")}
+          actionLabel={t("Uzupełnij profil")}
           actionHref="/profile"
         />
       ) : (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -28,12 +29,15 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Potwierdź",
-  cancelLabel = "Anuluj",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   loading = false,
   variant = "destructive",
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+  const resolvedConfirmLabel = confirmLabel ?? t("Potwierdź");
+  const resolvedCancelLabel = cancelLabel ?? t("Anuluj");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="sm:max-w-md">
@@ -58,14 +62,14 @@ export function ConfirmDialog({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            {cancelLabel}
+            {resolvedCancelLabel}
           </Button>
           <Button
             variant={variant}
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? "Proszę czekać..." : confirmLabel}
+            {loading ? t("Proszę czekać...") : resolvedConfirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

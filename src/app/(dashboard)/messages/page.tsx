@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConversationSkeleton } from "@/components/card-skeleton";
@@ -30,6 +31,7 @@ type Conversation = {
 };
 
 export default function MessagesPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { data: conversations = [] as Conversation[], isLoading: loading } = api.message.getConversations.useQuery(undefined, {
     select: (data) => data as unknown as Conversation[],
@@ -38,9 +40,9 @@ export default function MessagesPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Wiadomości</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Wiadomości")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Twoje konwersacje z klubami i zawodnikami
+          {t("Twoje konwersacje z klubami i zawodnikami")}
         </p>
       </div>
 
@@ -53,8 +55,8 @@ export default function MessagesPage() {
       ) : conversations.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
-          title="Brak konwersacji"
-          description="Napisz wiadomość z profilu klubu lub strony sparingu aby rozpocząć konwersację."
+          title={t("Brak konwersacji")}
+          description={t("Napisz wiadomość z profilu klubu lub strony sparingu aby rozpocząć konwersację.")}
         />
       ) : (
         <div className="space-y-2">
@@ -83,7 +85,7 @@ export default function MessagesPage() {
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(profileHref); }}
                               className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
-                              title="Zobacz profil"
+                              title={t("Zobacz profil")}
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
                             </button>

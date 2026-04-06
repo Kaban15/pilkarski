@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { formatShortDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,7 @@ import Link from "next/link";
 type CategoryFilter = ClubPostCategoryValue | "ALL";
 
 export default function CommunityPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
   const { data: myClub } = api.club.me.useQuery(undefined, { enabled: isClub, staleTime: Infinity });
@@ -55,28 +57,28 @@ export default function CommunityPage() {
 
   const createMut = api.clubPost.create.useMutation({
     onSuccess: () => {
-      toast.success("Post dodany");
+      toast.success(t("Post dodany"));
       setShowForm(false);
       utils.clubPost.list.invalidate();
     },
-    onError: (err) => toast.error(err.message || "Nie udało się dodać postu"),
+    onError: (err) => toast.error(err.message || t("Nie udało się dodać postu")),
   });
 
   const reportMut = api.clubPost.report.useMutation({
     onSuccess: () => {
-      toast.success("Zgłoszenie wysłane");
+      toast.success(t("Zgłoszenie wysłane"));
       setReportingPostId(null);
       setReportReason("");
     },
-    onError: (err) => toast.error(err.message || "Nie udało się wysłać zgłoszenia"),
+    onError: (err) => toast.error(err.message || t("Nie udało się wysłać zgłoszenia")),
   });
 
   const deleteMut = api.clubPost.delete.useMutation({
     onSuccess: () => {
-      toast.success("Post usunięty");
+      toast.success(t("Post usunięty"));
       utils.clubPost.list.invalidate();
     },
-    onError: (err) => toast.error(err.message || "Nie udało się usunąć postu"),
+    onError: (err) => toast.error(err.message || t("Nie udało się usunąć postu")),
   });
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -103,15 +105,15 @@ export default function CommunityPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Tablica społeczności</h1>
+          <h1 className="text-2xl font-bold">{t("Tablica społeczności")}</h1>
           <p className="text-sm text-muted-foreground">
-            Ogłoszenia klubowe, wyniki meczów i szukanie zawodników
+            {t("Ogłoszenia klubowe, wyniki meczów i szukanie zawodników")}
           </p>
         </div>
         {isClub && (
           <Button onClick={() => setShowForm(!showForm)}>
             <Plus className="mr-2 h-4 w-4" />
-            Dodaj post
+            {t("Dodaj post")}
           </Button>
         )}
       </div>
@@ -119,13 +121,13 @@ export default function CommunityPage() {
       {showForm && isClub && (
         <Card>
           <CardHeader>
-            <CardTitle>Nowy post</CardTitle>
+            <CardTitle>{t("Nowy post")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="category">Kategoria</Label>
+                  <Label htmlFor="category">{t("Kategoria")}</Label>
                   <select
                     id="category"
                     name="category"
@@ -133,22 +135,22 @@ export default function CommunityPage() {
                     className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
                   >
                     {Object.entries(CLUB_POST_CATEGORY_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
+                      <option key={value} value={value}>{t(label)}</option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="expiresAt">Wygasa (opcjonalnie)</Label>
+                  <Label htmlFor="expiresAt">{t("Wygasa (opcjonalnie)")}</Label>
                   <Input id="expiresAt" name="expiresAt" type="date" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="title">Tytuł</Label>
+                <Label htmlFor="title">{t("Tytuł")}</Label>
                 <Input
                   id="title"
                   name="title"
                   required
-                  placeholder="np. Szukamy bramkarza na sezon 2026/27"
+                  placeholder={t("np. Szukamy bramkarza na sezon 2026/27")}
                   className={fieldErrors.title ? "border-destructive" : ""}
                 />
                 {fieldErrors.title && (
@@ -156,20 +158,20 @@ export default function CommunityPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="content">Treść</Label>
+                <Label htmlFor="content">{t("Treść")}</Label>
                 <Textarea
                   id="content"
                   name="content"
                   rows={3}
-                  placeholder="Szczegóły ogłoszenia..."
+                  placeholder={t("Szczegóły ogłoszenia...")}
                 />
               </div>
               <div className="flex gap-2">
                 <Button type="submit" disabled={createMut.isPending}>
-                  {createMut.isPending ? "Publikowanie..." : "Opublikuj"}
+                  {createMut.isPending ? t("Publikowanie...") : t("Opublikuj")}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Anuluj
+                  {t("Anuluj")}
                 </Button>
               </div>
             </form>
@@ -181,9 +183,9 @@ export default function CommunityPage() {
 
       <Tabs value={category} onValueChange={(v) => setCategory(v as CategoryFilter)}>
         <TabsList className="flex-wrap">
-          <TabsTrigger value="ALL">Wszystkie</TabsTrigger>
+          <TabsTrigger value="ALL">{t("Wszystkie")}</TabsTrigger>
           {Object.entries(CLUB_POST_CATEGORY_LABELS).map(([value, label]) => (
-            <TabsTrigger key={value} value={value}>{label}</TabsTrigger>
+            <TabsTrigger key={value} value={value}>{t(label)}</TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
@@ -197,8 +199,8 @@ export default function CommunityPage() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={Megaphone}
-          title="Brak postów"
-          description="Nie ma jeszcze żadnych postów w tej kategorii."
+          title={t("Brak postów")}
+          description={t("Nie ma jeszcze żadnych postów w tej kategorii.")}
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -211,11 +213,11 @@ export default function CommunityPage() {
                       CLUB_POST_CATEGORY_COLORS[post.category] || "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {CLUB_POST_CATEGORY_LABELS[post.category] || post.category}
+                    {t(CLUB_POST_CATEGORY_LABELS[post.category] || post.category)}
                   </span>
                   {post.expiresAt && (
                     <span className="text-xs text-muted-foreground">
-                      do {formatShortDate(post.expiresAt)}
+                      {t("do")} {formatShortDate(post.expiresAt)}
                     </span>
                   )}
                 </div>
@@ -286,7 +288,7 @@ export default function CommunityPage() {
                     <Input
                       value={reportReason}
                       onChange={(e) => setReportReason(e.target.value)}
-                      placeholder="Powód zgłoszenia..."
+                      placeholder={t("Powód zgłoszenia...")}
                       className="h-8 text-xs"
                     />
                     <Button
@@ -296,7 +298,7 @@ export default function CommunityPage() {
                       disabled={reportReason.length < 5 || reportMut.isPending}
                       onClick={() => reportMut.mutate({ postId: post.id, reason: reportReason })}
                     >
-                      Zgłoś
+                      {t("Zgłoś")}
                     </Button>
                   </div>
                 )}

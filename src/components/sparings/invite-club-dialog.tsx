@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ type ClubSearchResult = {
 };
 
 export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedClub, setSelectedClub] = useState<ClubSearchResult | null>(null);
@@ -89,7 +91,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
   const inviteMut = api.sparing.invite.useMutation({
     onSuccess: () => {
-      toast.success("Zaproszenie wysłane!");
+      toast.success(t("Zaproszenie wysłane!"));
       setOpen(false);
       setSelectedClub(null);
       setMessage("");
@@ -122,9 +124,9 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
           <Send className="h-5 w-5 text-primary" />
         </div>
         <div className="text-left">
-          <p className="text-sm font-semibold text-primary">Zaproś klub na sparing</p>
+          <p className="text-sm font-semibold text-primary">{t("Zaproś klub na sparing")}</p>
           <p className="text-[12px] text-muted-foreground">
-            Wyszukaj po nazwie lub przeglądaj kluby z regionu i ligi
+            {t("Wyszukaj po nazwie lub przeglądaj kluby z regionu i ligi")}
           </p>
         </div>
       </button>
@@ -135,7 +137,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
     <Card className="border-primary/20">
       <CardContent className="space-y-4 py-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">Zaproś klub na sparing</p>
+          <p className="text-sm font-semibold">{t("Zaproś klub na sparing")}</p>
           <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
             <X className="h-4 w-4" />
           </button>
@@ -145,13 +147,13 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
           <>
             {/* Search by name */}
             <div className="space-y-2">
-              <Label>Szukaj po nazwie</Label>
+              <Label>{t("Szukaj po nazwie")}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Nazwa klubu..."
+                  placeholder={t("Nazwa klubu...")}
                   className="pl-9"
                 />
               </div>
@@ -162,7 +164,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
               <>
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-border" />
-                  <span className="text-[11px] font-medium text-muted-foreground">lub przeglądaj</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">{t("lub przeglądaj")}</span>
                   <div className="h-px flex-1 bg-border" />
                 </div>
 
@@ -170,7 +172,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                     <Filter className="h-3.5 w-3.5" />
-                    Filtruj po regionie i lidze
+                    {t("Filtruj po regionie i lidze")}
                   </div>
 
                   {/* Region */}
@@ -184,7 +186,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                     }}
                     className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    <option value="">Wybierz region (ZPN)</option>
+                    <option value="">{t("Wybierz region (ZPN)")}</option>
                     {regions.map((r: { id: number; name: string }) => (
                       <option key={r.id} value={r.id}>
                         {r.name}
@@ -203,7 +205,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                       }}
                       className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="">Wszystkie szczeble</option>
+                      <option value="">{t("Wszystkie szczeble")}</option>
                       {hierarchy.map((l: { id: number; name: string }) => (
                         <option key={l.id} value={l.id}>
                           {l.name}
@@ -221,7 +223,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                       }
                       className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="">Wszystkie grupy</option>
+                      <option value="">{t("Wszystkie grupy")}</option>
                       {selectedLevel.groups.map((g) => (
                         <option key={g.id} value={g.id}>
                           {g.name}
@@ -237,17 +239,17 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
             {showResults && (
               <div className="max-h-60 space-y-1 overflow-y-auto">
                 {isLoading ? (
-                  <p className="py-3 text-center text-xs text-muted-foreground">Szukam...</p>
+                  <p className="py-3 text-center text-xs text-muted-foreground">{t("Szukam...")}</p>
                 ) : clubs.length === 0 ? (
                   <p className="py-3 text-center text-xs text-muted-foreground">
-                    {search.length >= 2 ? "Brak wyników" : "Brak klubów w wybranym filtrze"}
+                    {search.length >= 2 ? t("Brak wyników") : t("Brak klubów w wybranym filtrze")}
                   </p>
                 ) : (
                   <>
                     <p className="pb-1 text-[11px] font-medium text-muted-foreground">
                       {search.length >= 2
-                        ? `Wyniki wyszukiwania (${clubs.length})`
-                        : `Kluby (${clubs.length})`}
+                        ? `${t("Wyniki wyszukiwania")} (${clubs.length})`
+                        : `${t("Kluby")} (${clubs.length})`}
                     </p>
                     {clubs.map((club: ClubSearchResult) => (
                       <button
@@ -332,11 +334,11 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Wiadomość (opcjonalnie)</Label>
+              <Label>{t("Wiadomość (opcjonalnie)")}</Label>
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="np. Zapraszamy na sparing, gramy na naszym boisku..."
+                placeholder={t("np. Zapraszamy na sparing, gramy na naszym boisku...")}
                 rows={2}
               />
             </div>
@@ -344,7 +346,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                Zaproszenie ważne przez
+                {t("Zaproszenie ważne przez")}
               </Label>
               <div className="flex items-center gap-2">
                 <Input
@@ -355,13 +357,13 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                   onChange={(e) => setExpiresInHours(Number(e.target.value))}
                   className="w-20"
                 />
-                <span className="text-sm text-muted-foreground">godzin</span>
+                <span className="text-sm text-muted-foreground">{t("godzin")}</span>
               </div>
             </div>
 
             <Button onClick={handleSend} disabled={inviteMut.isPending} className="w-full gap-2">
               <Send className="h-4 w-4" />
-              {inviteMut.isPending ? "Wysyłanie..." : "Wyślij zaproszenie"}
+              {inviteMut.isPending ? t("Wysyłanie...") : t("Wyślij zaproszenie")}
             </Button>
           </>
         )}
@@ -372,12 +374,13 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
 // Section showing received invitations for the invited club
 export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string }) {
+  const { t } = useI18n();
   const { data } = api.sparing.myInvitations.useQuery();
   const utils = api.useUtils();
 
   const respondMut = api.sparing.respondToInvitation.useMutation({
     onSuccess: (result) => {
-      toast.success(result.accepted ? "Zaproszenie zaakceptowane!" : "Zaproszenie odrzucone");
+      toast.success(result.accepted ? t("Zaproszenie zaakceptowane!") : t("Zaproszenie odrzucone"));
       utils.sparing.myInvitations.invalidate();
       utils.sparing.getById.invalidate();
     },
@@ -390,7 +393,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
   return (
     <Card className="border-emerald-500/20 bg-emerald-500/5">
       <CardContent className="py-4">
-        <p className="mb-3 text-sm font-semibold">Otrzymane zaproszenie</p>
+        <p className="mb-3 text-sm font-semibold">{t("Otrzymane zaproszenie")}</p>
         {received.map((inv) => {
           const isExpired = inv.expiresAt && new Date(inv.expiresAt) < new Date();
           return (
@@ -411,7 +414,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
                     {inv.fromClub.city}
                     {inv.expiresAt && (
                       <span className="ml-1">
-                        · ważne do {new Date(inv.expiresAt).toLocaleString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        · {t("ważne do")} {new Date(inv.expiresAt).toLocaleString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
                   </p>
@@ -421,7 +424,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
                 <p className="text-[13px] text-muted-foreground italic">"{inv.message}"</p>
               )}
               {isExpired ? (
-                <Badge variant="secondary">Wygasło</Badge>
+                <Badge variant="secondary">{t("Wygasło")}</Badge>
               ) : (
                 <div className="flex gap-2">
                   <Button
@@ -431,7 +434,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
                     disabled={respondMut.isPending}
                   >
                     <Check className="h-3.5 w-3.5" />
-                    Akceptuj
+                    {t("Akceptuj")}
                   </Button>
                   <Button
                     size="sm"
@@ -441,7 +444,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
                     disabled={respondMut.isPending}
                   >
                     <X className="h-3.5 w-3.5" />
-                    Odrzuć
+                    {t("Odrzuć")}
                   </Button>
                 </div>
               )}
@@ -455,16 +458,17 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
 
 // Section showing sent invitations for the owner
 export function SentInvitations({ sparingOfferId }: { sparingOfferId: string }) {
+  const { t } = useI18n();
   const { data } = api.sparing.myInvitations.useQuery();
 
   const sent = data?.sent?.filter((inv) => inv.sparingOfferId === sparingOfferId) ?? [];
   if (sent.length === 0) return null;
 
   const STATUS_LABELS: Record<string, string> = {
-    PENDING: "Oczekuje",
-    ACCEPTED: "Zaakceptowane",
-    REJECTED: "Odrzucone",
-    EXPIRED: "Wygasło",
+    PENDING: t("Oczekuje"),
+    ACCEPTED: t("Zaakceptowane"),
+    REJECTED: t("Odrzucone"),
+    EXPIRED: t("Wygasło"),
   };
 
   const STATUS_COLORS: Record<string, string> = {
@@ -477,7 +481,7 @@ export function SentInvitations({ sparingOfferId }: { sparingOfferId: string }) 
   return (
     <Card>
       <CardContent className="py-4">
-        <p className="mb-3 text-sm font-semibold">Wysłane zaproszenia</p>
+        <p className="mb-3 text-sm font-semibold">{t("Wysłane zaproszenia")}</p>
         <div className="space-y-2">
           {sent.map((inv) => (
             <div key={inv.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">

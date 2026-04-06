@@ -4,6 +4,7 @@ import Link from "next/link";
 import { api } from "@/lib/trpc-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target, Eye, FileText, UserCheck, CheckCircle2, Timer } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const STAGE_CONFIG = [
   { key: "watching", label: "Na radarze", icon: Eye, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -13,6 +14,7 @@ const STAGE_CONFIG = [
 ] as const;
 
 export function RecruitmentStats() {
+  const { t } = useI18n();
   const { data: stats } = api.recruitment.stats.useQuery(undefined, {
     staleTime: 60_000,
   });
@@ -28,10 +30,10 @@ export function RecruitmentStats() {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="h-4 w-4 text-primary" />
-            Pipeline rekrutacyjny
+            {t("Pipeline rekrutacyjny")}
           </CardTitle>
           <Link href="/recruitment" className="text-xs text-primary hover:underline">
-            Zarządzaj →
+            {t("Zarządzaj →")}
           </Link>
         </div>
       </CardHeader>
@@ -47,7 +49,7 @@ export function RecruitmentStats() {
                   </div>
                   <div>
                     <span className="text-lg font-bold tabular-nums">{value}</span>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t(label)}</p>
                   </div>
                 </div>
               </Link>
@@ -60,7 +62,7 @@ export function RecruitmentStats() {
               </div>
               <div>
                 <span className="text-lg font-bold tabular-nums">{avgTime.avgDays}d</span>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Śr. do podpisania</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("Śr. do podpisania")}</p>
               </div>
             </div>
           )}

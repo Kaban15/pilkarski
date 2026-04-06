@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
-import type { TranslationKey } from "@/lib/translations";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
@@ -44,32 +43,32 @@ interface SidebarProps {
 type NavItem = {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  labelKey: TranslationKey;
+  label: string;
   roles?: string[];
 };
 
 const MAIN_NAV: NavItem[] = [
-  { href: "/feed", icon: Home, labelKey: "nav.feed" },
-  { href: "/sparings", icon: Swords, labelKey: "nav.sparings", roles: ["CLUB"] },
-  { href: "/events", icon: Trophy, labelKey: "nav.events" },
-  { href: "/recruitment", icon: Target, labelKey: "nav.recruitment" },
-  { href: "/messages", icon: MessageSquare, labelKey: "nav.messages" },
-  { href: "/notifications", icon: Bell, labelKey: "nav.notifications" },
-  { href: "/profile", icon: User, labelKey: "nav.profile" },
+  { href: "/feed", icon: Home, label: "Pulpit" },
+  { href: "/sparings", icon: Swords, label: "Sparingi", roles: ["CLUB"] },
+  { href: "/events", icon: Trophy, label: "Wydarzenia" },
+  { href: "/recruitment", icon: Target, label: "Rekrutacja" },
+  { href: "/messages", icon: MessageSquare, label: "Wiadomości" },
+  { href: "/notifications", icon: Bell, label: "Powiadomienia" },
+  { href: "/profile", icon: User, label: "Profil" },
 ];
 
 const MORE_NAV: NavItem[] = [
-  { href: "/squad", icon: Users, labelKey: "nav.squad", roles: ["CLUB"] },
-  { href: "/trainings", icon: GraduationCap, labelKey: "nav.trainings" },
-  { href: "/calendar", icon: CalendarDays, labelKey: "nav.calendar" },
-  { href: "/tournaments", icon: Trophy, labelKey: "nav.tournaments" },
-  { href: "/community", icon: Megaphone, labelKey: "nav.community" },
-  { href: "/transfers", icon: ArrowRightLeft, labelKey: "nav.transfers" },
-  { href: "/leagues", icon: Medal, labelKey: "nav.leagues" },
-  { href: "/search", icon: Search, labelKey: "nav.search" },
-  { href: "/club-chat", icon: UsersRound, labelKey: "nav.clubChat" },
-  { href: "/favorites", icon: Heart, labelKey: "nav.favorites" },
-  { href: "/admin", icon: Shield, labelKey: "nav.admin" },
+  { href: "/squad", icon: Users, label: "Kadra", roles: ["CLUB"] },
+  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
+  { href: "/calendar", icon: CalendarDays, label: "Kalendarz" },
+  { href: "/tournaments", icon: Trophy, label: "Turnieje" },
+  { href: "/community", icon: Megaphone, label: "Tablica" },
+  { href: "/transfers", icon: ArrowRightLeft, label: "Transfery" },
+  { href: "/leagues", icon: Medal, label: "Ligi" },
+  { href: "/search", icon: Search, label: "Szukaj" },
+  { href: "/club-chat", icon: UsersRound, label: "Czat klubu" },
+  { href: "/favorites", icon: Heart, label: "Ulubione" },
+  { href: "/admin", icon: Shield, label: "Admin" },
 ];
 
 export function Sidebar({ user }: SidebarProps) {
@@ -122,7 +121,7 @@ export function Sidebar({ user }: SidebarProps) {
               : "text-white/40 group-hover:text-white/70"
           }`}
         />
-        <span className="flex-1 truncate">{t(item.labelKey)}</span>
+        <span className="flex-1 truncate">{t(item.label)}</span>
         {badge > 0 && (
           <span className="pulse-dot flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-1.5 text-[10px] font-bold text-white">
             {badge > 99 ? "99+" : badge}
@@ -132,13 +131,12 @@ export function Sidebar({ user }: SidebarProps) {
     );
   };
 
-  // Check if any "more" item is currently active
   const moreItems = MORE_NAV.filter(filterItem);
   const moreHasActive = moreItems.some(
     (item) => pathname === item.href || (item.href !== "/feed" && pathname.startsWith(item.href))
   );
 
-  const roleKey = `role.${user.role}` as TranslationKey;
+  const roleLabel = { CLUB: "Klub", PLAYER: "Zawodnik", COACH: "Trener" }[user.role] ?? "Użytkownik";
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-background md:flex">
@@ -150,7 +148,7 @@ export function Sidebar({ user }: SidebarProps) {
         </div>
         <div>
           <p className="text-[15px] font-bold tracking-tight text-white">PilkaSport</p>
-          <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">{t("nav.panel")}</p>
+          <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">{t("Panel")}</p>
         </div>
       </div>
 
@@ -178,10 +176,10 @@ export function Sidebar({ user }: SidebarProps) {
                   : "text-white/40 group-hover:text-white/70"
               }`}
             />
-            <span className="flex-1 truncate text-left">{t("nav.more")}</span>
+            <span className="flex-1 truncate text-left">{t("Więcej")}</span>
           </button>
 
-          {/* Expanded items — same style as main nav */}
+          {/* Expanded items */}
           {moreOpen && moreItems.map((item) => renderNavLink(item))}
         </div>
       </nav>
@@ -200,7 +198,7 @@ export function Sidebar({ user }: SidebarProps) {
               {user.name || user.email}
             </p>
             <p className="text-[11px] font-medium text-white/30">
-              {t(roleKey)}
+              {t(roleLabel)}
             </p>
           </div>
           <div className="flex items-center gap-0.5">
@@ -214,7 +212,7 @@ export function Sidebar({ user }: SidebarProps) {
           className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[12px] font-medium text-white/25 transition-all duration-200 hover:bg-white/[0.04] hover:text-white/50"
         >
           <LogOut className="h-3.5 w-3.5" />
-          {t("nav.logout")}
+          {t("Wyloguj")}
         </button>
       </div>
     </aside>

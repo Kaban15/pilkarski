@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -15,6 +16,7 @@ import { PositionGroup, POSITION_GROUPS } from "@/components/squad/position-grou
 import Link from "next/link";
 
 export default function SquadPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function SquadPage() {
     onSuccess: () => {
       utils.clubMembership.listRequestsForClub.invalidate();
       utils.clubMembership.listMembers.invalidate();
-      toast.success("Obsłużono");
+      toast.success(t("Obsłużono"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -44,14 +46,14 @@ export default function SquadPage() {
     onSuccess: () => {
       utils.clubMembership.listMembers.invalidate();
       setRemovingId(null);
-      toast.success("Członek usunięty");
+      toast.success(t("Członek usunięty"));
     },
     onError: (err) => toast.error(err.message),
   });
 
   const permMut = api.clubMembership.setPermissions.useMutation({
     onSuccess: () => {
-      toast.success("Uprawnienia zaktualizowane");
+      toast.success(t("Uprawnienia zaktualizowane"));
       utils.clubMembership.listMembers.invalidate();
     },
     onError: (e: { message: string }) => toast.error(e.message),
@@ -63,8 +65,8 @@ export default function SquadPage() {
     return (
       <EmptyState
         icon={Shield}
-        title="Sekcja dla klubów"
-        description="Zarządzanie kadrą dostępne tylko dla kont klubowych."
+        title={t("Sekcja dla klubów")}
+        description={t("Zarządzanie kadrą dostępne tylko dla kont klubowych.")}
       />
     );
   }
@@ -136,9 +138,9 @@ export default function SquadPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Kadra</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Kadra")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {players.length} zawodników · {coaches.length} trenerów
+              {players.length} {t("zawodników")} · {coaches.length} {t("trenerów")}
             </p>
           </div>
           {isOwner && (
@@ -162,8 +164,8 @@ export default function SquadPage() {
       ) : !hasAnyPlayer ? (
         <EmptyState
           icon={Users}
-          title="Brak zawodników"
-          description="Twój klub nie ma jeszcze zawodników. Zaakceptuj prośby o dołączenie."
+          title={t("Brak zawodników")}
+          description={t("Twój klub nie ma jeszcze zawodników. Zaakceptuj prośby o dołączenie.")}
         />
       ) : (
         <div className="mb-6">
@@ -181,7 +183,7 @@ export default function SquadPage() {
           ))}
           {otherPlayers.length > 0 && (
             <PositionGroup
-              label="Inni"
+              label={t("Inni")}
               color="blue"
               players={otherPlayers}
               showActions={isOwner}
@@ -199,7 +201,7 @@ export default function SquadPage() {
           <div className="flex items-center gap-1.5 mb-2">
             <div className="w-[3px] h-3.5 rounded-sm bg-amber-500" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Trenerzy
+              {t("Trenerzy")}
             </span>
             <span className="text-[11px] text-muted-foreground/60">{coaches.length}</span>
           </div>
@@ -210,7 +212,7 @@ export default function SquadPage() {
               const name = `${c.firstName} ${c.lastName}`;
               const initials = `${(c.firstName?.[0] || "").toUpperCase()}${(c.lastName?.[0] || "").toUpperCase()}`;
               const specialization = c.specialization
-                ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization
+                ? t(COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization)
                 : null;
 
               return (
@@ -241,7 +243,7 @@ export default function SquadPage() {
                   </Link>
                   {m.canManageEvents && (
                     <Badge className="bg-amber-500/10 text-amber-600 text-[10px] shrink-0">
-                      Zarządza
+                      {t("Zarządza")}
                     </Badge>
                   )}
                   {isOwner && (
@@ -271,7 +273,7 @@ export default function SquadPage() {
           <div className="flex items-center gap-1.5 mb-2">
             <div className="w-[3px] h-3.5 rounded-sm bg-violet-500" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Oczekujące
+              {t("Oczekujące")}
             </span>
             <span className="text-[11px] text-muted-foreground/60">{requests.length}</span>
           </div>
@@ -296,9 +298,9 @@ export default function SquadPage() {
                 ? `/coaches/${c.id}`
                 : null;
               const detail = p?.primaryPosition
-                ? POSITION_LABELS[p.primaryPosition]
+                ? t(POSITION_LABELS[p.primaryPosition] ?? p.primaryPosition)
                 : c?.specialization
-                ? COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization
+                ? t(COACH_SPECIALIZATION_LABELS[c.specialization] ?? c.specialization)
                 : null;
 
               return (
@@ -329,7 +331,7 @@ export default function SquadPage() {
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                       <Badge variant="secondary" className="text-[10px]">
-                        {req.memberType === "COACH" ? "Trener" : "Zawodnik"}
+                        {req.memberType === "COACH" ? t("Trener") : t("Zawodnik")}
                       </Badge>
                       <Badge
                         className={
@@ -338,7 +340,7 @@ export default function SquadPage() {
                             : "bg-blue-500/10 text-blue-600 text-[10px]"
                         }
                       >
-                        {req.status === "INVITED" ? "ZAPROSZONY" : "PROŚBA"}
+                        {req.status === "INVITED" ? t("ZAPROSZONY") : t("PROŚBA")}
                       </Badge>
                       {detail && (
                         <span className="text-[11px] text-muted-foreground">{detail}</span>
@@ -388,8 +390,8 @@ export default function SquadPage() {
       <ConfirmDialog
         open={!!removingId}
         onOpenChange={(open) => !open && setRemovingId(null)}
-        title="Usuń z klubu"
-        description="Czy na pewno chcesz usunąć tego członka z klubu?"
+        title={t("Usuń z klubu")}
+        description={t("Czy na pewno chcesz usunąć tego członka z klubu?")}
         onConfirm={() => removingId && removeMut.mutate({ membershipId: removingId })}
         loading={removeMut.isPending}
         variant="destructive"

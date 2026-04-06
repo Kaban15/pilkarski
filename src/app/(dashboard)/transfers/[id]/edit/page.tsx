@@ -12,11 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { POSITION_LABELS, SPARING_LEVEL_LABELS } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import { getFieldErrors } from "@/lib/form-errors";
 import { updateTransferSchema, type TransferType, type TransferPosition } from "@/lib/validators/transfer";
 import { ArrowRightLeft } from "lucide-react";
 
 export default function EditTransferPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -42,7 +44,7 @@ export default function EditTransferPage() {
 
   const updateMutation = api.transfer.update.useMutation({
     onSuccess: () => {
-      toast.success("Ogłoszenie zaktualizowane");
+      toast.success(t("Ogłoszenie zaktualizowane"));
       router.push(`/transfers/${id}`);
     },
     onError: (err) => {
@@ -104,9 +106,9 @@ export default function EditTransferPage() {
     <div className="animate-fade-in">
       <Breadcrumbs
         items={[
-          { label: "Transfery", href: "/transfers" },
+          { label: t("Transfery"), href: "/transfers" },
           { label: form.title, href: `/transfers/${id}` },
-          { label: "Edycja" },
+          { label: t("Edycja") },
         ]}
       />
 
@@ -114,13 +116,13 @@ export default function EditTransferPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5 text-cyan-500" />
-            Edytuj ogłoszenie
+            {t("Edytuj ogłoszenie")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Tytuł *</Label>
+              <Label>{t("Tytuł")} *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => updateField("title", e.target.value)}
@@ -130,7 +132,7 @@ export default function EditTransferPage() {
             </div>
 
             <div>
-              <Label>Opis</Label>
+              <Label>{t("Opis")}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) => updateField("description", e.target.value)}
@@ -141,27 +143,27 @@ export default function EditTransferPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Pozycja</Label>
+                <Label>{t("Pozycja")}</Label>
                 <select
                   value={form.position}
                   onChange={(e) => updateField("position", e.target.value)}
                   className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Dowolna</option>
+                  <option value="">{t("Dowolna")}</option>
                   {Object.entries(POSITION_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
+                    <option key={key} value={key}>{t(label)}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <Label>Region</Label>
+                <Label>{t("Region")}</Label>
                 <select
                   value={form.regionId}
                   onChange={(e) => updateField("regionId", e.target.value)}
                   className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Cała Polska</option>
+                  <option value="">{t("Cała Polska")}</option>
                   {regions.map((r: any) => (
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
@@ -172,7 +174,7 @@ export default function EditTransferPage() {
             {(form.type === "LOOKING_FOR_CLUB" || form.type === "FREE_AGENT") && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label>Dostępny od</Label>
+                  <Label>{t("Dostępny od")}</Label>
                   <Input
                     type="date"
                     value={form.availableFrom}
@@ -181,15 +183,15 @@ export default function EditTransferPage() {
                   />
                 </div>
                 <div>
-                  <Label>Preferowany poziom</Label>
+                  <Label>{t("Preferowany poziom")}</Label>
                   <select
                     value={form.preferredLevel}
                     onChange={(e) => updateField("preferredLevel", e.target.value)}
                     className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                   >
-                    <option value="">Dowolny</option>
+                    <option value="">{t("Dowolny")}</option>
                     {Object.entries(SPARING_LEVEL_LABELS).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
+                      <option key={key} value={key}>{t(label)}</option>
                     ))}
                   </select>
                 </div>
@@ -199,7 +201,7 @@ export default function EditTransferPage() {
             {form.type === "LOOKING_FOR_PLAYER" && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label>Wiek od</Label>
+                  <Label>{t("Wiek od")}</Label>
                   <Input
                     type="number"
                     value={form.minAge}
@@ -209,7 +211,7 @@ export default function EditTransferPage() {
                   />
                 </div>
                 <div>
-                  <Label>Wiek do</Label>
+                  <Label>{t("Wiek do")}</Label>
                   <Input
                     type="number"
                     value={form.maxAge}
@@ -223,7 +225,7 @@ export default function EditTransferPage() {
 
             <Button type="submit" disabled={updateMutation.isPending} className="w-full gap-1.5">
               <ArrowRightLeft className="h-4 w-4" />
-              {updateMutation.isPending ? "Zapisywanie..." : "Zapisz zmiany"}
+              {updateMutation.isPending ? t("Zapisywanie...") : t("Zapisz zmiany")}
             </Button>
           </form>
         </CardContent>

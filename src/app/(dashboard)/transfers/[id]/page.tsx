@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -37,6 +38,7 @@ import {
 import { RegionLogo } from "@/components/region-logo";
 
 export default function TransferDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
@@ -51,7 +53,7 @@ export default function TransferDetailPage() {
 
   const deleteMutation = api.transfer.delete.useMutation({
     onSuccess: () => {
-      toast.success("Ogłoszenie usunięte");
+      toast.success(t("Ogłoszenie usunięte"));
       router.push("/transfers");
     },
     onError: (err) => {
@@ -64,7 +66,7 @@ export default function TransferDetailPage() {
 
   const closeMutation = api.transfer.close.useMutation({
     onSuccess: () => {
-      toast.success("Ogłoszenie zamknięte");
+      toast.success(t("Ogłoszenie zamknięte"));
       utils.transfer.getById.invalidate({ id });
     },
     onError: (err) => {
@@ -76,7 +78,7 @@ export default function TransferDetailPage() {
 
   const isOwner = session?.user?.id === transfer.userId;
   const authorName = transfer.user.club?.name
-    ?? (transfer.user.player ? `${transfer.user.player.firstName} ${transfer.user.player.lastName}` : "Nieznany");
+    ?? (transfer.user.player ? `${transfer.user.player.firstName} ${transfer.user.player.lastName}` : t("Nieznany"));
   const authorUserId = transfer.user.club?.userId ?? transfer.user.player?.userId;
   const profileLink = transfer.user.club
     ? `/clubs/${transfer.user.club.id}`
@@ -88,7 +90,7 @@ export default function TransferDetailPage() {
     <div className="animate-fade-in">
       <Breadcrumbs
         items={[
-          { label: "Transfery", href: "/transfers" },
+          { label: t("Transfery"), href: "/transfers" },
           { label: transfer.title },
         ]}
       />
@@ -101,10 +103,10 @@ export default function TransferDetailPage() {
               {transfer.title}
             </h1>
             <Badge variant="secondary" className={TRANSFER_TYPE_COLORS[transfer.type]}>
-              {TRANSFER_TYPE_LABELS[transfer.type]}
+              {t(TRANSFER_TYPE_LABELS[transfer.type] ?? transfer.type)}
             </Badge>
             <span className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold ${TRANSFER_STATUS_COLORS[transfer.status]}`}>
-              {TRANSFER_STATUS_LABELS[transfer.status]}
+              {t(TRANSFER_STATUS_LABELS[transfer.status] ?? transfer.status)}
             </span>
           </div>
           <p className="mt-1.5 text-muted-foreground">
@@ -125,7 +127,7 @@ export default function TransferDetailPage() {
             <Link href={`/transfers/${id}/edit`}>
               <Button size="sm" variant="outline" className="gap-1.5">
                 <Pencil className="h-3.5 w-3.5" />
-                Edytuj
+                {t("Edytuj")}
               </Button>
             </Link>
             <Button
@@ -136,7 +138,7 @@ export default function TransferDetailPage() {
               disabled={closeMutation.isPending}
             >
               <XCircle className="h-3.5 w-3.5" />
-              {closeMutation.isPending ? "Zamykanie..." : "Zamknij"}
+              {closeMutation.isPending ? t("Zamykanie...") : t("Zamknij")}
             </Button>
             <Button
               size="sm"
@@ -145,7 +147,7 @@ export default function TransferDetailPage() {
               onClick={() => setShowDeleteConfirm(true)}
             >
               <Trash2 className="h-3.5 w-3.5" />
-              Usuń
+              {t("Usuń")}
             </Button>
           </div>
         )}
@@ -154,9 +156,9 @@ export default function TransferDetailPage() {
       <ConfirmDialog
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        title="Usuń ogłoszenie"
-        description="Czy na pewno chcesz usunąć to ogłoszenie transferowe? Ta operacja jest nieodwracalna."
-        confirmLabel="Tak, usuń"
+        title={t("Usuń ogłoszenie")}
+        description={t("Czy na pewno chcesz usunąć to ogłoszenie transferowe? Ta operacja jest nieodwracalna.")}
+        confirmLabel={t("Tak, usuń")}
         onConfirm={() => deleteMutation.mutate({ id })}
         loading={deleteMutation.isPending}
       />
@@ -171,8 +173,8 @@ export default function TransferDetailPage() {
                   <Target className="h-4 w-4 text-cyan-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Pozycja</p>
-                  <p className="font-medium">{POSITION_LABELS[transfer.position]}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Pozycja")}</p>
+                  <p className="font-medium">{t(POSITION_LABELS[transfer.position] ?? transfer.position)}</p>
                 </div>
               </div>
             )}
@@ -182,7 +184,7 @@ export default function TransferDetailPage() {
                   <RegionLogo slug={transfer.region.slug} name={transfer.region.name} size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Region</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Region")}</p>
                   <p className="font-medium">{transfer.region.name}</p>
                 </div>
               </div>
@@ -193,13 +195,13 @@ export default function TransferDetailPage() {
                   <User className="h-4 w-4 text-violet-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Wiek</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Wiek")}</p>
                   <p className="font-medium">
                     {transfer.minAge && transfer.maxAge
-                      ? `${transfer.minAge}–${transfer.maxAge} lat`
+                      ? `${transfer.minAge}–${transfer.maxAge} ${t("lat")}`
                       : transfer.minAge
-                        ? `od ${transfer.minAge} lat`
-                        : `do ${transfer.maxAge} lat`}
+                        ? `${t("od")} ${transfer.minAge} ${t("lat")}`
+                        : `${t("do")} ${transfer.maxAge} ${t("lat")}`}
                   </p>
                 </div>
               </div>
@@ -209,7 +211,7 @@ export default function TransferDetailPage() {
                 <Calendar className="h-4 w-4 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Dodano</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("Dodano")}</p>
                 <p className="font-medium">{formatDate(transfer.createdAt)}</p>
               </div>
             </div>
@@ -222,7 +224,7 @@ export default function TransferDetailPage() {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Opis</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Opis")}</p>
                   <p className="mt-1 whitespace-pre-wrap leading-relaxed">{transfer.description}</p>
                 </div>
               </div>

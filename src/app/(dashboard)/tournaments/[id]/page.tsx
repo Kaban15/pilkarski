@@ -13,6 +13,7 @@ import {
   getUserDisplayName,
 } from "@/lib/labels";
 import { formatShortDate, formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,11 +34,11 @@ type ApplicationStatus = "PENDING" | "ACCEPTED" | "REJECTED";
 // ─── tabs ─────────────────────────────────────────────────────────────────────
 
 const ALL_TABS = [
-  { key: "teams", label: "Drużyny" },
-  { key: "groups", label: "Grupy" },
-  { key: "bracket", label: "Drabinka" },
-  { key: "scorers", label: "Strzelcy" },
-  { key: "info", label: "Info" },
+  { key: "teams", labelKey: "Drużyny" },
+  { key: "groups", labelKey: "Grupy" },
+  { key: "bracket", labelKey: "Drabinka" },
+  { key: "scorers", labelKey: "Strzelcy" },
+  { key: "info", labelKey: "Info" },
 ] as const;
 
 type TabKey = (typeof ALL_TABS)[number]["key"];
@@ -75,11 +76,12 @@ const STATUS_LABEL_MAP: Record<ApplicationStatus, string> = {
   PENDING: "Oczekuje",
   ACCEPTED: "Zaakceptowana",
   REJECTED: "Odrzucona",
-};
+} as const;
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export default function TournamentDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
   const router = useRouter();
@@ -116,38 +118,38 @@ export default function TournamentDetailPage() {
   const invalidate = () => utils.tournament.getById.invalidate({ tournamentId: id });
 
   const applyMut = api.tournament.applyTeam.useMutation({
-    onSuccess: () => { toast.success("Zgłoszenie wysłane!"); setShowApplyForm(false); invalidate(); },
+    onSuccess: () => { toast.success(t("Zgłoszenie wysłane!")); setShowApplyForm(false); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const respondMut = api.tournament.respondToApplication.useMutation({
-    onSuccess: () => { toast.success("Zaktualizowano status drużyny"); invalidate(); },
+    onSuccess: () => { toast.success(t("Zaktualizowano status drużyny")); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const startMut = api.tournament.startTournament.useMutation({
-    onSuccess: () => { toast.success("Turniej rozpoczęty!"); invalidate(); },
+    onSuccess: () => { toast.success(t("Turniej rozpoczęty!")); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const generateKnockoutMut = api.tournament.generateKnockoutAfterGroups.useMutation({
-    onSuccess: () => { toast.success("Drabinka wygenerowana!"); invalidate(); },
+    onSuccess: () => { toast.success(t("Drabinka wygenerowana!")); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const completeMut = api.tournament.completeTournament.useMutation({
-    onSuccess: () => { toast.success("Turniej zakończony!"); invalidate(); },
+    onSuccess: () => { toast.success(t("Turniej zakończony!")); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const submitScoreMut = api.tournament.submitMatchScore.useMutation({
-    onSuccess: () => { toast.success("Wynik wpisany!"); invalidate(); },
+    onSuccess: () => { toast.success(t("Wynik wpisany!")); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const confirmScoreMut = api.tournament.confirmMatchScore.useMutation({
     onSuccess: (_, vars) => {
-      toast.success(vars.confirmed ? "Wynik potwierdzony!" : "Wynik odrzucony");
+      toast.success(vars.confirmed ? t("Wynik potwierdzony!") : t("Wynik odrzucony"));
       invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -174,7 +176,7 @@ export default function TournamentDetailPage() {
     return (
       <div className="text-center py-16">
         <Trophy className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-muted-foreground">Turniej nie istnieje.</p>
+        <p className="text-muted-foreground">{t("Turniej nie istnieje.")}</p>
       </div>
     );
   }
@@ -183,7 +185,7 @@ export default function TournamentDetailPage() {
 
   const isCreator = userId === tournament.creatorUserId;
   const myTeam = userId
-    ? tournament.teams.find((t) => t.user.id === userId)
+    ? tournament.teams.find((tm) => tm.user.id === userId)
     : null;
   const isParticipant = !!myTeam;
   const format = tournament.format as TournamentFormat;
@@ -192,7 +194,7 @@ export default function TournamentDetailPage() {
   const visibleTabs = getVisibleTabs(format);
 
   // Ensure activeTab is valid for this format
-  const validTab = visibleTabs.some((t) => t.key === activeTab)
+  const validTab = visibleTabs.some((tab) => tab.key === activeTab)
     ? activeTab
     : visibleTabs[0].key;
 
@@ -227,7 +229,7 @@ export default function TournamentDetailPage() {
             <span
               className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${TOURNAMENT_STATUS_COLORS[status] ?? ""}`}
             >
-              {TOURNAMENT_STATUS_LABELS[status] ?? status}
+              {t(TOURNAMENT_STATUS_LABELS[status] ?? status)}
             </span>
           </div>
 
@@ -245,18 +247,18 @@ export default function TournamentDetailPage() {
             )}
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              {tournament.teams.filter((t) => t.status === "ACCEPTED").length}/{tournament.maxTeams}
+              {tournament.teams.filter((tm) => tm.status === "ACCEPTED").length}/{tournament.maxTeams}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-semibold bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-md">
-              {TOURNAMENT_FORMAT_LABELS[format] ?? format}
+              {t(TOURNAMENT_FORMAT_LABELS[format] ?? format)}
             </span>
             {(tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && (
               <span className="text-[11px] font-semibold bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-md flex items-center gap-1">
                 <Banknote className="h-3 w-3" />
-                Wpisowe: {(tournament as any).costPerTeam} PLN
+                {t("Wpisowe")}: {(tournament as any).costPerTeam} PLN
               </span>
             )}
             <span className="text-[11px] text-orange-300/70">{creatorName}</span>
@@ -272,7 +274,7 @@ export default function TournamentDetailPage() {
                 disabled={startMut.isPending}
                 className="bg-orange-500 hover:bg-orange-600 text-white text-[12px]"
               >
-                {startMut.isPending ? "..." : "Rozpocznij turniej"}
+                {startMut.isPending ? "..." : t("Rozpocznij turniej")}
               </Button>
             )}
 
@@ -284,7 +286,7 @@ export default function TournamentDetailPage() {
                 disabled={generateKnockoutMut.isPending}
                 className="bg-amber-500 hover:bg-amber-600 text-white text-[12px]"
               >
-                {generateKnockoutMut.isPending ? "..." : "Generuj drabinkę"}
+                {generateKnockoutMut.isPending ? "..." : t("Generuj drabinkę")}
               </Button>
             )}
 
@@ -297,7 +299,7 @@ export default function TournamentDetailPage() {
                 variant="outline"
                 className="text-[12px]"
               >
-                {completeMut.isPending ? "..." : "Zakończ turniej"}
+                {completeMut.isPending ? "..." : t("Zakończ turniej")}
               </Button>
             )}
 
@@ -308,7 +310,7 @@ export default function TournamentDetailPage() {
                 onClick={() => setShowApplyForm((v) => !v)}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white text-[12px]"
               >
-                {showApplyForm ? "Anuluj" : "Dołącz"}
+                {showApplyForm ? t("Anuluj") : t("Dołącz")}
               </Button>
             )}
           </div>
@@ -317,21 +319,21 @@ export default function TournamentDetailPage() {
           {showApplyForm && (
             <div className="mt-3 bg-black/20 rounded-lg p-3 space-y-2">
               <div>
-                <Label className="text-[11px] text-orange-200">Nazwa drużyny</Label>
+                <Label className="text-[11px] text-orange-200">{t("Nazwa drużyny")}</Label>
                 <Input
                   value={applyTeamName}
                   onChange={(e) => setApplyTeamName(e.target.value)}
-                  placeholder="np. FC Warszawa"
+                  placeholder={t("np. FC Warszawa")}
                   className="mt-1 h-8 text-sm bg-black/20 border-orange-500/30 text-white placeholder:text-orange-300/50"
                 />
               </div>
               <div>
-                <Label className="text-[11px] text-orange-200">Wiadomość (opcjonalnie)</Label>
+                <Label className="text-[11px] text-orange-200">{t("Wiadomość (opcjonalnie)")}</Label>
                 <Textarea
                   value={applyMessage}
                   onChange={(e) => setApplyMessage(e.target.value)}
                   rows={2}
-                  placeholder="Kilka słów o drużynie..."
+                  placeholder={t("Kilka słów o drużynie...")}
                   className="mt-1 text-sm bg-black/20 border-orange-500/30 text-white placeholder:text-orange-300/50"
                 />
               </div>
@@ -340,14 +342,14 @@ export default function TournamentDetailPage() {
                 onClick={() =>
                   applyMut.mutate({
                     tournamentId: id,
-                    teamName: applyTeamName.trim() || "Moja drużyna",
+                    teamName: applyTeamName.trim() || t("Moja drużyna"),
                     message: applyMessage.trim() || undefined,
                   })
                 }
                 disabled={applyMut.isPending || !applyTeamName.trim()}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white text-[12px]"
               >
-                {applyMut.isPending ? "Wysyłanie..." : "Wyślij zgłoszenie"}
+                {applyMut.isPending ? t("Wysyłanie...") : t("Wyślij zgłoszenie")}
               </Button>
             </div>
           )}
@@ -366,7 +368,7 @@ export default function TournamentDetailPage() {
                 : "text-muted-foreground font-semibold hover:text-foreground"
             }`}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
@@ -375,7 +377,7 @@ export default function TournamentDetailPage() {
       {validTab === "teams" && (
         <div className="space-y-2">
           {tournament.teams.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Brak zgłoszonych drużyn.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("Brak zgłoszonych drużyn.")}</p>
           ) : (
             <div className="bg-card rounded-xl overflow-hidden divide-y divide-border">
               {tournament.teams.map((team) => {
@@ -389,26 +391,26 @@ export default function TournamentDetailPage() {
                         <p className="text-[11px] text-muted-foreground truncate">{team.message}</p>
                       )}
                       {team.groupLabel && (
-                        <p className="text-[10px] text-orange-400 font-semibold">Grupa {team.groupLabel}</p>
+                        <p className="text-[10px] text-orange-400 font-semibold">{t("Grupa")} {team.groupLabel}</p>
                       )}
                     </div>
                     <span
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${STATUS_BADGE_MAP[appStatus] ?? ""}`}
                     >
-                      {STATUS_LABEL_MAP[appStatus] ?? appStatus}
+                      {t(STATUS_LABEL_MAP[appStatus] ?? appStatus)}
                     </span>
                     {/* Creator: payment badge + toggle */}
                     {isCreator && (tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && appStatus === "ACCEPTED" && (
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${(team as any).costPaid ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                          {(team as any).costPaid ? "Opłacone" : "Nieopłacone"}
+                          {(team as any).costPaid ? t("Opłacone") : t("Nieopłacone")}
                         </span>
                         <button
                           onClick={() => markTeamPaidMut.mutate({ teamId: team.id, paid: !(team as any).costPaid })}
                           disabled={markTeamPaidMut.isPending}
                           className="text-[10px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
                         >
-                          {(team as any).costPaid ? "Cofnij" : "Oznacz"}
+                          {(team as any).costPaid ? t("Cofnij") : t("Oznacz")}
                         </button>
                       </div>
                     )}
@@ -421,7 +423,7 @@ export default function TournamentDetailPage() {
                           }
                           className="text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 rounded px-2 py-0.5 hover:bg-emerald-500/20"
                         >
-                          Akceptuj
+                          {t("Akceptuj")}
                         </button>
                         <button
                           onClick={() =>
@@ -429,7 +431,7 @@ export default function TournamentDetailPage() {
                           }
                           className="text-[11px] font-semibold bg-red-500/10 text-red-500 rounded px-2 py-0.5 hover:bg-red-500/20"
                         >
-                          Odrzuć
+                          {t("Odrzuć")}
                         </button>
                       </div>
                     )}
@@ -446,7 +448,7 @@ export default function TournamentDetailPage() {
         <div className="space-y-6">
           {groupLabels.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Grupy nie zostały jeszcze wygenerowane.
+              {t("Grupy nie zostały jeszcze wygenerowane.")}
             </p>
           ) : (
             groupLabels.map((label) => {
@@ -459,10 +461,10 @@ export default function TournamentDetailPage() {
                   return gdB - gdA;
                 })
                 .map((s) => {
-                  const team = tournament.teams.find((t) => t.id === s.teamId);
+                  const team = tournament.teams.find((tm) => tm.id === s.teamId);
                   return {
                     teamId: s.teamId,
-                    teamName: team?.teamName ?? "Drużyna",
+                    teamName: team?.teamName ?? t("Drużyna"),
                     played: s.played,
                     won: s.won,
                     drawn: s.drawn,
@@ -524,12 +526,12 @@ export default function TournamentDetailPage() {
                     <div key={m.id} className="bg-card rounded-xl overflow-hidden">
                       <div className="px-3 pt-2 pb-0">
                         <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-1">
-                          {TOURNAMENT_PHASE_LABELS[m.phase] ?? m.phase}
+                          {t(TOURNAMENT_PHASE_LABELS[m.phase] ?? m.phase)}
                         </p>
                       </div>
                       <MatchRow
-                        homeTeamName={m.homeTeam?.teamName ?? "Oczekuje"}
-                        awayTeamName={m.awayTeam?.teamName ?? "Oczekuje"}
+                        homeTeamName={m.homeTeam?.teamName ?? t("Oczekuje")}
+                        awayTeamName={m.awayTeam?.teamName ?? t("Oczekuje")}
                         homeScore={m.homeScore}
                         awayScore={m.awayScore}
                         penaltyHome={m.penaltyHome}
@@ -575,39 +577,39 @@ export default function TournamentDetailPage() {
         <div className="bg-card rounded-xl p-4 space-y-3">
           {tournament.description && (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Opis</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t("Opis")}</p>
               <p className="text-sm">{tournament.description}</p>
             </div>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <InfoRow label="Format" value={TOURNAMENT_FORMAT_LABELS[format] ?? format} />
-            <InfoRow label="Status" value={TOURNAMENT_STATUS_LABELS[status] ?? status} />
-            <InfoRow label="Data rozpoczęcia" value={formatDate(tournament.startDate)} />
+            <InfoRow label={t("Format")} value={t(TOURNAMENT_FORMAT_LABELS[format] ?? format)} />
+            <InfoRow label={t("Status")} value={t(TOURNAMENT_STATUS_LABELS[status] ?? status)} />
+            <InfoRow label={t("Data rozpoczęcia")} value={formatDate(tournament.startDate)} />
             {tournament.endDate && (
-              <InfoRow label="Data zakończenia" value={formatDate(tournament.endDate)} />
+              <InfoRow label={t("Data zakończenia")} value={formatDate(tournament.endDate)} />
             )}
             {tournament.location && (
-              <InfoRow label="Miejsce" value={tournament.location} />
+              <InfoRow label={t("Miejsce")} value={tournament.location} />
             )}
-            <InfoRow label="Maks. drużyn" value={String(tournament.maxTeams)} />
+            <InfoRow label={t("Maks. drużyn")} value={String(tournament.maxTeams)} />
             {(format === "GROUP_STAGE" || format === "GROUP_AND_KNOCKOUT") && (
               <>
-                <InfoRow label="Liczba grup" value={String(tournament.groupCount)} />
+                <InfoRow label={t("Liczba grup")} value={String(tournament.groupCount)} />
                 {format === "GROUP_AND_KNOCKOUT" && (
                   <InfoRow
-                    label="Awansuje z grupy"
+                    label={t("Awansuje z grupy")}
                     value={String(tournament.advancingPerGroup)}
                   />
                 )}
               </>
             )}
             {(tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && (
-              <InfoRow label="Wpisowe" value={`${(tournament as any).costPerTeam} PLN`} />
+              <InfoRow label={t("Wpisowe")} value={`${(tournament as any).costPerTeam} PLN`} />
             )}
-            <InfoRow label="Organizator" value={creatorName} />
+            <InfoRow label={t("Organizator")} value={creatorName} />
             {tournament.region && (
-              <InfoRow label="Region" value={tournament.region.name} />
+              <InfoRow label={t("Region")} value={tournament.region.name} />
             )}
           </div>
         </div>

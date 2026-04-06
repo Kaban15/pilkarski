@@ -1,18 +1,19 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { type Locale, type TranslationKey, translations } from "./translations";
+import { type Locale, plToEn } from "./translations";
 
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: TranslationKey) => string;
+  /** Pass the Polish string; returns English when locale=en, Polish unchanged otherwise. */
+  t: (polish: string) => string;
 }
 
 const I18nContext = createContext<I18nContextValue>({
   locale: "pl",
   setLocale: () => {},
-  t: (key) => translations[key]?.pl ?? key,
+  t: (s) => s,
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -35,15 +36,17 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: TranslationKey) => translations[key]?.[locale] ?? key,
+    (polish: string): string => {
+      if (locale === "pl") return polish;
+      return plToEn[polish] ?? polish;
+    },
     [locale],
   );
 
-  // SSR: always render Polish first, then switch on client
   const value: I18nContextValue = {
     locale: mounted ? locale : "pl",
     setLocale,
-    t: mounted ? t : (key) => translations[key]?.pl ?? key,
+    t: mounted ? t : (s) => s,
   };
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -53,7 +56,4 @@ export function useI18n() {
   return useContext(I18nContext);
 }
 
-export function useTranslation() {
-  const { t, locale } = useContext(I18nContext);
-  return { t, locale };
-}
+export { type Locale };

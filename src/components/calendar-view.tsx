@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
 type CalendarItem = {
@@ -32,6 +33,7 @@ const MONTH_NAMES = [
 const DAY_NAMES = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 
 export function CalendarView() {
+  const { t } = useI18n();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -171,7 +173,7 @@ export function CalendarView() {
                 onChange={(e) => setOnlyMine(e.target.checked)}
                 className="rounded border-input"
               />
-              Tylko moje
+              {t("Tylko moje")}
             </label>
           )}
           <div className="flex gap-1">
@@ -180,17 +182,17 @@ export function CalendarView() {
               size="sm"
               onClick={() => setView("calendar")}
             >
-              Siatka
+              {t("Siatka")}
             </Button>
             <Button
               variant={view === "list" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setView("list")}
             >
-              Lista
+              {t("Lista")}
             </Button>
           </div>
-          <Button variant={todayOnly ? "secondary" : "ghost"} size="sm" onClick={goToday}>Dziś</Button>
+          <Button variant={todayOnly ? "secondary" : "ghost"} size="sm" onClick={goToday}>{t("Dziś")}</Button>
         </div>
       </div>
 
@@ -198,7 +200,7 @@ export function CalendarView() {
         <div className="space-y-2">
           {listItems.length === 0 && !loading ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              {todayOnly ? "Brak wydarzeń na dziś." : "Brak sparingów, wydarzeń i turniejów w tym miesiącu."}
+              {todayOnly ? t("Brak wydarzeń na dziś.") : t("Brak sparingów, wydarzeń i turniejów w tym miesiącu.")}
             </p>
           ) : (
             listItems.map((item) => (
@@ -263,7 +265,7 @@ export function CalendarView() {
                   ))}
                   {dayItems.length > 3 && (
                     <span className="block text-[10px] text-muted-foreground px-1">
-                      +{dayItems.length - 3} więcej
+                      +{dayItems.length - 3} {t("więcej")}
                     </span>
                   )}
                 </div>
@@ -274,12 +276,12 @@ export function CalendarView() {
       )}
 
       {loading && (
-        <p className="mt-3 text-sm text-muted-foreground text-center">Ładowanie...</p>
+        <p className="mt-3 text-sm text-muted-foreground text-center">{t("Ładowanie...")}</p>
       )}
 
       {!loading && items.length === 0 && (
         <p className="mt-3 text-sm text-muted-foreground text-center">
-          Brak sparingów, wydarzeń i turniejów w tym miesiącu.
+          {t("Brak sparingów, wydarzeń i turniejów w tym miesiącu.")}
         </p>
       )}
     </div>

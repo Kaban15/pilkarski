@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 
 function compressImage(file: File, maxSize: number, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -37,6 +38,7 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageUploadProps) {
+  const { t } = useI18n();
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl);
   const [error, setError] = useState("");
@@ -47,12 +49,12 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Dozwolone tylko pliki graficzne");
+      setError(t("Dozwolone tylko pliki graficzne"));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("Maksymalny rozmiar pliku to 5 MB");
+      setError(t("Maksymalny rozmiar pliku to 5 MB"));
       return;
     }
 
@@ -71,14 +73,14 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
-        setError("Błąd uploadu: " + (data.error ?? "Nieznany błąd"));
+        setError(t("Błąd uploadu: ") + (data.error ?? t("Nieznany błąd")));
         setUploading(false);
         return;
       }
       setPreview(data.url);
       onUploaded(data.url);
     } catch {
-      setError("Błąd połączenia z serwerem");
+      setError(t("Błąd połączenia z serwerem"));
     }
     setUploading(false);
   }
@@ -88,12 +90,12 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
       {preview ? (
         <img
           src={preview}
-          alt="Zdjęcie"
+          alt={t("Zdjęcie")}
           className="h-20 w-20 rounded-full object-cover border"
         />
       ) : (
         <div className="flex h-20 w-20 items-center justify-center rounded-full border bg-secondary text-xs text-muted-foreground">
-          Brak
+          {t("Brak")}
         </div>
       )}
       <div>
@@ -111,7 +113,7 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
         >
-          {uploading ? "Przesyłanie..." : preview ? "Zmień zdjęcie" : "Dodaj zdjęcie"}
+          {uploading ? t("Przesyłanie...") : preview ? t("Zmień zdjęcie") : t("Dodaj zdjęcie")}
         </Button>
         {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
       </div>

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
 import {
   EVENT_TYPE_LABELS,
   POSITION_LABELS,
@@ -24,6 +25,7 @@ import Link from "next/link";
 const RECRUITMENT_TYPES: EventTypeValue[] = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
 export default function NewEventPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { data: session } = useSession();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -52,10 +54,10 @@ export default function NewEventPage() {
   const updateLocMut = api.event.updateLocation.useMutation({
     onSuccess: () => {
       utils.event.recentLocations.invalidate();
-      toast.success("Lokalizacja zaktualizowana");
+      toast.success(t("Lokalizacja zaktualizowana"));
       setEditingLoc(null);
     },
-    onError: () => toast.error("Nie udało się zaktualizować"),
+    onError: () => toast.error(t("Nie udało się zaktualizować")),
   });
 
   function saveEditedLoc(oldLoc: string) {
@@ -81,9 +83,9 @@ export default function NewEventPage() {
   if (isPlayer) {
     return (
       <div className="mx-auto max-w-2xl py-8 text-center">
-        <p className="text-muted-foreground">Tylko kluby i trenerzy z uprawnieniami mogą tworzyć wydarzenia.</p>
+        <p className="text-muted-foreground">{t("Tylko kluby i trenerzy z uprawnieniami mogą tworzyć wydarzenia.")}</p>
         <Button asChild className="mt-4" variant="outline">
-          <Link href="/events">Przeglądaj wydarzenia</Link>
+          <Link href="/events">{t("Przeglądaj wydarzenia")}</Link>
         </Button>
       </div>
     );
@@ -93,14 +95,14 @@ export default function NewEventPage() {
   if (isCoach && !clubLoading && (!myClub || !myClub.canManageEvents)) {
     return (
       <div className="mx-auto max-w-2xl py-8 text-center">
-        <p className="text-lg font-semibold">Brak uprawnień</p>
+        <p className="text-lg font-semibold">{t("Brak uprawnień")}</p>
         <p className="mt-2 text-sm text-muted-foreground">
           {!myClub
-            ? "Musisz najpierw dołączyć do klubu, aby tworzyć treningi i wydarzenia."
-            : "Twój klub nie nadał Ci jeszcze uprawnień do zarządzania wydarzeniami. Skontaktuj się z klubem."}
+            ? t("Musisz najpierw dołączyć do klubu, aby tworzyć treningi i wydarzenia.")
+            : t("Twój klub nie nadał Ci jeszcze uprawnień do zarządzania wydarzeniami. Skontaktuj się z klubem.")}
         </p>
         <Button asChild className="mt-4" variant="outline">
-          <Link href={!myClub ? "/search" : "/events"}>{!myClub ? "Szukaj klubu" : "Przeglądaj wydarzenia"}</Link>
+          <Link href={!myClub ? "/search" : "/events"}>{!myClub ? t("Szukaj klubu") : t("Przeglądaj wydarzenia")}</Link>
         </Button>
       </div>
     );
@@ -108,11 +110,11 @@ export default function NewEventPage() {
 
   const createMut = api.event.create.useMutation({
     onSuccess: (result) => {
-      toast.success("Wydarzenie utworzone");
+      toast.success(t("Wydarzenie utworzone"));
       router.push(`/events/${result.id}`);
     },
     onError: (err) => {
-      toast.error(err.message || "Nie udało się utworzyć wydarzenia");
+      toast.error(err.message || t("Nie udało się utworzyć wydarzenia"));
     },
   });
 
@@ -132,7 +134,7 @@ export default function NewEventPage() {
     };
     setInput("title", preset.name);
     setInput("description", preset.description);
-    toast.success(`Szablon "${preset.name}" zastosowany`);
+    toast.success(t(`Szablon "${preset.name}" zastosowany`));
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -170,12 +172,12 @@ export default function NewEventPage() {
   return (
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle>Nowe wydarzenie</CardTitle>
+        <CardTitle>{t("Nowe wydarzenie")}</CardTitle>
       </CardHeader>
       <CardContent>
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Typ wydarzenia</Label>
+            <Label htmlFor="type">{t("Typ wydarzenia")}</Label>
             <select
               id="type"
               name="type"
@@ -187,20 +189,20 @@ export default function NewEventPage() {
               {Object.entries(EVENT_TYPE_LABELS)
                 .filter(([value]) => !isCoach || value === "INDIVIDUAL_TRAINING" || value === "GROUP_TRAINING")
                 .map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
+                <option key={value} value={value}>{t(label)}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Widoczność</label>
+            <label className="text-sm font-medium">{t("Widoczność")}</label>
             <select
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={visibility}
               onChange={(e) => setVisibility(e.target.value)}
             >
-              <option value="PUBLIC">Publiczne</option>
-              <option value="INTERNAL">Tylko dla klubu</option>
+              <option value="PUBLIC">{t("Publiczne")}</option>
+              <option value="INTERNAL">{t("Tylko dla klubu")}</option>
             </select>
           </div>
 
@@ -209,8 +211,8 @@ export default function NewEventPage() {
             <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary" />
-                <p className="text-sm font-semibold">Wybierz szablon</p>
-                <span className="text-[11px] text-muted-foreground">— pre-wypełni formularz</span>
+                <p className="text-sm font-semibold">{t("Wybierz szablon")}</p>
+                <span className="text-[11px] text-muted-foreground">{t("— pre-wypełni formularz")}</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {TRAINING_PRESETS.filter((p) => p.type === selectedType).map((preset) => (
@@ -228,12 +230,12 @@ export default function NewEventPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Tytuł</Label>
+            <Label htmlFor="title">{t("Tytuł")}</Label>
             <Input
               id="title"
               name="title"
               required
-              placeholder="np. Nabór do drużyny seniorów"
+              placeholder={t("np. Nabór do drużyny seniorów")}
               className={fieldErrors.title ? "border-red-500" : ""}
             />
             {fieldErrors.title && (
@@ -243,7 +245,7 @@ export default function NewEventPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="eventDate">Data i godzina</Label>
+              <Label htmlFor="eventDate">{t("Data i godzina")}</Label>
               <Input
                 id="eventDate"
                 name="eventDate"
@@ -260,7 +262,7 @@ export default function NewEventPage() {
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" />
-                Miejsce
+                {t("Miejsce")}
               </Label>
 
               {!showCustomLocation && recentLocations.length > 0 ? (
@@ -333,7 +335,7 @@ export default function NewEventPage() {
                     className="flex items-center gap-1.5 text-[12px] font-medium text-primary hover:underline"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Inna lokalizacja
+                    {t("Inna lokalizacja")}
                   </button>
                 </div>
               ) : (
@@ -341,7 +343,7 @@ export default function NewEventPage() {
                   <Input
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="np. Stadion Miejski, Kraków"
+                    placeholder={t("np. Stadion Miejski, Kraków")}
                     autoFocus={showCustomLocation}
                   />
                   {showCustomLocation && recentLocations.length > 0 && (
@@ -353,7 +355,7 @@ export default function NewEventPage() {
                       }}
                       className="text-[12px] font-medium text-muted-foreground hover:text-foreground"
                     >
-                      Wybierz z zapisanych
+                      {t("Wybierz z zapisanych")}
                     </button>
                   )}
                 </div>
@@ -363,62 +365,62 @@ export default function NewEventPage() {
 
           {isRecruitment && (
             <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <h3 className="text-sm font-semibold">Szczegóły rekrutacyjne</h3>
+              <h3 className="text-sm font-semibold">{t("Szczegóły rekrutacyjne")}</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="targetPosition">Szukana pozycja</Label>
+                  <Label htmlFor="targetPosition">{t("Szukana pozycja")}</Label>
                   <select
                     id="targetPosition"
                     name="targetPosition"
                     className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
                   >
-                    <option value="">Dowolna</option>
+                    <option value="">{t("Dowolna")}</option>
                     {Object.entries(POSITION_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
+                      <option key={value} value={value}>{t(label)}</option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="targetLevel">Wymagany poziom</Label>
+                  <Label htmlFor="targetLevel">{t("Wymagany poziom")}</Label>
                   <select
                     id="targetLevel"
                     name="targetLevel"
                     className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm"
                   >
-                    <option value="">Dowolny</option>
+                    <option value="">{t("Dowolny")}</option>
                     {Object.entries(SPARING_LEVEL_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
+                      <option key={value} value={value}>{t(label)}</option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="targetAgeMin">Wiek od</Label>
-                  <Input id="targetAgeMin" name="targetAgeMin" type="number" min={5} max={60} placeholder="np. 16" />
+                  <Label htmlFor="targetAgeMin">{t("Wiek od")}</Label>
+                  <Input id="targetAgeMin" name="targetAgeMin" type="number" min={5} max={60} placeholder={t("np. 16")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="targetAgeMax">Wiek do</Label>
-                  <Input id="targetAgeMax" name="targetAgeMax" type="number" min={5} max={60} placeholder="np. 23" />
+                  <Label htmlFor="targetAgeMax">{t("Wiek do")}</Label>
+                  <Input id="targetAgeMax" name="targetAgeMax" type="number" min={5} max={60} placeholder={t("np. 23")} />
                 </div>
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="description">Opis</Label>
+            <Label htmlFor="description">{t("Opis")}</Label>
             <Textarea
               id="description"
               name="description"
               rows={4}
-              placeholder="Dodatkowe informacje..."
+              placeholder={t("Dodatkowe informacje...")}
             />
           </div>
 
           <div className="flex gap-2">
             <Button type="submit" disabled={createMut.isPending}>
-              {createMut.isPending ? "Tworzenie..." : "Utwórz wydarzenie"}
+              {createMut.isPending ? t("Tworzenie...") : t("Utwórz wydarzenie")}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.back()}>
-              Anuluj
+              {t("Anuluj")}
             </Button>
           </div>
         </form>

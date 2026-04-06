@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import {
   SPARING_STATUS_LABELS,
@@ -60,6 +61,7 @@ export function SparingInfo({
   completing,
   onRefresh,
 }: SparingInfoProps) {
+  const { t } = useI18n();
   const utils = api.useUtils();
   const markCostPaidMut = api.sparing.markCostPaid.useMutation({
     onSuccess: () => {
@@ -82,7 +84,7 @@ export function SparingInfo({
             <span
               className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold ${SPARING_STATUS_COLORS[sparing.status]}`}
             >
-              {SPARING_STATUS_LABELS[sparing.status]}
+              {t(SPARING_STATUS_LABELS[sparing.status])}
             </span>
           </div>
           <p className="mt-1.5 text-muted-foreground">
@@ -101,7 +103,7 @@ export function SparingInfo({
                 )}
               </div>
               <div className="text-sm">
-                <span className="text-muted-foreground">Przeciwnik: </span>
+                <span className="text-muted-foreground">{t("Przeciwnik")}: </span>
                 <span className="font-medium">{opponent.name}</span>
                 {opponent.city && (
                   <span className="text-muted-foreground"> · {opponent.city}</span>
@@ -120,7 +122,7 @@ export function SparingInfo({
                 <Link href={`/sparings/${sparing.id}/edit`}>
                   <Button size="sm" variant="outline" className="gap-1.5">
                     <Pencil className="h-3.5 w-3.5" />
-                    Edytuj
+                    {t("Edytuj")}
                   </Button>
                 </Link>
                 <Button
@@ -130,7 +132,7 @@ export function SparingInfo({
                   onClick={() => setShowDeleteConfirm(true)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Usuń
+                  {t("Usuń")}
                 </Button>
               </>
             )}
@@ -142,7 +144,7 @@ export function SparingInfo({
                 disabled={completing}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                {completing ? "Oznaczanie..." : "Oznacz jako zakończony"}
+                {completing ? t("Oznaczanie...") : t("Oznacz jako zakończony")}
               </Button>
             )}
           </div>
@@ -152,9 +154,9 @@ export function SparingInfo({
       <ConfirmDialog
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        title="Usuń sparing"
-        description="Czy na pewno chcesz usunąć ten sparing? Ta operacja jest nieodwracalna."
-        confirmLabel="Tak, usuń"
+        title={t("Usuń sparing")}
+        description={t("Czy na pewno chcesz usunąć ten sparing? Ta operacja jest nieodwracalna.")}
+        confirmLabel={t("Tak, usuń")}
         onConfirm={onDelete}
         loading={deleting}
       />
@@ -162,9 +164,9 @@ export function SparingInfo({
       <ConfirmDialog
         open={showCompleteConfirm}
         onOpenChange={setShowCompleteConfirm}
-        title="Zakończ sparing"
-        description="Czy na pewno chcesz oznaczyć ten sparing jako zakończony? Po zakończeniu uczestnicy będą mogli wystawić recenzje."
-        confirmLabel="Tak, zakończ"
+        title={t("Zakończ sparing")}
+        description={t("Czy na pewno chcesz oznaczyć ten sparing jako zakończony? Po zakończeniu uczestnicy będą mogli wystawić recenzje.")}
+        confirmLabel={t("Tak, zakończ")}
         onConfirm={onComplete}
         loading={completing}
         variant="default"
@@ -179,7 +181,7 @@ export function SparingInfo({
                 <Calendar className="h-4 w-4 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Data meczu</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("Data meczu")}</p>
                 <p className="font-medium">{formatDate(sparing.matchDate)}</p>
               </div>
             </div>
@@ -189,7 +191,7 @@ export function SparingInfo({
                   <MapPin className="h-4 w-4 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Miejsce</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Miejsce")}</p>
                   <p className="font-medium">{sparing.location}</p>
                 </div>
               </div>
@@ -200,7 +202,7 @@ export function SparingInfo({
                   <RegionLogo slug={sparing.region.slug} name={sparing.region.name} size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Region</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Region")}</p>
                   <p className="font-medium">{sparing.region.name}</p>
                 </div>
               </div>
@@ -211,8 +213,8 @@ export function SparingInfo({
                   <Trophy className="h-4 w-4 text-purple-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Poziom</p>
-                  <p className="font-medium">{SPARING_LEVEL_LABELS[sparing.level] ?? sparing.level}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Poziom")}</p>
+                  <p className="font-medium">{t(SPARING_LEVEL_LABELS[sparing.level] ?? sparing.level)}</p>
                 </div>
               </div>
             )}
@@ -222,8 +224,8 @@ export function SparingInfo({
                   <Users className="h-4 w-4 text-cyan-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Kategoria wiekowa</p>
-                  <p className="font-medium">{AGE_CATEGORY_LABELS[sparing.ageCategory] ?? sparing.ageCategory}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Kategoria wiekowa")}</p>
+                  <p className="font-medium">{t(AGE_CATEGORY_LABELS[sparing.ageCategory] ?? sparing.ageCategory)}</p>
                 </div>
               </div>
             )}
@@ -233,7 +235,7 @@ export function SparingInfo({
                   <Clock className="h-4 w-4 text-indigo-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Preferowane godziny</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Preferowane godziny")}</p>
                   <p className="font-medium">{sparing.preferredTime}</p>
                 </div>
               </div>
@@ -244,8 +246,8 @@ export function SparingInfo({
                   <Banknote className="h-4 w-4 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Koszt</p>
-                  <p className="font-medium">{sparing.costPerTeam} PLN na drużynę</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Koszt")}</p>
+                  <p className="font-medium">{sparing.costPerTeam} {t("PLN na drużynę")}</p>
                 </div>
               </div>
             )}
@@ -258,7 +260,7 @@ export function SparingInfo({
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Opis</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Opis")}</p>
                   <p className="mt-1 whitespace-pre-wrap leading-relaxed">
                     {sparing.description}
                   </p>
@@ -277,15 +279,15 @@ export function SparingInfo({
           <CardContent className="py-4">
             <div className="flex items-center gap-2 mb-3">
               <Banknote className="h-4 w-4 text-amber-500" />
-              <p className="text-sm font-semibold">Rozliczenie</p>
+              <p className="text-sm font-semibold">{t("Rozliczenie")}</p>
             </div>
             <div className="space-y-2">
               {/* Home side */}
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-muted-foreground">Gospodarze ({sparing.club.name})</span>
+                <span className="text-sm text-muted-foreground">{t("Gospodarze")} ({sparing.club.name})</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${sparing.costPaidHome ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                    {sparing.costPaidHome ? "Opłacone" : "Nieopłacone"}
+                    {sparing.costPaidHome ? t("Opłacone") : t("Nieopłacone")}
                   </span>
                   {isOwner && (
                     <button
@@ -293,7 +295,7 @@ export function SparingInfo({
                       disabled={markCostPaidMut.isPending}
                       className="text-[11px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
                     >
-                      {sparing.costPaidHome ? "Cofnij" : "Oznacz"}
+                      {sparing.costPaidHome ? t("Cofnij") : t("Oznacz")}
                     </button>
                   )}
                 </div>
@@ -301,10 +303,10 @@ export function SparingInfo({
               {/* Away side */}
               {acceptedApp && (
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">Goście ({acceptedApp.applicantClub?.name})</span>
+                  <span className="text-sm text-muted-foreground">{t("Goście")} ({acceptedApp.applicantClub?.name})</span>
                   <div className="flex items-center gap-2">
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${sparing.costPaidAway ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                      {sparing.costPaidAway ? "Opłacone" : "Nieopłacone"}
+                      {sparing.costPaidAway ? t("Opłacone") : t("Nieopłacone")}
                     </span>
                     {sessionUserId === acceptedApp.applicantClub?.userId && (
                       <button
@@ -312,7 +314,7 @@ export function SparingInfo({
                         disabled={markCostPaidMut.isPending}
                         className="text-[11px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
                       >
-                        {sparing.costPaidAway ? "Cofnij" : "Oznacz"}
+                        {sparing.costPaidAway ? t("Cofnij") : t("Oznacz")}
                       </button>
                     )}
                   </div>

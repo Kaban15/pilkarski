@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { POSITION_LABELS, EVENT_TYPE_LABELS } from "@/lib/labels";
 
 export default function SearchPage() {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -33,28 +35,28 @@ export default function SearchPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Szukaj</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t("Szukaj")}</h1>
 
       <form onSubmit={handleSearch} className="mb-6 flex gap-2">
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Szukaj klubów, zawodników, sparingów, wydarzeń..."
+          placeholder={t("Szukaj klubów, zawodników, sparingów, wydarzeń...")}
           maxLength={100}
         />
         <Button type="submit" disabled={isLoading || !query.trim()}>
-          {isLoading ? "..." : "Szukaj"}
+          {isLoading ? "..." : t("Szukaj")}
         </Button>
       </form>
 
       {searchQuery && results && !hasResults && (
-        <p className="text-muted-foreground">Brak wyników dla &quot;{searchQuery}&quot;</p>
+        <p className="text-muted-foreground">{t("Brak wyników dla")} &quot;{searchQuery}&quot;</p>
       )}
 
       {(results?.clubs?.length ?? 0) > 0 && (
         <Card className="mb-4">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Kluby ({results!.clubs!.length})</CardTitle>
+            <CardTitle className="text-lg">{t("Kluby")} ({results!.clubs!.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -81,7 +83,7 @@ export default function SearchPage() {
       {(results?.players?.length ?? 0) > 0 && (
         <Card className="mb-4">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Zawodnicy ({results!.players!.length})</CardTitle>
+            <CardTitle className="text-lg">{t("Zawodnicy")} ({results!.players!.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -92,7 +94,7 @@ export default function SearchPage() {
                       {player.firstName} {player.lastName}
                       {player.primaryPosition && (
                         <span className="ml-2 text-xs text-muted-foreground">
-                          {POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition}
+                          {t(POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition)}
                         </span>
                       )}
                     </p>
@@ -110,7 +112,7 @@ export default function SearchPage() {
       {(results?.sparings?.length ?? 0) > 0 && (
         <Card className="mb-4">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Sparingi ({results!.sparings!.length})</CardTitle>
+            <CardTitle className="text-lg">{t("Sparingi")} ({results!.sparings!.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -133,7 +135,7 @@ export default function SearchPage() {
       {(results?.events?.length ?? 0) > 0 && (
         <Card className="mb-4">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Wydarzenia ({results!.events!.length})</CardTitle>
+            <CardTitle className="text-lg">{t("Wydarzenia")} ({results!.events!.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -142,7 +144,7 @@ export default function SearchPage() {
                   <li className="rounded-md border p-3 transition hover:bg-muted">
                     <p className="font-medium">
                       {ev.title}
-                      <span className="ml-2 text-xs text-muted-foreground">{EVENT_TYPE_LABELS[ev.type] ?? ev.type}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{t(EVENT_TYPE_LABELS[ev.type] ?? ev.type)}</span>
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {ev.club.name} · {formatDate(ev.eventDate)}

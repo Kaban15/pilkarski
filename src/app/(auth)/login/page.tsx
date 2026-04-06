@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useI18n } from "@/lib/i18n";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
@@ -48,7 +50,7 @@ function LoginForm() {
     setLoading(false);
 
     if (result?.error) {
-      setError("Nieprawidłowy e-mail lub hasło");
+      setError(t("Nieprawidłowy e-mail lub hasło"));
     } else {
       router.push(callbackUrl);
       router.refresh();
@@ -70,19 +72,19 @@ function LoginForm() {
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Witaj z powrotem</CardTitle>
-            <CardDescription>Zaloguj się do swojego konta</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("Witaj z powrotem")}</CardTitle>
+            <CardDescription>{t("Zaloguj się do swojego konta")}</CardDescription>
           </CardHeader>
           <CardContent>
             {registered && (
               <div className="mb-4 rounded-lg bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                Rejestracja udana! Zaloguj się.
+                {t("Rejestracja udana! Zaloguj się.")}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">{t("E-mail")}</Label>
                 <Input
                   id="email"
                   name="email"
@@ -93,13 +95,13 @@ function LoginForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Hasło</Label>
+                <Label htmlFor="password">{t("Hasło")}</Label>
                 <Input
                   id="password"
                   name="password"
                   type="password"
                   required
-                  placeholder="Twoje hasło"
+                  placeholder={t("Twoje hasło")}
                   autoComplete="current-password"
                 />
               </div>
@@ -112,14 +114,14 @@ function LoginForm() {
 
               <Button type="submit" className="w-full gap-2" disabled={loading}>
                 <LogIn className="h-4 w-4" />
-                {loading ? "Logowanie..." : "Zaloguj się"}
+                {loading ? t("Logowanie...") : t("Zaloguj się")}
               </Button>
             </form>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Nie masz konta?{" "}
+              {t("Nie masz konta?")}{" "}
               <Link href="/register" className="font-semibold text-primary hover:underline">
-                Zarejestruj się
+                {t("Zarejestruj się")}
               </Link>
             </p>
           </CardContent>

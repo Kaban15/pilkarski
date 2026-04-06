@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
 import { getUserDisplayName, getProfileHref } from "@/lib/labels";
@@ -28,6 +29,7 @@ type Message = {
 };
 
 export default function ConversationPage() {
+  const { t } = useI18n();
   const { conversationId } = useParams<{ conversationId: string }>();
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -149,10 +151,10 @@ export default function ConversationPage() {
           </div>
           {otherUserProfileHref ? (
             <Link href={otherUserProfileHref} className="font-semibold hover:underline hover:text-primary transition-colors">
-              {otherUserName || "Konwersacja"}
+              {otherUserName || t("Konwersacja")}
             </Link>
           ) : (
-            <h1 className="font-semibold">{otherUserName || "Konwersacja"}</h1>
+            <h1 className="font-semibold">{otherUserName || t("Konwersacja")}</h1>
           )}
         </div>
       </div>
@@ -170,7 +172,7 @@ export default function ConversationPage() {
         ) : messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-center text-sm text-muted-foreground">
-              Brak wiadomości. Napisz pierwszą!
+              {t("Brak wiadomości. Napisz pierwszą!")}
             </p>
           </div>
         ) : (
@@ -214,7 +216,7 @@ export default function ConversationPage() {
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Napisz wiadomość..."
+            placeholder={t("Napisz wiadomość...")}
             maxLength={2000}
             disabled={sendMut.isPending}
             className="flex-1"

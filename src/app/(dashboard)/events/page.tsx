@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
+import { useI18n } from "@/lib/i18n";
 import { EVENT_TYPE_LABELS } from "@/lib/labels";
 import type { EventTypeValue } from "@/lib/validators/event";
 import { EmptyState } from "@/components/empty-state";
@@ -60,6 +61,7 @@ const EVENT_BADGE_STYLES: Record<string, string> = {
 };
 
 export default function EventsPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const isPlayer = session?.user?.role === "PLAYER";
   const isClub = session?.user?.role === "CLUB";
@@ -125,17 +127,17 @@ export default function EventsPage() {
     <div className="animate-fade-in">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Wydarzenia</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Wydarzenia")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Treningi otwarte i nabory w Twoim regionie
+            {t("Treningi otwarte i nabory w Twoim regionie")}
           </p>
         </div>
         {canCreateEvents && (
           <Link href="/events/new">
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Dodaj wydarzenie</span>
-              <span className="sm:hidden">Dodaj</span>
+              <span className="hidden sm:inline">{t("Dodaj wydarzenie")}</span>
+              <span className="sm:hidden">{t("Dodaj")}</span>
             </Button>
           </Link>
         )}
@@ -144,8 +146,8 @@ export default function EventsPage() {
       {canCreateEvents && (
         <Tabs value={eventsTab} onValueChange={(v) => setEventsTab(v as "search" | "my")} className="mb-6">
           <TabsList>
-            <TabsTrigger value="search">Szukaj</TabsTrigger>
-            <TabsTrigger value="my">Moje wydarzenia</TabsTrigger>
+            <TabsTrigger value="search">{t("Szukaj")}</TabsTrigger>
+            <TabsTrigger value="my">{t("Moje wydarzenia")}</TabsTrigger>
           </TabsList>
         </Tabs>
       )}
@@ -156,10 +158,10 @@ export default function EventsPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <Select value={regionId !== undefined ? String(regionId) : "__all__"} onValueChange={(v) => setRegionId(v === "__all__" ? undefined : Number(v))}>
             <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
-              <SelectValue placeholder="Wszystkie regiony" />
+              <SelectValue placeholder={t("Wszystkie regiony")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">Wszystkie regiony</SelectItem>
+              <SelectItem value="__all__">{t("Wszystkie regiony")}</SelectItem>
               {(regions ?? []).map((r) => (
                 <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
               ))}
@@ -167,12 +169,12 @@ export default function EventsPage() {
           </Select>
           <Select value={type ?? "__all__"} onValueChange={(v) => setType(v === "__all__" ? undefined : v as EventTypeValue)}>
             <SelectTrigger className="h-9 w-auto shrink-0 min-w-[180px]">
-              <SelectValue placeholder="Wszystkie typy" />
+              <SelectValue placeholder={t("Wszystkie typy")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">Wszystkie typy</SelectItem>
+              <SelectItem value="__all__">{t("Wszystkie typy")}</SelectItem>
               {Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
+                <SelectItem key={key} value={key}>{t(label)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -181,12 +183,12 @@ export default function EventsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="eventDate-asc">Data (rosnąco)</SelectItem>
-              <SelectItem value="eventDate-desc">Data (malejąco)</SelectItem>
-              <SelectItem value="createdAt-desc">Najnowsze</SelectItem>
-              <SelectItem value="createdAt-asc">Najstarsze</SelectItem>
-              <SelectItem value="title-asc">Tytuł A-Z</SelectItem>
-              <SelectItem value="title-desc">Tytuł Z-A</SelectItem>
+              <SelectItem value="eventDate-asc">{t("Data (rosnąco)")}</SelectItem>
+              <SelectItem value="eventDate-desc">{t("Data (malejąco)")}</SelectItem>
+              <SelectItem value="createdAt-desc">{t("Najnowsze")}</SelectItem>
+              <SelectItem value="createdAt-asc">{t("Najstarsze")}</SelectItem>
+              <SelectItem value="title-asc">{t("Tytuł A-Z")}</SelectItem>
+              <SelectItem value="title-desc">{t("Tytuł Z-A")}</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -196,7 +198,7 @@ export default function EventsPage() {
             className="shrink-0 gap-1.5"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            Filtry
+            {t("Filtry")}
             {hasActiveFilters && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                 !
@@ -209,19 +211,19 @@ export default function EventsPage() {
           <Card>
             <CardContent className="flex flex-wrap items-end gap-4 py-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Miasto</label>
+                <label className="text-xs font-medium text-muted-foreground">{t("Miasto")}</label>
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={cityInput}
                     onChange={(e) => setCityInput(e.target.value)}
-                    placeholder="np. Kraków"
+                    placeholder={t("np. Kraków")}
                     className="h-9 w-44 pl-8 text-sm"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Data od</label>
+                <label className="text-xs font-medium text-muted-foreground">{t("Data od")}</label>
                 <Input
                   type="date"
                   value={dateFrom}
@@ -230,7 +232,7 @@ export default function EventsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Data do</label>
+                <label className="text-xs font-medium text-muted-foreground">{t("Data do")}</label>
                 <Input
                   type="date"
                   value={dateTo}
@@ -246,7 +248,7 @@ export default function EventsPage() {
                   onClick={() => { setCityInput(""); setCity(""); setDateFrom(""); setDateTo(""); }}
                 >
                   <X className="h-3.5 w-3.5" />
-                  Wyczyść
+                  {t("Wyczyść")}
                 </Button>
               )}
             </CardContent>
@@ -257,9 +259,9 @@ export default function EventsPage() {
       {isError ? (
         <EmptyState
           icon={Trophy}
-          title="Błąd ładowania"
-          description="Nie udało się pobrać wydarzeń."
-          actionLabel="Spróbuj ponownie"
+          title={t("Błąd ładowania")}
+          description={t("Nie udało się pobrać wydarzeń.")}
+          actionLabel={t("Spróbuj ponownie")}
           actionOnClick={() => refetch()}
         />
       ) : isLoading ? (
@@ -271,8 +273,8 @@ export default function EventsPage() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={Trophy}
-          title="Brak wydarzeń"
-          description="Nie znaleziono wydarzeń z aktualnymi filtrami. Spróbuj zmienić region lub typ."
+          title={t("Brak wydarzeń")}
+          description={t("Nie znaleziono wydarzeń z aktualnymi filtrami. Spróbuj zmienić region lub typ.")}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -289,12 +291,12 @@ export default function EventsPage() {
 
                   <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
                     <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
-                      {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
+                      {t(EVENT_TYPE_LABELS[ev.type] ?? ev.type)}
                     </span>
                     {isPlayer && ev.type === "RECRUITMENT" && playerProfile?.region && ev.region && playerProfile.region.name === ev.region.name && (
                       <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
                         <Target className="h-2.5 w-2.5" />
-                        Dopasowane
+                        {t("Dopasowane")}
                       </span>
                     )}
                     <span className="truncate">
@@ -325,7 +327,7 @@ export default function EventsPage() {
                     {ev.maxParticipants && (
                       <span className="ml-auto flex items-center gap-1 shrink-0">
                         <Users className="h-3 w-3" />
-                        {ev.maxParticipants} miejsc
+                        {ev.maxParticipants} {t("miejsc")}
                       </span>
                     )}
                   </div>
@@ -351,6 +353,7 @@ export default function EventsPage() {
 }
 
 function MyEventsTab() {
+  const { t } = useI18n();
   const { data: events, isLoading, isError, refetch } = api.event.my.useQuery();
 
   if (isLoading) {
@@ -367,9 +370,9 @@ function MyEventsTab() {
     return (
       <EmptyState
         icon={Trophy}
-        title="Błąd ładowania"
-        description="Nie udało się pobrać Twoich wydarzeń."
-        actionLabel="Spróbuj ponownie"
+        title={t("Błąd ładowania")}
+        description={t("Nie udało się pobrać Twoich wydarzeń.")}
+        actionLabel={t("Spróbuj ponownie")}
         actionOnClick={() => refetch()}
       />
     );
@@ -379,9 +382,9 @@ function MyEventsTab() {
     return (
       <EmptyState
         icon={Trophy}
-        title="Brak wydarzeń"
-        description="Nie masz jeszcze żadnych wydarzeń. Utwórz pierwszy!"
-        actionLabel="Dodaj wydarzenie"
+        title={t("Brak wydarzeń")}
+        description={t("Nie masz jeszcze żadnych wydarzeń. Utwórz pierwszy!")}
+        actionLabel={t("Dodaj wydarzenie")}
         actionHref="/events/new"
       />
     );
@@ -396,23 +399,23 @@ function MyEventsTab() {
   const processStep = hasPast ? 3 : hasApplications ? 2 : upcoming.length > 0 ? 1 : 0;
 
   const groups = [
-    { label: "Nadchodzące", items: upcoming },
-    { label: "Przeszłe", items: past },
+    { label: t("Nadchodzące"), items: upcoming },
+    { label: t("Przeszłe"), items: past },
   ].filter((g) => g.items.length > 0);
 
   return (
     <div className="space-y-8">
       <Coachmark
         storageKey="ps_coachmark_events"
-        title="Zarządzaj wydarzeniami"
-        description="Tu widzisz swoje nabory i treningi. Kliknij w wydarzenie, żeby zobaczyć zgłoszenia zawodników i zarządzać uczestnikami."
+        title={t("Zarządzaj wydarzeniami")}
+        description={t("Tu widzisz swoje nabory i treningi. Kliknij w wydarzenie, żeby zobaczyć zgłoszenia zawodników i zarządzać uczestnikami.")}
       />
 
       <ProcessSteps
         steps={[
-          { label: "Ogłoszenie", description: "Dodaj wydarzenie" },
-          { label: "Zgłoszenia", description: "Przyjmuj zawodników" },
-          { label: "Zakończone" },
+          { label: t("Ogłoszenie"), description: t("Dodaj wydarzenie") },
+          { label: t("Zgłoszenia"), description: t("Przyjmuj zawodników") },
+          { label: t("Zakończone") },
         ]}
         currentStep={processStep}
       />
@@ -427,7 +430,7 @@ function MyEventsTab() {
                   <CardContent className="p-5">
                     <div className="mb-1 flex items-center gap-2">
                       <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${EVENT_BADGE_STYLES[ev.type] ?? "bg-muted text-muted-foreground"}`}>
-                        {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
+                        {t(EVENT_TYPE_LABELS[ev.type] ?? ev.type)}
                       </span>
                     </div>
                     <h3 className="font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-1">
@@ -446,7 +449,7 @@ function MyEventsTab() {
                       )}
                       <span className="ml-auto flex items-center gap-1 shrink-0">
                         <Users className="h-3 w-3" />
-                        {ev._count?.applications ?? 0} zgł.
+                        {ev._count?.applications ?? 0} {t("zgł.")}
                         {ev.maxParticipants && ` / ${ev.maxParticipants}`}
                       </span>
                     </div>

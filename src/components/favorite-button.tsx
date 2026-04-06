@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/trpc-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 interface FavoriteButtonProps {
   sparingOfferId?: string;
@@ -11,6 +12,7 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = false }: FavoriteButtonProps) {
+  const { t } = useI18n();
   const [favorited, setFavorited] = useState(initialFavorited);
   const [bouncing, setBouncing] = useState(false);
 
@@ -25,10 +27,10 @@ export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = fal
         setTimeout(() => setBouncing(false), 400);
       }
       setFavorited(result.favorited);
-      toast.success(result.favorited ? "Dodano do ulubionych" : "Usunięto z ulubionych");
+      toast.success(result.favorited ? t("Dodano do ulubionych") : t("Usunięto z ulubionych"));
     },
     onError: () => {
-      toast.error("Nie udało się zaktualizować ulubionych");
+      toast.error(t("Nie udało się zaktualizować ulubionych"));
     },
   });
 
@@ -43,8 +45,8 @@ export function FavoriteButton({ sparingOfferId, eventId, initialFavorited = fal
       onClick={handleToggle}
       disabled={toggle.isPending}
       className="rounded-full p-1.5 transition hover:bg-secondary disabled:opacity-50"
-      title={favorited ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-      aria-label={favorited ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+      title={favorited ? t("Usuń z ulubionych") : t("Dodaj do ulubionych")}
+      aria-label={favorited ? t("Usuń z ulubionych") : t("Dodaj do ulubionych")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

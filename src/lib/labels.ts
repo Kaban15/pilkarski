@@ -1,127 +1,215 @@
-import type { Locale } from "./translations";
-import { translations } from "./translations";
+import { type Locale, plToEn } from "./translations";
 
-function buildLabelMap(prefix: string, keys: string[], locale: Locale): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const key of keys) {
-    const tKey = `${prefix}.${key}` as keyof typeof translations;
-    map[key] = translations[tKey]?.[locale] ?? key;
+/** Translate a label map using the pl→en dictionary */
+function translateMap(map: Record<string, string>, locale: Locale): Record<string, string> {
+  if (locale === "pl") return map;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(map)) {
+    out[k] = plToEn[v] ?? v;
   }
-  return map;
+  return out;
 }
 
-// ---- Label maps (locale-aware) ----
+// ---- Polish label maps (canonical) ----
 
-export function getPositionLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("position", ["GK","CB","LB","RB","CDM","CM","CAM","LM","RM","LW","RW","ST"], locale);
-}
+export const POSITION_LABELS: Record<string, string> = {
+  GK: "Bramkarz",
+  CB: "Śr. obrońca",
+  LB: "L. obrońca",
+  RB: "P. obrońca",
+  CDM: "Def. pomocnik",
+  CM: "Śr. pomocnik",
+  CAM: "Of. pomocnik",
+  LM: "L. pomocnik",
+  RM: "P. pomocnik",
+  LW: "L. skrzydłowy",
+  RW: "P. skrzydłowy",
+  ST: "Napastnik",
+};
 
-export function getFootLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("foot", ["LEFT","RIGHT","BOTH"], locale);
-}
+export const FOOT_LABELS: Record<string, string> = {
+  LEFT: "Lewa",
+  RIGHT: "Prawa",
+  BOTH: "Obie",
+};
 
-export function getEventTypeLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("eventType", ["OPEN_TRAINING","RECRUITMENT","TRYOUT","CAMP","CONTINUOUS_RECRUITMENT","INDIVIDUAL_TRAINING","GROUP_TRAINING"], locale);
-}
+export const EVENT_TYPE_LABELS: Record<string, string> = {
+  OPEN_TRAINING: "Trening otwarty",
+  RECRUITMENT: "Nabór",
+  TRYOUT: "Testy",
+  CAMP: "Obóz / Camp",
+  CONTINUOUS_RECRUITMENT: "Ciągły nabór",
+  INDIVIDUAL_TRAINING: "Trening indywidualny",
+  GROUP_TRAINING: "Trening grupowy",
+};
 
-export function getSparingLevelLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("sparingLevel", ["YOUTH","AMATEUR","SEMI_PRO","PRO"], locale);
-}
+export const SPARING_LEVEL_LABELS: Record<string, string> = {
+  YOUTH: "Młodzieżowy",
+  AMATEUR: "Amatorski",
+  SEMI_PRO: "Półprofesjonalny",
+  PRO: "Profesjonalny",
+};
 
-export function getAgeCategoryLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("ageCategory", ["JUNIOR_E","JUNIOR_D","JUNIOR_C","JUNIOR_B","JUNIOR_A","SENIOR_JR","SENIOR","VETERAN"], locale);
-}
+export const AGE_CATEGORY_LABELS: Record<string, string> = {
+  JUNIOR_E: "Żak (U-8/U-9)",
+  JUNIOR_D: "Orlik (U-10/U-11)",
+  JUNIOR_C: "Młodzik (U-12/U-13)",
+  JUNIOR_B: "Trampkarz (U-14/U-15)",
+  JUNIOR_A: "Junior mł. (U-16/U-17)",
+  SENIOR_JR: "Junior (U-18/U-19)",
+  SENIOR: "Senior",
+  VETERAN: "Oldboj (35+)",
+};
 
-export function getSparingStatusLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("sparingStatus", ["OPEN","MATCHED","CANCELLED","COMPLETED"], locale);
-}
+export const SPARING_STATUS_LABELS: Record<string, string> = {
+  OPEN: "Otwarty",
+  MATCHED: "Dopasowany",
+  CANCELLED: "Anulowany",
+  COMPLETED: "Zakończony",
+};
 
-export function getApplicationStatusLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("applicationStatus", ["PENDING","COUNTER_PROPOSED","ACCEPTED","REJECTED"], locale);
-}
+export const APPLICATION_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Oczekuje",
+  COUNTER_PROPOSED: "Kontr-propozycja",
+  ACCEPTED: "Zaakceptowany",
+  REJECTED: "Odrzucony",
+};
 
-export function getNotificationTypeLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("notifType", [
-    "SPARING_APPLICATION","SPARING_ACCEPTED","SPARING_REJECTED",
-    "EVENT_APPLICATION","EVENT_ACCEPTED","EVENT_REJECTED",
-    "NEW_MESSAGE","NEW_REVIEW","RECRUITMENT_NEW","RECRUITMENT_MATCH",
-    "REMINDER","SPARING_INVITATION","MEMBERSHIP_REQUEST","MEMBERSHIP_ACCEPTED",
-    "CLUB_INVITATION","SCORE_SUBMITTED","SCORE_CONFIRMED","SCORE_REJECTED",
-    "GOAL_ADDED","TOURNAMENT_APPLICATION","TOURNAMENT_ACCEPTED","TOURNAMENT_REJECTED",
-    "TOURNAMENT_STARTED","TOURNAMENT_SCORE_SUBMITTED",
-  ], locale);
-}
+export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  SPARING_APPLICATION: "Zgłoszenie na sparing",
+  SPARING_ACCEPTED: "Sparing zaakceptowany",
+  SPARING_REJECTED: "Sparing odrzucony",
+  EVENT_APPLICATION: "Zgłoszenie na wydarzenie",
+  EVENT_ACCEPTED: "Wydarzenie zaakceptowane",
+  EVENT_REJECTED: "Wydarzenie odrzucone",
+  NEW_MESSAGE: "Nowa wiadomość",
+  NEW_REVIEW: "Nowa recenzja",
+  RECRUITMENT_NEW: "Nowy nabór",
+  RECRUITMENT_MATCH: "Nabór na Twoją pozycję",
+  REMINDER: "Przypomnienie",
+  SPARING_INVITATION: "Zaproszenie na sparing",
+  MEMBERSHIP_REQUEST: "Prośba o dołączenie",
+  MEMBERSHIP_ACCEPTED: "Dołączenie do klubu",
+  CLUB_INVITATION: "Zaproszenie do klubu",
+  SCORE_SUBMITTED: "Wynik do potwierdzenia",
+  SCORE_CONFIRMED: "Wynik potwierdzony",
+  SCORE_REJECTED: "Wynik odrzucony",
+  GOAL_ADDED: "Bramka",
+  TOURNAMENT_APPLICATION: "Zgłoszenie do turnieju",
+  TOURNAMENT_ACCEPTED: "Przyjęty do turnieju",
+  TOURNAMENT_REJECTED: "Odrzucony z turnieju",
+  TOURNAMENT_STARTED: "Turniej rozpoczęty",
+  TOURNAMENT_SCORE_SUBMITTED: "Wynik turnieju do potwierdzenia",
+};
 
-export function getTransferTypeLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("transferType", ["LOOKING_FOR_CLUB","LOOKING_FOR_PLAYER","FREE_AGENT"], locale);
-}
+export const TRANSFER_TYPE_LABELS: Record<string, string> = {
+  LOOKING_FOR_CLUB: "Szukam klubu",
+  LOOKING_FOR_PLAYER: "Szukam zawodnika",
+  FREE_AGENT: "Wolny agent",
+};
 
-export function getTransferStatusLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("transferStatus", ["ACTIVE","CLOSED"], locale);
-}
+export const TRANSFER_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Aktywne",
+  CLOSED: "Zamknięte",
+};
 
-export function getRecruitmentStageLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("recruitmentStage", ["WATCHING","INVITED_TO_TRYOUT","AFTER_TRYOUT","OFFER_SENT","SIGNED","REJECTED"], locale);
-}
+export const RECRUITMENT_STAGE_LABELS: Record<string, string> = {
+  WATCHING: "Na radarze",
+  INVITED_TO_TRYOUT: "Zaproszony na testy",
+  AFTER_TRYOUT: "Po testach",
+  OFFER_SENT: "Oferta wysłana",
+  SIGNED: "Podpisany",
+  REJECTED: "Odrzucony",
+};
 
-export function getClubPostCategoryLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("clubPost", ["LOOKING_FOR_GOALKEEPER","LOOKING_FOR_SPARRING","LOOKING_FOR_COACH","GENERAL_NEWS","MATCH_RESULT","INTERNAL"], locale);
-}
+export const CLUB_POST_CATEGORY_LABELS: Record<string, string> = {
+  LOOKING_FOR_GOALKEEPER: "Szukamy bramkarza",
+  LOOKING_FOR_SPARRING: "Szukamy sparingpartnera",
+  LOOKING_FOR_COACH: "Szukamy trenera",
+  GENERAL_NEWS: "Aktualność",
+  MATCH_RESULT: "Wynik meczu",
+  INTERNAL: "Wewnętrzne",
+};
 
-export function getCoachSpecializationLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("coachSpec", ["YOUTH","GOALKEEPER","FITNESS","TACTICAL","INDIVIDUAL","GENERAL"], locale);
-}
+export const COACH_SPECIALIZATION_LABELS: Record<string, string> = {
+  YOUTH: "Trener młodzieży",
+  GOALKEEPER: "Trener bramkarzy",
+  FITNESS: "Trener przygotowania fizycznego",
+  TACTICAL: "Trener taktyki",
+  INDIVIDUAL: "Trener indywidualny",
+  GENERAL: "Trener ogólny",
+};
 
-export function getCoachLevelLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("coachLevel", ["UEFA_PRO","UEFA_A","UEFA_B","UEFA_C","UEFA_D","OTHER"], locale);
-}
+export const COACH_LEVEL_LABELS: Record<string, string> = {
+  UEFA_PRO: "UEFA Pro",
+  UEFA_A: "UEFA A",
+  UEFA_B: "UEFA B",
+  UEFA_C: "UEFA C",
+  UEFA_D: "UEFA D / Grassroots",
+  OTHER: "Inne",
+};
 
-export function getRoleLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("role", ["CLUB","PLAYER","COACH"], locale);
-}
+export const ROLE_LABELS: Record<string, string> = {
+  CLUB: "Klub",
+  PLAYER: "Zawodnik",
+  COACH: "Trener",
+};
 
-export function getEventVisibilityLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("eventVisibility", ["PUBLIC","INTERNAL"], locale);
-}
+export const EVENT_VISIBILITY_LABELS: Record<string, string> = {
+  PUBLIC: "Publiczne",
+  INTERNAL: "Tylko dla klubu",
+};
 
-export function getAttendanceStatusLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("attendance", ["YES","NO","MAYBE"], locale);
-}
+export const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
+  YES: "Tak",
+  NO: "Nie",
+  MAYBE: "Nie wiem",
+};
 
-export function getTournamentFormatLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("tournamentFormat", ["GROUP_STAGE","KNOCKOUT","GROUP_AND_KNOCKOUT"], locale);
-}
+export const TOURNAMENT_FORMAT_LABELS: Record<string, string> = {
+  GROUP_STAGE: "Faza grupowa",
+  KNOCKOUT: "Puchar",
+  GROUP_AND_KNOCKOUT: "Grupa + Puchar",
+};
 
-export function getTournamentStatusLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("tournamentStatus", ["REGISTRATION","IN_PROGRESS","COMPLETED","CANCELLED"], locale);
-}
+export const TOURNAMENT_STATUS_LABELS: Record<string, string> = {
+  REGISTRATION: "Rejestracja",
+  IN_PROGRESS: "W trakcie",
+  COMPLETED: "Zakończony",
+  CANCELLED: "Anulowany",
+};
 
-export function getTournamentPhaseLabels(locale: Locale): Record<string, string> {
-  return buildLabelMap("tournamentPhase", ["GROUP","ROUND_OF_16","QUARTER_FINAL","SEMI_FINAL","THIRD_PLACE","FINAL"], locale);
-}
+export const TOURNAMENT_PHASE_LABELS: Record<string, string> = {
+  GROUP: "Faza grupowa",
+  ROUND_OF_16: "1/8 finału",
+  QUARTER_FINAL: "Ćwierćfinał",
+  SEMI_FINAL: "Półfinał",
+  THIRD_PLACE: "O 3. miejsce",
+  FINAL: "Finał",
+};
 
-// ---- Static defaults (Polish) — backward compatibility ----
+// ---- Locale-aware getters ----
 
-export const POSITION_LABELS = getPositionLabels("pl");
-export const FOOT_LABELS = getFootLabels("pl");
-export const EVENT_TYPE_LABELS = getEventTypeLabels("pl");
-export const SPARING_LEVEL_LABELS = getSparingLevelLabels("pl");
-export const AGE_CATEGORY_LABELS = getAgeCategoryLabels("pl");
-export const SPARING_STATUS_LABELS = getSparingStatusLabels("pl");
-export const APPLICATION_STATUS_LABELS = getApplicationStatusLabels("pl");
-export const NOTIFICATION_TYPE_LABELS = getNotificationTypeLabels("pl");
-export const TRANSFER_TYPE_LABELS = getTransferTypeLabels("pl");
-export const TRANSFER_STATUS_LABELS = getTransferStatusLabels("pl");
-export const RECRUITMENT_STAGE_LABELS = getRecruitmentStageLabels("pl");
-export const CLUB_POST_CATEGORY_LABELS = getClubPostCategoryLabels("pl");
-export const COACH_SPECIALIZATION_LABELS = getCoachSpecializationLabels("pl");
-export const COACH_LEVEL_LABELS = getCoachLevelLabels("pl");
-export const ROLE_LABELS = getRoleLabels("pl");
-export const EVENT_VISIBILITY_LABELS = getEventVisibilityLabels("pl");
-export const ATTENDANCE_STATUS_LABELS = getAttendanceStatusLabels("pl");
-export const TOURNAMENT_FORMAT_LABELS = getTournamentFormatLabels("pl");
-export const TOURNAMENT_STATUS_LABELS = getTournamentStatusLabels("pl");
-export const TOURNAMENT_PHASE_LABELS = getTournamentPhaseLabels("pl");
+export function getPositionLabels(locale: Locale) { return translateMap(POSITION_LABELS, locale); }
+export function getFootLabels(locale: Locale) { return translateMap(FOOT_LABELS, locale); }
+export function getEventTypeLabels(locale: Locale) { return translateMap(EVENT_TYPE_LABELS, locale); }
+export function getSparingLevelLabels(locale: Locale) { return translateMap(SPARING_LEVEL_LABELS, locale); }
+export function getAgeCategoryLabels(locale: Locale) { return translateMap(AGE_CATEGORY_LABELS, locale); }
+export function getSparingStatusLabels(locale: Locale) { return translateMap(SPARING_STATUS_LABELS, locale); }
+export function getApplicationStatusLabels(locale: Locale) { return translateMap(APPLICATION_STATUS_LABELS, locale); }
+export function getNotificationTypeLabels(locale: Locale) { return translateMap(NOTIFICATION_TYPE_LABELS, locale); }
+export function getTransferTypeLabels(locale: Locale) { return translateMap(TRANSFER_TYPE_LABELS, locale); }
+export function getTransferStatusLabels(locale: Locale) { return translateMap(TRANSFER_STATUS_LABELS, locale); }
+export function getRecruitmentStageLabels(locale: Locale) { return translateMap(RECRUITMENT_STAGE_LABELS, locale); }
+export function getClubPostCategoryLabels(locale: Locale) { return translateMap(CLUB_POST_CATEGORY_LABELS, locale); }
+export function getCoachSpecializationLabels(locale: Locale) { return translateMap(COACH_SPECIALIZATION_LABELS, locale); }
+export function getCoachLevelLabels(locale: Locale) { return translateMap(COACH_LEVEL_LABELS, locale); }
+export function getRoleLabels(locale: Locale) { return translateMap(ROLE_LABELS, locale); }
+export function getEventVisibilityLabels(locale: Locale) { return translateMap(EVENT_VISIBILITY_LABELS, locale); }
+export function getAttendanceStatusLabels(locale: Locale) { return translateMap(ATTENDANCE_STATUS_LABELS, locale); }
+export function getTournamentFormatLabels(locale: Locale) { return translateMap(TOURNAMENT_FORMAT_LABELS, locale); }
+export function getTournamentStatusLabels(locale: Locale) { return translateMap(TOURNAMENT_STATUS_LABELS, locale); }
+export function getTournamentPhaseLabels(locale: Locale) { return translateMap(TOURNAMENT_PHASE_LABELS, locale); }
 
 // ---- Color maps (no translation needed) ----
 
@@ -226,12 +314,12 @@ export function getUserDisplayName(user: {
   club?: { name: string } | null;
   player?: { firstName: string; lastName: string } | null;
   coach?: { firstName: string; lastName: string } | null;
-} | null, locale: Locale = "pl"): string {
-  if (!user) return translations["common.unknownUser"][locale];
+} | null): string {
+  if (!user) return "Nieznany użytkownik";
   if (user.club) return user.club.name;
   if (user.player) return `${user.player.firstName} ${user.player.lastName}`;
   if (user.coach) return `${user.coach.firstName} ${user.coach.lastName}`;
-  return user.email ?? translations["common.unknownUser"][locale];
+  return user.email ?? "Nieznany użytkownik";
 }
 
 export function getProfileHref(user: {
@@ -249,7 +337,6 @@ export function getProfileHref(user: {
 
 /**
  * Polish noun pluralization: 1 -> one, 2-4/22-24/... -> few, rest -> many.
- * Handles teens (12-14 -> many) correctly.
  */
 export function pluralPL(n: number, one: string, few: string, many: string): string {
   if (n === 1) return one;

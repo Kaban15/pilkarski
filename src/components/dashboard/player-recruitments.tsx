@@ -12,8 +12,10 @@ import {
   Users,
   ArrowRight,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export function PlayerRecruitments() {
+  const { t } = useI18n();
   const { data, isLoading } = api.feed.recruitments.useQuery(
     { limit: 5 },
     { staleTime: 60_000 }
@@ -26,15 +28,15 @@ export function PlayerRecruitments() {
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Target className="h-5 w-5 text-amber-500" />
-          Nabory dla Ciebie
+          {t("Nabory dla Ciebie")}
           {data.matched && (
             <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px]">
-              Dopasowane
+              {t("Dopasowane")}
             </Badge>
           )}
         </h2>
         <Link href="/events" className="text-xs font-medium text-primary hover:underline">
-          Wszystkie →
+          {t("Wszystkie →")}
         </Link>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -59,7 +61,7 @@ export function PlayerRecruitments() {
                       {event.title}
                     </h3>
                     <p className="text-xs text-muted-foreground line-clamp-1">
-                      {event.club?.name ?? "Trener"}
+                      {event.club?.name ?? t("Trener")}
                       {event.club?.city && ` · ${event.club.city}`}
                     </p>
                   </div>
@@ -79,7 +81,7 @@ export function PlayerRecruitments() {
                     {event.maxParticipants && (
                       <div className="flex items-center gap-1.5">
                         <Users className="h-3 w-3" />
-                        {event.maxParticipants} miejsc
+                        {event.maxParticipants} {t("miejsc")}
                       </div>
                     )}
                     <ArrowRight className="ml-auto h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />

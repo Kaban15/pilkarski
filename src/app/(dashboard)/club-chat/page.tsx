@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { getUserDisplayName } from "@/lib/labels";
 import { formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { ArrowLeft, Send, Users, MessageSquare } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 
 export default function ClubChatPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const [message, setMessage] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -67,9 +69,9 @@ export default function ClubChatPage() {
       <div className="mx-auto max-w-2xl p-4">
         <EmptyState
           icon={MessageSquare}
-          title="Brak klubu"
-          description="Dołącz do klubu, aby korzystać z czatu grupowego"
-          actionLabel="Szukaj klubu"
+          title={t("Brak klubu")}
+          description={t("Dołącz do klubu, aby korzystać z czatu grupowego")}
+          actionLabel={t("Szukaj klubu")}
           actionHref="/search"
         />
       </div>
@@ -91,7 +93,7 @@ export default function ClubChatPage() {
           {data.club.logoUrl ? (
             <img
               src={data.club.logoUrl}
-              alt={data.club.name ?? "Klub"}
+              alt={data.club.name ?? t("Klub")}
               className="h-8 w-8 rounded-full object-cover"
             />
           ) : (
@@ -103,7 +105,7 @@ export default function ClubChatPage() {
         </div>
         <Badge variant="secondary" className="gap-1.5">
           <Users className="h-3.5 w-3.5" />
-          {data.memberCount} członków
+          {data.memberCount} {t("członków")}
         </Badge>
       </div>
 
@@ -112,7 +114,7 @@ export default function ClubChatPage() {
         {data.messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-center text-sm text-muted-foreground">
-              Brak wiadomości. Napisz pierwszą!
+              {t("Brak wiadomości. Napisz pierwszą!")}
             </p>
           </div>
         ) : (
@@ -167,7 +169,7 @@ export default function ClubChatPage() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Napisz wiadomość..."
+            placeholder={t("Napisz wiadomość...")}
             maxLength={2000}
             disabled={sendMessage.isPending}
             className="flex-1"

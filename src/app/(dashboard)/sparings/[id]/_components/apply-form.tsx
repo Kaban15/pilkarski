@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function ApplyForm({
   existingApplication,
   onApplied,
 }: ApplyFormProps) {
+  const { t } = useI18n();
   const [message, setMessage] = useState("");
   const [counterDate, setCounterDate] = useState("");
   const [showCounterDate, setShowCounterDate] = useState(false);
@@ -39,8 +41,8 @@ export function ApplyForm({
       setCounterDate("");
       toast.success(
         counterDate
-          ? "Zgłoszenie z kontr-propozycją terminu wysłane"
-          : "Zgłoszenie wysłane"
+          ? t("Zgłoszenie z kontr-propozycją terminu wysłane")
+          : t("Zgłoszenie wysłane")
       );
       setJustApplied(true);
       onApplied();
@@ -59,16 +61,16 @@ export function ApplyForm({
         <CardContent className="flex items-center gap-3 py-4">
           <Clock className="h-5 w-5 text-muted-foreground" />
           <div>
-            <p className="text-sm font-medium">Twoje zgłoszenie</p>
+            <p className="text-sm font-medium">{t("Twoje zgłoszenie")}</p>
             <Badge
               variant="secondary"
               className={`mt-1 ${APPLICATION_STATUS_COLORS[existingApplication.status]}`}
             >
-              {APPLICATION_STATUS_LABELS[existingApplication.status]}
+              {t(APPLICATION_STATUS_LABELS[existingApplication.status])}
             </Badge>
             {existingApplication.counterProposedDate && (
               <p className="mt-1 text-xs text-muted-foreground">
-                Proponowana data: {formatDate(existingApplication.counterProposedDate)}
+                {t("Proponowana data")}: {formatDate(existingApplication.counterProposedDate)}
               </p>
             )}
           </div>
@@ -98,13 +100,13 @@ export function ApplyForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Swords className="h-5 w-5 text-primary" />
-          Zgłoś swój klub
+          {t("Zgłoś swój klub")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex gap-2">
           <Input
-            placeholder="Wiadomość (opcjonalna)"
+            placeholder={t("Wiadomość (opcjonalna)")}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
@@ -117,12 +119,12 @@ export function ApplyForm({
             {justApplied ? (
               <>
                 <svg className="h-4 w-4 check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                Wysłano
+                {t("Wysłano")}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                {applyMutation.isPending ? "Wysyłanie..." : "Aplikuj"}
+                {applyMutation.isPending ? t("Wysyłanie...") : t("Aplikuj")}
               </>
             )}
           </Button>
@@ -139,7 +141,7 @@ export function ApplyForm({
             }}
           >
             <CalendarClock className="h-3.5 w-3.5" />
-            {showCounterDate ? "Anuluj kontr-propozycję" : "Zaproponuj inny termin"}
+            {showCounterDate ? t("Anuluj kontr-propozycję") : t("Zaproponuj inny termin")}
           </button>
 
           {showCounterDate && (
@@ -153,7 +155,7 @@ export function ApplyForm({
               />
               {counterDate && (
                 <p className="text-xs text-orange-600 dark:text-orange-400">
-                  Zgłoszenie zostanie oznaczone jako kontr-propozycja
+                  {t("Zgłoszenie zostanie oznaczone jako kontr-propozycja")}
                 </p>
               )}
             </div>

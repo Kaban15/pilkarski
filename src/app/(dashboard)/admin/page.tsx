@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StatsCell } from "@/components/stats-cell";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -35,19 +36,20 @@ function getUserName(user: {
   if (user.club) return user.club.name;
   if (user.player) return `${user.player.firstName} ${user.player.lastName}`;
   if (user.coach) return `${user.coach.firstName} ${user.coach.lastName}`;
-  return user.email ?? "Nieznany";
+  return user.email ?? "—";
 }
 
 // ─── Reports Tab ───────────────────────────────────────────
 
 function ReportsTab() {
+  const { t } = useI18n();
   const utils = api.useUtils();
   const { data, isLoading } = api.admin.reportsList.useQuery({ limit: 50 });
 
   const dismissReport = api.admin.dismissReport.useMutation({
     onSuccess: () => {
       utils.admin.reportsList.invalidate();
-      toast.success("Zgłoszenia odrzucone");
+      toast.success(t("Zgłoszenia odrzucone"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -55,7 +57,7 @@ function ReportsTab() {
   const hidePost = api.admin.hidePost.useMutation({
     onSuccess: () => {
       utils.admin.reportsList.invalidate();
-      toast.success("Post ukryty");
+      toast.success(t("Post ukryty"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -63,7 +65,7 @@ function ReportsTab() {
   const [confirmDismiss, setConfirmDismiss] = useState<string | null>(null);
   const [confirmHide, setConfirmHide] = useState<string | null>(null);
 
-  if (isLoading) return <p className="text-center py-10 text-muted-foreground">Ładowanie...</p>;
+  if (isLoading) return <p className="text-center py-10 text-muted-foreground">{t("Ładowanie...")}</p>;
 
   const items = data?.items ?? [];
 
@@ -71,8 +73,8 @@ function ReportsTab() {
     return (
       <EmptyState
         icon={Inbox}
-        title="Brak zgłoszeń"
-        description="Nie ma żadnych zgłoszonych postów do moderacji."
+        title={t("Brak zgłoszeń")}
+        description={t("Nie ma żadnych zgłoszonych postów do moderacji.")}
       />
     );
   }
@@ -88,11 +90,11 @@ function ReportsTab() {
                 <span>{post.club.name}</span>
                 {post.category && (
                   <span className="bg-muted px-1.5 py-0.5 rounded">
-                    {CLUB_POST_CATEGORY_LABELS[post.category] ?? post.category}
+                    {t(CLUB_POST_CATEGORY_LABELS[post.category] ?? post.category)}
                   </span>
                 )}
                 <span className="text-red-500 font-medium">
-                  {post.reportCount} zgłosz.
+                  {post.reportCount} {t("zgłosz.")}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -104,7 +106,7 @@ function ReportsTab() {
               <button
                 type="button"
                 className="rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Odrzuć zgłoszenia"
+                title={t("Odrzuć zgłoszenia")}
                 onClick={() => setConfirmDismiss(post.id)}
               >
                 <Eye className="h-4 w-4" />
@@ -112,7 +114,7 @@ function ReportsTab() {
               <button
                 type="button"
                 className="rounded-lg p-2 hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
-                title="Ukryj post"
+                title={t("Ukryj post")}
                 onClick={() => setConfirmHide(post.id)}
               >
                 <EyeOff className="h-4 w-4" />
@@ -122,7 +124,7 @@ function ReportsTab() {
 
           <details className="text-xs">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-              Szczegóły zgłoszeń ({post.reports.length})
+              {t("Szczegóły zgłoszeń")} ({post.reports.length})
             </summary>
             <ul className="mt-2 space-y-1 pl-4">
               {post.reports.map((r) => (
@@ -140,8 +142,8 @@ function ReportsTab() {
           <ConfirmDialog
             open={confirmDismiss === post.id}
             onOpenChange={(o) => !o && setConfirmDismiss(null)}
-            title="Odrzuć zgłoszenia"
-            description="Wszystkie zgłoszenia tego posta zostaną usunięte. Post pozostanie widoczny."
+            title={t("Odrzuć zgłoszenia")}
+            description={t("Wszystkie zgłoszenia tego posta zostaną usunięte. Post pozostanie widoczny.")}
             onConfirm={() => {
               dismissReport.mutate({ postId: post.id });
               setConfirmDismiss(null);
@@ -152,8 +154,8 @@ function ReportsTab() {
           <ConfirmDialog
             open={confirmHide === post.id}
             onOpenChange={(o) => !o && setConfirmHide(null)}
-            title="Ukryj post"
-            description="Post zostanie ukryty i nie będzie widoczny dla użytkowników."
+            title={t("Ukryj post")}
+            description={t("Post zostanie ukryty i nie będzie widoczny dla użytkowników.")}
             onConfirm={() => {
               hidePost.mutate({ postId: post.id });
               setConfirmHide(null);
@@ -168,6 +170,7 @@ function ReportsTab() {
 // ─── Users Tab ─────────────────────────────────────────────
 
 function UsersTab() {
+  const { t } = useI18n();
   const utils = api.useUtils();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -187,7 +190,7 @@ function UsersTab() {
   const banMutation = api.admin.ban.useMutation({
     onSuccess: () => {
       utils.admin.usersList.invalidate();
-      toast.success("Użytkownik zbanowany");
+      toast.success(t("Użytkownik zbanowany"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -195,7 +198,7 @@ function UsersTab() {
   const unbanMutation = api.admin.unban.useMutation({
     onSuccess: () => {
       utils.admin.usersList.invalidate();
-      toast.success("Ban usunięty");
+      toast.success(t("Ban usunięty"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -203,7 +206,7 @@ function UsersTab() {
   const setAdminMutation = api.admin.setAdmin.useMutation({
     onSuccess: () => {
       utils.admin.usersList.invalidate();
-      toast.success("Rola admina zaktualizowana");
+      toast.success(t("Rola admina zaktualizowana"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -220,20 +223,20 @@ function UsersTab() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Szukaj użytkowników..."
+          placeholder={t("Szukaj użytkowników...")}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           className="w-full rounded-lg border bg-background py-2 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
-      {isLoading && <p className="text-center py-10 text-muted-foreground">Ładowanie...</p>}
+      {isLoading && <p className="text-center py-10 text-muted-foreground">{t("Ładowanie...")}</p>}
 
       {!isLoading && items.length === 0 && (
         <EmptyState
           icon={Users}
-          title="Brak wyników"
-          description="Nie znaleziono użytkowników pasujących do wyszukiwania."
+          title={t("Brak wyników")}
+          description={t("Nie znaleziono użytkowników pasujących do wyszukiwania.")}
         />
       )}
 
@@ -252,7 +255,7 @@ function UsersTab() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold truncate">{name}</span>
                 <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${roleBadgeColor}`}>
-                  {ROLE_LABELS[user.role] ?? user.role}
+                  {t(ROLE_LABELS[user.role] ?? user.role)}
                 </span>
                 {user.isAdmin && (
                   <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300">
@@ -261,7 +264,7 @@ function UsersTab() {
                 )}
                 {user.isBanned && (
                   <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
-                    Zbanowany
+                    {t("Zbanowany")}
                   </span>
                 )}
               </div>
@@ -275,7 +278,7 @@ function UsersTab() {
                   className="rounded-lg px-2 py-1 text-xs font-medium bg-muted hover:bg-muted/80 transition-colors"
                   onClick={() => setConfirmUnban(user.id)}
                 >
-                  Odbanuj
+                  {t("Odbanuj")}
                 </button>
               ) : (
                 <button
@@ -283,7 +286,7 @@ function UsersTab() {
                   className="rounded-lg px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:opacity-80 transition-colors"
                   onClick={() => setConfirmBan(user.id)}
                 >
-                  Banuj
+                  {t("Banuj")}
                 </button>
               )}
               <button
@@ -293,15 +296,15 @@ function UsersTab() {
                   setConfirmAdmin({ id: user.id, isAdmin: !user.isAdmin })
                 }
               >
-                {user.isAdmin ? "Odbierz admina" : "Nadaj admina"}
+                {user.isAdmin ? t("Odbierz admina") : t("Nadaj admina")}
               </button>
             </div>
 
             <ConfirmDialog
               open={confirmBan === user.id}
               onOpenChange={(o) => !o && setConfirmBan(null)}
-              title="Zbanuj użytkownika"
-              description={`Czy na pewno chcesz zbanować ${name}? Użytkownik straci dostęp do platformy.`}
+              title={t("Zbanuj użytkownika")}
+              description={`${t("Czy na pewno chcesz zbanować")} ${name}? ${t("Użytkownik straci dostęp do platformy.")}`}
               onConfirm={() => {
                 banMutation.mutate({ userId: user.id });
                 setConfirmBan(null);
@@ -311,8 +314,8 @@ function UsersTab() {
             <ConfirmDialog
               open={confirmUnban === user.id}
               onOpenChange={(o) => !o && setConfirmUnban(null)}
-              title="Odbanuj użytkownika"
-              description={`Czy na pewno chcesz odbanować ${name}?`}
+              title={t("Odbanuj użytkownika")}
+              description={`${t("Czy na pewno chcesz odbanować")} ${name}?`}
               onConfirm={() => {
                 unbanMutation.mutate({ userId: user.id });
                 setConfirmUnban(null);
@@ -323,11 +326,11 @@ function UsersTab() {
             <ConfirmDialog
               open={confirmAdmin?.id === user.id}
               onOpenChange={(o) => !o && setConfirmAdmin(null)}
-              title={confirmAdmin?.isAdmin ? "Nadaj rolę admina" : "Odbierz rolę admina"}
+              title={confirmAdmin?.isAdmin ? t("Nadaj rolę admina") : t("Odbierz rolę admina")}
               description={
                 confirmAdmin?.isAdmin
-                  ? `Czy na pewno chcesz nadać rolę admina ${name}?`
-                  : `Czy na pewno chcesz odebrać rolę admina ${name}?`
+                  ? `${t("Czy na pewno chcesz nadać rolę admina")} ${name}?`
+                  : `${t("Czy na pewno chcesz odebrać rolę admina")} ${name}?`
               }
               onConfirm={() => {
                 if (confirmAdmin) {
@@ -350,37 +353,38 @@ function UsersTab() {
 // ─── Metrics Tab ───────────────────────────────────────────
 
 function MetricsTab() {
+  const { t } = useI18n();
   const { data, isLoading } = api.admin.dashboard.useQuery();
 
-  if (isLoading) return <p className="text-center py-10 text-muted-foreground">Ładowanie...</p>;
+  if (isLoading) return <p className="text-center py-10 text-muted-foreground">{t("Ładowanie...")}</p>;
   if (!data) return null;
 
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
-          Łącznie
+          {t("Łącznie")}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatsCell label="Użytkownicy" value={data.totalUsers} />
-          <StatsCell label="Kluby" value={data.clubCount} color="violet" />
-          <StatsCell label="Zawodnicy" value={data.playerCount} color="amber" />
-          <StatsCell label="Trenerzy" value={data.coachCount} color="emerald" />
-          <StatsCell label="Sparingi" value={data.totalSparings} color="sky" />
-          <StatsCell label="Wydarzenia" value={data.totalEvents} color="sky" />
-          <StatsCell label="Turnieje" value={data.totalTournaments} color="sky" />
-          <StatsCell label="Zgłoszenia" value={data.pendingReports} color="red" />
+          <StatsCell label={t("Użytkownicy")} value={data.totalUsers} />
+          <StatsCell label={t("Kluby")} value={data.clubCount} color="violet" />
+          <StatsCell label={t("Zawodnicy")} value={data.playerCount} color="amber" />
+          <StatsCell label={t("Trenerzy")} value={data.coachCount} color="emerald" />
+          <StatsCell label={t("Sparingi")} value={data.totalSparings} color="sky" />
+          <StatsCell label={t("Wydarzenia")} value={data.totalEvents} color="sky" />
+          <StatsCell label={t("Turnieje")} value={data.totalTournaments} color="sky" />
+          <StatsCell label={t("Zgłoszenia")} value={data.pendingReports} color="red" />
         </div>
       </div>
 
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
-          Ostatnie 7 dni
+          {t("Ostatnie 7 dni")}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatsCell label="Nowi użytkownicy" value={data.newUsers7d} color="emerald" />
-          <StatsCell label="Nowe sparingi" value={data.newSparings7d} color="sky" />
-          <StatsCell label="Nowe wydarzenia" value={data.newEvents7d} color="amber" />
+          <StatsCell label={t("Nowi użytkownicy")} value={data.newUsers7d} color="emerald" />
+          <StatsCell label={t("Nowe sparingi")} value={data.newSparings7d} color="sky" />
+          <StatsCell label={t("Nowe wydarzenia")} value={data.newEvents7d} color="amber" />
         </div>
       </div>
     </div>
@@ -396,6 +400,7 @@ const CONTENT_TYPES = [
 ];
 
 function ContentTab() {
+  const { t } = useI18n();
   const utils = api.useUtils();
   const [type, setType] = useState<"sparing" | "event" | "tournament">("sparing");
   const [search, setSearch] = useState("");
@@ -417,7 +422,7 @@ function ContentTab() {
   const deleteContent = api.admin.deleteContent.useMutation({
     onSuccess: () => {
       utils.admin.contentList.invalidate();
-      toast.success("Treść anulowana");
+      toast.success(t("Treść anulowana"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -444,7 +449,7 @@ function ContentTab() {
                 : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
-            {ct.label}
+            {t(ct.label)}
           </button>
         ))}
       </div>
@@ -453,20 +458,20 @@ function ContentTab() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Szukaj treści..."
+          placeholder={t("Szukaj treści...")}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           className="w-full rounded-lg border bg-background py-2 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
-      {isLoading && <p className="text-center py-10 text-muted-foreground">Ładowanie...</p>}
+      {isLoading && <p className="text-center py-10 text-muted-foreground">{t("Ładowanie...")}</p>}
 
       {!isLoading && items.length === 0 && (
         <EmptyState
           icon={FileText}
-          title="Brak treści"
-          description="Nie znaleziono treści pasujących do kryteriów."
+          title={t("Brak treści")}
+          description={t("Nie znaleziono treści pasujących do kryteriów.")}
         />
       )}
 
@@ -505,7 +510,7 @@ function ContentTab() {
             <button
               type="button"
               className="rounded-lg p-2 hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive shrink-0"
-              title="Usuń treść"
+              title={t("Usuń treść")}
               onClick={() => setConfirmDelete(id)}
             >
               <Trash2 className="h-4 w-4" />
@@ -514,8 +519,8 @@ function ContentTab() {
             <ConfirmDialog
               open={confirmDelete === id}
               onOpenChange={(o) => !o && setConfirmDelete(null)}
-              title="Usuń treść"
-              description="Czy na pewno chcesz usunąć tę treść? Akcja jest nieodwracalna."
+              title={t("Usuń treść")}
+              description={t("Czy na pewno chcesz usunąć tę treść? Akcja jest nieodwracalna.")}
               onConfirm={() => {
                 deleteContent.mutate({ type, id });
                 setConfirmDelete(null);
@@ -531,6 +536,7 @@ function ContentTab() {
 // ─── Badged Tabs ───────────────────────────────────────────
 
 function ReportsBadgedTabs({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   const { data } = api.admin.dashboard.useQuery();
   const pendingCount = data?.pendingReports ?? 0;
 
@@ -539,7 +545,7 @@ function ReportsBadgedTabs({ children }: { children: React.ReactNode }) {
       <TabsList className="w-full">
         <TabsTrigger value="reports" className="relative">
           <Flag className="h-4 w-4" />
-          Raporty
+          {t("Raporty")}
           {pendingCount > 0 && (
             <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
               {pendingCount}
@@ -548,15 +554,15 @@ function ReportsBadgedTabs({ children }: { children: React.ReactNode }) {
         </TabsTrigger>
         <TabsTrigger value="users">
           <Users className="h-4 w-4" />
-          Użytkownicy
+          {t("Użytkownicy")}
         </TabsTrigger>
         <TabsTrigger value="metrics">
           <BarChart3 className="h-4 w-4" />
-          Metryki
+          {t("Metryki")}
         </TabsTrigger>
         <TabsTrigger value="content">
           <FileText className="h-4 w-4" />
-          Treści
+          {t("Treści")}
         </TabsTrigger>
       </TabsList>
       {children}
@@ -567,10 +573,11 @@ function ReportsBadgedTabs({ children }: { children: React.ReactNode }) {
 // ─── Main Page ─────────────────────────────────────────────
 
 export default function AdminPage() {
+  const { t } = useI18n();
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <p className="text-center py-20 text-muted-foreground">Ładowanie...</p>;
+    return <p className="text-center py-20 text-muted-foreground">{t("Ładowanie...")}</p>;
   }
 
   if (!session?.user?.isAdmin) {
@@ -581,7 +588,7 @@ export default function AdminPage() {
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
       <div className="flex items-center gap-3">
         <Shield className="h-7 w-7 text-primary" />
-        <h1 className="text-2xl font-bold">Panel Admina</h1>
+        <h1 className="text-2xl font-bold">{t("Panel Admina")}</h1>
       </div>
 
       <ReportsBadgedTabs>

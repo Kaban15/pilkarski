@@ -12,11 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { POSITION_LABELS, SPARING_LEVEL_LABELS } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import { getFieldErrors } from "@/lib/form-errors";
 import { createTransferSchema, type TransferType, type TransferPosition } from "@/lib/validators/transfer";
 import { ArrowRightLeft } from "lucide-react";
 
 export default function NewTransferPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { data: session } = useSession();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,7 +39,7 @@ export default function NewTransferPage() {
 
   const createMut = api.transfer.create.useMutation({
     onSuccess: (result) => {
-      toast.success("Ogłoszenie transferowe utworzone");
+      toast.success(t("Ogłoszenie transferowe utworzone"));
       router.push(`/transfers/${result.id}`);
     },
     onError: (err) => {
@@ -51,11 +53,11 @@ export default function NewTransferPage() {
   // Filter types based on role
   const typeOptions = [
     ...(isPlayer ? [
-      { value: "LOOKING_FOR_CLUB", label: "Szukam klubu" },
-      { value: "FREE_AGENT", label: "Wolny agent" },
+      { value: "LOOKING_FOR_CLUB", label: t("Szukam klubu") },
+      { value: "FREE_AGENT", label: t("Wolny agent") },
     ] : []),
     ...(isClub ? [
-      { value: "LOOKING_FOR_PLAYER", label: "Szukam zawodnika" },
+      { value: "LOOKING_FOR_PLAYER", label: t("Szukam zawodnika") },
     ] : []),
   ];
 
@@ -93,8 +95,8 @@ export default function NewTransferPage() {
     <div className="animate-fade-in">
       <Breadcrumbs
         items={[
-          { label: "Transfery", href: "/transfers" },
-          { label: "Nowe ogłoszenie" },
+          { label: t("Transfery"), href: "/transfers" },
+          { label: t("Nowe ogłoszenie") },
         ]}
       />
 
@@ -102,19 +104,19 @@ export default function NewTransferPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5 text-cyan-500" />
-            Nowe ogłoszenie transferowe
+            {t("Nowe ogłoszenie transferowe")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Typ ogłoszenia *</Label>
+              <Label>{t("Typ ogłoszenia")} *</Label>
               <select
                 value={form.type}
                 onChange={(e) => updateField("type", e.target.value)}
                 className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
               >
-                <option value="">Wybierz typ</option>
+                <option value="">{t("Wybierz typ")}</option>
                 {typeOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
@@ -123,22 +125,22 @@ export default function NewTransferPage() {
             </div>
 
             <div>
-              <Label>Tytuł *</Label>
+              <Label>{t("Tytuł")} *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => updateField("title", e.target.value)}
-                placeholder="np. Doświadczony napastnik szuka klubu w Wielkopolsce"
+                placeholder={t("np. Doświadczony napastnik szuka klubu w Wielkopolsce")}
                 className={`mt-1.5 ${errors.title ? "border-destructive" : ""}`}
               />
               {errors.title && <p className="mt-1 text-xs text-destructive">{errors.title}</p>}
             </div>
 
             <div>
-              <Label>Opis</Label>
+              <Label>{t("Opis")}</Label>
               <Textarea
                 value={form.description}
                 onChange={(e) => updateField("description", e.target.value)}
-                placeholder="Dodatkowe informacje — doświadczenie, oczekiwania, preferencje..."
+                placeholder={t("Dodatkowe informacje — doświadczenie, oczekiwania, preferencje...")}
                 rows={4}
                 className="mt-1.5"
               />
@@ -146,27 +148,27 @@ export default function NewTransferPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Pozycja</Label>
+                <Label>{t("Pozycja")}</Label>
                 <select
                   value={form.position}
                   onChange={(e) => updateField("position", e.target.value)}
                   className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Dowolna</option>
+                  <option value="">{t("Dowolna")}</option>
                   {Object.entries(POSITION_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
+                    <option key={key} value={key}>{t(label)}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <Label>Region</Label>
+                <Label>{t("Region")}</Label>
                 <select
                   value={form.regionId}
                   onChange={(e) => updateField("regionId", e.target.value)}
                   className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Cała Polska</option>
+                  <option value="">{t("Cała Polska")}</option>
                   {regions.map((r: any) => (
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
@@ -177,7 +179,7 @@ export default function NewTransferPage() {
             {(form.type === "LOOKING_FOR_CLUB" || form.type === "FREE_AGENT") && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label>Dostępny od</Label>
+                  <Label>{t("Dostępny od")}</Label>
                   <Input
                     type="date"
                     value={form.availableFrom}
@@ -186,15 +188,15 @@ export default function NewTransferPage() {
                   />
                 </div>
                 <div>
-                  <Label>Preferowany poziom</Label>
+                  <Label>{t("Preferowany poziom")}</Label>
                   <select
                     value={form.preferredLevel}
                     onChange={(e) => updateField("preferredLevel", e.target.value)}
                     className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                   >
-                    <option value="">Dowolny</option>
+                    <option value="">{t("Dowolny")}</option>
                     {Object.entries(SPARING_LEVEL_LABELS).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
+                      <option key={key} value={key}>{t(label)}</option>
                     ))}
                   </select>
                 </div>
@@ -204,24 +206,24 @@ export default function NewTransferPage() {
             {form.type === "LOOKING_FOR_PLAYER" && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label>Wiek od</Label>
+                  <Label>{t("Wiek od")}</Label>
                   <Input
                     type="number"
                     value={form.minAge}
                     onChange={(e) => updateField("minAge", e.target.value)}
-                    placeholder="np. 18"
+                    placeholder={t("np. 18")}
                     min={10}
                     max={60}
                     className="mt-1.5"
                   />
                 </div>
                 <div>
-                  <Label>Wiek do</Label>
+                  <Label>{t("Wiek do")}</Label>
                   <Input
                     type="number"
                     value={form.maxAge}
                     onChange={(e) => updateField("maxAge", e.target.value)}
-                    placeholder="np. 30"
+                    placeholder={t("np. 30")}
                     min={10}
                     max={60}
                     className="mt-1.5"
@@ -232,7 +234,7 @@ export default function NewTransferPage() {
 
             <Button type="submit" disabled={createMut.isPending} className="w-full gap-1.5">
               <ArrowRightLeft className="h-4 w-4" />
-              {createMut.isPending ? "Tworzenie..." : "Utwórz ogłoszenie"}
+              {createMut.isPending ? t("Tworzenie...") : t("Utwórz ogłoszenie")}
             </Button>
           </form>
         </CardContent>

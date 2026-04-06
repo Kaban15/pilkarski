@@ -5,13 +5,15 @@ import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X, Mail } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export function ClubInvitations() {
+  const { t } = useI18n();
   const { data: invitations = [], refetch } = api.clubMembership.myInvitations.useQuery();
 
   const respondMut = api.clubMembership.respondToInvite.useMutation({
     onSuccess: (_, vars) => {
-      toast.success(vars.decision === "ACCEPT" ? "Dołączyłeś do klubu" : "Zaproszenie odrzucone");
+      toast.success(vars.decision === "ACCEPT" ? t("Dołączyłeś do klubu") : t("Zaproszenie odrzucone"));
       refetch();
     },
     onError: (e) => toast.error(e.message),
@@ -24,7 +26,7 @@ export function ClubInvitations() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Mail className="h-4 w-4 text-emerald-500" />
-          Zaproszenia do klubów
+          {t("Zaproszenia do klubów")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -51,7 +53,7 @@ export function ClubInvitations() {
                   disabled={respondMut.isPending}
                 >
                   <Check className="mr-1 h-3.5 w-3.5" />
-                  Akceptuj
+                  {t("Akceptuj")}
                 </Button>
                 <Button
                   size="sm"

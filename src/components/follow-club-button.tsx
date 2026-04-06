@@ -2,6 +2,7 @@
 
 import { api } from "@/lib/trpc-react";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserCheck } from "lucide-react";
 
@@ -10,6 +11,7 @@ interface FollowClubButtonProps {
 }
 
 export function FollowClubButton({ clubId }: FollowClubButtonProps) {
+  const { t } = useI18n();
   const { data: isFollowing, refetch } = api.club.isFollowing.useQuery(
     { clubId },
     { staleTime: 30_000 }
@@ -17,7 +19,7 @@ export function FollowClubButton({ clubId }: FollowClubButtonProps) {
 
   const followMutation = api.club.follow.useMutation({
     onSuccess: () => {
-      toast.success("Obserwujesz ten klub");
+      toast.success(t("Obserwujesz ten klub"));
       refetch();
     },
     onError: (err) => {
@@ -27,7 +29,7 @@ export function FollowClubButton({ clubId }: FollowClubButtonProps) {
 
   const unfollowMutation = api.club.unfollow.useMutation({
     onSuccess: () => {
-      toast.success("Przestałeś obserwować ten klub");
+      toast.success(t("Przestałeś obserwować ten klub"));
       refetch();
     },
     onError: (err) => {
@@ -56,12 +58,12 @@ export function FollowClubButton({ clubId }: FollowClubButtonProps) {
       {isFollowing ? (
         <>
           <UserCheck className="h-3.5 w-3.5" />
-          Obserwujesz
+          {t("Obserwujesz")}
         </>
       ) : (
         <>
           <UserPlus className="h-3.5 w-3.5" />
-          Obserwuj
+          {t("Obserwuj")}
         </>
       )}
     </Button>

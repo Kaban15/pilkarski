@@ -1,6 +1,7 @@
 "use client";
 
 import { TOURNAMENT_PHASE_LABELS } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import { MatchRow } from "./match-row";
 
 interface BracketMatch {
@@ -29,13 +30,14 @@ const PHASE_ORDER: string[] = [
 ];
 
 export function BracketView({ matches }: BracketViewProps) {
+  const { t } = useI18n();
   // Group by phase (exclude GROUP phase — those go in GroupTable)
   const knockoutMatches = matches.filter((m) => m.phase !== "GROUP");
 
   if (knockoutMatches.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
-        Brak meczów w drabince.
+        {t("Brak meczów w drabince.")}
       </p>
     );
   }
@@ -62,14 +64,14 @@ export function BracketView({ matches }: BracketViewProps) {
         return (
           <div key={phase} className="min-w-[180px] flex-shrink-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-              {TOURNAMENT_PHASE_LABELS[phase] ?? phase}
+              {t(TOURNAMENT_PHASE_LABELS[phase] ?? phase)}
             </p>
             <div className="space-y-2">
               {phaseMatches.map((match) => (
                 <div key={match.id} className="bg-card rounded-lg p-2">
                   <MatchRow
-                    homeTeamName={match.homeTeam?.teamName ?? "Oczekuje"}
-                    awayTeamName={match.awayTeam?.teamName ?? "Oczekuje"}
+                    homeTeamName={match.homeTeam?.teamName ?? t("Oczekuje")}
+                    awayTeamName={match.awayTeam?.teamName ?? t("Oczekuje")}
                     homeScore={match.homeScore}
                     awayScore={match.awayScore}
                     penaltyHome={match.penaltyHome}

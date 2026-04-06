@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function CoachOnboarding({ onComplete }: { onComplete: () => void }) {
+  const { t } = useI18n();
   const [step, setStep] = useState(0);
   const { data: coach } = api.coach.me.useQuery();
 
@@ -23,16 +25,16 @@ export function CoachOnboarding({ onComplete }: { onComplete: () => void }) {
 
         {step === 0 && (
           <div className="space-y-3">
-            <p className="text-sm font-semibold">Witaj, trenerze!</p>
+            <p className="text-sm font-semibold">{t("Witaj, trenerze!")}</p>
             <p className="text-xs text-muted-foreground">
-              Uzupełnij profil — dodaj specjalizację, licencję i region, żeby kluby mogły Cię znaleźć.
+              {t("Uzupełnij profil — dodaj specjalizację, licencję i region, żeby kluby mogły Cię znaleźć.")}
             </p>
             {profileComplete ? (
-              <Button size="sm" onClick={() => setStep(1)}>Profil gotowy — dalej →</Button>
+              <Button size="sm" onClick={() => setStep(1)}>{t("Profil gotowy — dalej →")}</Button>
             ) : (
               <div className="flex gap-2">
-                <Button size="sm" asChild><Link href="/profile">Uzupełnij profil</Link></Button>
-                <Button size="sm" variant="ghost" onClick={() => setStep(1)}>Pomiń</Button>
+                <Button size="sm" asChild><Link href="/profile">{t("Uzupełnij profil")}</Link></Button>
+                <Button size="sm" variant="ghost" onClick={() => setStep(1)}>{t("Pomiń")}</Button>
               </div>
             )}
           </div>
@@ -40,27 +42,27 @@ export function CoachOnboarding({ onComplete }: { onComplete: () => void }) {
 
         {step === 1 && (
           <div className="space-y-3">
-            <p className="text-sm font-semibold">Dołącz do klubu</p>
+            <p className="text-sm font-semibold">{t("Dołącz do klubu")}</p>
             <p className="text-xs text-muted-foreground">
-              Znajdź klub i poproś o dołączenie. Gdy klub nada Ci uprawnienia, będziesz mógł tworzyć treningi i wydarzenia w jego imieniu.
+              {t("Znajdź klub i poproś o dołączenie. Gdy klub nada Ci uprawnienia, będziesz mógł tworzyć treningi i wydarzenia w jego imieniu.")}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" asChild>
-                <Link href="/search">Szukaj klubu</Link>
+                <Link href="/search">{t("Szukaj klubu")}</Link>
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <Link href="/trainings">Przeglądaj treningi</Link>
+                <Link href="/trainings">{t("Przeglądaj treningi")}</Link>
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setStep(2)}>Pomiń</Button>
+              <Button size="sm" variant="ghost" onClick={() => setStep(2)}>{t("Pomiń")}</Button>
             </div>
           </div>
         )}
 
         {step === 2 && (
           <div className="space-y-3 text-center">
-            <p className="text-sm font-semibold">Wszystko gotowe!</p>
-            <p className="text-xs text-muted-foreground">Powodzenia w pracy trenerskiej!</p>
-            <Button size="sm" onClick={onComplete}>Przejdź do feedu</Button>
+            <p className="text-sm font-semibold">{t("Wszystko gotowe!")}</p>
+            <p className="text-xs text-muted-foreground">{t("Powodzenia w pracy trenerskiej!")}</p>
+            <Button size="sm" onClick={onComplete}>{t("Przejdź do feedu")}</Button>
           </div>
         )}
       </CardContent>

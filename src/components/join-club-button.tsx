@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Clock, Check, LogOut } from "lucide-react";
 
@@ -12,6 +13,7 @@ interface JoinClubButtonProps {
 }
 
 export function JoinClubButton({ clubId }: JoinClubButtonProps) {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const [showConfirm, setShowConfirm] = useState(false);
   const role = session?.user?.role;
@@ -25,7 +27,7 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
 
   const joinMut = api.clubMembership.requestJoin.useMutation({
     onSuccess: () => {
-      toast.success("Prośba o dołączenie wysłana!");
+      toast.success(t("Prośba o dołączenie wysłana!"));
       refetch();
     },
     onError: (err) => toast.error(err.message),
@@ -33,7 +35,7 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
 
   const leaveMut = api.clubMembership.leaveClub.useMutation({
     onSuccess: () => {
-      toast.success("Opuściłeś klub");
+      toast.success(t("Opuściłeś klub"));
       refetch();
       setShowConfirm(false);
     },
@@ -47,7 +49,7 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-3 py-1.5 text-[13px] font-medium text-emerald-600 dark:text-emerald-400">
           <Check className="h-3.5 w-3.5" />
-          {role === "COACH" ? "Trener klubu" : "Zawodnik klubu"}
+          {role === "COACH" ? t("Trener klubu") : t("Zawodnik klubu")}
         </span>
         {!showConfirm ? (
           <Button
@@ -57,15 +59,15 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
             onClick={() => setShowConfirm(true)}
           >
             <LogOut className="mr-1 h-3 w-3" />
-            Opuść
+            {t("Opuść")}
           </Button>
         ) : (
           <div className="flex gap-1">
             <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => leaveMut.mutate({ clubId })} disabled={leaveMut.isPending}>
-              Potwierdź
+              {t("Potwierdź")}
             </Button>
             <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowConfirm(false)}>
-              Anuluj
+              {t("Anuluj")}
             </Button>
           </div>
         )}
@@ -77,7 +79,7 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
     return (
       <span className="flex items-center gap-1.5 rounded-md bg-amber-500/10 px-3 py-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400">
         <Clock className="h-3.5 w-3.5" />
-        Prośba wysłana — oczekuje
+        {t("Prośba wysłana — oczekuje")}
       </span>
     );
   }
@@ -91,7 +93,7 @@ export function JoinClubButton({ clubId }: JoinClubButtonProps) {
       disabled={joinMut.isPending}
     >
       <UserPlus className="h-3.5 w-3.5" />
-      {role === "COACH" ? "Dołącz jako trener" : "Dołącz do klubu"}
+      {role === "COACH" ? t("Dołącz jako trener") : t("Dołącz do klubu")}
     </Button>
   );
 }

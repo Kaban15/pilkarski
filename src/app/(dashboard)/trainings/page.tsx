@@ -16,6 +16,7 @@ import {
 } from "@/lib/labels";
 import { formatShortDate } from "@/lib/format";
 import { MobileRefresh } from "@/components/mobile-refresh";
+import { useI18n } from "@/lib/i18n";
 import { GraduationCap, Calendar, MapPin, Users, Sparkles } from "lucide-react";
 
 type TrainingItem = {
@@ -41,6 +42,7 @@ type CoachItem = {
 };
 
 function RecommendedTrainings() {
+  const { t } = useI18n();
   const recommended = api.event.recommendedTrainings.useQuery({ limit: 6 });
   const items = (recommended.data?.items ?? []) as TrainingItem[];
 
@@ -50,32 +52,32 @@ function RecommendedTrainings() {
     <div className="mb-8">
       <div className="mb-4 flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-primary" />
-        <h2 className="text-base font-semibold">Polecane dla Ciebie</h2>
+        <h2 className="text-base font-semibold">{t("Polecane dla Ciebie")}</h2>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((t) => (
-          <Link key={t.id} href={`/events/${t.id}`}>
+        {items.map((tr) => (
+          <Link key={tr.id} href={`/events/${tr.id}`}>
             <Card className="h-full transition-all hover:border-primary/30">
               <CardContent className="p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <Badge variant="secondary" className="text-[10px]">
-                    {EVENT_TYPE_LABELS[t.type] ?? t.type}
+                    {EVENT_TYPE_LABELS[tr.type] ?? tr.type}
                   </Badge>
                 </div>
-                <p className="text-[14px] font-semibold leading-snug line-clamp-2">{t.title}</p>
+                <p className="text-[14px] font-semibold leading-snug line-clamp-2">{tr.title}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3 opacity-50" />
-                    {t.club.name}
+                    {tr.club.name}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3 opacity-50" />
-                    {new Date(t.eventDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}
+                    {new Date(tr.eventDate).toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}
                   </span>
-                  {t.location && (
+                  {tr.location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3 opacity-50" />
-                      {t.location}
+                      {tr.location}
                     </span>
                   )}
                 </div>
@@ -89,6 +91,7 @@ function RecommendedTrainings() {
 }
 
 export default function TrainingsPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const isPlayer = session?.user?.role === "PLAYER";
   const [tab, setTab] = useState<"trainings" | "coaches">("trainings");
@@ -109,9 +112,9 @@ export default function TrainingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Treningi</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Treningi")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Znajdź trening indywidualny lub grupowy, albo przeglądaj trenerów
+          {t("Znajdź trening indywidualny lub grupowy, albo przeglądaj trenerów")}
         </p>
       </div>
 
@@ -127,8 +130,8 @@ export default function TrainingsPage() {
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "trainings" | "coaches")}>
         <TabsList>
-          <TabsTrigger value="trainings">Treningi</TabsTrigger>
-          <TabsTrigger value="coaches">Trenerzy</TabsTrigger>
+          <TabsTrigger value="trainings">{t("Treningi")}</TabsTrigger>
+          <TabsTrigger value="coaches">{t("Trenerzy")}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -139,12 +142,12 @@ export default function TrainingsPage() {
           ) : allTrainings.length === 0 ? (
             <EmptyState
               icon={GraduationCap}
-              title="Brak treningów"
-              description="Nie ma jeszcze treningów w ofercie. Kluby mogą dodać treningi w sekcji Wydarzenia."
+              title={t("Brak treningów")}
+              description={t("Nie ma jeszcze treningów w ofercie. Kluby mogą dodać treningi w sekcji Wydarzenia.")}
             />
           ) : (
-            allTrainings.map((t) => (
-              <Link key={t.id} href={`/events/${t.id}`}>
+            allTrainings.map((tr) => (
+              <Link key={tr.id} href={`/events/${tr.id}`}>
                 <Card className="transition-colors hover:border-primary/40">
                   <CardContent className="flex items-center gap-4 py-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -152,24 +155,24 @@ export default function TrainingsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-semibold">{t.title}</p>
+                        <p className="truncate text-sm font-semibold">{tr.title}</p>
                         <Badge variant="secondary" className="text-[10px] shrink-0">
-                          {EVENT_TYPE_LABELS[t.type] ?? t.type}
+                          {EVENT_TYPE_LABELS[tr.type] ?? tr.type}
                         </Badge>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {t.club?.name ?? "Trener"}
+                          {tr.club?.name ?? t("Trener")}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {formatShortDate(t.eventDate)}
+                          {formatShortDate(tr.eventDate)}
                         </span>
-                        {t.location && (
+                        {tr.location && (
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {t.location}
+                            {tr.location}
                           </span>
                         )}
                       </div>
@@ -189,8 +192,8 @@ export default function TrainingsPage() {
           ) : (coaches.data?.items ?? []).length === 0 ? (
             <EmptyState
               icon={GraduationCap}
-              title="Brak trenerów"
-              description="Nie ma jeszcze zarejestrowanych trenerów."
+              title={t("Brak trenerów")}
+              description={t("Nie ma jeszcze zarejestrowanych trenerów.")}
             />
           ) : (
             (coaches.data?.items ?? []).map((c: CoachItem) => (

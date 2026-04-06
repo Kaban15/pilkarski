@@ -9,6 +9,7 @@ import { EVENT_TYPE_LABELS, EVENT_TYPE_COLORS } from "@/lib/labels";
 import { formatShortDate, formatDate } from "@/lib/format";
 import { Mail, Phone, ExternalLink, Shield, Star, Calendar, MapPin } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
+import { useI18n } from "@/lib/i18n";
 
 const TABS = [
   { key: "matches", label: "Mecze" },
@@ -142,6 +143,7 @@ export function ClubProfileTabs({
   club,
   leagueGroupHref,
 }: ClubProfileTabsProps) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabKey>("matches");
 
   return (
@@ -158,7 +160,7 @@ export function ClubProfileTabs({
                 : "text-muted-foreground font-semibold hover:text-foreground"
             }`}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </div>
@@ -169,13 +171,13 @@ export function ClubProfileTabs({
           {upcomingMatches.length > 0 && (
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                Nadchodzące
+                {t("Nadchodzące")}
               </p>
               <div className="bg-card rounded-xl divide-y divide-border overflow-hidden">
                 {upcomingMatches.map((match) => {
                   const rival = match.applications[0]?.applicantClub;
                   const homeClub = toClubInfo(match.club);
-                  const awayClub = rival ? toClubInfo(rival) : { id: "unknown", name: "Przeciwnik", logoUrl: null, initials: "??" };
+                  const awayClub = rival ? toClubInfo(rival) : { id: "unknown", name: t("Przeciwnik"), logoUrl: null, initials: "??" };
                   return (
                     <MatchCard
                       key={match.id}
@@ -192,7 +194,7 @@ export function ClubProfileTabs({
           {completedMatches.length > 0 && (
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                Ostatnie wyniki
+                {t("Ostatnie wyniki")}
               </p>
               <div className="bg-card rounded-xl divide-y divide-border overflow-hidden">
                 {completedMatches.map((match) => {
@@ -203,7 +205,7 @@ export function ClubProfileTabs({
                   const homeClubInfo = toClubInfo(match.club);
                   const awayClubInfo = rival
                     ? toClubInfo(rival)
-                    : { id: "unknown", name: "Przeciwnik", logoUrl: null, initials: "??" };
+                    : { id: "unknown", name: t("Przeciwnik"), logoUrl: null, initials: "??" };
                   const goalLine =
                     match.goals.length > 0
                       ? match.goals
@@ -241,7 +243,7 @@ export function ClubProfileTabs({
 
           {upcomingMatches.length === 0 && completedMatches.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Brak historii meczów
+              {t("Brak historii meczów")}
             </p>
           )}
         </div>
@@ -294,7 +296,7 @@ export function ClubProfileTabs({
                   if (unpositioned.length === 0) return null;
                   return (
                     <PositionGroup
-                      label="Inne"
+                      label={t("Inne")}
                       color="amber"
                       players={unpositioned}
                       showActions={false}
@@ -308,7 +310,7 @@ export function ClubProfileTabs({
                     <div className="flex items-center gap-1.5 mb-2">
                       <div className="w-[3px] h-3.5 rounded-sm bg-violet-500" />
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Trenerzy
+                        {t("Trenerzy")}
                       </span>
                       <span className="text-[11px] text-muted-foreground/60">{coaches.length}</span>
                     </div>
@@ -341,7 +343,7 @@ export function ClubProfileTabs({
 
                 {players.length === 0 && coaches.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    Brak zawodników w kadrze
+                    {t("Brak zawodników w kadrze")}
                   </p>
                 )}
               </>
@@ -374,10 +376,10 @@ export function ClubProfileTabs({
                       {(ev.targetAgeMin || ev.targetAgeMax) && (
                         <span>
                           {ev.targetAgeMin && ev.targetAgeMax
-                            ? `${ev.targetAgeMin}–${ev.targetAgeMax} lat`
+                            ? `${ev.targetAgeMin}–${ev.targetAgeMax} ${t("lat")}`
                             : ev.targetAgeMin
-                              ? `od ${ev.targetAgeMin} lat`
-                              : `do ${ev.targetAgeMax} lat`}
+                              ? `${t("od")} ${ev.targetAgeMin} ${t("lat")}`
+                              : `${t("do")} ${ev.targetAgeMax} ${t("lat")}`}
                         </span>
                       )}
                     </div>
@@ -392,7 +394,7 @@ export function ClubProfileTabs({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Brak aktywnych naborów
+              {t("Brak aktywnych naborów")}
             </p>
           )}
         </div>
@@ -408,7 +410,7 @@ export function ClubProfileTabs({
                   {reviewAvg?.toFixed(1)}
                 </div>
                 <div className="text-[11px] text-muted-foreground mt-0.5">
-                  {reviewCount} {reviewCount === 1 ? "ocena" : reviewCount < 5 ? "oceny" : "ocen"}
+                  {reviewCount} {reviewCount === 1 ? t("ocena") : reviewCount < 5 ? t("oceny") : t("ocen")}
                 </div>
               </div>
               <div>
@@ -436,7 +438,7 @@ export function ClubProfileTabs({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Brak recenzji
+              {t("Brak recenzji")}
             </p>
           )}
         </div>
@@ -450,7 +452,7 @@ export function ClubProfileTabs({
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="h-4 w-4 text-muted-foreground" />
                 <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  O klubie
+                  {t("O klubie")}
                 </p>
               </div>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
@@ -462,7 +464,7 @@ export function ClubProfileTabs({
           {(club.contactEmail || club.contactPhone || club.website) && (
             <div className="bg-card rounded-xl p-4 space-y-3">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Kontakt
+                {t("Kontakt")}
               </p>
               {club.contactEmail && (
                 <div className="flex items-center gap-2.5 text-sm">
@@ -494,7 +496,7 @@ export function ClubProfileTabs({
 
           <div className="bg-card rounded-xl p-4 space-y-3">
             <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Liga
+              {t("Liga")}
             </p>
             {leagueGroupHref && club.leagueGroup ? (
               <Link href={leagueGroupHref} className="text-sm text-primary hover:underline">
@@ -506,13 +508,13 @@ export function ClubProfileTabs({
                 {club.region.name}
               </Link>
             ) : (
-              <p className="text-sm text-muted-foreground">Brak informacji o lidze</p>
+              <p className="text-sm text-muted-foreground">{t("Brak informacji o lidze")}</p>
             )}
           </div>
 
           <div className="bg-card rounded-xl p-4">
             <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-              Na platformie od
+              {t("Na platformie od")}
             </p>
             <p className="text-sm">{formatShortDate(club.createdAt)}</p>
           </div>

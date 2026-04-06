@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RegionLogo } from "@/components/region-logo";
+import { useI18n } from "@/lib/i18n";
 import { POSITION_LABELS } from "@/lib/labels";
 import { Send, Search, X, Filter, UserPlus } from "lucide-react";
 
@@ -31,6 +32,7 @@ type PlayerSearchResult = {
 };
 
 export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InvitePlayerDialogProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerSearchResult | null>(null);
@@ -76,7 +78,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
 
   const inviteMut = api.event.invitePlayer.useMutation({
     onSuccess: () => {
-      toast.success("Zaproszenie wysłane!");
+      toast.success(t("Zaproszenie wysłane!"));
       setSelectedPlayer(null);
       setMessage("");
     },
@@ -102,9 +104,9 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
           <UserPlus className="h-5 w-5 text-sport-cyan" />
         </div>
         <div className="text-left">
-          <p className="text-sm font-semibold text-sport-cyan">Zaproś zawodników</p>
+          <p className="text-sm font-semibold text-sport-cyan">{t("Zaproś zawodników")}</p>
           <p className="text-[12px] text-muted-foreground">
-            Wyszukaj po imieniu, pozycji, regionie lub lidze
+            {t("Wyszukaj po imieniu, pozycji, regionie lub lidze")}
           </p>
         </div>
       </button>
@@ -115,7 +117,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
     <Card className="border-sport-cyan/20">
       <CardContent className="space-y-4 py-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">Zaproś zawodników</p>
+          <p className="text-sm font-semibold">{t("Zaproś zawodników")}</p>
           <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
             <X className="h-4 w-4" />
           </button>
@@ -125,13 +127,13 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
           <>
             {/* Search by name */}
             <div className="space-y-2">
-              <Label>Szukaj po imieniu</Label>
+              <Label>{t("Szukaj po imieniu")}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Imię lub nazwisko..."
+                  placeholder={t("Imię lub nazwisko...")}
                   className="pl-9"
                 />
               </div>
@@ -142,14 +144,14 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
               <>
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-border" />
-                  <span className="text-[11px] font-medium text-muted-foreground">lub przeglądaj</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">{t("lub przeglądaj")}</span>
                   <div className="h-px flex-1 bg-border" />
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                     <Filter className="h-3.5 w-3.5" />
-                    Filtruj po regionie, lidze i pozycji
+                    {t("Filtruj po regionie, lidze i pozycji")}
                   </div>
 
                   {/* Position */}
@@ -158,9 +160,9 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                     onChange={(e) => setPosition(e.target.value || null)}
                     className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    <option value="">Wszystkie pozycje</option>
+                    <option value="">{t("Wszystkie pozycje")}</option>
                     {Object.entries(POSITION_LABELS).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
+                      <option key={key} value={key}>{t(label)}</option>
                     ))}
                   </select>
 
@@ -175,7 +177,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                     }}
                     className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    <option value="">Wybierz region (ZPN)</option>
+                    <option value="">{t("Wybierz region (ZPN)")}</option>
                     {regions.map((r: { id: number; name: string }) => (
                       <option key={r.id} value={r.id}>{r.name}</option>
                     ))}
@@ -192,7 +194,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                       }}
                       className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="">Wszystkie szczeble</option>
+                      <option value="">{t("Wszystkie szczeble")}</option>
                       {hierarchy.map((l: { id: number; name: string }) => (
                         <option key={l.id} value={l.id}>{l.name}</option>
                       ))}
@@ -206,7 +208,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                       onChange={(e) => setLeagueGroupId(e.target.value ? Number(e.target.value) : null)}
                       className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="">Wszystkie grupy</option>
+                      <option value="">{t("Wszystkie grupy")}</option>
                       {selectedLevel.groups.map((g) => (
                         <option key={g.id} value={g.id}>{g.name}</option>
                       ))}
@@ -220,15 +222,15 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
             {showResults && (
               <div className="max-h-60 space-y-1 overflow-y-auto">
                 {isLoading ? (
-                  <p className="py-3 text-center text-xs text-muted-foreground">Szukam...</p>
+                  <p className="py-3 text-center text-xs text-muted-foreground">{t("Szukam...")}</p>
                 ) : players.length === 0 ? (
                   <p className="py-3 text-center text-xs text-muted-foreground">
-                    {search.length >= 2 ? "Brak wyników" : "Brak zawodników w wybranym filtrze"}
+                    {search.length >= 2 ? t("Brak wyników") : t("Brak zawodników w wybranym filtrze")}
                   </p>
                 ) : (
                   <>
                     <p className="pb-1 text-[11px] font-medium text-muted-foreground">
-                      Zawodnicy ({players.length})
+                      {t("Zawodnicy")} ({players.length})
                     </p>
                     {players.map((player: PlayerSearchResult) => (
                       <button
@@ -252,7 +254,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                           <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
                             {player.primaryPosition && (
                               <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                {POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition}
+                                {t(POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition)}
                               </Badge>
                             )}
                             {player.clubName && (
@@ -293,7 +295,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                 <p className="text-[13px] font-semibold">{selectedPlayer.firstName} {selectedPlayer.lastName}</p>
                 <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
                   {selectedPlayer.primaryPosition && (
-                    <span>{POSITION_LABELS[selectedPlayer.primaryPosition]}</span>
+                    <span>{t(POSITION_LABELS[selectedPlayer.primaryPosition])}</span>
                   )}
                   {selectedPlayer.clubName && (
                     <>
@@ -316,18 +318,18 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
             </div>
 
             <div className="space-y-2">
-              <Label>Wiadomość (opcjonalnie)</Label>
+              <Label>{t("Wiadomość (opcjonalnie)")}</Label>
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="np. Zapraszamy na testy do naszego klubu..."
+                placeholder={t("np. Zapraszamy na testy do naszego klubu...")}
                 rows={2}
               />
             </div>
 
             <Button onClick={handleSend} disabled={inviteMut.isPending} className="w-full gap-2">
               <Send className="h-4 w-4" />
-              {inviteMut.isPending ? "Wysyłanie..." : "Wyślij zaproszenie"}
+              {inviteMut.isPending ? t("Wysyłanie...") : t("Wyślij zaproszenie")}
             </Button>
           </>
         )}

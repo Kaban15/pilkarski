@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatShortDate } from "@/lib/format";
 import { TOURNAMENT_FORMAT_LABELS, TOURNAMENT_STATUS_LABELS, TOURNAMENT_STATUS_COLORS } from "@/lib/labels";
 import { MapPin, Users, Calendar } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface TournamentCardProps {
   id: string;
@@ -18,13 +19,14 @@ interface TournamentCardProps {
 }
 
 export function TournamentCard({ id, title, startDate, location, format, status, maxTeams, teamCount, creatorName }: TournamentCardProps) {
+  const { t } = useI18n();
   return (
     <Link href={`/tournaments/${id}`} className="block">
       <div className="bg-card rounded-xl p-4 border border-border hover:border-orange-500/30 transition-colors">
         <div className="flex items-start justify-between mb-2">
           <h3 className="text-sm font-bold truncate">{title}</h3>
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ml-2 ${TOURNAMENT_STATUS_COLORS[status] || ""}`}>
-            {TOURNAMENT_STATUS_LABELS[status] || status}
+            {t(TOURNAMENT_STATUS_LABELS[status] || status)}
           </span>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -45,7 +47,7 @@ export function TournamentCard({ id, title, startDate, location, format, status,
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-[10px] font-semibold bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-md">
-            {TOURNAMENT_FORMAT_LABELS[format] || format}
+            {t(TOURNAMENT_FORMAT_LABELS[format] || format)}
           </span>
           <span className="text-[10px] text-muted-foreground">{creatorName}</span>
         </div>

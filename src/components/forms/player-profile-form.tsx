@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,7 @@ interface PlayerProfileFormProps {
 }
 
 export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
+  const { t } = useI18n();
   const [photoUrl, setPhotoUrl] = useState<string | null>(player.photoUrl);
   const [careers, setCareers] = useState(player.careerEntries);
 
@@ -62,8 +64,8 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
   const [newSeason, setNewSeason] = useState("");
 
   const updateMut = api.player.update.useMutation({
-    onSuccess: () => toast.success("Profil zawodnika zapisany"),
-    onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
+    onSuccess: () => toast.success(t("Profil zawodnika zapisany")),
+    onError: (err) => toast.error(err.message || t("Nie udało się zapisać")),
   });
 
   const addCareerMut = api.player.addCareer.useMutation({
@@ -71,17 +73,17 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       setCareers([entry, ...careers]);
       setNewClub("");
       setNewSeason("");
-      toast.success("Wpis dodany");
+      toast.success(t("Wpis dodany"));
     },
-    onError: () => toast.error("Nie udało się dodać wpisu"),
+    onError: () => toast.error(t("Nie udało się dodać wpisu")),
   });
 
   const deleteCareerMut = api.player.deleteCareer.useMutation({
     onSuccess: (_, variables) => {
       setCareers(careers.filter((c) => c.id !== variables.id));
-      toast.success("Wpis usunięty");
+      toast.success(t("Wpis usunięty"));
     },
-    onError: () => toast.error("Nie udało się usunąć wpisu"),
+    onError: () => toast.error(t("Nie udało się usunąć wpisu")),
   });
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -119,7 +121,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Profil zawodnika</CardTitle>
+          <CardTitle>{t("Profil zawodnika")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -131,15 +133,15 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
             />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Imię</Label>
+                <Label htmlFor="firstName">{t("Imię")}</Label>
                 <Input id="firstName" name="firstName" defaultValue={player.firstName} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Nazwisko</Label>
+                <Label htmlFor="lastName">{t("Nazwisko")}</Label>
                 <Input id="lastName" name="lastName" defaultValue={player.lastName} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Data urodzenia</Label>
+                <Label htmlFor="dateOfBirth">{t("Data urodzenia")}</Label>
                 <Input
                   id="dateOfBirth"
                   name="dateOfBirth"
@@ -152,18 +154,18 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="city">Miasto</Label>
+                <Label htmlFor="city">{t("Miasto")}</Label>
                 <Input id="city" name="city" defaultValue={player.city ?? ""} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="regionId">Region (ZPN)</Label>
+                <Label htmlFor="regionId">{t("Region (ZPN)")}</Label>
                 <select
                   id="regionId"
                   name="regionId"
                   defaultValue={player.regionId ?? ""}
                   className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Wybierz region</option>
+                  <option value="">{t("Wybierz region")}</option>
                   {regions.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name}
@@ -172,7 +174,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="heightCm">Wzrost (cm)</Label>
+                <Label htmlFor="heightCm">{t("Wzrost (cm)")}</Label>
                 <Input
                   id="heightCm"
                   name="heightCm"
@@ -183,7 +185,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="weightKg">Waga (kg)</Label>
+                <Label htmlFor="weightKg">{t("Waga (kg)")}</Label>
                 <Input
                   id="weightKg"
                   name="weightKg"
@@ -194,54 +196,54 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="preferredFoot">Preferowana noga</Label>
+                <Label htmlFor="preferredFoot">{t("Preferowana noga")}</Label>
                 <select
                   id="preferredFoot"
                   name="preferredFoot"
                   defaultValue={player.preferredFoot ?? ""}
                   className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Wybierz</option>
-                  <option value="LEFT">Lewa</option>
-                  <option value="RIGHT">Prawa</option>
-                  <option value="BOTH">Obie</option>
+                  <option value="">{t("Wybierz")}</option>
+                  <option value="LEFT">{t("Lewa")}</option>
+                  <option value="RIGHT">{t("Prawa")}</option>
+                  <option value="BOTH">{t("Obie")}</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="primaryPosition">Pozycja główna</Label>
+                <Label htmlFor="primaryPosition">{t("Pozycja główna")}</Label>
                 <select
                   id="primaryPosition"
                   name="primaryPosition"
                   defaultValue={player.primaryPosition ?? ""}
                   className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Wybierz</option>
+                  <option value="">{t("Wybierz")}</option>
                   {POSITIONS.map((p) => (
                     <option key={p.value} value={p.value}>
-                      {p.label}
+                      {t(p.label)}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="secondaryPosition">Pozycja alternatywna</Label>
+                <Label htmlFor="secondaryPosition">{t("Pozycja alternatywna")}</Label>
                 <select
                   id="secondaryPosition"
                   name="secondaryPosition"
                   defaultValue={player.secondaryPosition ?? ""}
                   className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Wybierz</option>
+                  <option value="">{t("Wybierz")}</option>
                   {POSITIONS.map((p) => (
                     <option key={p.value} value={p.value}>
-                      {p.label}
+                      {t(p.label)}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bio">O mnie</Label>
+              <Label htmlFor="bio">{t("O mnie")}</Label>
               <Textarea
                 id="bio"
                 name="bio"
@@ -281,17 +283,17 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                 className="mt-1 rounded border-input"
               />
               <div>
-                <Label htmlFor="lookingForClub" className="cursor-pointer">Szukam klubu</Label>
+                <Label htmlFor="lookingForClub" className="cursor-pointer">{t("Szukam klubu")}</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {player.regionId
-                    ? "Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych."
-                    : "Ustaw region aby włączyć tę opcję."}
+                    ? t("Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych.")
+                    : t("Ustaw region aby włączyć tę opcję.")}
                 </p>
               </div>
             </div>
 
             <Button type="submit" disabled={updateMut.isPending}>
-              {updateMut.isPending ? "Zapisywanie..." : "Zapisz profil"}
+              {updateMut.isPending ? t("Zapisywanie...") : t("Zapisz profil")}
             </Button>
           </form>
         </CardContent>
@@ -299,27 +301,27 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Historia kariery</CardTitle>
+          <CardTitle>{t("Historia kariery")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex gap-2">
             <Input
-              placeholder="Nazwa klubu"
+              placeholder={t("Nazwa klubu")}
               value={newClub}
               onChange={(e) => setNewClub(e.target.value)}
             />
             <Input
-              placeholder="Sezon (np. 2024/2025)"
+              placeholder={t("Sezon (np. 2024/2025)")}
               value={newSeason}
               onChange={(e) => setNewSeason(e.target.value)}
               className="w-48"
             />
             <Button type="button" onClick={addCareer} variant="outline">
-              Dodaj
+              {t("Dodaj")}
             </Button>
           </div>
           {careers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Brak wpisów</p>
+            <p className="text-sm text-muted-foreground">{t("Brak wpisów")}</p>
           ) : (
             <ul className="space-y-2">
               {careers.map((c) => (
@@ -337,7 +339,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                     onClick={() => deleteCareer(c.id)}
                     className="text-destructive hover:text-destructive"
                   >
-                    Usuń
+                    {t("Usuń")}
                   </Button>
                 </li>
               ))}

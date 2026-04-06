@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 // Fix default marker icons (Leaflet + webpack issue)
 const defaultIcon = L.icon({
@@ -62,6 +63,7 @@ const POLAND_CENTER: [number, number] = [51.92, 19.15];
 const DEFAULT_ZOOM = 6;
 
 export function MapView({ markers, center = POLAND_CENTER, zoom = DEFAULT_ZOOM, className = "h-[500px]" }: MapViewProps) {
+  const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -95,7 +97,7 @@ export function MapView({ markers, center = POLAND_CENTER, zoom = DEFAULT_ZOOM, 
               {m.location && <p className="text-xs text-gray-600">{m.location}</p>}
               {m.date && <p className="text-xs text-gray-500">{m.date}</p>}
               <Link href={m.href} className="mt-1 inline-block text-xs text-blue-600 hover:underline">
-                Szczegóły →
+                {t("Szczegóły →")}
               </Link>
             </div>
           </Popup>

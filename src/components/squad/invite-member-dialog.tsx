@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import { UserPlus, Search, MapPin } from "lucide-react";
 import { POSITION_LABELS } from "@/lib/labels";
 
 export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -29,7 +31,7 @@ export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
 
   const inviteMut = api.clubMembership.invite.useMutation({
     onSuccess: () => {
-      toast.success("Zaproszenie wysłane");
+      toast.success(t("Zaproszenie wysłane"));
       onInvited();
     },
     onError: (e) => toast.error(e.message),
@@ -45,10 +47,10 @@ export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
     ...(data?.players ?? []).map((p) => ({
       userId: p.userId,
       name: `${p.firstName} ${p.lastName}`,
-      detail: p.primaryPosition ? (POSITION_LABELS[p.primaryPosition] ?? p.primaryPosition) : null,
+      detail: p.primaryPosition ? t(POSITION_LABELS[p.primaryPosition] ?? p.primaryPosition) : null,
       city: p.city,
       photoUrl: p.photoUrl,
-      role: "Zawodnik",
+      role: t("Zawodnik"),
     })),
     ...(data?.coaches ?? []).map((c) => ({
       userId: c.userId,
@@ -56,7 +58,7 @@ export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
       detail: c.specialization,
       city: c.city,
       photoUrl: c.photoUrl,
-      role: "Trener",
+      role: t("Trener"),
     })),
   ];
 
@@ -65,17 +67,17 @@ export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
       <DialogTrigger asChild>
         <Button size="sm">
           <UserPlus className="mr-1 h-4 w-4" />
-          Zaproś
+          {t("Zaproś")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Zaproś do kadry</DialogTitle>
+          <DialogTitle>{t("Zaproś do kadry")}</DialogTitle>
         </DialogHeader>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Szukaj po imieniu lub nazwisku..."
+            placeholder={t("Szukaj po imieniu lub nazwisku...")}
             className="pl-9"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
@@ -110,13 +112,13 @@ export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
                   onClick={() => inviteMut.mutate({ userId: user.userId })}
                   disabled={inviteMut.isPending}
                 >
-                  Zaproś
+                  {t("Zaproś")}
                 </Button>
               </li>
             ))}
           </ul>
         ) : debouncedQuery.length >= 2 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">Brak wyników</p>
+          <p className="py-4 text-center text-sm text-muted-foreground">{t("Brak wyników")}</p>
         ) : null}
       </DialogContent>
     </Dialog>

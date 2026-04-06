@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -12,6 +13,7 @@ interface SendMessageButtonProps {
 }
 
 export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,7 +35,7 @@ export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
   if (!open) {
     return (
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        Napisz wiadomość
+        {t("Napisz wiadomość")}
       </Button>
     );
   }
@@ -43,7 +45,7 @@ export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
       <Input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Napisz wiadomość..."
+        placeholder={t("Napisz wiadomość...")}
         maxLength={2000}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
@@ -53,10 +55,10 @@ export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
         }}
       />
       <Button onClick={handleSend} disabled={send.isPending || !message.trim()} size="sm">
-        {send.isPending ? "..." : "Wyślij"}
+        {send.isPending ? "..." : t("Wyślij")}
       </Button>
       <Button variant="ghost" size="sm" onClick={() => { setOpen(false); setMessage(""); }}>
-        Anuluj
+        {t("Anuluj")}
       </Button>
     </div>
   );

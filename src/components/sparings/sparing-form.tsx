@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/trpc-react";
 import {
   createSparingSchema,
@@ -68,14 +69,19 @@ type FormData = {
   costPerTeam: string;
 };
 
-const STEPS = [
-  { label: "Dane sparingu", icon: FileText },
-  { label: "Termin i miejsce", icon: Calendar },
-  { label: "Podsumowanie", icon: Check },
-];
+function useSteps() {
+  const { t } = useI18n();
+  return [
+    { label: t("Dane sparingu"), icon: FileText },
+    { label: t("Termin i miejsce"), icon: Calendar },
+    { label: t("Podsumowanie"), icon: Check },
+  ];
+}
 
 export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps) {
+  const { t } = useI18n();
   const router = useRouter();
+  const STEPS = useSteps();
   const isEdit = mode === "edit";
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -134,18 +140,18 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     setFieldErrors({});
     if (s === 0) {
       if (!form.title || form.title.length < 3) {
-        setFieldErrors({ title: "Tytuł musi mieć min. 3 znaki" });
+        setFieldErrors({ title: t("Tytuł musi mieć min. 3 znaki") });
         return false;
       }
     }
     if (s === 1) {
       if (!form.matchDate) {
-        setFieldErrors({ matchDate: "Data meczu jest wymagana" });
+        setFieldErrors({ matchDate: t("Data meczu jest wymagana") });
         return false;
       }
       const d = Date.parse(form.matchDate);
       if (isNaN(d) || (mode === "create" && d <= Date.now())) {
-        setFieldErrors({ matchDate: "Data meczu musi być w przyszłości" });
+        setFieldErrors({ matchDate: t("Data meczu musi być w przyszłości") });
         return false;
       }
     }
@@ -181,15 +187,15 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     try {
       if (mode === "edit") {
         await updateMutation.mutateAsync(data as Parameters<typeof updateMutation.mutateAsync>[0]);
-        toast.success("Sparing zaktualizowany");
+        toast.success(t("Sparing zaktualizowany"));
         onSuccess?.(defaultValues!.id!);
       } else {
         const result = await createMutation.mutateAsync(data);
-        toast.success("Sparing utworzony!");
+        toast.success(t("Sparing utworzony!"));
         onSuccess?.(result.id);
       }
     } catch (err: any) {
-      toast.error(err.message || "Nie udało się zapisać sparingu");
+      toast.error(err.message || t("Nie udało się zapisać sparingu"));
     } finally {
       setLoading(false);
     }
@@ -212,7 +218,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     const validation = createSparingSchema.safeParse(data);
     if (!validation.success) {
       const errors = getFieldErrors(validation.error);
-      toast.error(Object.values(errors).join(", ") || "Sprawdź formularz");
+      toast.error(Object.values(errors).join(", ") || t("Sprawdź formularz"));
       setQuickCreatePending(false);
       return;
     }
@@ -222,7 +228,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
       toast.success("Sparing utworzony!");
       onSuccess?.(result.id);
     } catch (err: any) {
-      toast.error(err.message || "Nie udało się utworzyć sparingu");
+      toast.error(err.message || t("Nie udało się utworzyć sparingu"));
     } finally {
       setQuickCreatePending(false);
     }
@@ -241,21 +247,21 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
         <StepOneFields form={form} updateField={updateField} fieldErrors={fieldErrors} regions={regions} />
         <StepTwoFields form={form} updateField={updateField} fieldErrors={fieldErrors} />
         <div className="space-y-2">
-          <Label htmlFor="description">Opis</Label>
+          <Label htmlFor="description">{t("Opis")}</Label>
           <Textarea
             id="description"
             value={form.description}
             onChange={(e) => updateField("description", e.target.value)}
             rows={4}
-            placeholder="Dodatkowe informacje..."
+            placeholder={t("Dodatkowe informacje...")}
           />
         </div>
         <div className="flex gap-2">
           <Button type="submit" disabled={loading}>
-            {loading ? "Zapisywanie..." : "Zapisz zmiany"}
+            {loading ? t("Zapisywanie...") : t("Zapisz zmiany")}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            Anuluj
+            {t("Anuluj")}
           </Button>
         </div>
       </form>
@@ -273,7 +279,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
           size="sm"
           onClick={() => setQuickMode(false)}
         >
-          Pełny formularz
+          {t("Pełny formularz")}
         </Button>
         <Button
           type="button"
@@ -283,7 +289,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
           onClick={() => setQuickMode(true)}
         >
           <Zap className="h-3.5 w-3.5" />
-          Szybki sparing
+          {t("Szybki sparing")}
         </Button>
       </div>
 
@@ -294,15 +300,15 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-1">
                 <Zap className="h-4 w-4 text-amber-500" />
-                <p className="text-sm font-semibold">Szybki sparing</p>
+                <p className="text-sm font-semibold">{t("Szybki sparing")}</p>
               </div>
               <p className="text-xs text-muted-foreground">
-                Tytuł wygenerujemy automatycznie. Podaj tylko termin i miejsce.
+                {t("Tytuł wygenerujemy automatycznie. Podaj tylko termin i miejsce.")}
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Data i godzina <span className="text-destructive">*</span></Label>
+                <Label>{t("Data i godzina")} <span className="text-destructive">*</span></Label>
                 <Input
                   type="datetime-local"
                   value={quickDate}
@@ -311,11 +317,11 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Miejsce</Label>
+                <Label>{t("Miejsce")}</Label>
                 <Input
                   value={quickLocation}
                   onChange={(e) => setQuickLocation(e.target.value)}
-                  placeholder="np. Stadion Miejski, ul. Sportowa 1"
+                  placeholder={t("np. Stadion Miejski, ul. Sportowa 1")}
                 />
               </div>
             </div>
@@ -324,7 +330,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
               onClick={handleQuickCreate}
               disabled={!quickDate || quickCreatePending}
             >
-              {quickCreatePending ? "Tworzenie..." : "Opublikuj sparing"}
+              {quickCreatePending ? t("Tworzenie...") : t("Opublikuj sparing")}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </CardContent>
@@ -395,16 +401,16 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
               className="gap-1.5"
             >
               <ChevronLeft className="h-4 w-4" />
-              {step === 0 ? "Anuluj" : "Wstecz"}
+              {step === 0 ? t("Anuluj") : t("Wstecz")}
             </Button>
             {step < 2 ? (
               <Button type="button" onClick={handleNext} className="gap-1.5">
-                Dalej
+                {t("Dalej")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={loading} className="gap-1.5">
-                {loading ? "Tworzenie..." : "Opublikuj sparing"}
+                {loading ? t("Tworzenie...") : t("Opublikuj sparing")}
                 <Check className="h-4 w-4" />
               </Button>
             )}
@@ -430,15 +436,16 @@ function StepOneFields({
   fieldErrors: FieldErrors;
   regions: { id: number; name: string }[];
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="title">Tytuł ogłoszenia *</Label>
+        <Label htmlFor="title">{t("Tytuł ogłoszenia")} *</Label>
         <Input
           id="title"
           value={form.title}
           onChange={(e) => updateField("title", e.target.value)}
-          placeholder="np. Szukamy sparingpartnera na sobotę"
+          placeholder={t("np. Szukamy sparingpartnera na sobotę")}
           className={fieldErrors.title ? "border-destructive" : ""}
         />
         {fieldErrors.title && (
@@ -448,10 +455,10 @@ function StepOneFields({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label>Region</Label>
+          <Label>{t("Region")}</Label>
           <Select value={form.regionId} onValueChange={(v) => updateField("regionId", v)}>
             <SelectTrigger>
-              <SelectValue placeholder="Wybierz region" />
+              <SelectValue placeholder={t("Wybierz region")} />
             </SelectTrigger>
             <SelectContent>
               {regions.map((r) => (
@@ -463,30 +470,30 @@ function StepOneFields({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Poziom</Label>
+          <Label>{t("Poziom")}</Label>
           <Select value={form.level} onValueChange={(v) => updateField("level", v)}>
             <SelectTrigger>
-              <SelectValue placeholder="Wybierz poziom" />
+              <SelectValue placeholder={t("Wybierz poziom")} />
             </SelectTrigger>
             <SelectContent>
               {SPARING_LEVELS.map((l) => (
                 <SelectItem key={l} value={l}>
-                  {SPARING_LEVEL_LABELS[l]}
+                  {t(SPARING_LEVEL_LABELS[l])}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Kategoria wiekowa</Label>
+          <Label>{t("Kategoria wiekowa")}</Label>
           <Select value={form.ageCategory} onValueChange={(v) => updateField("ageCategory", v)}>
             <SelectTrigger>
-              <SelectValue placeholder="Wybierz kategorię" />
+              <SelectValue placeholder={t("Wybierz kategorię")} />
             </SelectTrigger>
             <SelectContent>
               {AGE_CATEGORIES.map((c) => (
                 <SelectItem key={c} value={c}>
-                  {AGE_CATEGORY_LABELS[c]}
+                  {t(AGE_CATEGORY_LABELS[c])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -510,11 +517,12 @@ function StepTwoFields({
   updateField: (f: keyof FormData, v: string) => void;
   fieldErrors: FieldErrors;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="matchDate">Data i godzina meczu *</Label>
+          <Label htmlFor="matchDate">{t("Data i godzina meczu")} *</Label>
           <Input
             id="matchDate"
             type="datetime-local"
@@ -530,32 +538,32 @@ function StepTwoFields({
           <Label htmlFor="location">
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" />
-              Miejsce
+              {t("Miejsce")}
             </span>
           </Label>
           <Input
             id="location"
             value={form.location}
             onChange={(e) => updateField("location", e.target.value)}
-            placeholder="np. Orlik ul. Sportowa 5, Poznań"
+            placeholder={t("np. Orlik ul. Sportowa 5, Poznań")}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="preferredTime" className="inline-flex items-center gap-1.5">
-            Preferowane godziny
-            <FormTooltip text="Np. poranki, wieczory, weekendy — jeśli data nie jest jeszcze ustalona." />
+            {t("Preferowane godziny")}
+            <FormTooltip text={t("Np. poranki, wieczory, weekendy — jeśli data nie jest jeszcze ustalona.")} />
           </Label>
           <Input
             id="preferredTime"
             value={form.preferredTime}
             onChange={(e) => updateField("preferredTime", e.target.value)}
-            placeholder="np. weekendy 10:00-14:00"
+            placeholder={t("np. weekendy 10:00-14:00")}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="costPerTeam" className="inline-flex items-center gap-1.5">
             <Banknote className="h-3.5 w-3.5" />
-            Koszt na drużynę (PLN)
+            {t("Koszt na drużynę (PLN)")}
           </Label>
           <Input
             id="costPerTeam"
@@ -563,7 +571,7 @@ function StepTwoFields({
             min={0}
             value={form.costPerTeam}
             onChange={(e) => updateField("costPerTeam", e.target.value)}
-            placeholder="0 = darmowy"
+            placeholder={t("0 = darmowy")}
           />
         </div>
       </div>
@@ -584,6 +592,7 @@ function StepThreeSummary({
   regions: { id: number; name: string }[];
   updateField: (f: keyof FormData, v: string) => void;
 }) {
+  const { t } = useI18n();
   const regionName = regions.find((r) => String(r.id) === form.regionId)?.name;
   const dateFormatted = form.matchDate
     ? new Date(form.matchDate).toLocaleString("pl-PL", {
@@ -600,25 +609,25 @@ function StepThreeSummary({
     <div className="space-y-4">
       <Card>
         <CardContent className="space-y-3 py-4">
-          <SummaryRow label="Tytuł" value={form.title} />
-          <SummaryRow label="Data meczu" value={dateFormatted} />
-          {form.location && <SummaryRow label="Miejsce" value={form.location} />}
-          {regionName && <SummaryRow label="Region" value={regionName} />}
-          {form.level && <SummaryRow label="Poziom" value={SPARING_LEVEL_LABELS[form.level] ?? form.level} />}
-          {form.ageCategory && <SummaryRow label="Kategoria wiekowa" value={AGE_CATEGORY_LABELS[form.ageCategory] ?? form.ageCategory} />}
-          {form.preferredTime && <SummaryRow label="Preferowane godziny" value={form.preferredTime} />}
-          {form.costPerTeam && Number(form.costPerTeam) > 0 && <SummaryRow label="Koszt na drużynę" value={`${form.costPerTeam} PLN`} />}
+          <SummaryRow label={t("Tytuł")} value={form.title} />
+          <SummaryRow label={t("Data meczu")} value={dateFormatted} />
+          {form.location && <SummaryRow label={t("Miejsce")} value={form.location} />}
+          {regionName && <SummaryRow label={t("Region")} value={regionName} />}
+          {form.level && <SummaryRow label={t("Poziom")} value={t(SPARING_LEVEL_LABELS[form.level] ?? form.level)} />}
+          {form.ageCategory && <SummaryRow label={t("Kategoria wiekowa")} value={t(AGE_CATEGORY_LABELS[form.ageCategory] ?? form.ageCategory)} />}
+          {form.preferredTime && <SummaryRow label={t("Preferowane godziny")} value={form.preferredTime} />}
+          {form.costPerTeam && Number(form.costPerTeam) > 0 && <SummaryRow label={t("Koszt na drużynę")} value={`${form.costPerTeam} PLN`} />}
         </CardContent>
       </Card>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Opis (opcjonalny)</Label>
+        <Label htmlFor="description">{t("Opis (opcjonalny)")}</Label>
         <Textarea
           id="description"
           value={form.description}
           onChange={(e) => updateField("description", e.target.value)}
           rows={4}
-          placeholder="Dodatkowe informacje o sparingu..."
+          placeholder={t("Dodatkowe informacje o sparingu...")}
         />
       </div>
     </div>

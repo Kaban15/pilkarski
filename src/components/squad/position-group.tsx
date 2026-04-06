@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { POSITION_LABELS } from "@/lib/labels";
 import { Trash2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface PlayerRow {
   id: string;
@@ -50,6 +51,7 @@ export function PositionGroup({
   removingId,
   collapsedMax = 3,
 }: PositionGroupProps) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const visiblePlayers = expanded ? players : players.slice(0, collapsedMax);
   const hiddenCount = players.length - collapsedMax;
@@ -61,15 +63,15 @@ export function PositionGroup({
       <div className="flex items-center gap-1.5 mb-2">
         <div className={`w-[3px] h-3.5 rounded-sm ${BAR_COLORS[color]}`} />
         <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          {label}
+          {t(label)}
         </span>
         <span className="text-[11px] text-muted-foreground/60">{players.length}</span>
       </div>
       <div className="bg-card rounded-xl overflow-hidden divide-y divide-border">
         {visiblePlayers.map((p) => {
-          const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || "Bez nazwy";
+          const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || t("Bez nazwy");
           const initials = `${(p.firstName?.[0] || "").toUpperCase()}${(p.lastName?.[0] || "").toUpperCase()}`;
-          const meta = [p.age ? `${p.age} lat` : null, p.height ? `${p.height} cm` : null, p.preferredFoot === "LEFT" ? "Lewa" : p.preferredFoot === "RIGHT" ? "Prawa" : null].filter(Boolean).join(" · ");
+          const meta = [p.age ? `${p.age} ${t("lat")}` : null, p.height ? `${p.height} cm` : null, p.preferredFoot === "LEFT" ? t("Lewa") : p.preferredFoot === "RIGHT" ? t("Prawa") : null].filter(Boolean).join(" · ");
 
           return (
             <div key={p.userId} className="flex items-center px-3 py-2.5">
@@ -88,7 +90,7 @@ export function PositionGroup({
               </Link>
               {p.position && (
                 <span className="bg-muted px-2 py-0.5 rounded-md text-[10px] font-semibold text-muted-foreground shrink-0 ml-2">
-                  {POSITION_LABELS[p.position] || p.position}
+                  {t(POSITION_LABELS[p.position] || p.position)}
                 </span>
               )}
               {showActions && onRemove && (
@@ -108,7 +110,7 @@ export function PositionGroup({
             onClick={() => setExpanded(true)}
             className="w-full py-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
           >
-            + {hiddenCount} więcej
+            + {hiddenCount} {t("więcej")}
           </button>
         )}
       </div>

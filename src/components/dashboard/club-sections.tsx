@@ -6,7 +6,9 @@ import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
+import { APPLICATION_STATUS_COLORS } from "@/lib/labels";
+import { getApplicationStatusLabels } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import {
   Swords,
   Trophy,
@@ -19,6 +21,8 @@ import {
 } from "lucide-react";
 
 export function ClubDashboardSections() {
+  const { t, locale } = useI18n();
+  const applicationStatusLabels = getApplicationStatusLabels(locale);
   const { data, isLoading } = api.stats.clubDashboard.useQuery(undefined, {
     staleTime: 30_000,
   });
@@ -40,22 +44,22 @@ export function ClubDashboardSections() {
               <Swords className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <p className="text-lg font-semibold">Zacznij korzystać z PilkaSport</p>
+              <p className="text-lg font-semibold">{t("Zacznij korzystać z PilkaSport")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Dodaj pierwszy sparing lub wydarzenie, aby przyciągnąć rywali i zawodników.
+                {t("Dodaj pierwszy sparing lub wydarzenie, aby przyciągnąć rywali i zawodników.")}
               </p>
             </div>
             <div className="flex gap-3">
               <Link href="/sparings/new">
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Dodaj sparing
+                  {t("Dodaj sparing")}
                 </Button>
               </Link>
               <Link href="/events/new">
                 <Button variant="outline" className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Dodaj wydarzenie
+                  {t("Dodaj wydarzenie")}
                 </Button>
               </Link>
             </div>
@@ -73,7 +77,7 @@ export function ClubDashboardSections() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
               <FileText className="h-4 w-4 text-blue-500" />
-              Zgłoszenia do rozpatrzenia
+              {t("Zgłoszenia do rozpatrzenia")}
               <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 dark:text-blue-400">
                 {pendingApplications.length}
               </Badge>
@@ -103,7 +107,7 @@ export function ClubDashboardSections() {
                       variant="secondary"
                       className={APPLICATION_STATUS_COLORS[app.status]}
                     >
-                      {APPLICATION_STATUS_LABELS[app.status]}
+                      {applicationStatusLabels[app.status]}
                     </Badge>
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                   </div>
@@ -120,17 +124,17 @@ export function ClubDashboardSections() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
               <Swords className="h-4 w-4 text-emerald-500" />
-              Aktywne sparingi
+              {t("Aktywne sparingi")}
             </h2>
             <div className="flex items-center gap-2">
               <Link href="/sparings/new">
                 <Button size="sm" variant="outline" className="gap-1.5 rounded-lg">
                   <Plus className="h-3.5 w-3.5" />
-                  Dodaj
+                  {t("Dodaj")}
                 </Button>
               </Link>
               <Link href="/sparings" className="text-xs font-medium text-primary hover:underline">
-                Wszystkie →
+                {t("Wszystkie →")}
               </Link>
             </div>
           </div>
@@ -166,17 +170,17 @@ export function ClubDashboardSections() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
               <Trophy className="h-4 w-4 text-violet-500" />
-              Nadchodzące wydarzenia
+              {t("Nadchodzące wydarzenia")}
             </h2>
             <div className="flex items-center gap-2">
               <Link href="/events/new">
                 <Button size="sm" variant="outline" className="gap-1.5 rounded-lg">
                   <Plus className="h-3.5 w-3.5" />
-                  Dodaj
+                  {t("Dodaj")}
                 </Button>
               </Link>
               <Link href="/events" className="text-xs font-medium text-primary hover:underline">
-                Wszystkie →
+                {t("Wszystkie →")}
               </Link>
             </div>
           </div>

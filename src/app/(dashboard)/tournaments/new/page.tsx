@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { TOURNAMENT_FORMAT_LABELS } from "@/lib/labels";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ type TournamentFormat = "GROUP_STAGE" | "KNOCKOUT" | "GROUP_AND_KNOCKOUT";
 const MAX_TEAMS_OPTIONS = [4, 6, 8, 10, 12, 14, 16];
 
 export default function NewTournamentPage() {
+  const { t } = useI18n();
   const router = useRouter();
 
   const [format, setFormat] = useState<TournamentFormat>("KNOCKOUT");
@@ -38,11 +40,11 @@ export default function NewTournamentPage() {
 
   const createMut = api.tournament.create.useMutation({
     onSuccess: (result) => {
-      toast.success("Turniej utworzony!");
+      toast.success(t("Turniej utworzony!"));
       router.push(`/tournaments/${result.id}`);
     },
     onError: (err) => {
-      toast.error(err.message || "Nie udało się utworzyć turnieju");
+      toast.error(err.message || t("Nie udało się utworzyć turnieju"));
     },
   });
 
@@ -70,44 +72,44 @@ export default function NewTournamentPage() {
   return (
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle>Nowy turniej</CardTitle>
+        <CardTitle>{t("Nowy turniej")}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Nazwa turnieju</Label>
-            <Input id="title" name="title" required placeholder="np. Turniej Ligi Jesień 2025" />
+            <Label htmlFor="title">{t("Nazwa turnieju")}</Label>
+            <Input id="title" name="title" required placeholder={t("np. Turniej Ligi Jesień 2025")} />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Opis (opcjonalnie)</Label>
-            <Textarea id="description" name="description" rows={3} placeholder="Dodatkowe informacje o turnieju..." />
+            <Label htmlFor="description">{t("Opis (opcjonalnie)")}</Label>
+            <Textarea id="description" name="description" rows={3} placeholder={t("Dodatkowe informacje o turnieju...")} />
           </div>
 
           {/* Dates */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Data rozpoczęcia</Label>
+              <Label htmlFor="startDate">{t("Data rozpoczęcia")}</Label>
               <Input id="startDate" name="startDate" type="datetime-local" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Data zakończenia (opcjonalnie)</Label>
+              <Label htmlFor="endDate">{t("Data zakończenia (opcjonalnie)")}</Label>
               <Input id="endDate" name="endDate" type="datetime-local" />
             </div>
           </div>
 
           {/* Location */}
           <div className="space-y-2">
-            <Label htmlFor="location">Miejsce (opcjonalnie)</Label>
-            <Input id="location" name="location" placeholder="np. Stadion Miejski, Kraków" />
+            <Label htmlFor="location">{t("Miejsce (opcjonalnie)")}</Label>
+            <Input id="location" name="location" placeholder={t("np. Stadion Miejski, Kraków")} />
           </div>
 
           {/* Format + Max teams */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Format</Label>
+              <Label>{t("Format")}</Label>
               <Select value={format} onValueChange={(v) => setFormat(v as TournamentFormat)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -115,7 +117,7 @@ export default function NewTournamentPage() {
                 <SelectContent>
                   {Object.entries(TOURNAMENT_FORMAT_LABELS).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
-                      {label}
+                      {t(label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -123,7 +125,7 @@ export default function NewTournamentPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Maks. drużyn</Label>
+              <Label>{t("Maks. drużyn")}</Label>
               <Select value={String(maxTeams)} onValueChange={(v) => setMaxTeams(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -143,7 +145,7 @@ export default function NewTournamentPage() {
           {showGroupFields && (
             <div className="grid gap-4 md:grid-cols-2 rounded-lg border border-orange-500/20 bg-orange-500/5 p-4">
               <div className="space-y-2">
-                <Label htmlFor="groupCount">Liczba grup</Label>
+                <Label htmlFor="groupCount">{t("Liczba grup")}</Label>
                 <Input
                   id="groupCount"
                   name="groupCount"
@@ -158,7 +160,7 @@ export default function NewTournamentPage() {
 
               {showAdvancingField && (
                 <div className="space-y-2">
-                  <Label>Awansuje z grupy</Label>
+                  <Label>{t("Awansuje z grupy")}</Label>
                   <Select value={advancingPerGroup} onValueChange={setAdvancingPerGroup}>
                     <SelectTrigger>
                       <SelectValue />
@@ -178,13 +180,13 @@ export default function NewTournamentPage() {
 
           {/* Region */}
           <div className="space-y-2">
-            <Label>Region (opcjonalnie)</Label>
+            <Label>{t("Region (opcjonalnie)")}</Label>
             <Select value={regionId || "__none__"} onValueChange={(v) => setRegionId(v === "__none__" ? "" : v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Wybierz region" />
+                <SelectValue placeholder={t("Wybierz region")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Bez regionu</SelectItem>
+                <SelectItem value="__none__">{t("Bez regionu")}</SelectItem>
                 {regions.map((r) => (
                   <SelectItem key={r.id} value={String(r.id)}>
                     {r.name}
@@ -196,10 +198,10 @@ export default function NewTournamentPage() {
 
           <div className="flex gap-2 pt-2">
             <Button type="submit" disabled={createMut.isPending}>
-              {createMut.isPending ? "Tworzenie..." : "Utwórz turniej"}
+              {createMut.isPending ? t("Tworzenie...") : t("Utwórz turniej")}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.back()}>
-              Anuluj
+              {t("Anuluj")}
             </Button>
           </div>
         </form>

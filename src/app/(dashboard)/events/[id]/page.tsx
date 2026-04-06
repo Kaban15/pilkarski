@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailPageSkeleton } from "@/components/card-skeleton";
 import { SendMessageButton } from "@/components/send-message-button";
+import { useI18n } from "@/lib/i18n";
 import { EVENT_TYPE_LABELS, POSITION_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS, SPARING_LEVEL_LABELS } from "@/lib/labels";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -49,6 +50,7 @@ type EventApplication = {
 };
 
 export default function EventDetailPage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
@@ -69,7 +71,7 @@ export default function EventDetailPage() {
       setJustApplied(true);
       utils.event.getById.invalidate({ id });
       setMessage("");
-      toast.success("Zgłoszenie wysłane");
+      toast.success(t("Zgłoszenie wysłane"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -77,14 +79,14 @@ export default function EventDetailPage() {
   const respondMut = api.event.respond.useMutation({
     onSuccess: (_, variables) => {
       utils.event.getById.invalidate({ id });
-      toast.success(variables.status === "ACCEPTED" ? "Zgłoszenie zaakceptowane" : "Zgłoszenie odrzucone");
+      toast.success(variables.status === "ACCEPTED" ? t("Zgłoszenie zaakceptowane") : t("Zgłoszenie odrzucone"));
     },
     onError: (err) => toast.error(err.message),
   });
 
   const deleteMut = api.event.delete.useMutation({
     onSuccess: () => {
-      toast.success("Wydarzenie usunięte");
+      toast.success(t("Wydarzenie usunięte"));
       router.push("/events");
     },
     onError: (err) => toast.error(err.message),
@@ -101,7 +103,7 @@ export default function EventDetailPage() {
     <div className="animate-fade-in">
       <Breadcrumbs
         items={[
-          { label: "Wydarzenia", href: "/events" },
+          { label: t("Wydarzenia"), href: "/events" },
           { label: event.title },
         ]}
       />
@@ -114,16 +116,16 @@ export default function EventDetailPage() {
               {event.title}
             </h1>
             <Badge className="bg-violet-500/10 text-violet-700 hover:bg-violet-500/10 dark:text-violet-400">
-              {EVENT_TYPE_LABELS[event.type]}
+              {t(EVENT_TYPE_LABELS[event.type])}
             </Badge>
             {event.visibility === "INTERNAL" && (
-              <Badge className="bg-amber-500/10 text-amber-600">Tylko dla klubu</Badge>
+              <Badge className="bg-amber-500/10 text-amber-600">{t("Tylko dla klubu")}</Badge>
             )}
           </div>
           <p className="mt-1.5 text-muted-foreground">
             {event.club ? (
               <Link href={`/clubs/${event.club.id}`} className="hover:underline hover:text-primary">{event.club.name}</Link>
-            ) : "Trener"}
+            ) : t("Trener")}
             {event.club?.city && ` · ${event.club.city}`}
           </p>
           <div className="mt-3">
@@ -135,7 +137,7 @@ export default function EventDetailPage() {
             <Link href={`/events/${id}/edit`}>
               <Button size="sm" variant="outline" className="gap-1.5">
                 <Pencil className="h-3.5 w-3.5" />
-                Edytuj
+                {t("Edytuj")}
               </Button>
             </Link>
             <Button
@@ -145,7 +147,7 @@ export default function EventDetailPage() {
               onClick={() => setShowDeleteConfirm(true)}
             >
               <Trash2 className="h-3.5 w-3.5" />
-              Usuń
+              {t("Usuń")}
             </Button>
           </div>
         )}
@@ -160,9 +162,9 @@ export default function EventDetailPage() {
       <ConfirmDialog
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        title="Usuń wydarzenie"
-        description="Czy na pewno chcesz usunąć to wydarzenie? Ta operacja jest nieodwracalna."
-        confirmLabel="Tak, usuń"
+        title={t("Usuń wydarzenie")}
+        description={t("Czy na pewno chcesz usunąć to wydarzenie? Ta operacja jest nieodwracalna.")}
+        confirmLabel={t("Tak, usuń")}
         onConfirm={() => deleteMut.mutate({ id })}
         loading={deleteMut.isPending}
       />
@@ -176,7 +178,7 @@ export default function EventDetailPage() {
                 <Calendar className="h-4 w-4 text-violet-500" />
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Data</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("Data")}</p>
                 <p className="font-medium">{formatDate(event.eventDate)}</p>
               </div>
             </div>
@@ -186,7 +188,7 @@ export default function EventDetailPage() {
                   <MapPin className="h-4 w-4 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Miejsce</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Miejsce")}</p>
                   <p className="font-medium">{event.location}</p>
                 </div>
               </div>
@@ -197,7 +199,7 @@ export default function EventDetailPage() {
                   <RegionLogo slug={event.region.slug} name={event.region.name} size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Region</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Region")}</p>
                   <p className="font-medium">{event.region.name}</p>
                 </div>
               </div>
@@ -208,7 +210,7 @@ export default function EventDetailPage() {
                   <Users className="h-4 w-4 text-emerald-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Limit miejsc</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Limit miejsc")}</p>
                   <p className="font-medium">{event.maxParticipants}</p>
                 </div>
               </div>
@@ -219,8 +221,8 @@ export default function EventDetailPage() {
                   <Banknote className="h-4 w-4 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Koszt</p>
-                  <p className="font-medium">{(event as any).costPerPerson} PLN na osobę</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Koszt")}</p>
+                  <p className="font-medium">{(event as any).costPerPerson} {t("PLN na osobę")}</p>
                 </div>
               </div>
             )}
@@ -233,7 +235,7 @@ export default function EventDetailPage() {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Opis</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Opis")}</p>
                   <p className="mt-1 whitespace-pre-wrap leading-relaxed">{event.description}</p>
                 </div>
               </div>
@@ -248,22 +250,22 @@ export default function EventDetailPage() {
           <CardContent className="py-4">
             <div className="flex items-center gap-2 mb-3">
               <Target className="h-4 w-4 text-amber-600" />
-              <p className="text-sm font-semibold">Wymagania</p>
+              <p className="text-sm font-semibold">{t("Wymagania")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {event.targetPosition && (
                 <Badge variant="secondary" className="bg-violet-500/10 text-violet-700 dark:text-violet-400">
-                  {POSITION_LABELS[event.targetPosition] || event.targetPosition}
+                  {t(POSITION_LABELS[event.targetPosition] || event.targetPosition)}
                 </Badge>
               )}
               {(event.targetAgeMin || event.targetAgeMax) && (
                 <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 dark:text-blue-400">
-                  Wiek: {event.targetAgeMin ?? "?"}&ndash;{event.targetAgeMax ?? "?"} lat
+                  {t("Wiek")}: {event.targetAgeMin ?? "?"}&ndash;{event.targetAgeMax ?? "?"} {t("lat")}
                 </Badge>
               )}
               {event.targetLevel && (
                 <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
-                  {SPARING_LEVEL_LABELS[event.targetLevel] || event.targetLevel}
+                  {t(SPARING_LEVEL_LABELS[event.targetLevel] || event.targetLevel)}
                 </Badge>
               )}
             </div>
@@ -286,13 +288,13 @@ export default function EventDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Trophy className="h-5 w-5 text-primary" />
-              Zgłoś się
+              {t("Zgłoś się")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2">
               <Input
-                placeholder="Wiadomość (opcjonalna)"
+                placeholder={t("Wiadomość (opcjonalna)")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
@@ -305,12 +307,12 @@ export default function EventDetailPage() {
                 {justApplied ? (
                   <>
                     <svg className="h-4 w-4 check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                    Zgłoszono
+                    {t("Zgłoszono")}
                   </>
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    {applyMut.isPending ? "Wysyłanie..." : "Zgłoś się"}
+                    {applyMut.isPending ? t("Wysyłanie...") : t("Zgłoś się")}
                   </>
                 )}
               </Button>
@@ -325,12 +327,12 @@ export default function EventDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Users className="h-5 w-5 text-muted-foreground" />
-              Zgłoszenia ({event.applications.length})
+              {t("Zgłoszenia")} ({event.applications.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             {event.applications.length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">Brak zgłoszeń</p>
+              <p className="py-4 text-center text-sm text-muted-foreground">{t("Brak zgłoszeń")}</p>
             ) : (
               <ul className="divide-y divide-border">
                 {event.applications.map((app: EventApplication) => (
@@ -340,7 +342,7 @@ export default function EventDetailPage() {
                         <Link href={`/players/${app.player.id}`} className="hover:underline hover:text-primary">{app.player.firstName} {app.player.lastName}</Link>
                         {app.player.primaryPosition && (
                           <Badge variant="secondary" className="ml-2 text-xs">
-                            {POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition}
+                            {t(POSITION_LABELS[app.player.primaryPosition] || app.player.primaryPosition)}
                           </Badge>
                         )}
                       </p>
@@ -350,7 +352,7 @@ export default function EventDetailPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[app.status]}>
-                        {APPLICATION_STATUS_LABELS[app.status]}
+                        {t(APPLICATION_STATUS_LABELS[app.status])}
                       </Badge>
                       {app.status === "PENDING" && (
                         <>
@@ -360,7 +362,7 @@ export default function EventDetailPage() {
                             onClick={() => respondMut.mutate({ applicationId: app.id, status: "ACCEPTED" })}
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                            Akceptuj
+                            {t("Akceptuj")}
                           </Button>
                           <Button
                             size="sm"
@@ -369,7 +371,7 @@ export default function EventDetailPage() {
                             onClick={() => respondMut.mutate({ applicationId: app.id, status: "REJECTED" })}
                           >
                             <XCircle className="h-3.5 w-3.5" />
-                            Odrzuć
+                            {t("Odrzuć")}
                           </Button>
                         </>
                       )}
@@ -387,9 +389,9 @@ export default function EventDetailPage() {
         <Card className="border-primary/20">
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Twoje zgłoszenie</p>
+              <p className="text-sm font-medium">{t("Twoje zgłoszenie")}</p>
               <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[myApplication.status]}>
-                {APPLICATION_STATUS_LABELS[myApplication.status]}
+                {t(APPLICATION_STATUS_LABELS[myApplication.status])}
               </Badge>
             </div>
             {myApplication.message && (

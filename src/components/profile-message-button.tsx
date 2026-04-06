@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquare } from "lucide-react";
@@ -14,6 +15,7 @@ interface ProfileMessageButtonProps {
 }
 
 export function ProfileMessageButton({ recipientUserId }: ProfileMessageButtonProps) {
+  const { t } = useI18n();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -44,7 +46,7 @@ export function ProfileMessageButton({ recipientUserId }: ProfileMessageButtonPr
         onClick={() => setOpen(true)}
       >
         <MessageSquare className="h-3.5 w-3.5" />
-        Napisz wiadomość
+        {t("Napisz wiadomość")}
       </Button>
     );
   }
@@ -54,7 +56,7 @@ export function ProfileMessageButton({ recipientUserId }: ProfileMessageButtonPr
       <Input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Napisz wiadomość..."
+        placeholder={t("Napisz wiadomość...")}
         maxLength={2000}
         className="h-8 border-white/20 bg-white/10 text-white placeholder:text-white/50"
         onKeyDown={(e) => {
@@ -70,7 +72,7 @@ export function ProfileMessageButton({ recipientUserId }: ProfileMessageButtonPr
         size="sm"
         className="bg-white/20 text-white hover:bg-white/30"
       >
-        {send.isPending ? "..." : "Wyślij"}
+        {send.isPending ? "..." : t("Wyślij")}
       </Button>
       <Button
         variant="ghost"
@@ -78,7 +80,7 @@ export function ProfileMessageButton({ recipientUserId }: ProfileMessageButtonPr
         className="text-white/70 hover:bg-white/10 hover:text-white"
         onClick={() => { setOpen(false); setMessage(""); }}
       >
-        Anuluj
+        {t("Anuluj")}
       </Button>
     </div>
   );

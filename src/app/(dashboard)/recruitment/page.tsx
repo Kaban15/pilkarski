@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/card-skeleton";
@@ -88,6 +89,7 @@ function formatShort(d: string | Date): string {
 
 // Mini timeline on pipeline cards
 function MiniTimeline({ events }: { events: PipelineEntry["events"] }) {
+  const { t } = useI18n();
   if (events.length === 0) return null;
 
   return (
@@ -97,8 +99,8 @@ function MiniTimeline({ events }: { events: PipelineEntry["events"] }) {
           <Clock className="h-3 w-3 shrink-0 opacity-50" />
           <span>
             {ev.fromStage
-              ? `${RECRUITMENT_STAGE_LABELS[ev.fromStage] ?? ev.fromStage} → ${RECRUITMENT_STAGE_LABELS[ev.toStage] ?? ev.toStage}`
-              : RECRUITMENT_STAGE_LABELS[ev.toStage] ?? ev.toStage}
+              ? `${t(RECRUITMENT_STAGE_LABELS[ev.fromStage] ?? ev.fromStage)} → ${t(RECRUITMENT_STAGE_LABELS[ev.toStage] ?? ev.toStage)}`
+              : t(RECRUITMENT_STAGE_LABELS[ev.toStage] ?? ev.toStage)}
           </span>
           {ev.note && <span className="truncate italic">— {ev.note}</span>}
           <span className="ml-auto shrink-0">{formatShort(ev.createdAt)}</span>
@@ -120,6 +122,7 @@ function BoardCard({
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
 }) {
+  const { t } = useI18n();
   const player = entry.transfer.user.player;
   const playerName = player
     ? `${player.firstName} ${player.lastName}`
@@ -155,7 +158,7 @@ function BoardCard({
           <div className="flex flex-wrap items-center gap-1 mt-0.5">
             {player?.primaryPosition && (
               <Badge variant="secondary" className="text-[10px]">
-                {POSITION_LABELS[player.primaryPosition]}
+                {t(POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition)}
               </Badge>
             )}
             {player?.city && (
@@ -169,7 +172,7 @@ function BoardCard({
 
         <div className="flex shrink-0 items-center gap-0.5">
           <Link href={`/transfers/${entry.transfer.id}`}>
-            <Button size="icon" variant="ghost" className="h-7 w-7" title="Zobacz ogłoszenie">
+            <Button size="icon" variant="ghost" className="h-7 w-7" title={t("Zobacz ogłoszenie")}>
               <Eye className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -263,6 +266,7 @@ function ListRow({
   onStageChange: (stage: StageValue) => void;
   onRemove: () => void;
 }) {
+  const { t } = useI18n();
   const player = entry.transfer.user.player;
   const playerName = player
     ? `${player.firstName} ${player.lastName}`
@@ -296,7 +300,7 @@ function ListRow({
           <div className="flex flex-wrap items-center gap-1">
             {player?.primaryPosition && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium">
-                {POSITION_LABELS[player.primaryPosition]}
+                {t(POSITION_LABELS[player.primaryPosition] ?? player.primaryPosition)}
               </span>
             )}
             {player?.city && (
@@ -318,11 +322,11 @@ function ListRow({
             className="h-7 text-[11px] px-2"
             onClick={() => onStageChange(stageConfig.nextStage!)}
           >
-            {stageConfig.actionLabel}
+            {t(stageConfig.actionLabel)}
           </Button>
         )}
         <Link href={`/transfers/${entry.transfer.id}`}>
-          <Button size="icon" variant="ghost" className="h-7 w-7" title="Zobacz ogłoszenie">
+          <Button size="icon" variant="ghost" className="h-7 w-7" title={t("Zobacz ogłoszenie")}>
             <Eye className="h-3.5 w-3.5" />
           </Button>
         </Link>
@@ -340,6 +344,7 @@ function ListRow({
 }
 
 export default function RecruitmentPage() {
+  const { t } = useI18n();
   const { data: session } = useSession();
   const isClub = session?.user?.role === "CLUB";
   const [view, setView] = useState<"list" | "board">("list");
@@ -365,7 +370,7 @@ export default function RecruitmentPage() {
   const updateStageOrderMut = api.recruitment.updateStageAndOrder.useMutation({
     onSuccess: () => {
       invalidatePipeline();
-      toast.success("Przeniesiono");
+      toast.success(t("Przeniesiono"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -373,7 +378,7 @@ export default function RecruitmentPage() {
   const updateStageMut = api.recruitment.updateStage.useMutation({
     onSuccess: () => {
       invalidatePipeline();
-      toast.success("Status zaktualizowany");
+      toast.success(t("Status zaktualizowany"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -381,7 +386,7 @@ export default function RecruitmentPage() {
   const removeMut = api.recruitment.remove.useMutation({
     onSuccess: () => {
       invalidatePipeline();
-      toast.success("Usunięto z pipeline");
+      toast.success(t("Usunięto z pipeline"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -390,8 +395,8 @@ export default function RecruitmentPage() {
     return (
       <EmptyState
         icon={Target}
-        title="Sekcja dla klubów"
-        description="Pipeline rekrutacyjny jest dostępny tylko dla kont klubowych."
+        title={t("Sekcja dla klubów")}
+        description={t("Pipeline rekrutacyjny jest dostępny tylko dla kont klubowych.")}
       />
     );
   }
@@ -425,7 +430,7 @@ export default function RecruitmentPage() {
 
   function handleCsvExport() {
     const rows = [
-      ["Imię", "Nazwisko", "Pozycja", "Miasto", "Etap"],
+      [t("Imię"), t("Nazwisko"), t("Pozycja"), t("Miasto"), t("Etap")],
       ...entries.map((e) => {
         const p = e.transfer.user.player;
         return [
@@ -454,7 +459,7 @@ export default function RecruitmentPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Pipeline</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {total} zawodników w procesie
+            {total} {t("zawodników w procesie")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -477,7 +482,7 @@ export default function RecruitmentPage() {
               className={`flex items-center gap-1.5 rounded-l-lg px-3 py-2 text-[13px] font-medium transition ${
                 view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
-              title="Widok listy"
+              title={t("Widok listy")}
             >
               <List className="h-3.5 w-3.5" />
             </button>
@@ -486,7 +491,7 @@ export default function RecruitmentPage() {
               className={`flex items-center gap-1.5 rounded-r-lg px-3 py-2 text-[13px] font-medium transition ${
                 view === "board" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
-              title="Widok tablicy"
+              title={t("Widok tablicy")}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
             </button>
@@ -505,9 +510,9 @@ export default function RecruitmentPage() {
       ) : entries.length === 0 ? (
         <EmptyState
           icon={Eye}
-          title="Pusty pipeline"
-          description='Dodaj zawodników z zakładki "Transfery" — kliknij ikonę radaru na karcie.'
-          actionLabel="Przeglądaj transfery"
+          title={t("Pusty pipeline")}
+          description={t('Dodaj zawodników z zakładki "Transfery" — kliknij ikonę radaru na karcie.')}
+          actionLabel={t("Przeglądaj transfery")}
           actionHref="/transfers?type=LOOKING_FOR_CLUB"
         />
       ) : (
@@ -532,7 +537,7 @@ export default function RecruitmentPage() {
           {view === "list" && (
             <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
               <StagePill
-                label="Wszyscy"
+                label={t("Wszyscy")}
                 count={total}
                 color="violet"
                 active={activeStage === null}
@@ -541,7 +546,7 @@ export default function RecruitmentPage() {
               {stageCounts.map((s) => (
                 <StagePill
                   key={s.key}
-                  label={s.label}
+                  label={t(s.label)}
                   count={s.count}
                   color={s.color}
                   active={activeStage === s.key}
@@ -558,7 +563,7 @@ export default function RecruitmentPage() {
                 <BoardColumn
                   key={s.key}
                   stage={s.key}
-                  label={s.label}
+                  label={t(s.label)}
                   color={s.boardColor}
                   entries={entriesByStage[s.key] ?? []}
                   onDrop={handleDrop}
@@ -571,7 +576,7 @@ export default function RecruitmentPage() {
             <div className="bg-card rounded-xl divide-y divide-border">
               {filteredEntries.length === 0 ? (
                 <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  Brak zawodników w tej kategorii
+                  {t("Brak zawodników w tej kategorii")}
                 </p>
               ) : (
                 filteredEntries.map((entry) => (
@@ -594,10 +599,10 @@ export default function RecruitmentPage() {
               </div>
               <div>
                 <p className="text-xl font-extrabold text-sky-400 tabular-nums leading-none">
-                  {avgTime.avgDays} dni
+                  {avgTime.avgDays} {t("dni")}
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Średni czas do podpisania
+                  {t("Średni czas do podpisania")}
                 </p>
               </div>
             </div>

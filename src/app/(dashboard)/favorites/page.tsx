@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -12,6 +13,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Heart, Bookmark } from "lucide-react";
 
 export default function FavoritesPage() {
+  const { t } = useI18n();
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     api.favorite.list.useInfiniteQuery(
       {},
@@ -30,7 +32,7 @@ export default function FavoritesPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Ulubione</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t("Ulubione")}</h1>
 
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2">
@@ -41,9 +43,9 @@ export default function FavoritesPage() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={Heart}
-          title="Brak ulubionych"
-          description="Kliknij serduszko na sparingu lub wydarzeniu, aby dodać je do ulubionych."
-          actionLabel="Przeglądaj sparingi"
+          title={t("Brak ulubionych")}
+          description={t("Kliknij serduszko na sparingu lub wydarzeniu, aby dodać je do ulubionych.")}
+          actionLabel={t("Przeglądaj sparingi")}
           actionHref="/sparings"
         />
       ) : (
@@ -69,7 +71,7 @@ export default function FavoritesPage() {
                       <div className="flex items-center justify-between pt-2">
                         <span className="text-xs text-muted-foreground">{sparing.region?.name}</span>
                         <span className="rounded-md bg-blue-50 dark:bg-blue-950 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
-                          Sparing
+                          {t("Sparing")}
                         </span>
                       </div>
                     </CardContent>
@@ -89,13 +91,13 @@ export default function FavoritesPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-1 text-sm text-muted-foreground">
-                      <p><strong>{event.club?.name ?? "Trener"}</strong>{event.club?.city && ` · ${event.club.city}`}</p>
+                      <p><strong>{event.club?.name ?? t("Trener")}</strong>{event.club?.city && ` · ${event.club.city}`}</p>
                       <p>{formatDate(event.eventDate)}</p>
                       {event.location && <p>{event.location}</p>}
                       <div className="flex items-center justify-between pt-2">
                         <span className="text-xs text-muted-foreground">{event.region?.name}</span>
                         <span className="rounded-md bg-purple-50 dark:bg-purple-950 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300">
-                          {EVENT_TYPE_LABELS[event.type]}
+                          {t(EVENT_TYPE_LABELS[event.type] ?? event.type)}
                         </span>
                       </div>
                     </CardContent>
@@ -123,7 +125,7 @@ export default function FavoritesPage() {
                           CLUB_POST_CATEGORY_COLORS[clubPost.category] || "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {CLUB_POST_CATEGORY_LABELS[clubPost.category] || "Post"}
+                        {t(CLUB_POST_CATEGORY_LABELS[clubPost.category] || "Post")}
                       </span>
                     </div>
                   </CardContent>

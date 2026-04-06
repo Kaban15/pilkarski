@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { NotificationSkeleton } from "@/components/card-skeleton";
 import { formatDate } from "@/lib/format";
@@ -10,6 +11,7 @@ import { NOTIFICATION_TYPE_LABELS, NOTIFICATION_TYPE_COLORS } from "@/lib/labels
 import { Bell } from "lucide-react";
 
 export default function NotificationsPage() {
+  const { t } = useI18n();
   const utils = api.useUtils();
   const { data, isLoading } = api.notification.list.useQuery({ limit: 50 });
   const notifications = data?.notifications ?? [];
@@ -25,7 +27,7 @@ export default function NotificationsPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Powiadomienia</h1>
+        <h1 className="text-2xl font-bold">{t("Powiadomienia")}</h1>
         {notifications.some((n) => !n.read) && (
           <Button
             variant="outline"
@@ -33,7 +35,7 @@ export default function NotificationsPage() {
             onClick={() => markAllAsRead.mutate()}
             disabled={markAllAsRead.isPending}
           >
-            Oznacz wszystkie jako przeczytane
+            {t("Oznacz wszystkie jako przeczytane")}
           </Button>
         )}
       </div>
@@ -47,8 +49,8 @@ export default function NotificationsPage() {
       ) : notifications.length === 0 ? (
         <EmptyState
           icon={Bell}
-          title="Brak powiadomień"
-          description="Kiedy ktoś zaaplikuje na Twój sparing lub wyśle wiadomość, zobaczysz powiadomienie tutaj."
+          title={t("Brak powiadomień")}
+          description={t("Kiedy ktoś zaaplikuje na Twój sparing lub wyśle wiadomość, zobaczysz powiadomienie tutaj.")}
         />
       ) : (
         <div className="divide-y divide-border border border-border">
@@ -79,7 +81,7 @@ export default function NotificationsPage() {
                 )}
                 <div className="mt-1 flex items-center gap-2">
                   <span className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${NOTIFICATION_TYPE_COLORS[n.type] ?? "bg-muted text-muted-foreground"}`}>
-                    {NOTIFICATION_TYPE_LABELS[n.type] ?? n.type}
+                    {t(NOTIFICATION_TYPE_LABELS[n.type] ?? n.type)}
                   </span>
                   <span className="text-xs text-muted-foreground">{formatDate(n.createdAt)}</span>
                 </div>
@@ -88,7 +90,7 @@ export default function NotificationsPage() {
                 <button
                   onClick={() => markAsRead.mutate({ id: n.id })}
                   className="mt-1 h-3 w-3 shrink-0 rounded-full bg-x-blue"
-                  title="Oznacz jako przeczytane"
+                  title={t("Oznacz jako przeczytane")}
                 />
               )}
             </div>

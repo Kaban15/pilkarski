@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,13 +24,14 @@ import {
   PartyPopper,
 } from "lucide-react";
 
-const STEPS = [
+const STEP_KEYS = [
   { label: "Profil klubu", description: "Uzupełnij podstawowe dane" },
   { label: "Pierwsze ogłoszenie", description: "Dodaj sparing lub wydarzenie" },
   { label: "Gotowe", description: "Wszystko ustawione!" },
 ];
 
 export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
+  const { t } = useI18n();
   const [step, setStep] = useState(0);
   const [city, setCity] = useState("");
   const [regionId, setRegionId] = useState<number | null>(null);
@@ -47,7 +49,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
 
   const updateProfile = api.club.update.useMutation({
     onSuccess: () => {
-      toast.success("Profil zaktualizowany!");
+      toast.success(t("Profil zaktualizowany!"));
       utils.club.me.invalidate();
       setStep(1);
     },
@@ -58,7 +60,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
 
   function handleSaveProfile() {
     if (!regionId) {
-      toast.error("Wybierz region");
+      toast.error(t("Wybierz region"));
       return;
     }
     updateProfile.mutate({
@@ -78,15 +80,15 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
               PS
             </div>
             <div>
-              <h2 className="text-lg font-bold">Witaj w PilkaSport!</h2>
+              <h2 className="text-lg font-bold">{t("Witaj w PilkaSport!")}</h2>
               <p className="text-sm text-muted-foreground">
-                Skonfiguruj klub w 3 prostych krokach
+                {t("Skonfiguruj klub w 3 prostych krokach")}
               </p>
             </div>
           </div>
           {/* Step indicator */}
           <div className="mt-4 flex gap-2">
-            {STEPS.map((s, i) => (
+            {STEP_KEYS.map((s, i) => (
               <div key={i} className="flex flex-1 items-center gap-2">
                 <div
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
@@ -102,9 +104,9 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                     i <= step ? "text-foreground" : "text-muted-foreground"
                   }`}
                 >
-                  {s.label}
+                  {t(s.label)}
                 </span>
-                {i < STEPS.length - 1 && (
+                {i < STEP_KEYS.length - 1 && (
                   <div
                     className={`hidden h-px flex-1 sm:block ${
                       i < step ? "bg-primary" : "bg-border"
@@ -120,12 +122,11 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
           {step === 0 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Podaj podstawowe dane klubu. Region jest potrzebny, aby sparingi i wydarzenia
-                trafiały do właściwych odbiorców.
+                {t("Podaj podstawowe dane klubu. Region jest potrzebny, aby sparingi i wydarzenia trafiały do właściwych odbiorców.")}
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Miasto</Label>
+                  <Label>{t("Miasto")}</Label>
                   <Input
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -134,7 +135,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                 </div>
                 <div className="space-y-1.5">
                   <Label>
-                    Region (ZPN) <span className="text-destructive">*</span>
+                    {t("Region (ZPN)")} <span className="text-destructive">*</span>
                   </Label>
                   <Select
                     value={regionId ? String(regionId) : ""}
@@ -145,7 +146,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Wybierz region" />
+                      <SelectValue placeholder={t("Wybierz region")} />
                     </SelectTrigger>
                     <SelectContent>
                       {regions.map((r: { id: number; name: string }) => (
@@ -159,7 +160,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                 {regionId && hierarchy.length > 0 && (
                   <>
                     <div className="space-y-1.5">
-                      <Label>Szczebel ligowy</Label>
+                      <Label>{t("Szczebel ligowy")}</Label>
                       <Select
                         value={leagueLevelId ? String(leagueLevelId) : ""}
                         onValueChange={(v) => {
@@ -168,7 +169,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Wybierz szczebel" />
+                          <SelectValue placeholder={t("Wybierz szczebel")} />
                         </SelectTrigger>
                         <SelectContent>
                           {hierarchy.map((l: { id: number; name: string }) => (
@@ -184,13 +185,13 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                       (selectedLevel as { groups: { id: number; name: string }[] }).groups.length >
                         0 && (
                         <div className="space-y-1.5">
-                          <Label>Grupa</Label>
+                          <Label>{t("Grupa")}</Label>
                           <Select
                             value={leagueGroupId ? String(leagueGroupId) : ""}
                             onValueChange={(v) => setLeagueGroupId(v ? Number(v) : null)}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Wybierz grupę" />
+                              <SelectValue placeholder={t("Wybierz grupę")} />
                             </SelectTrigger>
                             <SelectContent>
                               {(
@@ -213,14 +214,14 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                   onClick={onComplete}
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Pomiń na razie
+                  {t("Pomiń na razie")}
                 </button>
                 <Button
                   onClick={handleSaveProfile}
                   disabled={!regionId || updateProfile.isPending}
                   className="gap-2"
                 >
-                  {updateProfile.isPending ? "Zapisywanie..." : "Zapisz i dalej"}
+                  {updateProfile.isPending ? t("Zapisywanie...") : t("Zapisz i dalej")}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -230,7 +231,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Dodaj swoje pierwsze ogłoszenie — rywale i zawodnicy z regionu zobaczą je od razu.
+                {t("Dodaj swoje pierwsze ogłoszenie — rywale i zawodnicy z regionu zobaczą je od razu.")}
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Link href="/sparings/new" className="group">
@@ -241,10 +242,10 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                       </div>
                       <div>
                         <p className="text-lg font-semibold transition-colors group-hover:text-emerald-600">
-                          Dodaj sparing
+                          {t("Dodaj sparing")}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Znajdź rywala na mecz sparingowy
+                          {t("Znajdź rywala na mecz sparingowy")}
                         </p>
                       </div>
                     </CardContent>
@@ -258,10 +259,10 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                       </div>
                       <div>
                         <p className="text-lg font-semibold transition-colors group-hover:text-violet-600">
-                          Dodaj wydarzenie
+                          {t("Dodaj wydarzenie")}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Nabór lub trening otwarty
+                          {t("Nabór lub trening otwarty")}
                         </p>
                       </div>
                     </CardContent>
@@ -274,7 +275,7 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                   onClick={() => setStep(2)}
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Pomiń
+                  {t("Pomiń")}
                 </button>
               </div>
             </div>
@@ -286,14 +287,13 @@ export function ClubOnboarding({ onComplete }: { onComplete: () => void }) {
                 <PartyPopper className="h-7 w-7 text-primary" />
               </div>
               <div>
-                <p className="text-lg font-semibold">Klub gotowy!</p>
+                <p className="text-lg font-semibold">{t("Klub gotowy!")}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Twój profil jest skonfigurowany. Teraz możesz korzystać z pełni możliwości
-                  platformy.
+                  {t("Twój profil jest skonfigurowany. Teraz możesz korzystać z pełni możliwości platformy.")}
                 </p>
               </div>
               <Button onClick={onComplete} className="gap-2">
-                Przejdź do pulpitu
+                {t("Przejdź do pulpitu")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>

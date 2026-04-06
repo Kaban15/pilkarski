@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -137,6 +138,7 @@ function EditableTextarea({
   onSave: (v: string) => void;
   isPending: boolean;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -162,10 +164,10 @@ function EditableTextarea({
         />
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" className="gap-1 text-xs text-emerald-500" onClick={save} disabled={isPending}>
-            <Check className="h-3.5 w-3.5" /> Zapisz
+            <Check className="h-3.5 w-3.5" /> {t("Zapisz")}
           </Button>
           <Button size="sm" variant="ghost" className="gap-1 text-xs text-muted-foreground" onClick={cancel}>
-            <X className="h-3.5 w-3.5" /> Anuluj
+            <X className="h-3.5 w-3.5" /> {t("Anuluj")}
           </Button>
         </div>
       </div>
@@ -193,6 +195,7 @@ function EditableTextarea({
 
 /* ── Main component ── */
 export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
+  const { t } = useI18n();
   const [logoUrl, setLogoUrl] = useState<string | null>(club.logoUrl);
 
   // Field values (kept in sync after save)
@@ -238,8 +241,8 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     club.leagueGroup?.name;
 
   const updateMut = api.club.update.useMutation({
-    onSuccess: () => toast.success("Zapisano"),
-    onError: (err) => toast.error(err.message || "Nie udało się zapisać"),
+    onSuccess: () => toast.success(t("Zapisano")),
+    onError: (err) => toast.error(err.message || t("Nie udało się zapisać")),
   });
 
   /** Save all current values */
@@ -284,12 +287,12 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
 
   // Progress
   const profileFields = [
-    { key: "regionId", label: "Region", filled: !!regionId },
-    { key: "city", label: "Miasto", filled: !!city },
-    { key: "logoUrl", label: "Logo", filled: !!logoUrl },
-    { key: "description", label: "Opis", filled: !!description },
-    { key: "contactEmail", label: "E-mail kontaktowy", filled: !!contactEmail },
-    { key: "leagueGroupId", label: "Liga", filled: !!leagueGroupId },
+    { key: "regionId", label: t("Region"), filled: !!regionId },
+    { key: "city", label: t("Miasto"), filled: !!city },
+    { key: "logoUrl", label: t("Logo"), filled: !!logoUrl },
+    { key: "description", label: t("Opis"), filled: !!description },
+    { key: "contactEmail", label: t("E-mail kontaktowy"), filled: !!contactEmail },
+    { key: "leagueGroupId", label: t("Liga"), filled: !!leagueGroupId },
   ];
   const filledCount = profileFields.filter((f) => f.filled).length;
   const progress = Math.round((filledCount / profileFields.length) * 100);
@@ -300,7 +303,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         <Card className="mb-6 border-primary/20">
           <CardContent className="py-4">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-medium">Profil uzupełniony w {progress}%</p>
+              <p className="text-sm font-medium">{t("Profil uzupełniony w")} {progress}%</p>
               <p className="text-xs text-muted-foreground">{filledCount} z {profileFields.length}</p>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -322,19 +325,19 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
-            Region i liga
+            {t("Region i liga")}
           </CardTitle>
           {!editingLeague ? (
             <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={startEditLeague}>
-              <Pencil className="h-3.5 w-3.5" /> Edytuj
+              <Pencil className="h-3.5 w-3.5" /> {t("Edytuj")}
             </Button>
           ) : (
             <div className="flex gap-1.5">
               <Button variant="ghost" size="sm" className="gap-1 text-xs text-emerald-600" onClick={confirmEditLeague}>
-                <Check className="h-3.5 w-3.5" /> Zapisz
+                <Check className="h-3.5 w-3.5" /> {t("Zapisz")}
               </Button>
               <Button variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground" onClick={cancelEditLeague}>
-                <X className="h-3.5 w-3.5" /> Anuluj
+                <X className="h-3.5 w-3.5" /> {t("Anuluj")}
               </Button>
             </div>
           )}
@@ -358,13 +361,13 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                         {currentLevelName}{currentGroupName && ` — ${currentGroupName}`}
                       </p>
                     ) : (
-                      <p className="text-[12px] text-muted-foreground">Szczebel ligowy nie ustawiony</p>
+                      <p className="text-[12px] text-muted-foreground">{t("Szczebel ligowy nie ustawiony")}</p>
                     )}
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-muted-foreground">Brak regionu</p>
-                    <p className="text-[12px] text-muted-foreground">Kliknij „Edytuj", aby ustawić region i ligę</p>
+                    <p className="text-sm text-muted-foreground">{t("Brak regionu")}</p>
+                    <p className="text-[12px] text-muted-foreground">{t('Kliknij „Edytuj", aby ustawić region i ligę')}</p>
                   </>
                 )}
               </div>
@@ -372,7 +375,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
           ) : (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label>Region (ZPN)</Label>
+                <Label>{t("Region (ZPN)")}</Label>
                 <select
                   value={regionId ?? ""}
                   onChange={(e) => {
@@ -383,7 +386,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                   }}
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Wybierz region</option>
+                  <option value="">{t("Wybierz region")}</option>
                   {regions.map((r) => (
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
@@ -392,7 +395,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
               {regionId && hierarchy.length > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label>Szczebel ligowy</Label>
+                    <Label>{t("Szczebel ligowy")}</Label>
                     <select
                       value={leagueLevelId ?? ""}
                       onChange={(e) => {
@@ -402,7 +405,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                       }}
                       className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="">Wybierz szczebel</option>
+                      <option value="">{t("Wybierz szczebel")}</option>
                       {hierarchy.map((l) => (
                         <option key={l.id} value={l.id}>{l.name}</option>
                       ))}
@@ -410,13 +413,13 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
                   </div>
                   {selectedLevel && selectedLevel.groups.length > 0 && (
                     <div className="space-y-1.5">
-                      <Label>Grupa</Label>
+                      <Label>{t("Grupa")}</Label>
                       <select
                         value={leagueGroupId ?? ""}
                         onChange={(e) => setLeagueGroupId(e.target.value ? Number(e.target.value) : null)}
                         className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       >
-                        <option value="">Wybierz grupę</option>
+                        <option value="">{t("Wybierz grupę")}</option>
                         {selectedLevel.groups.map((g) => (
                           <option key={g.id} value={g.id}>{g.name}</option>
                         ))}
@@ -433,7 +436,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
       {/* ── Club Profile ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Profil klubu</CardTitle>
+          <CardTitle>{t("Profil klubu")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <ImageUpload
@@ -448,20 +451,20 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
 
           <div className="grid gap-x-6 gap-y-1 md:grid-cols-2">
             <EditableField
-              label="Nazwa klubu"
+              label={t("Nazwa klubu")}
               value={name}
               onSave={(v) => { setName(v); save({ name: v }); }}
               isPending={updateMut.isPending}
             />
             <EditableField
-              label="Miasto"
+              label={t("Miasto")}
               value={city}
               placeholder="np. Poznań"
               onSave={(v) => { setCity(v); save({ city: v || undefined }); }}
               isPending={updateMut.isPending}
             />
             <EditableField
-              label="E-mail kontaktowy"
+              label={t("E-mail kontaktowy")}
               value={contactEmail}
               type="email"
               placeholder="email@klub.pl"
@@ -469,14 +472,14 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
               isPending={updateMut.isPending}
             />
             <EditableField
-              label="Telefon"
+              label={t("Telefon")}
               value={contactPhone}
               placeholder="np. 600 100 200"
               onSave={(v) => { setContactPhone(v); save({ contactPhone: v || undefined }); }}
               isPending={updateMut.isPending}
             />
             <EditableField
-              label="Strona www"
+              label={t("Strona www")}
               value={website}
               placeholder="https://..."
               onSave={(v) => { setWebsite(v); save({ website: v || undefined }); }}
@@ -499,7 +502,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
           </div>
 
           <EditableTextarea
-            label="Opis"
+            label={t("Opis")}
             value={description}
             placeholder="Opisz swój klub..."
             onSave={(v) => { setDescription(v); save({ description: v || undefined }); }}

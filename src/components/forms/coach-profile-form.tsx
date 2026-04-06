@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,7 @@ interface CoachProfileFormProps {
 }
 
 export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
+  const { t } = useI18n();
   const [firstName, setFirstName] = useState(coach.firstName);
   const [lastName, setLastName] = useState(coach.lastName);
   const [specialization, setSpecialization] = useState(coach.specialization ?? "");
@@ -80,17 +82,17 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
       setNewRole("");
       setNewLevel("");
       setNewNotes("");
-      toast.success("Wpis dodany");
+      toast.success(t("Wpis dodany"));
     },
-    onError: () => toast.error("Nie udało się dodać wpisu"),
+    onError: () => toast.error(t("Nie udało się dodać wpisu")),
   });
 
   const deleteCareerMut = api.coach.removeCareerEntry.useMutation({
     onSuccess: (_, variables) => {
       setCareers((prev) => prev.filter((c) => c.id !== variables.id));
-      toast.success("Wpis usunięty");
+      toast.success(t("Wpis usunięty"));
     },
-    onError: () => toast.error("Nie udało się usunąć wpisu"),
+    onError: () => toast.error(t("Nie udało się usunąć wpisu")),
   });
 
   function addCareer() {
@@ -105,7 +107,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
   }
 
   const updateMut = api.coach.update.useMutation({
-    onSuccess: () => toast.success("Profil zaktualizowany"),
+    onSuccess: () => toast.success(t("Profil zaktualizowany")),
     onError: (err) => toast.error(err.message),
   });
 
@@ -129,13 +131,13 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Profil trenera</h1>
-        <p className="text-muted-foreground">Uzupełnij swój profil trenerski</p>
+        <h1 className="text-2xl font-bold">{t("Profil trenera")}</h1>
+        <p className="text-muted-foreground">{t("Uzupełnij swój profil trenerski")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Zdjęcie profilowe</CardTitle>
+          <CardTitle>{t("Zdjęcie profilowe")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ImageUpload
@@ -149,13 +151,13 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Dane podstawowe</CardTitle>
+          <CardTitle>{t("Dane podstawowe")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Imię</Label>
+                <Label htmlFor="firstName">{t("Imię")}</Label>
                 <Input
                   id="firstName"
                   value={firstName}
@@ -164,7 +166,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Nazwisko</Label>
+                <Label htmlFor="lastName">{t("Nazwisko")}</Label>
                 <Input
                   id="lastName"
                   value={lastName}
@@ -176,30 +178,30 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="specialization">Specjalizacja</Label>
+                <Label htmlFor="specialization">{t("Specjalizacja")}</Label>
                 <Select value={specialization} onValueChange={setSpecialization}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wybierz specjalizację" />
+                    <SelectValue placeholder={t("Wybierz specjalizację")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(COACH_SPECIALIZATION_LABELS).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
-                        {label}
+                        {t(label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="level">Licencja</Label>
+                <Label htmlFor="level">{t("Licencja")}</Label>
                 <Select value={level} onValueChange={setLevel}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wybierz licencję" />
+                    <SelectValue placeholder={t("Wybierz licencję")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(COACH_LEVEL_LABELS).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
-                        {label}
+                        {t(label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -209,19 +211,19 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">Miasto</Label>
+                <Label htmlFor="city">{t("Miasto")}</Label>
                 <Input
                   id="city"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="np. Warszawa"
+                  placeholder={t("np. Warszawa")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="region">Region (ZPN)</Label>
+                <Label htmlFor="region">{t("Region (ZPN)")}</Label>
                 <Select value={regionId} onValueChange={setRegionId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wybierz region" />
+                    <SelectValue placeholder={t("Wybierz region")} />
                   </SelectTrigger>
                   <SelectContent>
                     {regions.map((r) => (
@@ -235,12 +237,12 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio">O mnie</Label>
+              <Label htmlFor="bio">{t("O mnie")}</Label>
               <Textarea
                 id="bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Opisz swoje doświadczenie trenerskie..."
+                placeholder={t("Opisz swoje doświadczenie trenerskie...")}
                 rows={5}
               />
             </div>
@@ -277,17 +279,17 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
                 className="mt-1 rounded border-input"
               />
               <div>
-                <Label htmlFor="lookingForClub" className="cursor-pointer">Szukam klubu</Label>
+                <Label htmlFor="lookingForClub" className="cursor-pointer">{t("Szukam klubu")}</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {coach.regionId
-                    ? "Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych."
-                    : "Ustaw region aby włączyć tę opcję."}
+                    ? t("Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych.")
+                    : t("Ustaw region aby włączyć tę opcję.")}
                 </p>
               </div>
             </div>
 
             <Button type="submit" disabled={updateMut.isPending}>
-              {updateMut.isPending ? "Zapisywanie..." : "Zapisz profil"}
+              {updateMut.isPending ? t("Zapisywanie...") : t("Zapisz profil")}
             </Button>
           </form>
         </CardContent>
@@ -295,36 +297,36 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Doświadczenie trenerskie</CardTitle>
+          <CardTitle>{t("Doświadczenie trenerskie")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-4 space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <Input
-                placeholder="Nazwa klubu"
+                placeholder={t("Nazwa klubu")}
                 value={newClubName}
                 onChange={(e) => setNewClubName(e.target.value)}
               />
               <Input
-                placeholder="Sezon (np. 2024/2025)"
+                placeholder={t("Sezon (np. 2024/2025)")}
                 value={newSeason}
                 onChange={(e) => setNewSeason(e.target.value)}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Input
-                placeholder="Rola (np. Pierwszy trener)"
+                placeholder={t("Rola (np. Pierwszy trener)")}
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value)}
               />
               <Input
-                placeholder="Poziom (np. IV liga) – opcjonalnie"
+                placeholder={t("Poziom (np. IV liga) – opcjonalnie")}
                 value={newLevel}
                 onChange={(e) => setNewLevel(e.target.value)}
               />
             </div>
             <Input
-              placeholder="Notatki – opcjonalnie"
+              placeholder={t("Notatki – opcjonalnie")}
               value={newNotes}
               onChange={(e) => setNewNotes(e.target.value)}
             />
@@ -334,11 +336,11 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
               variant="outline"
               disabled={addCareerMut.isPending}
             >
-              {addCareerMut.isPending ? "Dodawanie..." : "Dodaj wpis"}
+              {addCareerMut.isPending ? t("Dodawanie...") : t("Dodaj wpis")}
             </Button>
           </div>
           {careers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Brak wpisów</p>
+            <p className="text-sm text-muted-foreground">{t("Brak wpisów")}</p>
           ) : (
             <ul className="space-y-2">
               {careers.map((c) => (
@@ -364,7 +366,7 @@ export function CoachProfileForm({ coach, regions }: CoachProfileFormProps) {
                     onClick={() => deleteCareerMut.mutate({ id: c.id })}
                     className="text-destructive hover:text-destructive"
                   >
-                    Usuń
+                    {t("Usuń")}
                   </Button>
                 </li>
               ))}

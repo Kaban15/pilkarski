@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,12 +25,13 @@ export function SparingApplications({
   isOwner,
   onResponded,
 }: SparingApplicationsProps) {
+  const { t } = useI18n();
   const respondMutation = api.sparing.respond.useMutation({
     onSuccess: (_data, variables) => {
       toast.success(
         variables.status === "ACCEPTED"
-          ? "Zgłoszenie zaakceptowane"
-          : "Zgłoszenie odrzucone"
+          ? t("Zgłoszenie zaakceptowane")
+          : t("Zgłoszenie odrzucone")
       );
       onResponded();
     },
@@ -65,19 +67,19 @@ export function SparingApplications({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Users className="h-5 w-5 text-muted-foreground" />
-          Zgłoszenia ({applications.length})
+          {t("Zgłoszenia")} ({applications.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
         {isOwner && pendingCount > 0 && (
           <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/50 px-4 py-2.5 text-sm text-amber-700 dark:text-amber-400">
             <Clock className="h-4 w-4 shrink-0" />
-            Masz {pendingCount} {pendingCount === 1 ? "zgłoszenie" : pendingCount < 5 ? "zgłoszenia" : "zgłoszeń"} do rozpatrzenia
+            {t("Masz")} {pendingCount} {pendingCount === 1 ? t("zgłoszenie") : pendingCount < 5 ? t("zgłoszenia") : t("zgłoszeń")} {t("do rozpatrzenia")}
           </div>
         )}
         {applications.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
-            Brak zgłoszeń
+            {t("Brak zgłoszeń")}
           </p>
         ) : (
           <ul className="divide-y divide-border">
@@ -120,7 +122,7 @@ export function SparingApplications({
                       {app.counterProposedDate && (
                         <p className="mt-0.5 flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
                           <CalendarClock className="h-3 w-3" />
-                          Proponowany termin: {formatDate(app.counterProposedDate)}
+                          {t("Proponowany termin")}: {formatDate(app.counterProposedDate)}
                         </p>
                       )}
                     </div>
@@ -130,7 +132,7 @@ export function SparingApplications({
                       variant="secondary"
                       className={APPLICATION_STATUS_COLORS[app.status]}
                     >
-                      {APPLICATION_STATUS_LABELS[app.status]}
+                      {t(APPLICATION_STATUS_LABELS[app.status])}
                     </Badge>
                     {isOwner && isPending && (
                       <>
@@ -140,7 +142,7 @@ export function SparingApplications({
                           onClick={() => handleRespond(app.id, "ACCEPTED")}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          Akceptuj
+                          {t("Akceptuj")}
                         </Button>
                         <Button
                           size="sm"
@@ -149,7 +151,7 @@ export function SparingApplications({
                           onClick={() => handleRespond(app.id, "REJECTED")}
                         >
                           <XCircle className="h-3.5 w-3.5" />
-                          Odrzuć
+                          {t("Odrzuć")}
                         </Button>
                       </>
                     )}
