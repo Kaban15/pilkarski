@@ -107,8 +107,8 @@ export function Sidebar({ user }: SidebarProps) {
         onClick={onClick}
         className={`group relative flex h-[44px] items-center gap-3.5 rounded-lg px-4 text-[14px] font-medium transition-all duration-200 ${
           isActive
-            ? "bg-white/[0.08] text-white font-bold shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
-            : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+            ? "bg-accent dark:bg-white/[0.08] text-foreground dark:text-white font-bold"
+            : "text-muted-foreground dark:text-white/60 hover:bg-accent dark:hover:bg-white/[0.06] hover:text-foreground dark:hover:text-white"
         }`}
       >
         {isActive && (
@@ -118,7 +118,7 @@ export function Sidebar({ user }: SidebarProps) {
           className={`h-[22px] w-[22px] shrink-0 transition-colors duration-200 ${
             isActive
               ? "text-sport-cyan"
-              : "text-white/40 group-hover:text-white/70"
+              : "text-muted-foreground/60 dark:text-white/40 group-hover:text-foreground/70 dark:group-hover:text-white/70"
           }`}
         />
         <span className="flex-1 truncate">{t(item.label)}</span>
@@ -139,7 +139,7 @@ export function Sidebar({ user }: SidebarProps) {
   const roleLabel = { CLUB: "Klub", PLAYER: "Zawodnik", COACH: "Trener" }[user.role] ?? "Użytkownik";
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/[0.06] bg-background md:flex">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border dark:border-white/[0.06] bg-background md:flex">
 
       {/* Logo header */}
       <div className="relative flex h-16 items-center gap-3 px-6">
@@ -147,13 +147,13 @@ export function Sidebar({ user }: SidebarProps) {
           PS
         </div>
         <div>
-          <p className="text-[15px] font-bold tracking-tight text-white">PilkaSport</p>
-          <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">{t("Panel")}</p>
+          <p className="text-[15px] font-bold tracking-tight text-foreground dark:text-white">PilkaSport</p>
+          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/50 dark:text-white/30">{t("Panel")}</p>
         </div>
       </div>
 
       {/* Separator */}
-      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="mx-5 h-px bg-border dark:bg-gradient-to-r dark:from-transparent dark:via-white/10 dark:to-transparent" />
 
       {/* Navigation */}
       <nav className="relative flex-1 overflow-y-auto px-3 py-4 sidebar-scroll">
@@ -165,15 +165,15 @@ export function Sidebar({ user }: SidebarProps) {
             onClick={() => setMoreOpen(!moreOpen)}
             className={`group relative flex h-[50px] w-full items-center gap-4 rounded-xl px-4 text-[15px] font-medium transition-all duration-200 ${
               moreOpen || moreHasActive
-                ? "bg-white/[0.08] text-white"
-                : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+                ? "bg-accent dark:bg-white/[0.08] text-foreground dark:text-white"
+                : "text-muted-foreground dark:text-white/60 hover:bg-accent dark:hover:bg-white/[0.06] hover:text-foreground dark:hover:text-white"
             }`}
           >
             <MoreHorizontal
               className={`h-6 w-6 shrink-0 transition-all duration-200 ${moreOpen ? "rotate-90" : ""} ${
                 moreOpen || moreHasActive
                   ? "text-sport-cyan"
-                  : "text-white/40 group-hover:text-white/70"
+                  : "text-muted-foreground/60 dark:text-white/40 group-hover:text-foreground/70 dark:group-hover:text-white/70"
               }`}
             />
             <span className="flex-1 truncate text-left">{t("Więcej")}</span>
@@ -185,19 +185,19 @@ export function Sidebar({ user }: SidebarProps) {
       </nav>
 
       {/* Separator */}
-      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="mx-5 h-px bg-border dark:bg-gradient-to-r dark:from-transparent dark:via-white/10 dark:to-transparent" />
 
       {/* User section */}
       <div className="relative p-4">
-        <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] px-3.5 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-sky-500/20 text-sm font-bold text-violet-300 ring-2 ring-violet-400/20">
+        <div className="flex items-center gap-3 rounded-xl bg-accent dark:bg-white/[0.04] px-3.5 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-sky-500/20 text-sm font-bold text-violet-600 dark:text-violet-300 ring-2 ring-violet-400/20">
             {(user.name || user.email || "?")[0].toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-white/90">
+            <p className="truncate text-[13px] font-semibold text-foreground/90 dark:text-white/90">
               {user.name || user.email}
             </p>
-            <p className="text-[11px] font-medium text-white/30">
+            <p className="text-[11px] font-medium text-muted-foreground dark:text-white/30">
               {t(roleLabel)}
             </p>
           </div>
@@ -209,7 +209,7 @@ export function Sidebar({ user }: SidebarProps) {
         </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[12px] font-medium text-white/25 transition-all duration-200 hover:bg-white/[0.04] hover:text-white/50"
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-[12px] font-medium text-muted-foreground/50 dark:text-white/25 transition-all duration-200 hover:bg-accent dark:hover:bg-white/[0.04] hover:text-muted-foreground dark:hover:text-white/50"
         >
           <LogOut className="h-3.5 w-3.5" />
           {t("Wyloguj")}

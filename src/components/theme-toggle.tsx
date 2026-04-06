@@ -26,8 +26,8 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       className="inline-flex size-9 items-center justify-center rounded-md hover:bg-accent"
-      title={dark ? t("theme.light") : t("theme.dark")}
-      aria-label={dark ? t("theme.switchLight") : t("theme.switchDark")}
+      title={dark ? t("Tryb jasny") : t("Tryb ciemny")}
+      aria-label={dark ? t("Przełącz na tryb jasny") : t("Przełącz na tryb ciemny")}
     >
       {dark ? (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

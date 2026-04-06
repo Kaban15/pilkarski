@@ -13,8 +13,8 @@ export function LanguageToggle() {
     <button
       onClick={toggle}
       className="inline-flex h-9 items-center justify-center gap-1 rounded-md px-2 text-[12px] font-semibold hover:bg-accent"
-      title={t("lang.label")}
-      aria-label={t("lang.label")}
+      title={t("Zmień język")}
+      aria-label={t("Zmień język")}
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
