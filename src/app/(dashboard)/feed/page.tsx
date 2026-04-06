@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
-import { getEventTypeLabels, getPositionLabels } from "@/lib/labels";
+import { getLabels, EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 import { useI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/empty-state";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
@@ -79,8 +79,8 @@ const FEED_CONFIG = {
 
 function FeedCard({ item }: { item: FeedItem }) {
   const { t, locale } = useI18n();
-  const eventTypeLabels = getEventTypeLabels(locale);
-  const positionLabels = getPositionLabels(locale);
+  const eventTypeLabels = getLabels(EVENT_TYPE_LABELS, locale);
+  const positionLabels = getLabels(POSITION_LABELS, locale);
   const config = FEED_CONFIG[item.type];
 
   const getHref = () => {

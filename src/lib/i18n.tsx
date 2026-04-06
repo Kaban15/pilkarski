@@ -1,12 +1,11 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { type Locale, plToEn } from "./translations";
 
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  /** Pass the Polish string; returns English when locale=en, Polish unchanged otherwise. */
   t: (polish: string) => string;
 }
 
@@ -15,6 +14,8 @@ const I18nContext = createContext<I18nContextValue>({
   setLocale: () => {},
   t: (s) => s,
 });
+
+const identity = (s: string) => s;
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("pl");
@@ -43,11 +44,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     [locale],
   );
 
-  const value: I18nContextValue = {
+  const value = useMemo<I18nContextValue>(() => ({
     locale: mounted ? locale : "pl",
     setLocale,
-    t: mounted ? t : (s) => s,
-  };
+    t: mounted ? t : identity,
+  }), [mounted, locale, setLocale, t]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

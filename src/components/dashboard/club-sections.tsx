@@ -6,8 +6,7 @@ import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { APPLICATION_STATUS_COLORS } from "@/lib/labels";
-import { getApplicationStatusLabels } from "@/lib/labels";
+import { APPLICATION_STATUS_COLORS, APPLICATION_STATUS_LABELS, getLabels } from "@/lib/labels";
 import { useI18n } from "@/lib/i18n";
 import {
   Swords,
@@ -22,7 +21,7 @@ import {
 
 export function ClubDashboardSections() {
   const { t, locale } = useI18n();
-  const applicationStatusLabels = getApplicationStatusLabels(locale);
+  const applicationStatusLabels = getLabels(APPLICATION_STATUS_LABELS, locale);
   const { data, isLoading } = api.stats.clubDashboard.useQuery(undefined, {
     staleTime: 30_000,
   });

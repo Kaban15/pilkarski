@@ -1,16 +1,18 @@
 import { type Locale, plToEn } from "./translations";
 
-/** Translate a label map using the pl→en dictionary */
-function translateMap(map: Record<string, string>, locale: Locale): Record<string, string> {
+const enCache = new WeakMap<Record<string, string>, Record<string, string>>();
+
+export function getLabels(map: Record<string, string>, locale: Locale): Record<string, string> {
   if (locale === "pl") return map;
+  let cached = enCache.get(map);
+  if (cached) return cached;
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(map)) {
     out[k] = plToEn[v] ?? v;
   }
+  enCache.set(map, out);
   return out;
 }
-
-// ---- Polish label maps (canonical) ----
 
 export const POSITION_LABELS: Record<string, string> = {
   GK: "Bramkarz",
@@ -187,29 +189,6 @@ export const TOURNAMENT_PHASE_LABELS: Record<string, string> = {
   THIRD_PLACE: "O 3. miejsce",
   FINAL: "Finał",
 };
-
-// ---- Locale-aware getters ----
-
-export function getPositionLabels(locale: Locale) { return translateMap(POSITION_LABELS, locale); }
-export function getFootLabels(locale: Locale) { return translateMap(FOOT_LABELS, locale); }
-export function getEventTypeLabels(locale: Locale) { return translateMap(EVENT_TYPE_LABELS, locale); }
-export function getSparingLevelLabels(locale: Locale) { return translateMap(SPARING_LEVEL_LABELS, locale); }
-export function getAgeCategoryLabels(locale: Locale) { return translateMap(AGE_CATEGORY_LABELS, locale); }
-export function getSparingStatusLabels(locale: Locale) { return translateMap(SPARING_STATUS_LABELS, locale); }
-export function getApplicationStatusLabels(locale: Locale) { return translateMap(APPLICATION_STATUS_LABELS, locale); }
-export function getNotificationTypeLabels(locale: Locale) { return translateMap(NOTIFICATION_TYPE_LABELS, locale); }
-export function getTransferTypeLabels(locale: Locale) { return translateMap(TRANSFER_TYPE_LABELS, locale); }
-export function getTransferStatusLabels(locale: Locale) { return translateMap(TRANSFER_STATUS_LABELS, locale); }
-export function getRecruitmentStageLabels(locale: Locale) { return translateMap(RECRUITMENT_STAGE_LABELS, locale); }
-export function getClubPostCategoryLabels(locale: Locale) { return translateMap(CLUB_POST_CATEGORY_LABELS, locale); }
-export function getCoachSpecializationLabels(locale: Locale) { return translateMap(COACH_SPECIALIZATION_LABELS, locale); }
-export function getCoachLevelLabels(locale: Locale) { return translateMap(COACH_LEVEL_LABELS, locale); }
-export function getRoleLabels(locale: Locale) { return translateMap(ROLE_LABELS, locale); }
-export function getEventVisibilityLabels(locale: Locale) { return translateMap(EVENT_VISIBILITY_LABELS, locale); }
-export function getAttendanceStatusLabels(locale: Locale) { return translateMap(ATTENDANCE_STATUS_LABELS, locale); }
-export function getTournamentFormatLabels(locale: Locale) { return translateMap(TOURNAMENT_FORMAT_LABELS, locale); }
-export function getTournamentStatusLabels(locale: Locale) { return translateMap(TOURNAMENT_STATUS_LABELS, locale); }
-export function getTournamentPhaseLabels(locale: Locale) { return translateMap(TOURNAMENT_PHASE_LABELS, locale); }
 
 // ---- Color maps (no translation needed) ----
 

@@ -1,10 +1,5 @@
 export type Locale = "pl" | "en";
 
-/**
- * Polish → English dictionary.
- * The `t()` helper returns the Polish string as-is when locale=pl,
- * and looks up the English translation when locale=en.
- */
 export const plToEn: Record<string, string> = {
   // ---- Navigation ----
   "Pulpit": "Feed",

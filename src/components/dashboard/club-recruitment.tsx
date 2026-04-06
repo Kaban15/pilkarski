@@ -5,7 +5,7 @@ import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getEventTypeLabels, getPositionLabels } from "@/lib/labels";
+import { getLabels, EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 import { useI18n } from "@/lib/i18n";
 import { Target, ArrowRight, Calendar } from "lucide-react";
 
@@ -13,8 +13,8 @@ const RECRUITMENT_TYPES = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITM
 
 export function ClubRecruitment() {
   const { t, locale } = useI18n();
-  const eventTypeLabels = getEventTypeLabels(locale);
-  const positionLabels = getPositionLabels(locale);
+  const eventTypeLabels = getLabels(EVENT_TYPE_LABELS, locale);
+  const positionLabels = getLabels(POSITION_LABELS, locale);
   const { data: myEvents } = api.event.my.useQuery(undefined, { staleTime: 60_000 });
   const { data: suggested } = api.feed.suggestedPlayers.useQuery(
     { limit: 6 },
