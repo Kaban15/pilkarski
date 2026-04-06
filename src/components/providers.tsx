@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import { api } from "@/lib/trpc-react";
+import { I18nProvider } from "@/lib/i18n";
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
@@ -39,7 +40,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <api.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <I18nProvider>{children}</I18nProvider>
+        </SessionProvider>
       </QueryClientProvider>
     </api.Provider>
   );

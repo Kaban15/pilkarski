@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     setMounted(true);
@@ -24,8 +26,8 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       className="inline-flex size-9 items-center justify-center rounded-md hover:bg-accent"
-      title={dark ? "Tryb jasny" : "Tryb ciemny"}
-      aria-label={dark ? "Przełącz na tryb jasny" : "Przełącz na tryb ciemny"}
+      title={dark ? t("theme.light") : t("theme.dark")}
+      aria-label={dark ? t("theme.switchLight") : t("theme.switchDark")}
     >
       {dark ? (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

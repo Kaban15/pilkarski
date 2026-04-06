@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
+import { useI18n } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/translations";
 import {
   Home,
   Swords,
@@ -18,31 +20,31 @@ import {
 type NavItem = {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
+  labelKey: TranslationKey;
 };
 
-const FEED: NavItem = { href: "/feed", icon: Home, label: "Pulpit" };
-const MSGS: NavItem = { href: "/messages", icon: MessageSquare, label: "Wiadomości" };
-const NOTIFS: NavItem = { href: "/notifications", icon: Bell, label: "Powiadom." };
+const FEED: NavItem = { href: "/feed", icon: Home, labelKey: "nav.feed" };
+const MSGS: NavItem = { href: "/messages", icon: MessageSquare, labelKey: "nav.messages" };
+const NOTIFS: NavItem = { href: "/notifications", icon: Bell, labelKey: "nav.notifications.short" };
 
 const NAV_CLUB: NavItem[] = [
   FEED,
-  { href: "/sparings", icon: Swords, label: "Sparingi" },
-  { href: "/recruitment", icon: Target, label: "Rekrutacja" },
+  { href: "/sparings", icon: Swords, labelKey: "nav.sparings" },
+  { href: "/recruitment", icon: Target, labelKey: "nav.recruitment" },
   MSGS, NOTIFS,
 ];
 
 const NAV_PLAYER: NavItem[] = [
   FEED,
-  { href: "/events", icon: Trophy, label: "Nabory" },
-  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
+  { href: "/events", icon: Trophy, labelKey: "nav.events.mobile" },
+  { href: "/trainings", icon: GraduationCap, labelKey: "nav.trainings" },
   MSGS, NOTIFS,
 ];
 
 const NAV_COACH: NavItem[] = [
   FEED,
-  { href: "/trainings", icon: GraduationCap, label: "Treningi" },
-  { href: "/community", icon: Megaphone, label: "Tablica" },
+  { href: "/trainings", icon: GraduationCap, labelKey: "nav.trainings" },
+  { href: "/community", icon: Megaphone, labelKey: "nav.community" },
   MSGS, NOTIFS,
 ];
 
@@ -56,6 +58,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = session?.user?.role;
+  const { t } = useI18n();
 
   const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
@@ -98,7 +101,7 @@ export function BottomNav() {
                   </span>
                 )}
               </div>
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           );
         })}
