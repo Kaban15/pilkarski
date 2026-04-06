@@ -820,3 +820,33 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `docs/superpowers/plans/2026-04-05-sparing-sort-looking-for-club.md`
 - `docs/superpowers/plans/2026-04-05-invite-players-to-events.md`
 - `prisma/migrations/20260405_add_looking_for_club/migration.sql`
+
+## Etap 41: i18n (PL/EN) + X-style white background ✅
+
+### Feature: Przełączanie języka PL/EN
+- Lekki system i18n bez zewnętrznych bibliotek: `I18nProvider` (React Context) + `useI18n()` hook + `t()` helper
+- Podejście "polski tekst jako klucz" — `t("Sparingi")` zwraca "Sparrings" gdy locale=en
+- Słownik `plToEn` w `src/lib/translations.ts` (~950 wpisów)
+- Generyczny `getLabels(map, locale)` z `WeakMap` cache do tłumaczenia label maps
+- `LanguageToggle` w sidebarze (Globe icon + EN/PL)
+- Język persisted w `localStorage`, aktualizuje `<html lang>`
+- Przetłumaczone ~65 komponentów: nawigacja, dashboard, sparingi, wydarzenia, transfery, turnieje, rekrutacja, wiadomości, powiadomienia, admin, profile, formularze, onboarding, auth
+- Server components (publiczne profile, landing) pozostają po polsku (wymagałyby innego podejścia)
+
+### Feature: Białe tło w trybie jasnym (X-style)
+- Nowe kolory light mode: `--background: #ffffff`, `--foreground: #0f1419`, `--border: #eff3f4`, `--muted: #f7f9f9`
+- Sidebar: theme-aware kolory z `dark:` wariantami zamiast hardkodowanych `text-white`
+- Sidebar widoczny i czytelny w obu trybach
+
+### Code quality (simplify)
+- `useMemo` na context value w `I18nProvider` — zapobiega re-renderom 65+ konsumentów
+- Stabilna `identity` ref dla pre-mount `t()` (zamiast inline arrow)
+- `WeakMap` cache w `getLabels()` — eliminuje alokację obiektów przy powtórnych wywołaniach
+- Usunięte 20 copy-paste getter functions → 1 generyczny `getLabels(map, locale)`
+- Sidebar: import `ROLE_LABELS` zamiast inline duplikacji
+- Language toggle: `<Globe>` z lucide-react zamiast inline SVG
+
+### Nowe pliki
+- `src/lib/i18n.tsx` — I18nProvider, useI18n hook
+- `src/lib/translations.ts` — słownik PL→EN (~950 wpisów)
+- `src/components/language-toggle.tsx` — przełącznik języka

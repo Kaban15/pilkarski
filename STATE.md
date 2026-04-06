@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-05
-**Aktualny etap:** 40 etapów ukończonych
+**Ostatnia sesja:** 2026-04-06
+**Aktualny etap:** 41 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -87,10 +87,11 @@
 
 ### UI/Design
 - **X/Twitter-style dark mode:** pure black `#000000`, flat cards (no shadow, rounded-none), minimal borders `#2f3336`
+- **X-style light mode:** white `#ffffff`, borders `#eff3f4`, muted `#f7f9f9`, foreground `#0f1419`
 - **Sport energy accents:** cyan (`--sport-cyan`) + żółty (`--sport-yellow`) + X-blue (`--x-blue`)
 - **Chat bubbles:** X-blue own, secondary others, rounded-2xl
 - **Tabs:** underline indicator (`border-b-2 border-x-blue`)
-- **Sidebar:** X-style "Więcej" inline collapsible, hidden scrollbar, kompaktowy (44px items)
+- **Sidebar:** X-style "Więcej" inline collapsible, hidden scrollbar, kompaktowy (44px items), theme-aware (light/dark)
 - **Micro-interactions:** heart bounce, check-pop, countdown pulse, sport card left border
 - Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog
 - Bottom Nav mobile (role-aware)
@@ -99,6 +100,7 @@
 - Landing: pure black, gradient text, dot grid (no animated blobs)
 - shadcn/ui: 15 komponentów
 - Dark mode: class-based, ThemeToggle, zero-flash script
+- **i18n PL/EN:** `useI18n()` hook + `t()` + `LanguageToggle` w sidebarze, ~65 komponentów przetłumaczonych
 
 ### Admin & Moderacja
 - Panel admina `/admin` (4 taby: Raporty, Użytkownicy, Metryki, Treści)
@@ -127,11 +129,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
 | 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |
 | 39 | 2026-04-05 | Loga ZPN regionów, sociale (FB/Insta), glassmorphism sidebar, inline-edit profil klubu, smart lokalizacje wydarzeń, enhanced invite dialog |
 | 38 | 2026-03-30 | Panel Admina — moderacja zgłoszeń, zarządzanie userami (ban/admin), metryki, zarządzanie treścią, ClubPostReport model |
 | 37 | 2026-03-28 | Rozliczenia kosztów — costPerTeam/costPerPerson + payment status tracking (sparingi, wydarzenia, turnieje) |
-| 36 | 2026-03-28 | Moduł Turniejowy — grupa + puchar, 5 modeli, 15 procedur, 5-tabowa strona, feed/kalendarz/sidebar |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -183,7 +185,9 @@ src/app/api/reminders/route.ts    — cron przypomnienia
 
 src/lib/trpc.ts                   — tRPC client (frontend)
 src/lib/supabase.ts               — Supabase client (realtime)
-src/lib/labels.ts                 — stałe, labele, statusy, helpers (getUserDisplayName, getProfileHref, pluralPL)
+src/lib/labels.ts                 — stałe, labele, statusy, getLabels(), helpers (getUserDisplayName, getProfileHref, pluralPL)
+src/lib/i18n.tsx                  — I18nProvider, useI18n(), t() — przełączanie PL/EN
+src/lib/translations.ts           — słownik PL→EN (~950 wpisów)
 src/lib/format.ts                 — formatDate, formatEventDateTime
 src/lib/rate-limit.ts             — in-memory rate limiter
 src/lib/gamification.ts           — punkty, odznaki
@@ -214,9 +218,9 @@ src/components/social-links.tsx       — ikony FB/Insta (reużywalny)
 src/components/                       — empty-state, confirm-dialog, breadcrumbs, star-rating,
                                         favorite-button, follow-club-button, back-button,
                                         profile-message-button, club-invite-button, scroll-reveal,
-                                        image-upload, card-skeleton, theme-toggle, map-view,
-                                        push-notification-toggle, form-tooltip, public-profile-cta,
-                                        stats-cell, match-card
+                                        image-upload, card-skeleton, theme-toggle, language-toggle,
+                                        map-view, push-notification-toggle, form-tooltip,
+                                        public-profile-cta, stats-cell, match-card
 
 src/hooks/use-infinite-scroll.ts
 src/types/next-auth.d.ts          — Session + JWT types (id, role)
