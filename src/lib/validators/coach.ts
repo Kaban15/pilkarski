@@ -6,4 +6,4 @@ export const coachCareerEntrySchema = z.object({
   role: z.string().min(2, "Podaj rolę").max(100),
   level: z.string().max(100).optional(),
   notes: z.string().max(500).optional(),
-});
+}).strict();

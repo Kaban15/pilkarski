@@ -108,8 +108,8 @@ export const playerRouter = router({
 
       let nextCursor: string | undefined;
       if (players.length > input.limit) {
-        const next = players.pop()!;
-        nextCursor = next.id;
+        const last = players.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { players, nextCursor };

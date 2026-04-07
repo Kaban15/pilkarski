@@ -31,6 +31,7 @@ test.describe.serial("Wiadomości", () => {
   });
 
   test("zawodnik widzi przycisk wiadomości na sparingu", async ({ page }) => {
+    test.skip(!sparingUrl, "requires sparing created by previous test");
     await login(page, playerEmail, PASSWORD);
 
     await page.goto(sparingUrl);

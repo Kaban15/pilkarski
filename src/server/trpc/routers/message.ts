@@ -109,7 +109,8 @@ export const messageRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items: items.reverse(), nextCursor };
@@ -197,7 +198,7 @@ export const messageRouter = router({
           message: `${senderName}: ${input.content.substring(0, 100)}`,
           link: `/messages/${conversationId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
 
       const baseUrl = process.env.NEXTAUTH_URL || "https://pilkarski.vercel.app";
       if (shouldSendEmail(input.recipientUserId, "message")) {
@@ -206,7 +207,7 @@ export const messageRouter = router({
           message: `${senderName}: ${input.content.substring(0, 100)}`,
           ctaLabel: "Odpowiedz",
           ctaUrl: `${baseUrl}/messages/${conversationId}`,
-        }).catch(() => {});
+        }).catch((err) => console.error("[email]", err));
       }
 
       return { message, conversationId };

@@ -19,17 +19,17 @@ export const createEventSchema = z.object({
   targetLevel: z.enum(SPARING_LEVELS).optional(),
   visibility: z.enum(["PUBLIC", "INTERNAL"]).default("PUBLIC"),
   costPerPerson: z.number().int().min(0).max(10000).optional(),
-});
+}).strict();
 
 export const applyEventSchema = z.object({
   eventId: z.string().uuid(),
   message: z.string().max(500).optional(),
-});
+}).strict();
 
 export const respondEventApplicationSchema = z.object({
   applicationId: z.string().uuid(),
   status: z.enum(["ACCEPTED", "REJECTED"]),
-});
+}).strict();
 
 export const updateEventSchema = createEventSchema.extend({
   id: z.string().uuid(),

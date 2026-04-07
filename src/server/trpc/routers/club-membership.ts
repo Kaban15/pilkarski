@@ -66,7 +66,7 @@ export const clubMembershipRouter = router({
             message: `${name} (${role === "COACH" ? "trener" : "zawodnik"}) chce dołączyć do ${club.name}`,
             link: "/squad",
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
       }
 
       return membership;
@@ -144,7 +144,7 @@ export const clubMembershipRouter = router({
             message: `${club.name} zaakceptował Twoją prośbę o dołączenie`,
             link: `/clubs/${club.id}/internal`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
 
         return updated;
       }
@@ -359,20 +359,20 @@ export const clubMembershipRouter = router({
           message: `Klub ${club.name} zaprasza Cię do kadry`,
           link: "/feed",
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
 
       sendPushToUser(input.userId, {
         title: "Zaproszenie do klubu",
         body: `Klub ${club.name} zaprasza Cię do kadry`,
         url: "/feed",
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       const baseUrl = process.env.NEXTAUTH_URL || "https://pilkarski.vercel.app";
       sendEmailToUser(ctx.db, input.userId, "Zaproszenie do klubu", {
         title: "Zaproszenie do klubu",
         message: `Klub ${club.name} zaprasza Cię do kadry`,
         ctaLabel: "Zobacz zaproszenie",
         ctaUrl: `${baseUrl}/feed`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
       return membership;
     }),
@@ -409,7 +409,7 @@ export const clubMembershipRouter = router({
             message: "Użytkownik dołączył do Twojego klubu",
             link: "/squad",
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
 
         return updated;
       } else {

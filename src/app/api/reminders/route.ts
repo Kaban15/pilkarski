@@ -8,7 +8,10 @@ import { formatEventDateTime } from "@/lib/format";
 export async function POST(req: Request) {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -170,7 +173,7 @@ export async function POST(req: Request) {
             title: "Potwierdź obecność",
             body: `${clubName}: ${event.title} — ${dateStr}`,
             url: eventLink,
-          }).catch(() => {})
+          }).catch((err) => console.error("[push]", err))
         );
       }
     }

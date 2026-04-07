@@ -60,27 +60,7 @@ export const tournamentRouter = router({
         }
       }
 
-      // Create tournament
-      const tournament = await ctx.db.tournament.create({
-        data: {
-          creatorUserId: ctx.session.user.id,
-          title: input.title,
-          description: input.description,
-          startDate: new Date(input.startDate),
-          endDate: input.endDate ? new Date(input.endDate) : undefined,
-          location: input.location,
-          lat: input.lat,
-          lng: input.lng,
-          regionId: input.regionId,
-          format: input.format,
-          maxTeams: input.maxTeams,
-          groupCount: input.groupCount ?? 1,
-          advancingPerGroup: input.advancingPerGroup ?? 2,
-          costPerTeam: input.costPerTeam,
-        },
-      });
-
-      // Auto-register creator as first team (ACCEPTED)
+      // Auto-register creator as first team (ACCEPTED) — in transaction
       const creatorUser = await ctx.db.user.findUnique({
         where: { id: ctx.session.user.id },
         select: {
@@ -93,17 +73,40 @@ export const tournamentRouter = router({
 
       const teamName = creatorUser?.club?.name ?? getUserDisplayName(creatorUser);
 
-      await ctx.db.tournamentTeam.create({
-        data: {
-          tournamentId: tournament.id,
-          userId: ctx.session.user.id,
-          clubId: creatorUser?.club?.id ?? undefined,
-          teamName,
-          status: "ACCEPTED",
-        },
+      const tournament = await ctx.db.$transaction(async (tx) => {
+        const created = await tx.tournament.create({
+          data: {
+            creatorUserId: ctx.session.user.id,
+            title: input.title,
+            description: input.description,
+            startDate: new Date(input.startDate),
+            endDate: input.endDate ? new Date(input.endDate) : undefined,
+            location: input.location,
+            lat: input.lat,
+            lng: input.lng,
+            regionId: input.regionId,
+            format: input.format,
+            maxTeams: input.maxTeams,
+            groupCount: input.groupCount ?? 1,
+            advancingPerGroup: input.advancingPerGroup ?? 2,
+            costPerTeam: input.costPerTeam,
+          },
+        });
+
+        await tx.tournamentTeam.create({
+          data: {
+            tournamentId: created.id,
+            userId: ctx.session.user.id,
+            clubId: creatorUser?.club?.id ?? undefined,
+            teamName,
+            status: "ACCEPTED",
+          },
+        });
+
+        return created;
       });
 
-      awardPoints(ctx.db, ctx.session.user.id, "tournament_created", tournament.id).catch(() => {});
+      awardPoints(ctx.db, ctx.session.user.id, "tournament_created", tournament.id).catch((err) => console.error("[awardPoints]", err));
 
       return tournament;
     }),
@@ -198,7 +201,8 @@ export const tournamentRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };
@@ -319,18 +323,18 @@ export const tournamentRouter = router({
           message: `${input.teamName} chce dołączyć do turnieju "${tournament.title}"`,
           link: `/tournaments/${tournament.id}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(creatorUserId, {
         title: "Nowe zgłoszenie do turnieju",
         body: `${input.teamName} chce dołączyć do "${tournament.title}"`,
         url: `/tournaments/${tournament.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       sendEmailToUser(ctx.db, creatorUserId, "Nowe zgłoszenie do turnieju", {
         title: "Nowe zgłoszenie do turnieju",
         message: `${input.teamName} chce dołączyć do turnieju "${tournament.title}"`,
         ctaLabel: "Zobacz zgłoszenie",
         ctaUrl: `${baseUrl}/tournaments/${tournament.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
       return team;
     }),
@@ -362,18 +366,18 @@ export const tournamentRouter = router({
           message: `Twoje zgłoszenie do turnieju "${team.tournament.title}" zostało ${statusLabel}`,
           link: `/tournaments/${team.tournamentId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(team.userId, {
         title: `Zgłoszenie ${statusLabel}`,
         body: `Twoje zgłoszenie do "${team.tournament.title}" zostało ${statusLabel}`,
         url: `/tournaments/${team.tournamentId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       sendEmailToUser(ctx.db, team.userId, `Zgłoszenie do turnieju ${statusLabel}`, {
         title: `Zgłoszenie ${statusLabel}`,
         message: `Twoje zgłoszenie drużyny "${team.teamName}" do turnieju "${team.tournament.title}" zostało ${statusLabel}`,
         ctaLabel: "Zobacz turniej",
         ctaUrl: `${baseUrl}/tournaments/${team.tournamentId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
       return updated;
     }),
@@ -513,12 +517,12 @@ export const tournamentRouter = router({
             message: `Turniej "${tournament.title}" został rozpoczęty`,
             link: `/tournaments/${input.tournamentId}`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
         sendPushToUser(team.userId, {
           title: "Turniej rozpoczęty!",
           body: `Turniej "${tournament.title}" został rozpoczęty`,
           url: `/tournaments/${input.tournamentId}`,
-        }).catch(() => {});
+        }).catch((err) => console.error("[push]", err));
       }
 
       return { ok: true };
@@ -576,12 +580,12 @@ export const tournamentRouter = router({
           message: `${myTeamName} wpisał wynik meczu. Potwierdź lub odrzuć.`,
           link: `/tournaments/${match.tournament.id}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(otherUserId, {
         title: "Wynik meczu do potwierdzenia",
         body: `${myTeamName} wpisał wynik. Potwierdź lub odrzuć.`,
         url: `/tournaments/${match.tournament.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
 
       return { ok: true };
     }),
@@ -839,7 +843,7 @@ export const tournamentRouter = router({
       }
 
       if (winnerUserId) {
-        awardPoints(ctx.db, winnerUserId, "tournament_win", input.tournamentId).catch(() => {});
+        awardPoints(ctx.db, winnerUserId, "tournament_win", input.tournamentId).catch((err) => console.error("[awardPoints]", err));
       }
 
       await ctx.db.tournament.update({
@@ -857,12 +861,12 @@ export const tournamentRouter = router({
             message: `Turniej "${tournament.title}" został zakończony`,
             link: `/tournaments/${input.tournamentId}`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
         sendPushToUser(team.userId, {
           title: "Turniej zakończony!",
           body: `Turniej "${tournament.title}" został zakończony`,
           url: `/tournaments/${input.tournamentId}`,
-        }).catch(() => {});
+        }).catch((err) => console.error("[push]", err));
       }
 
       return { ok: true };
@@ -894,7 +898,7 @@ export const tournamentRouter = router({
         },
       });
 
-      awardPoints(ctx.db, input.scorerUserId, "tournament_goal", input.matchId).catch(() => {});
+      awardPoints(ctx.db, input.scorerUserId, "tournament_goal", input.matchId).catch((err) => console.error("[awardPoints]", err));
 
       ctx.db.notification.create({
         data: {
@@ -904,12 +908,12 @@ export const tournamentRouter = router({
           message: "Twoja bramka została dodana w turnieju",
           link: `/tournaments/${match.tournamentId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(input.scorerUserId, {
         title: "Bramka dodana!",
         body: "Twoja bramka została dodana w turnieju",
         url: `/tournaments/${match.tournamentId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
 
       return goal;
     }),

@@ -41,6 +41,7 @@ test.describe.serial("Sparingi", () => {
   });
 
   test("klub B aplikuje na sparing", async ({ page }) => {
+    test.skip(!sparingUrl, "requires sparing created by previous test");
     await registerClub(page, clubBEmail, PASSWORD, "Klub Sparing B");
     await login(page, clubBEmail, PASSWORD);
 
@@ -57,6 +58,7 @@ test.describe.serial("Sparingi", () => {
   });
 
   test("klub A widzi zgłoszenie i akceptuje", async ({ page }) => {
+    test.skip(!sparingUrl, "requires sparing created by previous test");
     await login(page, clubAEmail, PASSWORD);
     await page.goto(sparingUrl);
     await page.waitForLoadState("networkidle");

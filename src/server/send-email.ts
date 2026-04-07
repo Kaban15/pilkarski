@@ -1,8 +1,10 @@
+import type { PrismaClient } from "@/generated/prisma/client";
 import { Resend } from "resend";
 import { renderEmailHtml } from "@/lib/email-template";
+import { env } from "@/env";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
+const resend = env.RESEND_API_KEY
+  ? new Resend(env.RESEND_API_KEY)
   : null;
 
 const FROM = process.env.NODE_ENV === "production"
@@ -17,10 +19,10 @@ interface EmailBody {
 }
 
 export async function sendEmailToUser(
-  db: { user: { findUnique: (args: any) => Promise<any> } },
+  db: Pick<PrismaClient, "user">,
   userId: string,
   subject: string,
-  body: EmailBody
+  body: EmailBody,
 ): Promise<void> {
   if (!resend) return;
 

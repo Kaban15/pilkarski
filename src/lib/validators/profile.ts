@@ -12,7 +12,7 @@ export const updateClubSchema = z.object({
   website: z.string().url().max(300).optional(),
   facebookUrl: z.string().url().max(300).optional(),
   instagramUrl: z.string().url().max(300).optional(),
-});
+}).strict();
 
 export const updatePlayerSchema = z.object({
   firstName: z.string().min(2).max(100),
@@ -34,13 +34,13 @@ export const updatePlayerSchema = z.object({
   facebookUrl: z.string().url().max(300).optional(),
   instagramUrl: z.string().url().max(300).optional(),
   lookingForClub: z.boolean().optional(),
-});
+}).strict();
 
 export const careerEntrySchema = z.object({
   clubName: z.string().min(2).max(200),
   season: z.string().min(4).max(20),
   notes: z.string().max(500).optional(),
-});
+}).strict();
 
 export type UpdateClubInput = z.infer<typeof updateClubSchema>;
 export type UpdatePlayerInput = z.infer<typeof updatePlayerSchema>;

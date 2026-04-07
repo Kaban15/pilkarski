@@ -850,3 +850,46 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/lib/i18n.tsx` — I18nProvider, useI18n hook
 - `src/lib/translations.ts` — słownik PL→EN (~950 wpisów)
 - `src/components/language-toggle.tsx` — przełącznik języka
+
+## Etap 42: Security hardening + ai-toolkit compliance ✅
+
+**Data:** 2026-04-07
+
+### Security
+- Security headers w `next.config.ts`: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- `.strict()` na 37 schematach Zod w 12 plikach walidatorów — odrzuca nieznane pola (mass assignment protection)
+- `src/env.ts` — Zod validation env vars przy starcie (DATABASE_URL, NEXTAUTH_SECRET, SUPABASE keys, VAPID, RESEND)
+- Upload endpoint: whitelist dozwolonych folderów (`clubs`, `players`, `coaches`, `events`) + UUID validation entityId
+- CRON_SECRET: fail-fast pattern (500 jeśli niezdefiniowany, nie silent pass)
+- Zamiana `process.env.X!` na `env.X` w 3 plikach (upload, send-email, send-push)
+
+### Type Safety
+- Eliminacja 3 krytycznych `any`: `award-points.ts` (`db: any` → `Pick<PrismaClient, "userPoints">`), `event.ts` (`where: any` → `Prisma.EventWhereInput`), `send-email.ts` (typed db param)
+- Eliminacja 18 non-null assertions `!` w 15 routerach + `tournament-logic.ts` — zamiana `items.pop()!` na safe guard pattern
+- `event.ts:333` — usunięcie `as Record<string, unknown>` → direct property access
+
+### Architecture
+- Prisma `$transaction` w tournament.ts (tournament + team create atomically)
+- 63 `.catch(() => {})` → kontekstowe error logging (`[awardPoints]`, `[notification]`, `[push]`, `[email]`, `[fire-and-forget]`) w 10 plikach
+- `loading.tsx` + `error.tsx` w 8 dashboard route segments (events, sparings, transfers, community, tournaments, calendar, feed, messages)
+- `src/server/fire-and-log.ts` — helper fireAndLog<T>
+
+### Testing
+- Vitest coverage config (`@vitest/coverage-v8`, provider v8)
+- Unit testy auth routera: 4 testy (duplicate email, CLUB/PLAYER creation, rate limiting)
+- Factory functions: `src/__tests__/factories.ts` (createMockUser, Session, Club, Player, Sparing, Event)
+- E2E guards: `test.skip(!sparingUrl, ...)` w sparing.spec.ts i messages.spec.ts
+
+### Nowe pliki
+- `src/env.ts` — Zod-validated environment variables
+- `src/server/fire-and-log.ts` — fire-and-forget z logging helper
+- `src/__tests__/factories.ts` — test data factories
+- `src/__tests__/routers/auth.test.ts` — unit testy auth routera
+- `src/app/(dashboard)/events/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/sparings/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/transfers/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/community/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/tournaments/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/calendar/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/feed/loading.tsx` + `error.tsx`
+- `src/app/(dashboard)/messages/loading.tsx` + `error.tsx`

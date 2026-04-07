@@ -41,7 +41,7 @@ export const sparingRouter = router({
         },
       });
 
-      awardPoints(ctx.db, ctx.session.user.id, "sparing_created", sparing.id).catch(() => {});
+      awardPoints(ctx.db, ctx.session.user.id, "sparing_created", sparing.id).catch((err) => console.error("[awardPoints]", err));
 
       // Notify club followers (fire-and-forget)
       ctx.db.clubFollower.findMany({
@@ -57,8 +57,8 @@ export const sparingRouter = router({
             message: `${club.name} szuka sparingpartnera: ${input.title}`,
             link: `/sparings/${sparing.id}`,
           })),
-        }).catch(() => {});
-      }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
+      }).catch((err) => console.error("[fire-and-forget]", err));
 
       return sparing;
     }),
@@ -161,7 +161,8 @@ export const sparingRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };
@@ -245,20 +246,20 @@ export const sparingRouter = router({
           message: `${club.name} chce zagrać sparing`,
           link: `/sparings/${offer.id}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(offer.club.userId, {
         title: "Nowe zgłoszenie na sparing",
         body: `${club.name} chce zagrać sparing`,
         url: `/sparings/${offer.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       sendEmailToUser(ctx.db, offer.club.userId, "Nowe zgłoszenie na sparing", {
         title: "Nowe zgłoszenie na sparing",
         message: `${club.name} chce zagrać sparing: ${offer.title}`,
         ctaLabel: "Zobacz zgłoszenie",
         ctaUrl: `${baseUrl}/sparings/${offer.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
-      awardPoints(ctx.db, ctx.session.user.id, "application_sent", application.id).catch(() => {});
+      awardPoints(ctx.db, ctx.session.user.id, "application_sent", application.id).catch((err) => console.error("[awardPoints]", err));
 
       return application;
     }),
@@ -312,8 +313,8 @@ export const sparingRouter = router({
         });
 
         // Points for match (fire-and-forget)
-        awardPoints(ctx.db, ctx.session.user.id, "sparing_matched", application.sparingOfferId).catch(() => {});
-        awardPoints(ctx.db, updated.applicantClub.userId, "application_accepted", application.sparingOfferId).catch(() => {});
+        awardPoints(ctx.db, ctx.session.user.id, "sparing_matched", application.sparingOfferId).catch((err) => console.error("[awardPoints]", err));
+        awardPoints(ctx.db, updated.applicantClub.userId, "application_accepted", application.sparingOfferId).catch((err) => console.error("[awardPoints]", err));
       }
 
       // Notify applicant (fire-and-forget)
@@ -327,18 +328,18 @@ export const sparingRouter = router({
           message: notifMessage,
           link: `/sparings/${application.sparingOfferId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(updated.applicantClub.userId, {
         title: notifTitle,
         body: notifMessage,
         url: `/sparings/${application.sparingOfferId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       sendEmailToUser(ctx.db, updated.applicantClub.userId, notifTitle, {
         title: notifTitle,
         message: notifMessage,
         ctaLabel: "Zobacz szczegóły",
         ctaUrl: `${baseUrl}/sparings/${application.sparingOfferId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
       return updated;
     }),
@@ -438,18 +439,18 @@ export const sparingRouter = router({
             message: `Wynik ${input.homeScore}:${input.awayScore} — potwierdź lub odrzuć`,
             link: `/sparings/${input.sparingId}`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
         sendPushToUser(otherUserId, {
           title: "Wynik do potwierdzenia",
           body: `Wynik ${input.homeScore}:${input.awayScore}`,
           url: `/sparings/${input.sparingId}`,
-        }).catch(() => {});
+        }).catch((err) => console.error("[push]", err));
         sendEmailToUser(ctx.db, otherUserId, "Wynik meczu do potwierdzenia", {
           title: "Wynik meczu do potwierdzenia",
           message: `Wynik ${input.homeScore}:${input.awayScore} czeka na potwierdzenie`,
           ctaLabel: "Potwierdź wynik",
           ctaUrl: `${baseUrl}/sparings/${input.sparingId}`,
-        }).catch(() => {});
+        }).catch((err) => console.error("[email]", err));
       }
 
       return updated;
@@ -505,7 +506,7 @@ export const sparingRouter = router({
             message: `Wynik ${offer.homeScore}:${offer.awayScore} został potwierdzony`,
             link: `/sparings/${input.sparingId}`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
 
         return updated;
       } else {
@@ -528,7 +529,7 @@ export const sparingRouter = router({
               message: "Twój wynik został odrzucony. Możesz wpisać go ponownie.",
               link: `/sparings/${input.sparingId}`,
             },
-          }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
         }
 
         return updated;
@@ -620,19 +621,19 @@ export const sparingRouter = router({
           message: `${club.name} zaprasza Cię na sparing: "${sparing.title}"`,
           link: `/sparings/${sparing.id}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
 
       sendPushToUser(toClub.userId, {
         title: "Zaproszenie na sparing",
         body: `${club.name} zaprasza na: ${sparing.title}`,
         url: `/sparings/${sparing.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       sendEmailToUser(ctx.db, toClub.userId, "Zaproszenie na sparing", {
         title: "Zaproszenie na sparing",
         message: `${club.name} zaprasza na: ${sparing.title}`,
         ctaLabel: "Zobacz zaproszenie",
         ctaUrl: `${baseUrl}/sparings/${sparing.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
       return invitation;
     }),
@@ -733,9 +734,9 @@ export const sparingRouter = router({
             message: `${club.name} zaakceptował zaproszenie na sparing "${invitation.sparingOffer.title}"`,
             link: `/sparings/${invitation.sparingOfferId}`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
 
-        awardPoints(ctx.db, invitation.fromClub.userId, "sparing_matched", invitation.sparingOfferId).catch(() => {});
+        awardPoints(ctx.db, invitation.fromClub.userId, "sparing_matched", invitation.sparingOfferId).catch((err) => console.error("[awardPoints]", err));
 
         return { accepted: true };
       }
@@ -754,7 +755,7 @@ export const sparingRouter = router({
           message: `${club.name} odrzucił zaproszenie na sparing "${invitation.sparingOffer.title}"`,
           link: `/sparings/${invitation.sparingOfferId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
 
       return { accepted: false };
     }),
@@ -904,21 +905,21 @@ export const sparingRouter = router({
           message: `Twoja bramka w meczu została zarejestrowana${input.minute != null ? ` (${input.minute}')` : ""}`,
           link: `/sparings/${input.sparingOfferId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(input.scorerUserId, {
         title: "Bramka przypisana!",
         body: `Twoja bramka w meczu została zarejestrowana${input.minute != null ? ` (${input.minute}')` : ""}`,
         url: `/sparings/${input.sparingOfferId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
       sendEmailToUser(ctx.db, input.scorerUserId, "Bramka przypisana!", {
         title: "Bramka przypisana!",
         message: `Twoja bramka w meczu została zarejestrowana${input.minute != null ? ` (minuta ${input.minute})` : ""}`,
         ctaLabel: "Zobacz mecz",
         ctaUrl: `${baseUrl}/sparings/${input.sparingOfferId}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[email]", err));
 
       // Fire-and-forget: award points for goal_scored
-      awardPoints(ctx.db, input.scorerUserId, "goal_scored", goal.id).catch(() => {});
+      awardPoints(ctx.db, input.scorerUserId, "goal_scored", goal.id).catch((err) => console.error("[awardPoints]", err));
 
       return goal;
     }),

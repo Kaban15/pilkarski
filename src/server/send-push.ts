@@ -1,8 +1,9 @@
 import webpush from "web-push";
 import { db } from "@/server/db/client";
+import { env } from "@/env";
 
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.replace(/=+$/, "");
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY?.replace(/=+$/, "");
+const VAPID_PUBLIC = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.replace(/=+$/, "");
+const VAPID_PRIVATE = env.VAPID_PRIVATE_KEY?.replace(/=+$/, "");
 
 let vapidConfigured = false;
 if (VAPID_PUBLIC && VAPID_PRIVATE) {

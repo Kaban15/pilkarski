@@ -130,7 +130,8 @@ export const favoriteRouter = router({
 
       let nextCursor: string | undefined;
       if (filtered.length > input.limit) {
-        nextCursor = filtered.pop()!.id;
+        const last = filtered.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items: filtered, nextCursor };

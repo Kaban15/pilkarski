@@ -111,8 +111,8 @@ export const clubRouter = router({
 
       let nextCursor: string | undefined;
       if (clubs.length > input.limit) {
-        const next = clubs.pop()!;
-        nextCursor = next.id;
+        const last = clubs.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { clubs, nextCursor };

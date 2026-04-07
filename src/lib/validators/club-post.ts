@@ -14,7 +14,7 @@ export const createClubPostSchema = z.object({
   title: z.string().min(5, "Tytuł musi mieć min. 5 znaków").max(300),
   content: z.string().min(10, "Treść musi mieć min. 10 znaków").max(2000),
   expiresAt: z.string().optional(),
-});
+}).strict();
 
 export const updateClubPostSchema = createClubPostSchema.extend({
   id: z.string().uuid(),

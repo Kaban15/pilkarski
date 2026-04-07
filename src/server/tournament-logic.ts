@@ -14,7 +14,8 @@ export function generateRoundRobin(teamIds: string[]): Array<[string, string]> {
         matches.push([home, away]);
       }
     }
-    const last = teams.pop()!;
+    const last = teams.pop();
+    if (!last) break;
     teams.splice(1, 0, last);
   }
 
@@ -70,8 +71,9 @@ export function recalculateStandings(matches: ConfirmedMatch[], teamIds: string[
   }
 
   for (const m of matches) {
-    const home = map.get(m.homeTeamId)!;
-    const away = map.get(m.awayTeamId)!;
+    const home = map.get(m.homeTeamId);
+    const away = map.get(m.awayTeamId);
+    if (!home || !away) continue;
     home.played++; away.played++;
     home.goalsFor += m.homeScore; home.goalsAgainst += m.awayScore;
     away.goalsFor += m.awayScore; away.goalsAgainst += m.homeScore;

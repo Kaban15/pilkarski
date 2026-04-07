@@ -6,6 +6,7 @@ import {
   applyEventSchema,
   respondEventApplicationSchema,
 } from "@/lib/validators/event";
+import type { Prisma } from "@/generated/prisma/client";
 import { TRPCError } from "@trpc/server";
 import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
@@ -88,7 +89,7 @@ export const eventRouter = router({
       const recruitTypes = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
       const isRecruitment = recruitTypes.includes(input.type);
 
-      awardPoints(ctx.db, ctx.session.user.id, isRecruitment ? "recruitment_created" : "event_created", event.id).catch(() => {});
+      awardPoints(ctx.db, ctx.session.user.id, isRecruitment ? "recruitment_created" : "event_created", event.id).catch((err) => console.error("[awardPoints]", err));
 
       // Notify club followers (fire-and-forget) — only for club-created events
       if (!clubId) return event;
@@ -116,7 +117,7 @@ export const eventRouter = router({
               message: `${input.title} — ${dateStr}. Zadeklaruj obecność!`,
               link: `/events/${event.id}`,
             })),
-          }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
           await Promise.allSettled(members.map((m) =>
             sendPushToUser(m.memberUserId, {
               title: `${clubData.name}: Nowe wydarzenie`,
@@ -124,7 +125,7 @@ export const eventRouter = router({
               url: `/events/${event.id}`,
             })
           ));
-        }).catch(() => {});
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       ctx.db.clubFollower.findMany({
@@ -142,8 +143,8 @@ export const eventRouter = router({
             message: `${clubData.name} dodał ${typeLabel}: ${input.title}`,
             link: `/events/${event.id}`,
           })),
-        }).catch(() => {});
-      }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
+      }).catch((err) => console.error("[fire-and-forget]", err));
 
       // Notify matching players in region (fire-and-forget, recruitment only)
       if (isRecruitment && regionId) {
@@ -166,8 +167,8 @@ export const eventRouter = router({
               message: input.title,
               link: `/events/${event.id}`,
             })),
-          }).catch(() => {});
-        }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       // Notify matching coaches in region (fire-and-forget)
@@ -186,8 +187,8 @@ export const eventRouter = router({
               message: input.title,
               link: `/events/${event.id}`,
             })),
-          }).catch(() => {});
-        }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       return event;
@@ -309,7 +310,7 @@ export const eventRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: any = {};
+      const where: Prisma.EventWhereInput = {};
       if (input.clubId) where.clubId = input.clubId;
       if (input.regionId) where.regionId = input.regionId;
       if (input.types && input.types.length > 0) {
@@ -330,7 +331,7 @@ export const eventRouter = router({
       }
 
       // Only show PUBLIC events in public listing; INTERNAL events are visible via club's own endpoints
-      (where as Record<string, unknown>).visibility = "PUBLIC";
+      where.visibility = "PUBLIC";
 
       const items = await ctx.db.event.findMany({
         where,
@@ -346,7 +347,8 @@ export const eventRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };
@@ -448,13 +450,13 @@ export const eventRouter = router({
             message: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
             link: `/events/${event.id}`,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[notification]", err));
       }
       if (ownerUserId) sendPushToUser(ownerUserId, {
         title: "Nowe zgłoszenie na wydarzenie",
         body: `${player.firstName} ${player.lastName} zgłosił się na "${event.title}"`,
         url: `/events/${event.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
 
       return application;
     }),
@@ -494,12 +496,12 @@ export const eventRouter = router({
           message: evtNotifMsg,
           link: `/events/${application.event.id}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
       sendPushToUser(updated.player.userId, {
         title: evtNotifTitle,
         body: evtNotifMsg,
         url: `/events/${application.event.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
 
       return updated;
     }),
@@ -698,7 +700,7 @@ export const eventRouter = router({
         title: `${senderName} zaprasza Cię na ${event.title}`,
         body: input.message || event.title,
         url: `/events/${event.id}`,
-      }).catch(() => {});
+      }).catch((err) => console.error("[push]", err));
 
       return { success: true };
     }),

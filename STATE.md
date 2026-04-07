@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-06
-**Aktualny etap:** 41 etapów ukończonych
+**Ostatnia sesja:** 2026-04-07
+**Aktualny etap:** 42 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -76,7 +76,7 @@
 - Dynamic sitemap (~480 URL-i)
 
 ### Powiadomienia & Push & Email
-- In-app: 15+ typów, fire-and-forget, bell badge z polling 60s
+- In-app: 15+ typów, fire-and-forget z kontekstowym error logging, bell badge z polling 60s
 - Push: web-push + VAPID, Service Worker, auto-cleanup expired subscriptions
 - Email: Resend (6 triggerów: sparing apply/respond/invite, score submit, message, club invite), throttle 15min na wiadomościach
 - Przypomnienia 24h (attendance, inactive clubs, stale pipeline)
@@ -118,9 +118,11 @@
 - Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
-- E2E: Playwright, 26+ testów
-- Unit: Vitest, 33 testów (format, gamification, form-errors, award-points, is-club-member, file-validation)
+- E2E: Playwright, 26+ testów (z `test.skip` guards na shared state)
+- Unit: Vitest 57 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router), coverage v8
+- Security: headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist
 - Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
+- Route boundaries: `loading.tsx` + `error.tsx` w 8 dashboard segments
 - Shared hook `usePaginatedList` — DRY pagination w sparings + events
 
 ---
@@ -129,11 +131,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
 | 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
 | 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |
 | 39 | 2026-04-05 | Loga ZPN regionów, sociale (FB/Insta), glassmorphism sidebar, inline-edit profil klubu, smart lokalizacje wydarzeń, enhanced invite dialog |
 | 38 | 2026-03-30 | Panel Admina — moderacja zgłoszeń, zarządzanie userami (ban/admin), metryki, zarządzanie treścią, ClubPostReport model |
-| 37 | 2026-03-28 | Rozliczenia kosztów — costPerTeam/costPerPerson + payment status tracking (sparingi, wydarzenia, turnieje) |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -152,8 +154,9 @@
 | Storage | Supabase Storage (bucket `avatars`, server-side upload) |
 | Push | web-push (VAPID, Service Worker) |
 | Auth | Auth.js v5 (next-auth@beta) |
-| Walidacja | Zod v4 |
-| Testy | Playwright (E2E, 26+) + Vitest (unit, 33) |
+| Walidacja | Zod v4 (`.strict()` na wszystkich schematach) |
+| Env | Zod-validated `src/env.ts` |
+| Testy | Playwright (E2E, 26+) + Vitest (unit, 57) + @vitest/coverage-v8 |
 | Hosting | Vercel (`pilkarski.vercel.app`) |
 
 ---
@@ -175,7 +178,9 @@ src/server/trpc/routers/          — auth, club, player, coach, region, sparing
                                     message, feed, search, notification, favorite, stats,
                                     review, transfer, gamification, push, recruitment,
                                     club-post, club-membership, team-lineup, admin
+src/env.ts                        — Zod-validated env vars (server-side)
 src/server/award-points.ts        — gamifikacja helper
+src/server/fire-and-log.ts        — fire-and-forget helper z logging
 src/server/send-push.ts           — web-push helper
 src/server/is-club-member.ts      — membership helpers
 src/server/get-user-club-id.ts    — resolve clubId from user role
@@ -246,7 +251,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 9. **Sidebar layout** — desktop fixed 256px (`md:flex`, X-style collapsible "Więcej") + bottom nav mobile (`md:hidden`)
 10. **Font Inter** — className na `<html>`, NIE font-family w globals.css
 11. **Kolorowanie typów** — emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości, cyan=transfery, x-blue=active tabs/chat/notifications
-12. **Notyfikacje fire-and-forget** — `.catch(() => {})`, nie blokują response
+12. **Notyfikacje fire-and-forget** — `.catch(err => console.error("[context]", err))`, nie blokują response
 13. **Server-side upload** — `/api/upload` z `SUPABASE_SERVICE_ROLE_KEY` (nie anon key)
 14. **Migracje** — ręcznie przed deploy: `npm run db:migrate -- --url "..." --name <nazwa>`
 
@@ -258,7 +263,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 |---|---------|-----------|
 | 1 | Cookie `__Secure-` nie działa na localhost (HTTP) | Low |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
-| 3 | Fire-and-forget notifications połykają błędy | Low |
+| ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
 | ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |
 | ~~5~~ | ~~Zduplikowane patterny list — shared hook~~ | ~~✅ Naprawione (Etap 34 — usePaginatedList)~~ |
 

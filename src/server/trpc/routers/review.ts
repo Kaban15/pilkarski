@@ -67,9 +67,9 @@ export const reviewRouter = router({
           message: `${club.name} wystawił(a) ocenę ${input.rating}/5 po sparingu`,
           link: `/sparings/${input.sparingOfferId}`,
         },
-      }).catch(() => {});
+      }).catch((err) => console.error("[notification]", err));
 
-      awardPoints(ctx.db, ctx.session.user.id, "review_given", review.id).catch(() => {});
+      awardPoints(ctx.db, ctx.session.user.id, "review_given", review.id).catch((err) => console.error("[awardPoints]", err));
 
       return review;
     }),
@@ -111,7 +111,8 @@ export const reviewRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };

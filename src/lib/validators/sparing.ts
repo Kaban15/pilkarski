@@ -24,7 +24,7 @@ export const createSparingSchema = z.object({
   preferredTime: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),
   costPerTeam: z.number().int().min(0).max(10000).optional(),
-});
+}).strict();
 
 export const applySparingSchema = z.object({
   sparingOfferId: z.string().uuid(),
@@ -36,12 +36,12 @@ export const applySparingSchema = z.object({
     },
     { message: "Proponowana data musi być w przyszłości" }
   ).optional(),
-});
+}).strict();
 
 export const respondApplicationSchema = z.object({
   applicationId: z.string().uuid(),
   status: z.enum(["ACCEPTED", "REJECTED"]),
-});
+}).strict();
 
 export const updateSparingSchema = createSparingSchema.extend({
   id: z.string().uuid(),
@@ -58,7 +58,7 @@ export const markCostPaidSchema = z.object({
   sparingId: z.string().uuid(),
   side: z.enum(["home", "away"]),
   paid: z.boolean(),
-});
+}).strict();
 
 export type SparingLevel = (typeof SPARING_LEVELS)[number];
 export type AgeCategory = (typeof AGE_CATEGORIES)[number];

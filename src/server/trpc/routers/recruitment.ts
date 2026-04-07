@@ -45,12 +45,12 @@ export const recruitmentRouter = router({
         update: {},
       });
 
-      awardPoints(ctx.db, ctx.session.user.id, "player_added_to_radar", entry.id).catch(() => {});
+      awardPoints(ctx.db, ctx.session.user.id, "player_added_to_radar", entry.id).catch((err) => console.error("[awardPoints]", err));
 
       // Log initial timeline event
       ctx.db.recruitmentEvent.create({
         data: { pipelineId: entry.id, toStage: "WATCHING", note: "Dodano na radar" },
-      }).catch(() => {});
+      }).catch((err) => console.error("[fire-and-forget]", err));
 
       return entry;
     }),
@@ -92,7 +92,7 @@ export const recruitmentRouter = router({
             toStage: input.stage,
             note: input.notes,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       return updated;
@@ -133,7 +133,7 @@ export const recruitmentRouter = router({
             fromStage: oldStage,
             toStage: input.stage,
           },
-        }).catch(() => {});
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       return updated;

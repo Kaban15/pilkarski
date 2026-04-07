@@ -19,8 +19,8 @@ export const notificationRouter = router({
 
       let nextCursor: string | undefined;
       if (notifications.length > input.limit) {
-        const next = notifications.pop()!;
-        nextCursor = next.id;
+        const last = notifications.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { notifications, nextCursor };

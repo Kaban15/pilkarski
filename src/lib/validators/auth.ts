@@ -12,7 +12,7 @@ export const registerSchema = z.object({
   // Player fields (required when role=PLAYER)
   firstName: z.string().min(2, "Imię jest wymagane").max(100).optional(),
   lastName: z.string().min(2, "Nazwisko jest wymagane").max(100).optional(),
-}).refine(
+}).strict().refine(
   (data) => {
     if (data.role === "CLUB") return !!data.clubName;
     return true;
@@ -29,7 +29,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.email("Podaj prawidłowy adres e-mail"),
   password: z.string().min(1, "Hasło jest wymagane"),
-});
+}).strict();
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

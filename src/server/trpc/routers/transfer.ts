@@ -53,8 +53,8 @@ export const transferRouter = router({
               message: `${playerName} — szuka klubu w Twoim regionie`,
               link: `/transfers/${transfer.id}`,
             })),
-          }).catch(() => {});
-        }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       // Notify players/coaches looking for club when club seeks players (fire-and-forget)
@@ -79,8 +79,8 @@ export const transferRouter = router({
               message: input.title,
               link: `/transfers/${transfer.id}`,
             })),
-          }).catch(() => {});
-        }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
+        }).catch((err) => console.error("[fire-and-forget]", err));
 
         ctx.db.coach.findMany({
           where: { regionId: input.regionId, lookingForClub: true },
@@ -96,8 +96,8 @@ export const transferRouter = router({
               message: input.title,
               link: `/transfers/${transfer.id}`,
             })),
-          }).catch(() => {});
-        }).catch(() => {});
+          }).catch((err) => console.error("[notification]", err));
+        }).catch((err) => console.error("[fire-and-forget]", err));
       }
 
       return transfer;
@@ -193,7 +193,8 @@ export const transferRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };

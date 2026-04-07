@@ -40,7 +40,8 @@ export const adminRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };
@@ -113,7 +114,8 @@ export const adminRouter = router({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        nextCursor = items.pop()!.id;
+        const last = items.pop();
+        if (last) nextCursor = last.id;
       }
 
       return { items, nextCursor };
@@ -220,7 +222,10 @@ export const adminRouter = router({
           orderBy: { createdAt: "desc" },
         });
         let nextCursor: string | undefined;
-        if (items.length > input.limit) nextCursor = items.pop()!.id;
+        if (items.length > input.limit) {
+          const last = items.pop();
+          if (last) nextCursor = last.id;
+        }
         return { items, nextCursor };
       }
 
@@ -233,7 +238,10 @@ export const adminRouter = router({
           orderBy: { createdAt: "desc" },
         });
         let nextCursor: string | undefined;
-        if (items.length > input.limit) nextCursor = items.pop()!.id;
+        if (items.length > input.limit) {
+          const last = items.pop();
+          if (last) nextCursor = last.id;
+        }
         return { items, nextCursor };
       }
 
@@ -251,7 +259,10 @@ export const adminRouter = router({
         orderBy: { createdAt: "desc" },
       });
       let nextCursor: string | undefined;
-      if (items.length > input.limit) nextCursor = items.pop()!.id;
+      if (items.length > input.limit) {
+        const last = items.pop();
+        if (last) nextCursor = last.id;
+      }
       return { items, nextCursor };
     }),
 

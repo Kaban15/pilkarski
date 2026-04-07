@@ -1,14 +1,15 @@
+import type { PrismaClient } from "@/generated/prisma/client";
 import { POINTS_MAP } from "@/lib/gamification";
 
 /**
  * Award points to a user (fire-and-forget).
- * Call with .catch(() => {}) to not block the response.
+ * Fire-and-forget — callers should use .catch(err => console.error(...)).
  */
 export function awardPoints(
-  db: any,
+  db: Pick<PrismaClient, "userPoints">,
   userId: string,
   action: string,
-  refId?: string
+  refId?: string,
 ) {
   const points = POINTS_MAP[action];
   if (!points) return Promise.resolve();

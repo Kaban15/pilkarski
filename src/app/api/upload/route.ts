@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth/config";
 import { createClient } from "@supabase/supabase-js";
 import { detectFileType } from "@/lib/file-validation";
+import { env } from "@/env";
 
 const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.SUPABASE_SERVICE_ROLE_KEY,
 );
+
+const ALLOWED_FOLDERS = ["clubs", "players", "coaches", "events"] as const;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -21,6 +25,14 @@ export async function POST(req: NextRequest) {
 
   if (!file || !folder || !entityId) {
     return NextResponse.json({ error: "Missing file, folder, or entityId" }, { status: 400 });
+  }
+
+  if (!(ALLOWED_FOLDERS as readonly string[]).includes(folder)) {
+    return NextResponse.json({ error: "Invalid folder" }, { status: 400 });
+  }
+
+  if (!UUID_RE.test(entityId)) {
+    return NextResponse.json({ error: "Invalid entityId" }, { status: 400 });
   }
 
   if (!file.type.startsWith("image/")) {
