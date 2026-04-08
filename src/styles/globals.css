@@ -278,6 +278,7 @@ button, a, [role="button"] {
 
 /* Section heading typography */
 .sport-heading {
+  font-family: var(--font-rubik), sans-serif;
   font-weight: 900;
   letter-spacing: -0.02em;
   text-transform: uppercase;
