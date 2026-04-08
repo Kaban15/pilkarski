@@ -46,6 +46,8 @@ function getCountdown(dateStr: string | Date): string | null {
   return `za ${days} dni`;
 }
 
+const crestSlotClass = "flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-muted to-secondary border border-primary/15";
+
 export function SparingCard({
   sparing,
   favorited,
@@ -68,7 +70,7 @@ export function SparingCard({
         {/* VS layout */}
         <div className="mb-3 flex items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1a2e] to-secondary border border-[rgba(139,92,246,0.15)]">
+            <div className={crestSlotClass}>
               {sparing.club.logoUrl ? (
                 <img src={sparing.club.logoUrl} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -78,12 +80,12 @@ export function SparingCard({
               )}
             </div>
             <span className="text-base text-muted-foreground font-light">vs</span>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1a2e] to-secondary border border-[rgba(139,92,246,0.15)]">
+            <div className={crestSlotClass}>
               <span className="text-sm font-bold text-muted-foreground">?</span>
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2" style={{ fontFamily: 'var(--font-rubik)' }}>
+            <h3 className="font-display text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
               {sparing.title}
             </h3>
             <p className="text-[11px] text-muted-foreground mt-0.5">{sparing.club.name}</p>

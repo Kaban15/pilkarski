@@ -7,7 +7,7 @@ import { signOut } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
-import { ROLE_LABELS } from "@/lib/labels";
+
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
@@ -140,7 +140,6 @@ export function Sidebar({ user }: SidebarProps) {
     (item) => pathname === item.href || (item.href !== "/feed" && pathname.startsWith(item.href))
   );
 
-  const roleLabel = ROLE_LABELS[user.role] ?? "Użytkownik";
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border dark:border-white/[0.06] bg-background md:flex">

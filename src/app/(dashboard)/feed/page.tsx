@@ -325,11 +325,11 @@ function ClubHeaderCard({
         </div>
         {/* Club info */}
         <div className="min-w-0 flex-1">
-          <p className="text-[26px] font-bold text-white leading-tight line-clamp-1 tracking-[-0.5px]" style={{ fontFamily: 'var(--font-rubik)' }}>
+          <p className="font-display text-[26px] font-bold text-white leading-tight line-clamp-1 tracking-[-0.5px]">
             {clubProfile.name}
           </p>
           {(clubProfile.city || regionLabel) && (
-            <p className="text-xs text-[#a78bfa] mt-0.5">
+            <p className="text-xs text-accent-foreground mt-0.5">
               {[clubProfile.city, regionLabel].filter(Boolean).join(" · ")}
             </p>
           )}
