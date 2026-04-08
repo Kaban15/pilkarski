@@ -197,14 +197,7 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-sky-500/20 text-sm font-bold text-violet-600 dark:text-violet-300 ring-2 ring-violet-400/20">
             {(user.name || user.email || "?")[0].toUpperCase()}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-foreground/90 dark:text-white/90">
-              {user.name || user.email}
-            </p>
-            <p className="text-[11px] font-medium text-muted-foreground dark:text-white/30">
-              {t(roleLabel)}
-            </p>
-          </div>
+          <div className="flex-1" />
           <div className="flex items-center gap-0.5">
             <LanguageToggle />
             <PushNotificationToggle />
