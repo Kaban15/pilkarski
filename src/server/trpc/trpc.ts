@@ -32,6 +32,7 @@ const enforceAuth = t.middleware(async ({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(enforceAuth);
+export const createCallerFactory = t.createCallerFactory;
 
 /**
  * Rate-limited protected procedure.

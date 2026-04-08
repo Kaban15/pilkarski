@@ -3,15 +3,17 @@
 import { useCallback } from "react";
 import { api } from "@/lib/trpc-react";
 
-const prefetchedRoutes = new Set<string>();
+const prefetchedRoutes = new Map<string, number>();
+const PREFETCH_COOLDOWN = 60_000; // re-prefetch after 60s
 
 export function usePrefetchRoute() {
   const utils = api.useUtils();
 
   const prefetch = useCallback(
     (href: string) => {
-      if (prefetchedRoutes.has(href)) return;
-      prefetchedRoutes.add(href);
+      const lastPrefetch = prefetchedRoutes.get(href) ?? 0;
+      if (Date.now() - lastPrefetch < PREFETCH_COOLDOWN) return;
+      prefetchedRoutes.set(href, Date.now());
 
       switch (href) {
         case "/feed":

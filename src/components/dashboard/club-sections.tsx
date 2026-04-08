@@ -23,7 +23,7 @@ export function ClubDashboardSections() {
   const { t, locale } = useI18n();
   const applicationStatusLabels = getLabels(APPLICATION_STATUS_LABELS, locale);
   const { data, isLoading } = api.stats.clubDashboard.useQuery(undefined, {
-    staleTime: 30_000,
+    staleTime: 120_000,
   });
 
   if (isLoading || !data) return null;
