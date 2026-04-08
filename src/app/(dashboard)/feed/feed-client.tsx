@@ -356,22 +356,15 @@ function ClubStatsRow({
   activeSparings,
   pendingApplications,
   squadCount,
-  winRecord,
 }: {
   activeSparings: number;
   pendingApplications: number;
   squadCount: number;
-  winRecord: { wins: number; draws: number; losses: number };
 }) {
   const { t } = useI18n();
-  const { wins, draws, losses } = winRecord;
-  const bilansParts: string[] = [];
-  if (wins > 0 || draws > 0 || losses > 0) {
-    bilansParts.push(`${wins}-${draws}-${losses}`);
-  }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+    <div className="grid grid-cols-3 gap-2 mb-3">
       <Link href="/sparings">
         <StatsCell value={activeSparings} label={t("Aktywne sparingi")} color="violet" />
       </Link>
@@ -381,13 +374,6 @@ function ClubStatsRow({
       <Link href="/squad">
         <StatsCell value={squadCount} label={t("Kadra")} color="sky" />
       </Link>
-      <div>
-        <StatsCell
-          value={bilansParts.length > 0 ? bilansParts[0] : "—"}
-          label={t("Bilans W-R-P")}
-          color="emerald"
-        />
-      </div>
     </div>
   );
 }
@@ -588,7 +574,6 @@ function ClubDashboard({
   const activeSparings = dashboardStats?.activeSparings ?? 0;
   const pendingApplications = dashboardStats?.pendingApplications ?? 0;
   const squadCount = clubDashboard?.squadCount ?? 0;
-  const winRecord = clubDashboard?.winRecord ?? { wins: 0, draws: 0, losses: 0 };
   const nextMatch = clubDashboard?.nextMatch ?? null;
   const pendingApplicationsList = clubDashboard?.pendingApplications ?? [];
 
@@ -605,7 +590,6 @@ function ClubDashboard({
         activeSparings={activeSparings}
         pendingApplications={pendingApplications}
         squadCount={squadCount}
-        winRecord={winRecord}
       />
 
       {/* 3. Next match (conditional) */}
