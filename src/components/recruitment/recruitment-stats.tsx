@@ -7,10 +7,10 @@ import { Target, Eye, FileText, UserCheck, CheckCircle2, Timer } from "lucide-re
 import { useI18n } from "@/lib/i18n";
 
 const STAGE_CONFIG = [
-  { key: "watching", label: "Na radarze", icon: Eye, color: "text-blue-500", bg: "bg-blue-500/10" },
-  { key: "invited", label: "Zaproszeni", icon: FileText, color: "text-amber-500", bg: "bg-amber-500/10" },
-  { key: "afterTryout", label: "Po testach", icon: UserCheck, color: "text-violet-500", bg: "bg-violet-500/10" },
-  { key: "signed", label: "Podpisani", icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { key: "watching", label: "Na radarze", icon: Eye, color: "text-blue-400", bg: "bg-blue-500/10", gradientClass: "sport-gradient-blue", borderColor: "border-blue-500/15" },
+  { key: "invited", label: "Zaproszeni", icon: FileText, color: "text-amber-400", bg: "bg-amber-500/10", gradientClass: "sport-gradient-amber", borderColor: "border-amber-500/15" },
+  { key: "afterTryout", label: "Po testach", icon: UserCheck, color: "text-violet-400", bg: "bg-violet-500/10", gradientClass: "sport-gradient-violet", borderColor: "border-violet-500/15" },
+  { key: "signed", label: "Podpisani", icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/10", gradientClass: "sport-gradient-green", borderColor: "border-emerald-500/15" },
 ] as const;
 
 export function RecruitmentStats() {
@@ -38,32 +38,36 @@ export function RecruitmentStats() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-3">
-          {STAGE_CONFIG.map(({ key, label, icon: Icon, color, bg }) => {
+        <div className="grid grid-cols-2 gap-3">
+          {STAGE_CONFIG.map(({ key, label, icon: Icon, color, bg, gradientClass, borderColor }) => {
             const value = (stats as Record<string, number>)[key] ?? 0;
             return (
               <Link key={key} href="/recruitment">
-                <div className="flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors hover:border-primary/40">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${bg}`}>
-                    <Icon className={`h-3.5 w-3.5 ${color}`} />
+                <div className={`${gradientClass} rounded-2xl border ${borderColor} p-4 transition-all hover:border-primary/40`}>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${bg}`}>
+                      <Icon className={`h-3.5 w-3.5 ${color}`} />
+                    </div>
+                    <span className={`text-[11px] font-medium ${color}`}>{t(label)}</span>
                   </div>
-                  <div>
-                    <span className="text-lg font-bold tabular-nums">{value}</span>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t(label)}</p>
-                  </div>
+                  <span className={`text-[32px] font-extrabold tabular-nums leading-none ${color}`}>
+                    {value}
+                  </span>
                 </div>
               </Link>
             );
           })}
           {avgTime && (
-            <div className="flex items-center gap-2 rounded-xl border px-3 py-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10">
-                <Timer className="h-3.5 w-3.5 text-emerald-500" />
+            <div className="sport-gradient-green rounded-2xl border border-emerald-500/15 p-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10">
+                  <Timer className="h-3.5 w-3.5 text-emerald-400" />
+                </div>
+                <span className="text-[11px] font-medium text-emerald-400">{t("Śr. do podpisania")}</span>
               </div>
-              <div>
-                <span className="text-lg font-bold tabular-nums">{avgTime.avgDays}d</span>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("Śr. do podpisania")}</p>
-              </div>
+              <span className="text-[32px] font-extrabold tabular-nums leading-none text-emerald-400">
+                {avgTime.avgDays}d
+              </span>
             </div>
           )}
         </div>
