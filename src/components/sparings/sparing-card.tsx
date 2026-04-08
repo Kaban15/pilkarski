@@ -61,24 +61,32 @@ export function SparingCard({
 
   return (
     <Link href={`/sparings/${sparing.id}`} className="group block">
-      <div className="h-full border border-border bg-card p-5 transition-all hover:bg-white/[0.03] hover:border-sport-cyan/30 border-l-2 border-l-sport-cyan">
-        {/* Top row: club + favorite */}
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+      <div className="h-full rounded-2xl bg-card p-5 transition-all hover:border-[rgba(139,92,246,0.2)] hover:shadow-[var(--shadow-card-hover)] border border-[rgba(6,182,212,0.12)] shadow-[var(--shadow-card)] relative overflow-hidden pl-7">
+        {/* Gradient left border */}
+        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-sport-cyan to-primary rounded-l-2xl" />
+
+        {/* VS layout */}
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1a2e] to-secondary border border-[rgba(139,92,246,0.15)]">
               {sparing.club.logoUrl ? (
                 <img src={sparing.club.logoUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <span className="text-[10px] font-bold text-muted-foreground">
+                <span className="text-sm font-bold text-muted-foreground">
                   {sparing.club.name.slice(0, 2).toUpperCase()}
                 </span>
               )}
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-medium text-muted-foreground">
-                {sparing.club.name}
-              </p>
+            <span className="text-base text-muted-foreground font-light">vs</span>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1a2e] to-secondary border border-[rgba(139,92,246,0.15)]">
+              <span className="text-sm font-bold text-muted-foreground">?</span>
             </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2" style={{ fontFamily: 'var(--font-rubik)' }}>
+              {sparing.title}
+            </h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{sparing.club.name}</p>
           </div>
           {showFavorite && (
             <div className="shrink-0" onClick={(e) => e.preventDefault()}>
@@ -87,26 +95,21 @@ export function SparingCard({
           )}
         </div>
 
-        {/* Title */}
-        <h3 className="mb-3 text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
-          {sparing.title}
-        </h3>
-
         {/* Badges */}
         {(sparing.level || sparing.ageCategory) && (
           <div className="mb-3 flex flex-wrap gap-1.5">
             {sparing.level && (
-              <Badge variant="secondary" className={`text-[11px] font-medium ${SPARING_LEVEL_COLORS[sparing.level]}`}>
+              <Badge variant="secondary" className={`rounded-lg text-[11px] font-medium ${SPARING_LEVEL_COLORS[sparing.level]}`}>
                 {t(SPARING_LEVEL_LABELS[sparing.level])}
               </Badge>
             )}
             {sparing.ageCategory && (
-              <Badge variant="secondary" className="text-[11px] font-medium">
+              <Badge variant="secondary" className="rounded-lg text-[11px] font-medium">
                 {t(AGE_CATEGORY_LABELS[sparing.ageCategory])}
               </Badge>
             )}
             {sparing.region && (
-              <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground gap-1">
+              <Badge variant="outline" className="rounded-lg text-[11px] font-normal text-muted-foreground gap-1">
                 <RegionLogo slug={sparing.region.slug} name={sparing.region.name} size={14} />
                 {sparing.region.name}
               </Badge>
