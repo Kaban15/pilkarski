@@ -893,3 +893,44 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/app/(dashboard)/calendar/loading.tsx` + `error.tsx`
 - `src/app/(dashboard)/feed/loading.tsx` + `error.tsx`
 - `src/app/(dashboard)/messages/loading.tsx` + `error.tsx`
+
+## Etap 43: Perceived Performance — Skeleton Loading + staleTime Tuning ✅
+
+**Data:** 2026-04-08
+
+**Cel:** Szybsza percepcja nawigacji między podstronami dashboardu — skeleton UI zamiast pustych spinnerów + agresywniejsze cachowanie queries.
+
+### Skeleton Loading (8 plików loading.tsx)
+- Feed, Community → `FeedCardSkeleton` (lista postów z badge + linie tekstu)
+- Events, Sparings, Transfers, Tournaments → `CardSkeleton` w gridzie `sm:grid-cols-2 lg:grid-cols-3`
+- Messages → `ConversationSkeleton` (awatar + linie konwersacji)
+- Calendar → duży prostokątny skeleton `h-[400px]`
+- Wszystkie z nagłówkiem skeleton (tytuł + podtytuł)
+
+### staleTime Tuning
+- Global default: `30s → 60s` (providers.tsx)
+- `feed.get`: default → `300_000` (5 min)
+- `stats.dashboard`: `60_000` → `300_000` (5 min)
+- `stats.clubDashboard`: `30_000` → `300_000` (5 min)
+- `event.list` (infinite): default → `180_000` (3 min)
+- `sparing.list` (infinite): default → `180_000` (3 min)
+- `transfer.list` (infinite): default → `180_000` (3 min)
+- `tournament.list` (infinite): default → `180_000` (3 min)
+- `message.getConversations`: default → `60_000` (1 min)
+
+### Pliki zmodyfikowane (10)
+- `src/components/providers.tsx` — global staleTime 60s
+- `src/app/(dashboard)/feed/loading.tsx` — FeedCardSkeleton
+- `src/app/(dashboard)/feed/page.tsx` — staleTime 5min na feed/stats/clubDashboard
+- `src/app/(dashboard)/events/loading.tsx` — CardSkeleton grid
+- `src/app/(dashboard)/events/page.tsx` — staleTime 3min
+- `src/app/(dashboard)/sparings/loading.tsx` — CardSkeleton grid
+- `src/app/(dashboard)/sparings/page.tsx` — staleTime 3min
+- `src/app/(dashboard)/transfers/loading.tsx` — CardSkeleton grid
+- `src/app/(dashboard)/transfers/page.tsx` — staleTime 3min
+- `src/app/(dashboard)/tournaments/loading.tsx` — CardSkeleton grid
+- `src/app/(dashboard)/tournaments/page.tsx` — staleTime 3min
+- `src/app/(dashboard)/community/loading.tsx` — FeedCardSkeleton
+- `src/app/(dashboard)/messages/loading.tsx` — ConversationSkeleton
+- `src/app/(dashboard)/messages/page.tsx` — staleTime 1min
+- `src/app/(dashboard)/calendar/loading.tsx` — prostokątny skeleton

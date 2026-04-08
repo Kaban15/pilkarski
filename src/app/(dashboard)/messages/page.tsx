@@ -35,6 +35,7 @@ export default function MessagesPage() {
   const router = useRouter();
   const { data: conversations = [] as Conversation[], isLoading: loading } = api.message.getConversations.useQuery(undefined, {
     select: (data) => data as unknown as Conversation[],
+    staleTime: 60_000,
   });
 
   return (

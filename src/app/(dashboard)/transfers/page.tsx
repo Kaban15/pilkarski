@@ -64,6 +64,7 @@ export default function TransfersPage() {
     isFetchingNextPage,
   } = api.transfer.list.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 180_000,
   });
 
   const items = data?.pages.flatMap((p) => p.items) ?? [];

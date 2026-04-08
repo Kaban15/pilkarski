@@ -151,6 +151,7 @@ function SearchTab() {
 
   const sparingsQuery = api.sparing.list.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 180_000,
   });
   const { items: rawItems, isLoading, isError, refetch, sentinelRef, isFetchingNextPage } = usePaginatedList(sparingsQuery);
   const items = rawItems as SparingCardItem[];

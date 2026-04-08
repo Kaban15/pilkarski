@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-07
-**Aktualny etap:** 42 etapów ukończonych
+**Ostatnia sesja:** 2026-04-08
+**Aktualny etap:** 43 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -122,8 +122,9 @@
 - Unit: Vitest 57 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router), coverage v8
 - Security: headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist
 - Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
-- Route boundaries: `loading.tsx` + `error.tsx` w 8 dashboard segments
+- Route boundaries: skeleton `loading.tsx` + `error.tsx` w 8 dashboard segments
 - Shared hook `usePaginatedList` — DRY pagination w sparings + events
+- **Query caching:** staleTime tuning (global 60s, feed/stats 5min, listy 3min, messages 60s) — szybsza nawigacja między podstronami
 
 ---
 
@@ -131,11 +132,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 43 | 2026-04-08 | Perceived performance: skeleton loading.tsx (8 stron), staleTime tuning (global 60s, feed/stats 5min, listy 3min) |
 | 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
 | 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
 | 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |
 | 39 | 2026-04-05 | Loga ZPN regionów, sociale (FB/Insta), glassmorphism sidebar, inline-edit profil klubu, smart lokalizacje wydarzeń, enhanced invite dialog |
-| 38 | 2026-03-30 | Panel Admina — moderacja zgłoszeń, zarządzanie userami (ban/admin), metryki, zarządzanie treścią, ClubPostReport model |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

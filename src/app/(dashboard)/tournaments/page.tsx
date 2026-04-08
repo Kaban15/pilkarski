@@ -37,6 +37,7 @@ export default function TournamentsPage() {
 
   const tournamentsQuery = api.tournament.list.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 180_000,
   });
 
   const { items, isLoading, isError, refetch, sentinelRef, isFetchingNextPage } = usePaginatedList(tournamentsQuery);

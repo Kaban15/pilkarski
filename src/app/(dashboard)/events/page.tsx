@@ -110,6 +110,7 @@ export default function EventsPage() {
 
   const eventsQuery = api.event.list.useInfiniteQuery(queryInput, {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 180_000,
   });
   const { items: rawItems, isLoading, isError, refetch, sentinelRef, isFetchingNextPage } = usePaginatedList(eventsQuery);
   const items = rawItems as EventItem[];
