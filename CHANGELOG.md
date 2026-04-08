@@ -1076,3 +1076,45 @@ Transformacja wizualna z flat X/Twitter-style na dynamiczny, sportowy interfejs 
 - `src/components/recruitment/recruitment-stats.tsx`
 - `src/components/calendar-view.tsx`
 - `src/components/layout/sidebar.tsx`
+
+---
+
+## Faza 46: RSC Data Prefetch & Performance ✅
+
+**Data:** 2026-04-08
+
+Eliminacja waterfall na najważniejszych stronach przez server-side prefetch + poprawki prefetch hooka.
+
+### RSC Data Prefetch
+- `src/lib/trpc-server.ts` — server-side tRPC caller z `createHydrationHelpers` (@trpc/react-query/rsc)
+- `createCallerFactory` wyeksportowany z `src/server/trpc/trpc.ts`
+- Feed page: RSC wrapper prefetchuje `feed.get`, `stats.dashboard`, `club.me`, `stats.clubDashboard` server-side
+- Sparings page: RSC wrapper prefetchuje `region.list` server-side
+- Klient dostaje dane z `HydrateClient` — zero waterfall na first render
+- Pakiet `server-only` dodany dla bezpieczeństwa importów
+
+### Time-aware Prefetch Hook
+- `usePrefetchRoute`: `Set` → `Map<string, number>` z 60s cooldown
+- Re-prefetch po powrocie na stronę (wcześniej: once-per-session, nigdy nie odświeżał)
+
+### staleTime Normalization
+- `stats.clubDashboard`: `30_000` → `120_000` w `club-sections.tsx` i `sparings-client.tsx`
+- Eliminuje niepotrzebne refetche co 30s
+
+### UI: Usunięty Bilans W-R-P
+- Kafelek "Bilans W-R-P" usunięty z dashboard stats row
+- Grid zmieniony z `grid-cols-2 sm:grid-cols-4` na `grid-cols-3`
+- Usunięty `winRecord` z `ClubStatsRow` props i `ClubDashboard`
+
+### Nowe pliki (3)
+- `src/lib/trpc-server.ts`
+- `src/app/(dashboard)/feed/feed-client.tsx` (wydzielone z page.tsx)
+- `src/app/(dashboard)/sparings/sparings-client.tsx` (wydzielone z page.tsx)
+
+### Pliki zmodyfikowane (6)
+- `src/server/trpc/trpc.ts` — export `createCallerFactory`
+- `src/app/(dashboard)/feed/page.tsx` — RSC wrapper z prefetch
+- `src/app/(dashboard)/sparings/page.tsx` — RSC wrapper z prefetch
+- `src/hooks/use-prefetch-route.ts` — time-aware prefetch
+- `src/components/dashboard/club-sections.tsx` — staleTime 120s
+- `package.json` — dodany `server-only`

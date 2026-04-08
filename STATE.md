@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-08
-**Aktualny etap:** 45 etapów ukończonych
+**Aktualny etap:** 46 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -127,8 +127,9 @@
 - Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
 - Route boundaries: skeleton `loading.tsx` + `error.tsx` w 8 dashboard segments
 - Shared hook `usePaginatedList` — DRY pagination w sparings + events
-- **Query caching:** staleTime tuning (global 60s, feed/stats 5min, listy 3min, messages 60s) — szybsza nawigacja między podstronami
-- **Prefetch on hover:** `usePrefetchRoute` hook — sidebar (onMouseEnter) + bottom-nav (onTouchStart) prefetchują tRPC queries przed kliknięciem
+- **RSC data prefetch:** feed + sparings pages jako Server Components z `createHydrationHelpers` — dane prefetchowane server-side, zero waterfall na first render
+- **Query caching:** staleTime tuning (global 60s, feed/stats 5min, listy 3min, clubDashboard 2min) — szybsza nawigacja między podstronami
+- **Prefetch on hover:** `usePrefetchRoute` hook — time-aware (re-prefetch po 60s), sidebar (onMouseEnter) + bottom-nav (onTouchStart)
 - **RSC router cache:** `staleTimes` w next.config (dynamic 30s, static 180s) — klient cachuje RSC payload
 
 ---
@@ -137,11 +138,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 46 | 2026-04-08 | Perf: RSC data prefetch (feed+sparings), time-aware prefetch hook, staleTime normalization, usunięty Bilans W-R-P |
 | 45 | 2026-04-08 | Visual redesign: głębia (cienie, zaokrąglenia), Rubik font, gradient akcenty, SVG hero, VS sparing cards, pipeline gradient tiles, calendar highlights, sidebar simplification |
 | 44 | 2026-04-08 | Feed redesign: zróżnicowane karty (6 typów), 3-kolumnowy layout (feed+right panel), pull-to-refresh, leaderboard widget |
 | 43 | 2026-04-08 | Perceived performance: skeleton loading, staleTime tuning, tRPC prefetch on hover, RSC router cache |
 | 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
-| 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
