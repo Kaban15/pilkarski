@@ -143,7 +143,7 @@ Komponent dashboard page — sekcja z nazwą klubu na górze pulpitu.
 Dwa herby klubów (44x44px, `rounded-xl`) z "vs" pomiędzy, zamiast jednego małego herbu.
 
 ### Border
-- Left border: gradient `linear-gradient(to bottom, #06b6d4, #8b5cf6)` (3px)
+- Left border: gradient `linear-gradient(to bottom, #06b6d4, #8b5cf6)` (3px) — implementacja via `border-image: linear-gradient(...) 1` lub pseudo-element `::before` z gradient background
 - Outer border: `rgba(6, 182, 212, 0.12)`
 
 ### Badge
@@ -195,12 +195,16 @@ Nowe utility classes do dodania:
 .sport-gradient-violet { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.04)); }
 .sport-gradient-green { background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04)); }
 
-/* Card elevation */
+/* Card elevation — uses CSS custom properties for theme switching */
 .sport-card-elevated {
-  background: #0a0a0f;
-  border: 1px solid rgba(139, 92, 246, 0.10);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.05);
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--shadow-card);
 }
+
+/* Theme variables (added to :root and .dark in globals.css) */
+/* :root { --color-card: #ffffff; --color-card-border: rgba(139,92,246,0.08); --shadow-card: 0 2px 8px rgba(0,0,0,0.06); } */
+/* .dark { --color-card: #0a0a0f; --color-card-border: rgba(139,92,246,0.10); --shadow-card: 0 2px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(139,92,246,0.05); } */
 
 /* Font display */
 .font-display { font-family: var(--font-rubik), sans-serif; }
@@ -223,7 +227,7 @@ Nowe utility classes do dodania:
 | `src/components/sparings/sparing-card.tsx` | VS layout, duże herby, gradient border |
 | `src/components/recruitment/recruitment-stats.tsx` | Gradient kafelki, ikony, duże liczby |
 | `src/components/calendar-view.tsx` | Kolorowe gradient tła na dniach z wydarzeniami |
-| `src/app/(dashboard)/*/page.tsx` | Hero section z SVG overlay (dashboard page) |
+| `src/app/(dashboard)/feed/page.tsx` | Hero section z SVG overlay (dashboard/feed page — główny pulpit) |
 
 ---
 
