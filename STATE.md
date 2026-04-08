@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-08
-**Aktualny etap:** 43 etapów ukończonych
+**Aktualny etap:** 44 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -114,7 +114,7 @@
 - Edge middleware: `/admin` dostępne tylko dla isAdmin
 
 ### Inne
-- Feed z regionu (sparingi, wydarzenia, kluby, zawodnicy, transfery, posty)
+- Feed z regionu: zróżnicowane karty (6 typów z unikalnymi layoutami), 3-kolumnowy layout desktop (feed+right panel z quicklinks/leaderboard), pull-to-refresh (mobile gesture)
 - Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
@@ -134,11 +134,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 44 | 2026-04-08 | Feed redesign: zróżnicowane karty (6 typów), 3-kolumnowy layout (feed+right panel), pull-to-refresh, leaderboard widget |
 | 43 | 2026-04-08 | Perceived performance: skeleton loading, staleTime tuning, tRPC prefetch on hover, RSC router cache |
 | 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
 | 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
 | 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |
-| 39 | 2026-04-05 | Loga ZPN regionów, sociale (FB/Insta), glassmorphism sidebar, inline-edit profil klubu, smart lokalizacje wydarzeń, enhanced invite dialog |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

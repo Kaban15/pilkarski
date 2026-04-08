@@ -5,13 +5,22 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
-import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
-import { getLabels, EVENT_TYPE_LABELS, POSITION_LABELS } from "@/lib/labels";
 import { useI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/empty-state";
+import {
+  SparingFeedCard,
+  EventFeedCard,
+  TransferFeedCard,
+  TournamentFeedCard,
+  ClubPostFeedCard,
+  NewMemberFeedCard,
+} from "@/components/feed";
+import { FeedRightPanel } from "@/components/feed/feed-right-panel";
+import { PullToRefreshIndicator } from "@/components/feed/pull-to-refresh-indicator";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
@@ -26,9 +35,7 @@ import {
   Swords,
   Trophy,
   Calendar,
-  MapPin,
   MessageSquare,
-  FileText,
   TrendingUp,
   Plus,
   Search,
@@ -46,162 +53,22 @@ type FeedItem = {
   createdAt: string | Date;
 };
 
-const FEED_CONFIG = {
-  sparing: {
-    label: "Sparing",
-    badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  },
-  event: {
-    label: "Wydarzenie",
-    badge: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
-  },
-  club: {
-    label: "Nowy klub",
-    badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  },
-  transfer: {
-    label: "Transfer",
-    badge: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
-  },
-  player: {
-    label: "Nowy zawodnik",
-    badge: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  },
-  tournament: {
-    label: "Turniej",
-    badge: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  },
-  clubPost: {
-    label: "Ogłoszenie",
-    badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400",
-  },
-};
-
 function FeedCard({ item }: { item: FeedItem }) {
-  const { t, locale } = useI18n();
-  const eventTypeLabels = getLabels(EVENT_TYPE_LABELS, locale);
-  const positionLabels = getLabels(POSITION_LABELS, locale);
-  const config = FEED_CONFIG[item.type];
-
-  const getHref = () => {
-    switch (item.type) {
-      case "sparing":
-        return `/sparings/${item.data.id}`;
-      case "event":
-        return `/events/${item.data.id}`;
-      case "transfer":
-        return `/transfers/${item.data.id}`;
-      case "club":
-        return `/clubs/${item.data.id}`;
-      case "player":
-        return `/players/${item.data.id}`;
-      case "tournament":
-        return `/tournaments/${item.data.id}`;
-      case "clubPost":
-        return `/community`;
-    }
-  };
-
-  const getTitle = () => {
-    switch (item.type) {
-      case "sparing":
-      case "event":
-      case "transfer":
-        return item.data.title;
-      case "club":
-        return item.data.name;
-      case "player":
-        return `${item.data.firstName} ${item.data.lastName}`;
-      case "tournament":
-        return item.data.title;
-      case "clubPost":
-        return item.data.title;
-    }
-  };
-
-  const getSubtitle = () => {
-    switch (item.type) {
-      case "sparing":
-        return item.data.club.name + (item.data.club.city ? ` · ${item.data.club.city}` : "");
-      case "event":
-        return (
-          (eventTypeLabels[item.data.type] ?? t("Wydarzenie")) +
-          " · " +
-          item.data.club.name
-        );
-      case "transfer": {
-        const u = item.data.user;
-        const name = u?.club?.name ?? (u?.player ? `${u.player.firstName} ${u.player.lastName}` : "");
-        const city = u?.club?.city ?? u?.player?.city ?? "";
-        return name + (city ? ` · ${city}` : "") + (item.data.region ? ` · ${item.data.region.name}` : "");
-      }
-      case "club":
-        return (
-          (item.data.city ?? "") +
-          (item.data.region ? ` · ${item.data.region.name}` : "")
-        );
-      case "player":
-        return (
-          (positionLabels[item.data.primaryPosition] ?? "") +
-          (item.data.city ? ` · ${item.data.city}` : "") +
-          (item.data.region ? ` · ${item.data.region.name}` : "")
-        );
-      case "tournament": {
-        const creator = item.data.creator;
-        const organizerName =
-          creator?.club?.name ||
-          (creator?.player ? `${creator.player.firstName} ${creator.player.lastName}` : "") ||
-          (creator?.coach ? `${creator.coach.firstName} ${creator.coach.lastName}` : "") ||
-          t("Organizator");
-        return `${organizerName} · ${item.data._count?.teams ?? 0}/${item.data.maxTeams} ${t("drużyn")}`;
-      }
-      case "clubPost":
-        return item.data.club?.name ?? "";
-    }
-  };
-
-  return (
-    <Link href={getHref()} className="group block">
-      <div className="flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-all hover:border-border hover:bg-white/[0.03]">
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${config.badge}`}
-            >
-              {item.type === "event"
-                ? (eventTypeLabels[item.data.type] ?? t(config.label))
-                : t(config.label)}
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              {formatDate(item.createdAt)}
-            </span>
-          </div>
-          <p className="text-[14px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-            {getTitle()}
-          </p>
-          <p className="text-[13px] text-muted-foreground line-clamp-1">{getSubtitle()}</p>
-        </div>
-        {(item.type === "sparing" || item.type === "event" || item.type === "tournament") && (
-          <div className="shrink-0 text-right text-[12px] text-muted-foreground">
-            <div className="flex items-center gap-1 justify-end">
-              <Calendar className="h-3 w-3 opacity-50" />
-              {item.type === "sparing"
-                ? formatDate(item.data.matchDate)
-                : item.type === "event"
-                  ? formatDate(item.data.eventDate)
-                  : formatDate(item.data.startDate)}
-            </div>
-            {item.data.location && (
-              <div className="mt-0.5 flex items-center gap-1 justify-end">
-                <MapPin className="h-3 w-3 opacity-50" />
-                <span className="truncate max-w-[120px]">{item.data.location}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </Link>
-  );
+  switch (item.type) {
+    case "sparing":
+      return <SparingFeedCard data={item.data} createdAt={item.createdAt} />;
+    case "event":
+      return <EventFeedCard data={item.data} createdAt={item.createdAt} />;
+    case "transfer":
+      return <TransferFeedCard data={item.data} createdAt={item.createdAt} />;
+    case "tournament":
+      return <TournamentFeedCard data={item.data} createdAt={item.createdAt} />;
+    case "clubPost":
+      return <ClubPostFeedCard data={item.data} createdAt={item.createdAt} />;
+    case "club":
+    case "player":
+      return <NewMemberFeedCard type={item.type} data={item.data} createdAt={item.createdAt} />;
+  }
 }
 
 type DashboardStats = {
@@ -776,8 +643,18 @@ export default function FeedPage() {
   const showPlayerOnboarding = isPlayer && !playerOnboardingDone;
   const showCoachOnboarding = isCoach && !coachOnboardingDone;
 
+  const { pullDistance, refreshing, progress } = usePullToRefresh({
+    onRefresh: async () => {
+      await feed.refetch();
+      await stats.refetch();
+    },
+  });
+
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in lg:flex lg:gap-6">
+      {/* Main feed column */}
+      <div className="min-w-0 flex-1 lg:max-w-2xl">
+      <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} progress={progress} />
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           {isClub ? t("Pulpit") : "Feed"}
@@ -890,6 +767,14 @@ export default function FeedPage() {
           ))}
         </div>
       )}
+      </div>
+
+      {/* Right panel — desktop only */}
+      <aside className="hidden lg:block lg:w-72 xl:w-80 shrink-0">
+        <div className="sticky top-6">
+          <FeedRightPanel />
+        </div>
+      </aside>
     </div>
   );
 }

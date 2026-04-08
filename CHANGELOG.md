@@ -953,3 +953,45 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/components/layout/sidebar.tsx` — import + onMouseEnter prefetch
 - `src/components/layout/bottom-nav.tsx` — import + onTouchStart prefetch
 - `next.config.ts` — experimental.staleTimes
+
+## Etap 44: Feed Redesign — Zróżnicowane karty, 3-kolumnowy layout, Pull-to-Refresh ✅
+
+**Data:** 2026-04-08
+
+### Zróżnicowane karty feedu (6 typów)
+- `SparingFeedCard` — herby klubów VS, countdown <24h (pulse), koszt badge, emerald accent
+- `EventFeedCard` — typ wydarzenia badge, koszt, max uczestników, violet accent
+- `TransferFeedCard` — pozycja badge, region, cyan accent
+- `TournamentFeedCard` — format badge (Grupy/Puchar), ilość drużyn counter, orange accent
+- `ClubPostFeedCard` — kategoria z kolorami, podgląd treści (line-clamp-2), rose accent
+- `NewMemberFeedCard` — awatar/logo, pozycja, region, blue/orange accent
+- Każda karta ma unikalne hover (border + tło w kolorze accent)
+- Zastąpienie monolitycznego `FeedCard` z switch statements
+
+### 3-kolumnowy layout (desktop)
+- Feed page: `lg:flex lg:gap-6` — main feed (flex-1, max-w-2xl) + right panel (w-72/xl:w-80)
+- Right panel sticky (top-6): QuickLinks (role-aware) + Top 5 Leaderboard
+- Prawa kolumna hidden na mobile (`hidden lg:block`)
+- Club: szybkie akcje (nowy sparing, nabór, pipeline, kalendarz, szukaj rywala)
+- Player/Coach: statystyki (zgłoszenia, wiadomości) + leaderboard
+
+### Pull-to-Refresh (mobile gesture)
+- `usePullToRefresh` hook — touch gesture z dampening, threshold 80px
+- `PullToRefreshIndicator` — rotating arrow z progress, spin na refresh
+- Podpięty do feed.refetch() + stats.refetch()
+- Widoczny tylko na mobile (`md:hidden`)
+
+### Nowe pliki (9)
+- `src/components/feed/sparing-feed-card.tsx`
+- `src/components/feed/event-feed-card.tsx`
+- `src/components/feed/transfer-feed-card.tsx`
+- `src/components/feed/tournament-feed-card.tsx`
+- `src/components/feed/club-post-feed-card.tsx`
+- `src/components/feed/new-member-feed-card.tsx`
+- `src/components/feed/feed-right-panel.tsx`
+- `src/components/feed/pull-to-refresh-indicator.tsx`
+- `src/components/feed/index.ts`
+- `src/hooks/use-pull-to-refresh.ts`
+
+### Pliki zmodyfikowane
+- `src/app/(dashboard)/feed/page.tsx` — rozbicie FeedCard na dispatcher, 2-kolumnowy layout, pull-to-refresh, usunięte nieużywane importy (formatDate, MapPin, FileText, getLabels, EVENT_TYPE_LABELS, POSITION_LABELS)
