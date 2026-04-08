@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-08
-**Aktualny etap:** 44 etapów ukończonych
+**Aktualny etap:** 45 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -86,18 +86,21 @@
 - `/ranking` — punkty, odznaki, historia
 
 ### UI/Design
-- **X/Twitter-style dark mode:** pure black `#000000`, flat cards (no shadow, rounded-none), minimal borders `#2f3336`
-- **X-style light mode:** white `#ffffff`, borders `#eff3f4`, muted `#f7f9f9`, foreground `#0f1419`
+- **Visual Redesign (Etap 45):** głębia, gradienty, zaokrąglenia zamiast flat X/Twitter-style
+- **Dark mode:** tło `#000000`, karty `#0a0a0f` (odcięte od tła), cienie z violet tint, border `rgba(139,92,246,0.10)`
+- **Light mode:** white `#ffffff`, delikatne cienie, violet-tinted borders
+- **Primary accent:** `#8b5cf6` (violet-500) z gradientami na buttonach i progress bars
+- **Zaokrąglenia:** zróżnicowane — karty 16px, buttony 8px, inputy 10px, dialogi 20px
+- **Fonty:** Rubik (nagłówki/display, wagi 600-900) + Inter (body text)
+- **Hero section:** SVG boisko overlay (4% opacity), duży herb 72px z gradient tło, Rubik headings
+- **Sparing card:** VS layout (2 herby), gradient left border (cyan→violet)
+- **Pipeline rekrutacyjny:** gradient tiles w 2x2 grid, duże liczby 32px
+- **Kalendarz:** gradient highlights na dniach z wydarzeniami (cyan/orange/violet per typ)
+- **Sidebar:** kompaktowy user section (avatar + ikony, bez nazwy/roli)
 - **Sport energy accents:** cyan (`--sport-cyan`) + żółty (`--sport-yellow`) + X-blue (`--x-blue`)
-- **Chat bubbles:** X-blue own, secondary others, rounded-2xl
-- **Tabs:** underline indicator (`border-b-2 border-x-blue`)
-- **Sidebar:** X-style "Więcej" inline collapsible, hidden scrollbar, kompaktowy (44px items), theme-aware (light/dark)
-- **Micro-interactions:** heart bounce, check-pop, countdown pulse, sport card left border
+- **Micro-interactions:** heart bounce, check-pop, countdown pulse, hover glow, card elevation transitions
 - Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog
 - Bottom Nav mobile (role-aware)
-- Profil klubu: inline-editable fields
-- Social links (FB/Insta) na profilach klubów, graczy, trenerów
-- Landing: pure black, gradient text, dot grid (no animated blobs)
 - shadcn/ui: 15 komponentów
 - Dark mode: class-based, ThemeToggle, zero-flash script
 - **i18n PL/EN:** `useI18n()` hook + `t()` + `LanguageToggle` w sidebarze, ~65 komponentów przetłumaczonych
@@ -134,11 +137,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 45 | 2026-04-08 | Visual redesign: głębia (cienie, zaokrąglenia), Rubik font, gradient akcenty, SVG hero, VS sparing cards, pipeline gradient tiles, calendar highlights, sidebar simplification |
 | 44 | 2026-04-08 | Feed redesign: zróżnicowane karty (6 typów), 3-kolumnowy layout (feed+right panel), pull-to-refresh, leaderboard widget |
 | 43 | 2026-04-08 | Perceived performance: skeleton loading, staleTime tuning, tRPC prefetch on hover, RSC router cache |
 | 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
 | 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
-| 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -150,7 +153,7 @@
 |---------|-------------|
 | Frontend | Next.js 16 (App Router) + TypeScript |
 | UI | Tailwind CSS 4 + shadcn/ui (15) + sonner + Recharts + Leaflet |
-| Font | Inter (next/font/google) |
+| Font | Inter (body) + Rubik (display) via next/font/google |
 | API | tRPC v11 (fetch adapter) |
 | ORM | Prisma 7 + @prisma/adapter-pg |
 | DB | PostgreSQL (Supabase — Transaction Pooler, port 6543) |
@@ -252,7 +255,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 7. **Auth.js v5 na Vercel** — `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, cookie `__Secure-authjs.session-token`
 8. **SessionProvider** w root layout — wymagany dla `signIn()`/`useSession()`
 9. **Sidebar layout** — desktop fixed 256px (`md:flex`, X-style collapsible "Więcej") + bottom nav mobile (`md:hidden`)
-10. **Font Inter** — className na `<html>`, NIE font-family w globals.css
+10. **Fonty Inter + Rubik** — CSS variables (`--font-inter`, `--font-rubik`) na `<html>`, Rubik przez `font-display` Tailwind class
 11. **Kolorowanie typów** — emerald=sparingi, violet=wydarzenia, blue=kluby, orange=zawodnicy, amber=wiadomości, cyan=transfery, x-blue=active tabs/chat/notifications
 12. **Notyfikacje fire-and-forget** — `.catch(err => console.error("[context]", err))`, nie blokują response
 13. **Server-side upload** — `/api/upload` z `SUPABASE_SERVICE_ROLE_KEY` (nie anon key)

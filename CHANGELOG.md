@@ -995,3 +995,84 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 
 ### Pliki zmodyfikowane
 - `src/app/(dashboard)/feed/page.tsx` — rozbicie FeedCard na dispatcher, 2-kolumnowy layout, pull-to-refresh, usunięte nieużywane importy (formatDate, MapPin, FileText, getLabels, EVENT_TYPE_LABELS, POSITION_LABELS)
+
+---
+
+## Faza 45: Visual Redesign — Theme Layer ✅
+
+**Data:** 2026-04-08
+
+Transformacja wizualna z flat X/Twitter-style na dynamiczny, sportowy interfejs z głębią, gradientami i hierarchią wizualną. Podejście Theme Layer — zmiany skoncentrowane w CSS/theme, zero zmian w logice biznesowej.
+
+### Fundament Theme (`globals.css`)
+- Primary accent: `#7c3aed` → `#8b5cf6` (violet-500, jaśniejszy, lepszy kontrast)
+- Dark mode karty: `#000000` → `#0a0a0f` (odcięcie od tła)
+- Dark mode border: `#2f3336` → `rgba(139,92,246,0.10)` (violet tint)
+- Nowe CSS vars: `--shadow-card`, `--shadow-card-hover`, `--shadow-button-primary`, `--card-elevated-bg`, `--card-elevated-border`
+- Nowe utility: `.sport-gradient-{blue,amber,violet,green}`, `.sport-card-elevated`
+- `--font-display: var(--font-rubik)` w `@theme inline`
+- `.sport-heading` z `font-family: var(--font-rubik)`
+- `.hover-glow-violet` zaktualizowany do nowego koloru
+
+### Typografia
+- Import Rubik (Google Fonts) obok Inter w `layout.tsx`
+- CSS variables: `--font-inter`, `--font-rubik` na `<html>`
+- Rubik: wagi 600-900, display font na nagłówkach (`font-display` class)
+- Inter: body text (bez zmian)
+
+### Zaokrąglenia (zróżnicowana hierarchia)
+- `card.tsx`: `rounded-none` → `rounded-2xl` (16px) + shadow + violet border
+- `button.tsx`: `rounded-md` → `rounded-lg` (8px) + gradient na default variant
+- `input.tsx`: `rounded-md` → `rounded-[10px]`
+- `dialog.tsx`: `rounded-lg` → `rounded-[20px]`
+- `sheet.tsx` (bottom): dodano `rounded-t-[20px]`
+
+### Hero Section (`ClubHeaderCard`)
+- Dot pattern → SVG boisko (linie, pole karne, koło środkowe) na 4% opacity
+- Gradient glow: radial violet w prawym górnym rogu
+- Herb klubu: 56px → 72px, gradient tło (`#8b5cf6` → `#6d28d9`), shadow
+- Nazwa: Rubik font, 26px, tracking -0.5px
+- Podtytuł: `text-accent-foreground` zamiast hardcoded hex
+
+### Karta Sparingu
+- VS layout: 2 herby (44x44px, `rounded-xl`) z "vs" pomiędzy
+- Gradient left border: pseudo-element cyan→violet (3px)
+- Tytuł w Rubik font (`font-display` class)
+- Badge z `rounded-lg`
+- Extracted `crestSlotClass` constant (DRY)
+
+### Pipeline Rekrutacyjny
+- Layout: `flex flex-wrap` → `grid grid-cols-2`
+- Kafelki: gradient tło per kolor (`.sport-gradient-*`), colored border
+- Liczby: `text-lg` → `text-[32px] font-extrabold`
+- avgTime tile dopasowany do nowego designu
+- Kolory: `*-500` → `*-400` (jaśniejsze na ciemnym tle)
+
+### Kalendarz
+- `getDayGradientStyle()` helper: gradient + border + glow per typ wydarzenia
+- Cyan = sparing, orange = turniej, violet = wydarzenie
+
+### Sidebar
+- Usunięta nazwa użytkownika i rola z user section
+- Zostaje: avatar + ikony (język, powiadomienia, theme)
+- Usunięte dead code: import `ROLE_LABELS`, zmienna `roleLabel`
+
+### Cleanup (code review)
+- `style={{ fontFamily }}` → `font-display` Tailwind class (2 miejsca)
+- `text-[#a78bfa]` → `text-accent-foreground`
+- Rubik: ograniczenie wag do `["600","700","800","900"]` (mniej KB)
+- Crest slot: `from-[#1a1a2e]` → `from-muted` (light mode compatible)
+
+### Pliki zmodyfikowane (11)
+- `src/styles/globals.css`
+- `src/app/layout.tsx`
+- `src/components/ui/card.tsx`
+- `src/components/ui/button.tsx`
+- `src/components/ui/dialog.tsx`
+- `src/components/ui/sheet.tsx`
+- `src/components/ui/input.tsx`
+- `src/app/(dashboard)/feed/page.tsx`
+- `src/components/sparings/sparing-card.tsx`
+- `src/components/recruitment/recruitment-stats.tsx`
+- `src/components/calendar-view.tsx`
+- `src/components/layout/sidebar.tsx`
