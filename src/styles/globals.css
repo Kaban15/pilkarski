@@ -33,6 +33,7 @@
   --color-sport-yellow: var(--sport-yellow);
   --color-x-blue: var(--x-blue);
   --radius: 0.5rem;
+  --font-display: var(--font-rubik), sans-serif;
 
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.3s ease-out;
@@ -116,39 +117,44 @@
   --card-foreground: #0f1419;
   --popover: #ffffff;
   --popover-foreground: #0f1419;
-  --primary: #7c3aed;
+  --primary: #8b5cf6;
   --primary-foreground: #ffffff;
   --secondary: #f7f9f9;
   --secondary-foreground: #0f1419;
   --muted: #f7f9f9;
   --muted-foreground: #536471;
   --accent: #f7f9f9;
-  --accent-foreground: #5b21b6;
+  --accent-foreground: #6d28d9;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #eff3f4;
   --input: #eff3f4;
-  --ring: #7c3aed;
+  --ring: #8b5cf6;
   --sidebar-background: #ffffff;
   --sidebar-foreground: #0f1419;
   --sidebar-border: #eff3f4;
   --sidebar-accent: #f7f9f9;
-  --sidebar-accent-foreground: #5b21b6;
+  --sidebar-accent-foreground: #6d28d9;
   --sidebar-muted: #f7f9f9;
   --sidebar-muted-foreground: #536471;
   --sport-cyan: #06B6D4;
   --sport-yellow: #FACC15;
   --x-blue: #1d9bf0;
+  --card-elevated-bg: #ffffff;
+  --card-elevated-border: rgba(139, 92, 246, 0.08);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 24px rgba(139, 92, 246, 0.08);
+  --shadow-button-primary: 0 4px 16px rgba(139, 92, 246, 0.15);
 }
 
 .dark {
   --background: #000000;
   --foreground: #ededed;
-  --card: #000000;
+  --card: #0a0a0f;
   --card-foreground: #ededed;
   --popover: #111111;
   --popover-foreground: #ededed;
-  --primary: #7c3aed;
+  --primary: #8b5cf6;
   --primary-foreground: #ffffff;
   --secondary: #16181c;
   --secondary-foreground: #a1a1a1;
@@ -158,9 +164,9 @@
   --accent-foreground: #a78bfa;
   --destructive: #dc2626;
   --destructive-foreground: #fef2f2;
-  --border: #2f3336;
-  --input: #2f3336;
-  --ring: #7c3aed;
+  --border: rgba(139, 92, 246, 0.10);
+  --input: rgba(139, 92, 246, 0.10);
+  --ring: #8b5cf6;
   --sidebar-background: #000000;
   --sidebar-foreground: #a1a1a1;
   --sidebar-border: #2f3336;
@@ -171,6 +177,11 @@
   --sport-cyan: #22D3EE;
   --sport-yellow: #FDE047;
   --x-blue: #1d9bf0;
+  --card-elevated-bg: #0a0a0f;
+  --card-elevated-border: rgba(139, 92, 246, 0.10);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.05);
+  --shadow-card-hover: 0 4px 24px rgba(139, 92, 246, 0.15);
+  --shadow-button-primary: 0 4px 16px rgba(139, 92, 246, 0.3);
 }
 
 body {
@@ -232,7 +243,7 @@ button, a, [role="button"] {
 [class*="hover-glow-"]:hover {
   transform: translateY(-2px);
 }
-.hover-glow-violet:hover { box-shadow: 0 0 24px rgba(124,58,237,0.15); }
+.hover-glow-violet:hover { box-shadow: 0 0 24px rgba(139,92,246,0.20); }
 .hover-glow-sky:hover { box-shadow: 0 0 24px rgba(14,165,233,0.15); }
 .hover-glow-emerald:hover { box-shadow: 0 0 24px rgba(16,185,129,0.15); }
 .hover-glow-pink:hover { box-shadow: 0 0 24px rgba(244,114,182,0.15); }
@@ -262,7 +273,7 @@ button, a, [role="button"] {
   height: 3px;
   width: 3rem;
   border-radius: 2px;
-  background: linear-gradient(to right, #7c3aed, var(--sport-cyan));
+  background: linear-gradient(to right, #8b5cf6, var(--sport-cyan));
 }
 
 /* Section heading typography */
@@ -313,6 +324,24 @@ select {
 select option {
   background-color: var(--card);
   color: var(--card-foreground);
+}
+
+/* Sport gradient backgrounds for pipeline cards */
+.sport-gradient-blue { background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)); }
+.sport-gradient-amber { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)); }
+.sport-gradient-violet { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.04)); }
+.sport-gradient-green { background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.04)); }
+
+/* Card elevation */
+.sport-card-elevated {
+  background: var(--card-elevated-bg);
+  border: 1px solid var(--card-elevated-border);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+}
+.sport-card-elevated:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(139, 92, 246, 0.2);
 }
 
 /* Respect reduced motion preferences */
