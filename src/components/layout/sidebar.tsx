@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
+import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import { ROLE_LABELS } from "@/lib/labels";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -76,6 +77,7 @@ export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const { t } = useI18n();
+  const prefetch = usePrefetchRoute();
 
   const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
@@ -106,6 +108,7 @@ export function Sidebar({ user }: SidebarProps) {
         key={item.href}
         href={item.href}
         onClick={onClick}
+        onMouseEnter={() => prefetch(item.href)}
         className={`group relative flex h-[44px] items-center gap-3.5 rounded-lg px-4 text-[14px] font-medium transition-all duration-200 ${
           isActive
             ? "bg-accent dark:bg-white/[0.08] text-foreground dark:text-white font-bold"

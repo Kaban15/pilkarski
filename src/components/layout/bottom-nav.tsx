@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
+import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import {
   Home,
   Swords,
@@ -58,6 +59,7 @@ export function BottomNav() {
   const { data: session } = useSession();
   const role = session?.user?.role;
   const { t } = useI18n();
+  const prefetch = usePrefetchRoute();
 
   const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
@@ -86,6 +88,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              onTouchStart={() => prefetch(item.href)}
               className={`relative flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium transition-colors ${
                 isActive
                   ? "text-sport-cyan"

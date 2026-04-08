@@ -125,6 +125,8 @@
 - Route boundaries: skeleton `loading.tsx` + `error.tsx` w 8 dashboard segments
 - Shared hook `usePaginatedList` — DRY pagination w sparings + events
 - **Query caching:** staleTime tuning (global 60s, feed/stats 5min, listy 3min, messages 60s) — szybsza nawigacja między podstronami
+- **Prefetch on hover:** `usePrefetchRoute` hook — sidebar (onMouseEnter) + bottom-nav (onTouchStart) prefetchują tRPC queries przed kliknięciem
+- **RSC router cache:** `staleTimes` w next.config (dynamic 30s, static 180s) — klient cachuje RSC payload
 
 ---
 
@@ -132,7 +134,7 @@
 
 | Etap | Data | Opis |
 |------|------|------|
-| 43 | 2026-04-08 | Perceived performance: skeleton loading.tsx (8 stron), staleTime tuning (global 60s, feed/stats 5min, listy 3min) |
+| 43 | 2026-04-08 | Perceived performance: skeleton loading, staleTime tuning, tRPC prefetch on hover, RSC router cache |
 | 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
 | 41 | 2026-04-06 | i18n PL/EN (~65 komponentów), X-style białe tło (light mode), LanguageToggle, sidebar theme-aware |
 | 40 | 2026-04-05 | X/Twitter redesign, sport energy accents, smart club sorting, lookingForClub toggle, zapraszanie zawodników, performance fixes |

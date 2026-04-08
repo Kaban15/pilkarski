@@ -934,3 +934,22 @@ Pełna historia zmian per etap. Plik append-only — nowe etapy dodawane na koń
 - `src/app/(dashboard)/messages/loading.tsx` — ConversationSkeleton
 - `src/app/(dashboard)/messages/page.tsx` — staleTime 1min
 - `src/app/(dashboard)/calendar/loading.tsx` — prostokątny skeleton
+
+### tRPC Prefetch on Hover
+- Hook `usePrefetchRoute()` — mapuje route href → odpowiedni `utils.<router>.prefetch()` / `prefetchInfinite()`
+- Deduplikacja: `Set<string>` zapobiega wielokrotnemu prefetchowi tego samego route
+- Pokrycie: feed, sparings, events, transfers, tournaments, messages, community, ranking, notifications, favorites
+- Sidebar: `onMouseEnter` na każdym `<Link>` (desktop)
+- BottomNav: `onTouchStart` na każdym `<Link>` (mobile — ~200ms przed navigate)
+
+### RSC Router Cache
+- `next.config.ts`: `experimental.staleTimes` — `dynamic: 30s`, `static: 180s`
+- Klient cachuje RSC payload między nawigacjami zamiast odpytywać serwer za każdym razem
+
+### Nowe pliki
+- `src/hooks/use-prefetch-route.ts`
+
+### Pliki zmodyfikowane (dodatkowe)
+- `src/components/layout/sidebar.tsx` — import + onMouseEnter prefetch
+- `src/components/layout/bottom-nav.tsx` — import + onTouchStart prefetch
+- `next.config.ts` — experimental.staleTimes
