@@ -296,32 +296,40 @@ function ClubHeaderCard({
   const rating = stats?.avgRating ?? null;
 
   return (
-    <div className="bg-gradient-to-r from-indigo-950 to-slate-900 rounded-xl p-4 relative overflow-hidden mb-3">
-      {/* Dot pattern overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-      />
+    <div className="bg-gradient-to-br from-[#0a0a1a] via-[#12061f] to-[#0a0a1a] rounded-2xl p-5 relative overflow-hidden mb-3">
+      {/* SVG pitch overlay */}
+      <svg
+        className="absolute inset-0 w-full h-full opacity-[0.04]"
+        viewBox="0 0 400 200"
+        fill="none"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <rect x="10" y="10" width="380" height="180" stroke="white" strokeWidth="1.5" rx="4" />
+        <line x1="200" y1="10" x2="200" y2="190" stroke="white" strokeWidth="1" />
+        <circle cx="200" cy="100" r="40" stroke="white" strokeWidth="1" />
+        <rect x="10" y="50" width="60" height="100" stroke="white" strokeWidth="1" />
+        <rect x="330" y="50" width="60" height="100" stroke="white" strokeWidth="1" />
+        <rect x="10" y="70" width="25" height="60" stroke="white" strokeWidth="1" />
+        <rect x="365" y="70" width="25" height="60" stroke="white" strokeWidth="1" />
+      </svg>
+      {/* Gradient glow */}
+      <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.15),transparent_70%)]" />
       <div className="relative flex items-center gap-3">
         {/* Club logo */}
-        <div className="h-14 w-14 shrink-0 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center">
+        <div className="h-[72px] w-[72px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] flex items-center justify-center shadow-[0_4px_20px_rgba(139,92,246,0.3)]">
           {clubProfile.logoUrl ? (
             <img src={clubProfile.logoUrl} alt={clubProfile.name} className="h-full w-full object-cover" />
           ) : (
-            <span className="text-lg font-extrabold text-white">{initials}</span>
+            <span className="text-2xl font-extrabold text-white">{initials}</span>
           )}
         </div>
         {/* Club info */}
         <div className="min-w-0 flex-1">
-          <p className="text-lg font-extrabold text-white leading-tight line-clamp-1">
+          <p className="text-[26px] font-bold text-white leading-tight line-clamp-1 tracking-[-0.5px]" style={{ fontFamily: 'var(--font-rubik)' }}>
             {clubProfile.name}
           </p>
           {(clubProfile.city || regionLabel) && (
-            <p className="text-xs text-white/60 mt-0.5">
+            <p className="text-xs text-[#a78bfa] mt-0.5">
               {[clubProfile.city, regionLabel].filter(Boolean).join(" · ")}
             </p>
           )}
