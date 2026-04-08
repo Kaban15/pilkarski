@@ -32,6 +32,21 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 
+function getDayGradientStyle(items: CalendarItem[]): string {
+  if (items.length === 0) return "";
+  const type = items[0].type;
+  switch (type) {
+    case "sparing":
+      return "bg-gradient-to-br from-cyan-500/15 to-cyan-500/5 border border-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.1)] rounded-[10px]";
+    case "tournament":
+      return "bg-gradient-to-br from-orange-500/15 to-orange-500/5 border border-orange-500/25 shadow-[0_0_8px_rgba(249,115,22,0.1)] rounded-[10px]";
+    case "event":
+      return "bg-gradient-to-br from-violet-500/15 to-violet-500/5 border border-violet-500/25 shadow-[0_0_8px_rgba(139,92,246,0.1)] rounded-[10px]";
+    default:
+      return "";
+  }
+}
+
 export function CalendarView() {
   const { t } = useI18n();
   const now = new Date();
@@ -241,7 +256,7 @@ export function CalendarView() {
             return (
               <div
                 key={day}
-                className={`bg-background min-h-[80px] p-1 ${isToday ? "ring-2 ring-primary ring-inset" : ""}`}
+                className={`bg-background min-h-[80px] p-1 ${isToday ? "ring-2 ring-primary ring-inset" : ""} ${getDayGradientStyle(dayItems)}`}
               >
                 <div className={`text-xs font-medium mb-0.5 ${isToday ? "text-primary font-bold" : "text-muted-foreground"}`}>
                   {day}
