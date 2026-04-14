@@ -21,6 +21,7 @@ import {
 import { FeedRightPanel } from "@/components/feed/feed-right-panel";
 import { PullToRefreshIndicator } from "@/components/feed/pull-to-refresh-indicator";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { DashboardStats as DashboardStatsWidget } from "@/components/dashboard/dashboard-stats";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
@@ -36,7 +37,6 @@ import {
   Trophy,
   Calendar,
   MessageSquare,
-  TrendingUp,
   Plus,
   Search,
   CheckCircle2,
@@ -80,38 +80,6 @@ type DashboardStats = {
   unreadMessages: number;
 };
 
-const STAT_CONFIG_PLAYER = [
-  { key: "eventApps", label: "Zgłoszenia", icon: TrendingUp, href: "/events", color: "text-violet-500", bg: "bg-violet-500/10" },
-  { key: "unreadMessages", label: "Nowe wiadomości", icon: MessageSquare, href: "/messages", color: "text-amber-500", bg: "bg-amber-500/10" },
-] as const;
-
-function StatsBar({ stats }: { stats: DashboardStats | null }) {
-  const { t } = useI18n();
-  if (!stats || stats.role === "CLUB") return null;
-
-  const config = STAT_CONFIG_PLAYER;
-
-  return (
-    <div className="mb-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-      {config.map((c) => {
-        const value = (stats as unknown as Record<string, number>)[c.key] ?? 0;
-        return (
-          <Link key={c.key} href={c.href}>
-            <div className="flex items-center gap-3 rounded-xl border bg-gradient-to-r from-violet-500/10 to-sky-500/10 border-violet-500/20 px-4 py-3 transition-all hover:border-primary/30">
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${c.bg}`}>
-                <c.icon className={`h-4 w-4 ${c.color}`} />
-              </div>
-              <div>
-                <p className="text-xl font-bold tabular-nums leading-none text-foreground">{value}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{t(c.label)}</p>
-              </div>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
 
 function CoachDashboardStats() {
   const { t } = useI18n();
@@ -721,7 +689,7 @@ export default function FeedClient() {
       {isClub && <ClubDashboardSections />}
 
       {/* PLAYER / COACH stats bar */}
-      <StatsBar stats={(stats.data as DashboardStats) ?? null} />
+      {(isPlayer || isCoach) && <DashboardStatsWidget />}
 
       {isCoach && <CoachDashboardStats />}
       {(isPlayer || isCoach) && <ClubInvitations />}
