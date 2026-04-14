@@ -36,11 +36,11 @@ export function TransferFeedCard({ data, createdAt }: TransferFeedCardProps) {
 
   return (
     <Link href={`/transfers/${data.id}`} className="group block">
-      <div className="rounded-lg border border-transparent bg-card p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/[0.02]">
+      <div className="rounded-xl border border-[var(--card-elevated-border)] bg-card p-4 transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)]">
         {/* Header */}
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-600 dark:text-cyan-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sport-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-sport-cyan">
               <ArrowRightLeft className="h-3 w-3" />
               {t("Transfer")}
             </span>

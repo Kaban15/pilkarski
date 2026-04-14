@@ -31,11 +31,11 @@ export function ClubPostFeedCard({ data, createdAt }: ClubPostFeedCardProps) {
 
   return (
     <Link href="/community" className="group block">
-      <div className="rounded-lg border border-transparent bg-card p-4 transition-all hover:border-rose-500/30 hover:bg-rose-500/[0.02]">
+      <div className="rounded-xl border border-[var(--card-elevated-border)] bg-card p-4 transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)]">
         {/* Header */}
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${catColor}`}>
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-500">
               <Megaphone className="h-3 w-3" />
               {t("Ogłoszenie")}
             </span>

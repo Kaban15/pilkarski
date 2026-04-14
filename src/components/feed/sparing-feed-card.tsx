@@ -45,11 +45,11 @@ export function SparingFeedCard({ data, createdAt }: SparingFeedCardProps) {
 
   return (
     <Link href={`/sparings/${data.id}`} className="group block">
-      <div className="rounded-lg border border-transparent bg-card p-4 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/[0.02]">
+      <div className="rounded-xl border border-[var(--card-elevated-border)] bg-card p-4 transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)]">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sport-orange/10 px-2 py-0.5 text-[10px] font-semibold text-sport-orange">
               <Swords className="h-3 w-3" />
               {t("Sparing")}
             </span>

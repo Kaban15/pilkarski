@@ -34,7 +34,7 @@ export function NewMemberFeedCard({ type, data, createdAt }: NewMemberFeedCardPr
 
   return (
     <Link href={href} className="group block">
-      <div className={`rounded-lg border border-transparent bg-card p-4 transition-all hover:border-${accentColor}-500/30 hover:bg-${accentColor}-500/[0.02]`}>
+      <div className="rounded-xl border border-[var(--card-elevated-border)] bg-card p-4 transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)]">
         <div className="flex items-center gap-3">
           {/* Avatar */}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted overflow-hidden">

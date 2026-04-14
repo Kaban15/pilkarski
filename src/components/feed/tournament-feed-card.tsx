@@ -43,11 +43,11 @@ export function TournamentFeedCard({ data, createdAt }: TournamentFeedCardProps)
 
   return (
     <Link href={`/tournaments/${data.id}`} className="group block">
-      <div className="rounded-lg border border-transparent bg-card p-4 transition-all hover:border-orange-500/30 hover:bg-orange-500/[0.02]">
+      <div className="rounded-xl border border-[var(--card-elevated-border)] bg-card p-4 transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)]">
         {/* Header */}
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-600 dark:text-orange-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
               <Trophy className="h-3 w-3" />
               {t("Turniej")}
             </span>
