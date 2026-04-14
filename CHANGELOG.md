@@ -1271,3 +1271,33 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - `src/__tests__/gamification.test.ts` — POINTS_MAP count 18
 - `src/server/trpc/routers/event.ts` — rozszerzony setAttendance, attendance w getById
 - `src/app/(dashboard)/events/[id]/page.tsx` — baner Anty No-Show, badge attendance
+
+## Etap 50: Activity Heatmap ✅
+
+**Data:** 2026-04-14
+
+### Activity Heatmap — GitHub-style panel aktywności
+- **Nowy komponent**: `ActivityHeatmap` — reużywalny client component wyświetlający heatmapę aktywności (rolling 12 miesięcy) z 4 kartami statystyk
+- **Karty statystyk**: Aktywne dni (violet), Aktualna seria (orange), Najaktywniejszy miesiąc (emerald), Najlepszy dzień (amber)
+- **Heatmap grid**: 53 kolumny × 7 wierszy, 5 poziomów intensywności (violet), tooltip z datą i liczbą akcji
+- **Responsywność**: Desktop 12×12px + 3px gap, Mobile 10×10px + 2px gap z horyzontalnym scrollem
+- **Dark/Light mode**: osobne palety kolorów per motyw
+- **Loading**: skeleton (shadcn/ui), empty state: "Brak aktywności w tym okresie"
+- **Źródło danych**: tabela `UserPoints` (18 typów akcji) — agregacja server-side w JS
+- **tRPC endpoint**: `gamification.activityHeatmap` (publicProcedure) — agregacja dziennych counts, streaks, best month/dow
+- **Integracja**: wstawiony na 3 publiczne profile (kluby, zawodnicy, trenerzy)
+- **DB index**: composite `@@index([userId, createdAt])` na `UserPoints`
+- **Cache**: `staleTime: 5min` na `useQuery`
+- **Reuse**: `pluralPL` z `labels.ts`, `formatShortDate` z `format.ts`, shared `toDateKey` z `activity-utils.ts`
+
+### Pliki utworzone (3)
+- `src/lib/activity-utils.ts` — pure functions: aggregateDailyCounts, computeStreaks, computeBestMonth, computeBestDow, toDateKey
+- `src/components/activity-heatmap.tsx` — komponent kliencki z stat cards, heatmap grid, tooltip, skeleton
+- `src/__tests__/activity-utils.test.ts` — 10 testów jednostkowych
+
+### Pliki zmodyfikowane (5)
+- `prisma/schema.prisma` — composite index `(userId, createdAt)` na UserPoints
+- `src/server/trpc/routers/gamification.ts` — dodany `activityHeatmap` publicProcedure
+- `src/app/(public)/clubs/[id]/page.tsx` — ActivityHeatmap pod StatsBar
+- `src/app/(public)/players/[id]/page.tsx` — ActivityHeatmap pod stats bar
+- `src/app/(public)/coaches/[id]/page.tsx` — ActivityHeatmap na początku content section

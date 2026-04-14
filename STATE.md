@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-14
-**Aktualny etap:** 49 etapów ukończonych
+**Aktualny etap:** 50 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -82,8 +82,9 @@
 - Przypomnienia 24h (attendance, inactive clubs, stale pipeline)
 
 ### Gamifikacja
-- Punkty (15 akcji), 9 odznak, leaderboard top 20
+- Punkty (18 akcji), 10 odznak, leaderboard top 20
 - `/ranking` — punkty, odznaki, historia
+- **Activity Heatmap** — GitHub-style heatmap aktywności na publicznych profilach (kluby, zawodnicy, trenerzy), rolling 12 miesięcy, 4 karty statystyk (aktywne dni, aktualna seria, najaktywniejszy miesiąc, najlepszy dzień), violet kolorystyka, responsive
 
 ### UI/Design
 - **Dashboard Redesign (Etap 47):** Deep Charcoal palette, Sportstream-inspired hybrid layout
@@ -124,7 +125,7 @@
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
 - E2E: Playwright, 26+ testów (z `test.skip` guards na shared state)
-- Unit: Vitest 57 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router, tournament-logic), coverage v8
+- Unit: Vitest 67 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router, tournament-logic, activity-utils), coverage v8
 - Security: headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist
 - Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
 - Route boundaries: skeleton `loading.tsx` + `error.tsx` w 8 dashboard segments
@@ -140,11 +141,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
 | 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 | 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
 | 47 | 2026-04-14 | Dashboard Redesign: Deep Charcoal palette, Sportstream layout, TopTabs, RightPanel, HeroCard |
 | 46 | 2026-04-08 | Perf: RSC data prefetch (feed+sparings), time-aware prefetch hook, staleTime normalization, usunięty Bilans W-R-P |
-| 45 | 2026-04-08 | Visual redesign: głębia, Rubik font, gradient akcenty, VS sparing cards, pipeline gradient tiles, calendar highlights |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -165,7 +166,7 @@
 | Auth | Auth.js v5 (next-auth@beta) |
 | Walidacja | Zod v4 (`.strict()` na wszystkich schematach) |
 | Env | Zod-validated `src/env.ts` |
-| Testy | Playwright (E2E, 26+) + Vitest (unit, 57) + @vitest/coverage-v8 |
+| Testy | Playwright (E2E, 26+) + Vitest (unit, 67) + @vitest/coverage-v8 |
 | Hosting | Vercel (`pilkarski.vercel.app`) |
 
 ---
@@ -175,14 +176,14 @@
 ```
 prisma/schema.prisma              — schemat BD (27+ modeli)
 prisma/prisma.config.ts           — konfiguracja Prisma 7
-prisma/migrations/                — migracje BD (25 migracji)
+prisma/migrations/                — migracje BD (26 migracji)
 prisma/seed.ts                    — seed regionów/lig/grup
 
 src/middleware.ts                  — ochrona tras (JWT, public prefixes)
 src/server/auth/config.ts         — Auth.js config
 src/server/db/client.ts           — Prisma client singleton
 src/server/trpc/trpc.ts           — tRPC init + procedures
-src/server/trpc/router.ts         — root router (15 routerów)
+src/server/trpc/router.ts         — root router (21 routerów)
 src/server/trpc/routers/          — auth, club, player, coach, region, sparing, event,
                                     message, feed, search, notification, favorite, stats,
                                     review, transfer, gamification, push, recruitment,
@@ -205,6 +206,7 @@ src/lib/translations.ts           — słownik PL→EN (~950 wpisów)
 src/lib/format.ts                 — formatDate, formatEventDateTime
 src/lib/rate-limit.ts             — in-memory rate limiter
 src/lib/gamification.ts           — punkty, odznaki
+src/lib/activity-utils.ts         — agregacja aktywności (daily counts, streaks, best month/dow)
 src/lib/training-presets.ts       — szablony treningów
 src/lib/validators/               — Zod schemas (auth, profile, sparing, event, review, transfer, message, coach, club-post)
 src/lib/form-errors.ts            — getFieldErrors()
@@ -234,7 +236,7 @@ src/components/                       — empty-state, confirm-dialog, breadcrum
                                         profile-message-button, club-invite-button, scroll-reveal,
                                         image-upload, card-skeleton, theme-toggle, language-toggle,
                                         map-view, push-notification-toggle, form-tooltip,
-                                        public-profile-cta, stats-cell, match-card
+                                        public-profile-cta, stats-cell, match-card, activity-heatmap
 
 src/hooks/use-infinite-scroll.ts
 src/types/next-auth.d.ts          — Session + JWT types (id, role)
