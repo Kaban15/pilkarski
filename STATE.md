@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-08
-**Aktualny etap:** 46 etapów ukończonych
+**Ostatnia sesja:** 2026-04-14
+**Aktualny etap:** 47 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -86,18 +86,20 @@
 - `/ranking` — punkty, odznaki, historia
 
 ### UI/Design
-- **Visual Redesign (Etap 45):** głębia, gradienty, zaokrąglenia zamiast flat X/Twitter-style
-- **Dark mode:** tło `#000000`, karty `#0a0a0f` (odcięte od tła), cienie z violet tint, border `rgba(139,92,246,0.10)`
-- **Light mode:** white `#ffffff`, delikatne cienie, violet-tinted borders
-- **Primary accent:** `#8b5cf6` (violet-500) z gradientami na buttonach i progress bars
-- **Zaokrąglenia:** zróżnicowane — karty 16px, buttony 8px, inputy 10px, dialogi 20px
+- **Dashboard Redesign (Etap 47):** Deep Charcoal palette, Sportstream-inspired hybrid layout
+- **Dark mode:** tło `#09090b`, karty `#111116`, cienie z violet tint, border `rgba(139,92,246,0.06)`
+- **Light mode:** tło `#fafafa`, karty `#ffffff`, violet-tinted borders
+- **Dual accent:** violet `#8b5cf6` (primary) + orange `#f97316` (sport-accent)
+- **Sidebar:** collapsed by default (64px, ikony), expand toggle, orange active state z gradient bar
+- **Top tabs:** role-specific navigation (CLUB/PLAYER/COACH), sticky, pill-style, orange active
+- **Dashboard stats:** 4 stat cards z KPI per rola (Rubik 28px bold), trend indicators
+- **Hero card:** VS layout z herbami klubów, countdown, gradient-border top (violet→orange)
+- **Right panel (lg+):** mini kalendarz, nadchodzące wydarzenia, ranking, szybkie akcje (260px)
+- **Feed cards:** ikony z tint per typ (orange=sparing, violet=event, green=turniej, cyan=transfer, blue=post)
+- **Zaokrąglenia:** karty 12px (rounded-xl), buttony 8px, inputy 10px, dialogi 16px
 - **Fonty:** Rubik (nagłówki/display, wagi 600-900) + Inter (body text)
-- **Hero section:** SVG boisko overlay (4% opacity), duży herb 72px z gradient tło, Rubik headings
-- **Sparing card:** VS layout (2 herby), gradient left border (cyan→violet)
 - **Pipeline rekrutacyjny:** gradient tiles w 2x2 grid, duże liczby 32px
-- **Kalendarz:** gradient highlights na dniach z wydarzeniami (cyan/orange/violet per typ)
-- **Sidebar:** kompaktowy user section (avatar + ikony, bez nazwy/roli)
-- **Sport energy accents:** cyan (`--sport-cyan`) + żółty (`--sport-yellow`) + X-blue (`--x-blue`)
+- **Kalendarz:** gradient highlights na dniach z wydarzeniami (orange/violet per typ)
 - **Micro-interactions:** heart bounce, check-pop, countdown pulse, hover glow, card elevation transitions
 - Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog
 - Bottom Nav mobile (role-aware)
