@@ -317,14 +317,14 @@ export default function TournamentDetailPage() {
 
           {/* Apply form */}
           {showApplyForm && (
-            <div className="mt-3 bg-black/20 rounded-lg p-3 space-y-2">
+            <div className="mt-3 bg-card rounded-lg p-3 space-y-2">
               <div>
                 <Label className="text-[11px] text-orange-200">{t("Nazwa drużyny")}</Label>
                 <Input
                   value={applyTeamName}
                   onChange={(e) => setApplyTeamName(e.target.value)}
                   placeholder={t("np. FC Warszawa")}
-                  className="mt-1 h-8 text-sm bg-black/20 border-orange-500/30 text-white placeholder:text-orange-300/50"
+                  className="mt-1 h-8 text-sm bg-card border-orange-500/30 text-white placeholder:text-orange-300/50"
                 />
               </div>
               <div>
@@ -334,7 +334,7 @@ export default function TournamentDetailPage() {
                   onChange={(e) => setApplyMessage(e.target.value)}
                   rows={2}
                   placeholder={t("Kilka słów o drużynie...")}
-                  className="mt-1 text-sm bg-black/20 border-orange-500/30 text-white placeholder:text-orange-300/50"
+                  className="mt-1 text-sm bg-card border-orange-500/30 text-white placeholder:text-orange-300/50"
                 />
               </div>
               <Button

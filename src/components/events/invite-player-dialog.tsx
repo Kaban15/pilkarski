@@ -98,13 +98,13 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
     return (
       <button
         onClick={() => setOpen(true)}
-        className="group flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-sport-cyan/30 bg-sport-cyan/5 px-5 py-4 transition-all hover:border-sport-cyan/60 hover:bg-sport-cyan/10"
+        className="group flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-sport-orange/30 bg-sport-orange/5 px-5 py-4 transition-all hover:border-sport-orange/60 hover:bg-sport-orange/10"
       >
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sport-cyan/15 transition-colors group-hover:bg-sport-cyan/25">
-          <UserPlus className="h-5 w-5 text-sport-cyan" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sport-orange/15 transition-colors group-hover:bg-sport-orange/25">
+          <UserPlus className="h-5 w-5 text-sport-orange" />
         </div>
         <div className="text-left">
-          <p className="text-sm font-semibold text-sport-cyan">{t("Zaproś zawodników")}</p>
+          <p className="text-sm font-semibold text-sport-orange">{t("Zaproś zawodników")}</p>
           <p className="text-[12px] text-muted-foreground">
             {t("Wyszukaj po imieniu, pozycji, regionie lub lidze")}
           </p>
@@ -114,7 +114,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
   }
 
   return (
-    <Card className="border-sport-cyan/20">
+    <Card className="border-sport-orange/20">
       <CardContent className="space-y-4 py-4">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">{t("Zaproś zawodników")}</p>
@@ -281,7 +281,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
         ) : (
           <>
             {/* Selected player */}
-            <div className="flex items-center gap-3 rounded-lg border border-sport-cyan/20 bg-sport-cyan/5 px-3 py-2">
+            <div className="flex items-center gap-3 rounded-lg border border-sport-orange/20 bg-sport-orange/5 px-3 py-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
                 {selectedPlayer.photoUrl ? (
                   <img src={selectedPlayer.photoUrl} alt="" className="h-full w-full object-cover" />

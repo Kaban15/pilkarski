@@ -80,7 +80,7 @@ export default async function LandingPage() {
       />
 
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-8">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500 text-xs font-black text-black">
@@ -149,7 +149,7 @@ export default async function LandingPage() {
 
       {/* Stats */}
       <ScrollReveal>
-        <section className="border-y border-white/[0.06]">
+        <section className="border-y border-border">
           <div className="mx-auto flex max-w-6xl items-center justify-center gap-12 px-5 py-8 sm:gap-20 sm:px-8">
             {[
               { value: String(clubs || "0"), label: "klubów" },
@@ -157,7 +157,7 @@ export default async function LandingPage() {
               { value: String(events || "0"), label: "wydarzeń" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <p className="text-3xl font-bold tabular-nums tracking-tight text-sport-cyan sm:text-4xl">
+                <p className="text-3xl font-bold tabular-nums tracking-tight text-sport-orange sm:text-4xl">
                   {stat.value}
                 </p>
                 <p className="mt-1 text-[13px] font-medium uppercase tracking-widest text-white/30">
@@ -187,7 +187,7 @@ export default async function LandingPage() {
               return (
                 <div
                   key={feature.title}
-                  className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all hover:bg-white/[0.04] ${styles.border}`}
+                  className={`group rounded-xl border border-border bg-white/[0.02] p-6 transition-all hover:bg-white/[0.04] ${styles.border}`}
                 >
                   <div className="mb-4 flex items-center gap-3">
                     <div className={`h-2 w-2 rounded-full ${styles.dot}`} />
@@ -206,7 +206,7 @@ export default async function LandingPage() {
 
       {/* How it works */}
       <ScrollReveal>
-        <section className="border-t border-white/[0.06]">
+        <section className="border-t border-border">
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
             <div className="mb-16 text-center">
               <p className="mb-3 text-[13px] font-semibold uppercase tracking-widest text-violet-400">
@@ -217,7 +217,7 @@ export default async function LandingPage() {
               </h2>
             </div>
 
-            <div className="mx-auto grid max-w-3xl gap-px overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.06] sm:grid-cols-3">
+            <div className="mx-auto grid max-w-3xl gap-px overflow-hidden rounded-xl border border-border bg-white/[0.06] sm:grid-cols-3">
               {[
                 {
                   step: "01",
@@ -252,7 +252,7 @@ export default async function LandingPage() {
 
       {/* For whom — asymmetric */}
       <ScrollReveal>
-        <section className="border-t border-white/[0.06]">
+        <section className="border-t border-border">
           <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
             <div className="mb-16 max-w-md">
               <p className="mb-3 text-[13px] font-semibold uppercase tracking-widest text-violet-400">
@@ -284,7 +284,7 @@ export default async function LandingPage() {
                   hoverBorder: "hover:border-sky-500/20", iconBg: "bg-sky-500/10", iconText: "text-sky-400", bulletText: "text-sky-400/50", ctaText: "text-sky-400 hover:text-sky-300",
                 },
               ]).map((role) => (
-                <div key={role.title} className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition hover:bg-white/[0.04] ${role.hoverBorder} ${role.extraClass}`}>
+                <div key={role.title} className={`group rounded-xl border border-border bg-white/[0.02] p-6 transition hover:bg-white/[0.04] ${role.hoverBorder} ${role.extraClass}`}>
                   <div className="mb-5 flex items-center gap-3">
                     <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${role.iconBg}`}>
                       <role.Icon className={`h-4 w-4 ${role.iconText}`} />
@@ -315,7 +315,7 @@ export default async function LandingPage() {
 
       {/* Bottom CTA */}
       <ScrollReveal>
-        <section className="border-t border-white/[0.06]">
+        <section className="border-t border-border">
           <div className="relative mx-auto max-w-6xl px-5 py-24 text-center sm:px-8 sm:py-32">
             <h2 className="relative mb-4 text-2xl font-bold tracking-tight sm:text-3xl">
               Szukasz rywala na sparing?
@@ -335,7 +335,7 @@ export default async function LandingPage() {
       </ScrollReveal>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06]">
+      <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6 sm:px-8">
           <div className="flex items-center gap-2">
             <div className="flex h-5 w-5 items-center justify-center rounded bg-violet-500 text-[8px] font-black text-black">

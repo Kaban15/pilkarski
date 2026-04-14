@@ -35,7 +35,6 @@ import { PlayerOnboarding } from "@/components/onboarding/player-onboarding";
 import { CoachOnboarding } from "@/components/onboarding/coach-onboarding";
 import { RecruitmentStats } from "@/components/recruitment/recruitment-stats";
 import { StatsCell } from "@/components/stats-cell";
-import { MatchCard } from "@/components/match-card";
 import {
   Swords,
   Trophy,
@@ -226,26 +225,6 @@ function NewClubsInRegion() {
 // CLUB DASHBOARD — FotMob/Sofascore card stack
 // ─────────────────────────────────────────────────────────
 
-type ClubDashboardData = {
-  activeSparings: number;
-  pendingApplications: number;
-  squadCount: number;
-  winRecord: { wins: number; draws: number; losses: number };
-  nextMatch: {
-    id: string;
-    title: string;
-    matchDate: Date;
-    opponentClub: { id: string; name: string; logoUrl: string | null } | null;
-  } | null;
-  pendingAlerts: {
-    id: string;
-    type: "counter_proposal" | "new_application" | "message";
-    title: string;
-    description: string;
-    createdAt: Date | string;
-    href: string;
-  }[];
-};
 
 function ClubHeaderCard({
   clubProfile,
@@ -350,48 +329,6 @@ function ClubStatsRow({
   );
 }
 
-function ClubNextMatch({
-  nextMatch,
-  clubProfile,
-}: {
-  nextMatch: ClubDashboardData["nextMatch"];
-  clubProfile: { id?: string; name: string; logoUrl: string | null } | null | undefined;
-}) {
-  const { t } = useI18n();
-  if (!nextMatch || !clubProfile) return null;
-
-  const homeClub = {
-    id: "me",
-    name: clubProfile.name,
-    logoUrl: clubProfile.logoUrl,
-    initials: clubProfile.name.slice(0, 2).toUpperCase(),
-  };
-
-  const awayClub = nextMatch.opponentClub
-    ? {
-        id: nextMatch.opponentClub.id,
-        name: nextMatch.opponentClub.name,
-        logoUrl: nextMatch.opponentClub.logoUrl,
-        initials: nextMatch.opponentClub.name.slice(0, 2).toUpperCase(),
-      }
-    : {
-        id: "opp",
-        name: t("Rywal"),
-        logoUrl: null,
-        initials: "RY",
-      };
-
-  return (
-    <Link href={`/sparings/${nextMatch.id}`} className="block mb-3">
-      <MatchCard
-        homeClub={homeClub}
-        awayClub={awayClub}
-        date={new Date(nextMatch.matchDate)}
-        variant="highlight"
-      />
-    </Link>
-  );
-}
 
 function ClubQuickActions() {
   const { t } = useI18n();
@@ -546,7 +483,6 @@ function ClubDashboard({
   const activeSparings = dashboardStats?.activeSparings ?? 0;
   const pendingApplications = dashboardStats?.pendingApplications ?? 0;
   const squadCount = clubDashboard?.squadCount ?? 0;
-  const nextMatch = clubDashboard?.nextMatch ?? null;
   const pendingApplicationsList = clubDashboard?.pendingApplications ?? [];
 
   // Build a review-based stats object from detailed stats if available
@@ -564,13 +500,10 @@ function ClubDashboard({
         squadCount={squadCount}
       />
 
-      {/* 3. Next match (conditional) */}
-      <ClubNextMatch nextMatch={nextMatch} clubProfile={clubProfile} />
-
-      {/* 4. Quick actions */}
+      {/* 3. Quick actions */}
       <ClubQuickActions />
 
-      {/* 5. Pending alerts (conditional) */}
+      {/* 4. Pending alerts (conditional) */}
       <ClubPendingAlerts pendingApplications={pendingApplicationsList} />
     </div>
   );
