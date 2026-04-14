@@ -46,15 +46,15 @@ export function DashboardStats() {
 
 function ClubStats() {
   const { t } = useI18n();
-  // stats.clubDashboard returns: { activeSparings: SparingOffer[], upcomingEvents: Event[],
-  //   pendingApplications: SparingApplication[], squadCount: number, winRecord, nextMatch }
-  const { data } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 60_000 });
+  const { data: session } = useSession();
+  const { data } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 300_000 });
   const { data: ranking } = api.gamification.leaderboard.useQuery({ limit: 20 }, { staleTime: 300_000 });
 
   const activeSparings = data?.activeSparings?.length ?? 0;
   const pendingApps = data?.pendingApplications?.length ?? 0;
   const events = data?.upcomingEvents?.length ?? 0;
-  const myRank = ranking?.findIndex((e: any) => e.isCurrentUser) ?? -1;
+  const userId = session?.user?.id;
+  const myRank = ranking?.findIndex((e) => e.userId === userId) ?? -1;
 
   const stats: StatCard[] = [
     { label: t("Aktywne sparingi"), value: activeSparings, href: "/sparings" },
@@ -68,8 +68,7 @@ function ClubStats() {
 
 function PlayerStats() {
   const { t } = useI18n();
-  // stats.dashboard for PLAYER returns: { role: "PLAYER", eventApps: number, unreadMessages: number }
-  const { data } = api.stats.dashboard.useQuery(undefined, { staleTime: 60_000 });
+  const { data } = api.stats.dashboard.useQuery(undefined, { staleTime: 300_000 });
   const playerData = data as { role: string; eventApps?: number; unreadMessages?: number } | undefined;
 
   const stats: StatCard[] = [
@@ -84,8 +83,7 @@ function PlayerStats() {
 
 function CoachStats() {
   const { t } = useI18n();
-  // stats.coachDashboard returns: { activeTrainings: number, weeklySignups: number, regionName?: string }
-  const { data } = api.stats.coachDashboard.useQuery(undefined, { staleTime: 60_000 });
+  const { data } = api.stats.coachDashboard.useQuery(undefined, { staleTime: 300_000 });
 
   const stats: StatCard[] = [
     { label: t("Zaplanowane treningi"), value: data?.activeTrainings ?? 0, href: "/trainings" },

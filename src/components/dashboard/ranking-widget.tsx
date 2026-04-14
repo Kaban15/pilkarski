@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 
 export function RankingWidget() {
   const { t } = useI18n();
+  const { data: session } = useSession();
   const { data: ranking } = api.gamification.leaderboard.useQuery({ limit: 20 }, { staleTime: 300_000 });
 
   if (!ranking || ranking.length === 0) return null;
 
-  const myIndex = ranking.findIndex((e: any) => e.isCurrentUser);
+  const userId = session?.user?.id;
+  const myIndex = ranking.findIndex((e) => e.userId === userId);
   let start = Math.max(0, myIndex - 2);
   const end = Math.min(ranking.length, start + 5);
   if (end - start < 5) start = Math.max(0, end - 5);
@@ -27,9 +30,9 @@ export function RankingWidget() {
         </Link>
       </div>
       <div className="space-y-0.5">
-        {visible.map((entry: any, i: number) => {
+        {visible.map((entry, i) => {
           const rank = start + i + 1;
-          const isMe = entry.isCurrentUser;
+          const isMe = entry.userId === userId;
           return (
             <div
               key={entry.userId}

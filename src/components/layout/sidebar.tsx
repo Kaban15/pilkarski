@@ -57,15 +57,17 @@ const NAV_ITEMS: NavItem[] = [
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
-  const { collapsed, toggle, mounted } = useSidebarState();
+  const { collapsed, toggle } = useSidebarState();
   const { t } = useI18n();
   const prefetch = usePrefetchRoute();
 
   const { data: unreadNotifs = 0 } = api.notification.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
+    staleTime: 60_000,
   });
   const { data: unreadMessages = 0 } = api.message.unreadCount.useQuery(undefined, {
     refetchInterval: 60_000,
+    staleTime: 60_000,
   });
 
   const getBadge = (href: string) => {

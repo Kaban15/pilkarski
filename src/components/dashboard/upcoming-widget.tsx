@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
@@ -14,38 +15,39 @@ type UpcomingItem = {
 
 export function UpcomingWidget() {
   const { t } = useI18n();
-  const { data: clubData } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 60_000 });
+  const { data: clubData } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 300_000 });
 
-  const items: UpcomingItem[] = [];
+  const visible = useMemo(() => {
+    const items: UpcomingItem[] = [];
 
-  if (clubData?.activeSparings) {
-    for (const s of clubData.activeSparings) {
-      const matchDate = (s as any).matchDate;
-      if (matchDate) {
+    if (clubData?.activeSparings) {
+      for (const s of clubData.activeSparings) {
+        if (s.matchDate) {
+          items.push({
+            id: s.id,
+            title: s.title ?? t("Sparing"),
+            date: new Date(s.matchDate),
+            type: "sparing",
+            href: `/sparings/${s.id}`,
+          });
+        }
+      }
+    }
+    if (clubData?.upcomingEvents) {
+      for (const e of clubData.upcomingEvents) {
         items.push({
-          id: (s as any).id,
-          title: (s as any).title ?? t("Sparing"),
-          date: new Date(matchDate),
-          type: "sparing",
-          href: `/sparings/${(s as any).id}`,
+          id: e.id,
+          title: e.title,
+          date: new Date(e.eventDate),
+          type: "event",
+          href: `/events/${e.id}`,
         });
       }
     }
-  }
-  if (clubData?.upcomingEvents) {
-    for (const e of clubData.upcomingEvents) {
-      items.push({
-        id: (e as any).id,
-        title: (e as any).title,
-        date: new Date((e as any).eventDate),
-        type: "event",
-        href: `/events/${(e as any).id}`,
-      });
-    }
-  }
 
-  items.sort((a, b) => a.date.getTime() - b.date.getTime());
-  const visible = items.slice(0, 4);
+    items.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return items.slice(0, 4);
+  }, [clubData, t]);
 
   if (visible.length === 0) return null;
 

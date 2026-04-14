@@ -84,38 +84,6 @@ type DashboardStats = {
 };
 
 
-function CoachDashboardStats() {
-  const { t } = useI18n();
-  const { data: stats } = api.stats.coachDashboard.useQuery(undefined, {
-    staleTime: 60_000,
-  });
-
-  if (!stats) return null;
-
-  return (
-    <Card className="mb-6">
-      <CardContent className="py-4">
-        <div className="mb-3 flex items-center gap-2">
-          <GraduationCap className="h-4 w-4 text-primary" />
-          <p className="text-sm font-semibold">{t("Statystyki treningowe")}</p>
-          {stats.regionName && (
-            <span className="ml-auto text-[11px] text-muted-foreground">{stats.regionName}</span>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg border border-border px-3 py-2">
-            <p className="text-xl font-bold tabular-nums">{stats.activeTrainings}</p>
-            <p className="text-[11px] text-muted-foreground">{t("Aktywne treningi")}</p>
-          </div>
-          <div className="rounded-lg border border-border px-3 py-2">
-            <p className="text-xl font-bold tabular-nums">{stats.weeklySignups}</p>
-            <p className="text-[11px] text-muted-foreground">{t("Zapisy w tym tyg.")}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function PlayerDevelopment() {
   const { t } = useI18n();
@@ -647,7 +615,7 @@ export default function FeedClient() {
       {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
 
-      {isCoach && <CoachDashboardStats />}
+      {/* CoachDashboardStats removed — DashboardStats already shows coach KPIs */}
       {(isPlayer || isCoach) && <ClubInvitations />}
       {isPlayer && <NewClubsInRegion />}
       {(isPlayer || isCoach) && <PlayerRecruitments />}

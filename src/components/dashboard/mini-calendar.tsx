@@ -10,20 +10,20 @@ export function MiniCalendar() {
   const year = now.getFullYear();
   const month = now.getMonth();
 
-  const { data: clubData } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 60_000 });
+  const { data: clubData } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 300_000 });
 
   const highlightedDays = useMemo(() => {
     const sparingDays = new Set<number>();
     const eventDays = new Set<number>();
     if (clubData?.activeSparings) {
       for (const s of clubData.activeSparings) {
-        const d = new Date((s as any).matchDate ?? (s as any).createdAt);
+        const d = new Date(s.matchDate ?? s.createdAt);
         if (d.getMonth() === month) sparingDays.add(d.getDate());
       }
     }
     if (clubData?.upcomingEvents) {
       for (const e of clubData.upcomingEvents) {
-        const d = new Date((e as any).eventDate);
+        const d = new Date(e.eventDate);
         if (d.getMonth() === month) eventDays.add(d.getDate());
       }
     }

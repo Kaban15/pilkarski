@@ -33,7 +33,7 @@ function ClubCrest({ name, logoUrl }: { name: string; logoUrl?: string | null })
 
 function ClubHero() {
   const { t } = useI18n();
-  const { data } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 60_000 });
+  const { data } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 300_000 });
   const { data: club } = api.club.me.useQuery(undefined, { staleTime: 300_000 });
 
   const nextMatch = data?.nextMatch;
@@ -101,32 +101,32 @@ function ClubHero() {
   );
 }
 
-function PlayerHero() {
-  const { t } = useI18n();
+function SimpleHeroCard({ heading, subheading, actionLabel, actionHref }: {
+  heading: string;
+  subheading: string;
+  actionLabel: string;
+  actionHref: string;
+}) {
   return (
     <div className="mb-5 rounded-2xl border border-[var(--card-elevated-border)] bg-gradient-to-br from-card to-primary/5 p-6 relative overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary to-sport-orange" />
-      <p className="text-sm font-semibold">{t("Szukasz drużyny?")}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{t("Przeglądaj nabory i wydarzenia w swoim regionie")}</p>
+      <p className="text-sm font-semibold">{heading}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{subheading}</p>
       <Button asChild size="sm" className="mt-4">
-        <Link href="/events">{t("Przeglądaj wydarzenia")}</Link>
+        <Link href={actionHref}>{actionLabel}</Link>
       </Button>
     </div>
   );
 }
 
+function PlayerHero() {
+  const { t } = useI18n();
+  return <SimpleHeroCard heading={t("Szukasz drużyny?")} subheading={t("Przeglądaj nabory i wydarzenia w swoim regionie")} actionLabel={t("Przeglądaj wydarzenia")} actionHref="/events" />;
+}
+
 function CoachHero() {
   const { t } = useI18n();
-  return (
-    <div className="mb-5 rounded-2xl border border-[var(--card-elevated-border)] bg-gradient-to-br from-card to-primary/5 p-6 relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary to-sport-orange" />
-      <p className="text-sm font-semibold">{t("Twoje treningi")}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{t("Zaplanuj treningi i zarządzaj kadrą")}</p>
-      <Button asChild size="sm" className="mt-4">
-        <Link href="/trainings">{t("Zaplanuj trening")}</Link>
-      </Button>
-    </div>
-  );
+  return <SimpleHeroCard heading={t("Twoje treningi")} subheading={t("Zaplanuj treningi i zarządzaj kadrą")} actionLabel={t("Zaplanuj trening")} actionHref="/trainings" />;
 }
 
 export function HeroCard() {
