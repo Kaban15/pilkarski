@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 import { SocialLinks } from "@/components/social-links";
+import { ActivityHeatmap } from "@/components/activity-heatmap";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -120,6 +121,10 @@ export default async function CoachProfilePage({ params }: Props) {
 
       {/* Content */}
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+        <div className="mb-6">
+          <ActivityHeatmap userId={coach.userId} />
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2">
           {/* Info */}
           <Card>
