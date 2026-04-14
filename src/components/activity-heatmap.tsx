@@ -3,7 +3,9 @@
 import { api } from "@/lib/trpc-react";
 import { Calendar, Flame, TrendingUp, Star } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { pluralAkcje } from "@/lib/activity-utils";
+import { toDateKey } from "@/lib/activity-utils";
+import { pluralPL } from "@/lib/labels";
+import { formatShortDate } from "@/lib/format";
 import { useMemo, useState } from "react";
 
 const MONTHS_SHORT = ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"];
@@ -33,20 +35,6 @@ const LEVEL_CLASSES = [
   "bg-violet-600 dark:bg-violet-500",
 ];
 
-function toDateKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function formatTooltipDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  const day = d.getDate();
-  const month = MONTHS_SHORT[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day} ${month} ${year}`;
-}
 
 interface WeekColumn {
   dates: (string | null)[]; // 7 slots (Mon=0 to Sun=6), null = empty
@@ -115,7 +103,10 @@ function HeatmapSkeleton() {
 }
 
 export function ActivityHeatmap({ userId }: { userId: string }) {
-  const { data, isLoading } = api.gamification.activityHeatmap.useQuery({ userId });
+  const { data, isLoading } = api.gamification.activityHeatmap.useQuery(
+    { userId },
+    { staleTime: 5 * 60 * 1000 },
+  );
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
 
   const grid = useMemo(() => buildGrid(new Date()), []);
@@ -172,9 +163,9 @@ export function ActivityHeatmap({ userId }: { userId: string }) {
             </div>
 
             {/* Grid */}
-            <div className="flex gap-[3px] sm:gap-[3px] max-sm:gap-[2px]">
+            <div className="flex gap-[2px] sm:gap-[3px]">
               {grid.weeks.map((week, wi) => (
-                <div key={wi} className="flex flex-col gap-[3px] sm:gap-[3px] max-sm:gap-[2px]">
+                <div key={wi} className="flex flex-col gap-[2px] sm:gap-[3px]">
                   {week.dates.map((dateStr, di) => {
                     if (!dateStr) {
                       return <div key={di} className="h-[10px] w-[10px] sm:h-3 sm:w-3 rounded-[2px]" />;
@@ -190,7 +181,7 @@ export function ActivityHeatmap({ userId }: { userId: string }) {
                           setTooltip({
                             x: rect.left + rect.width / 2,
                             y: rect.top - 8,
-                            text: `${formatTooltipDate(dateStr)} — ${count} ${pluralAkcje(count)}`,
+                            text: `${formatShortDate(dateStr)} — ${count} ${pluralPL(count, "akcja", "akcje", "akcji")}`,
                           });
                         }}
                         onMouseLeave={() => setTooltip(null)}

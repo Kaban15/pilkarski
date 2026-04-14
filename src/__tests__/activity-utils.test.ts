@@ -4,7 +4,6 @@ import {
   computeStreaks,
   computeBestMonth,
   computeBestDow,
-  pluralAkcje,
 } from "@/lib/activity-utils";
 
 describe("aggregateDailyCounts", () => {
@@ -98,33 +97,3 @@ describe("computeBestDow", () => {
   });
 });
 
-describe("pluralAkcje", () => {
-  it("returns 'akcja' for 1", () => {
-    expect(pluralAkcje(1)).toBe("akcja");
-  });
-
-  it("returns 'akcje' for 2-4", () => {
-    expect(pluralAkcje(2)).toBe("akcje");
-    expect(pluralAkcje(3)).toBe("akcje");
-    expect(pluralAkcje(4)).toBe("akcje");
-  });
-
-  it("returns 'akcji' for 5-21", () => {
-    expect(pluralAkcje(5)).toBe("akcji");
-    expect(pluralAkcje(11)).toBe("akcji");
-    expect(pluralAkcje(12)).toBe("akcji");
-    expect(pluralAkcje(21)).toBe("akcji");
-  });
-
-  it("returns 'akcje' for 22-24 (Polish plural edge case)", () => {
-    expect(pluralAkcje(22)).toBe("akcje");
-    expect(pluralAkcje(23)).toBe("akcje");
-    expect(pluralAkcje(24)).toBe("akcje");
-  });
-
-  it("returns 'akcji' for 25, 100, 112", () => {
-    expect(pluralAkcje(25)).toBe("akcji");
-    expect(pluralAkcje(100)).toBe("akcji");
-    expect(pluralAkcje(112)).toBe("akcji");
-  });
-});

@@ -1,7 +1,7 @@
 type PointEntry = { createdAt: Date };
 
-/** Format date as YYYY-MM-DD in UTC */
-function toDateKey(date: Date): string {
+/** UTC so server-aggregated keys match client grid keys regardless of timezone */
+export function toDateKey(date: Date): string {
   const y = date.getUTCFullYear();
   const m = String(date.getUTCMonth() + 1).padStart(2, "0");
   const d = String(date.getUTCDate()).padStart(2, "0");
@@ -85,12 +85,3 @@ export function computeBestDow(entries: PointEntry[]): number | null {
   return counts.indexOf(Math.max(...counts));
 }
 
-/** Polish plural form for "akcja" */
-export function pluralAkcje(count: number): string {
-  if (count === 1) return "akcja";
-  const lastTwo = count % 100;
-  const lastOne = count % 10;
-  if (lastTwo >= 12 && lastTwo <= 14) return "akcji";
-  if (lastOne >= 2 && lastOne <= 4) return "akcje";
-  return "akcji";
-}
