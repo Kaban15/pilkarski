@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 import { SocialLinks } from "@/components/social-links";
+import { ActivityHeatmap } from "@/components/activity-heatmap";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -147,6 +148,10 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
             ))}
           </div>
         )}
+
+        <div className="mb-6">
+          <ActivityHeatmap userId={player.userId} />
+        </div>
 
         <div className="space-y-6">
           {/* Bio */}
