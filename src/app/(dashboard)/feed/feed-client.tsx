@@ -22,6 +22,7 @@ import { FeedRightPanel } from "@/components/feed/feed-right-panel";
 import { PullToRefreshIndicator } from "@/components/feed/pull-to-refresh-indicator";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { DashboardStats as DashboardStatsWidget } from "@/components/dashboard/dashboard-stats";
+import { HeroCard } from "@/components/dashboard/hero-card";
 import { ClubDashboardSections } from "@/components/dashboard/club-sections";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
@@ -640,6 +641,7 @@ export default function FeedClient() {
       )}
 
       <DashboardStatsWidget />
+      <HeroCard />
 
       {isClub && !showOnboarding && stats.data &&
         (stats.data as DashboardStats).activeSparings === 0 &&
