@@ -639,6 +639,8 @@ export default function FeedClient() {
         <CoachOnboarding onComplete={() => { localStorage.setItem("ps_coach_onboarded", "1"); setCoachOnboardingDone(true); }} />
       )}
 
+      <DashboardStatsWidget />
+
       {isClub && !showOnboarding && stats.data &&
         (stats.data as DashboardStats).activeSparings === 0 &&
         (stats.data as DashboardStats).upcomingEvents === 0 && (
@@ -687,9 +689,6 @@ export default function FeedClient() {
       {isClub && <RecruitmentStats />}
       {isClub && <ClubRecruitment />}
       {isClub && <ClubDashboardSections />}
-
-      {/* PLAYER / COACH stats bar */}
-      {(isPlayer || isCoach) && <DashboardStatsWidget />}
 
       {isCoach && <CoachDashboardStats />}
       {(isPlayer || isCoach) && <ClubInvitations />}
