@@ -10,10 +10,11 @@ import {
   updateSparingSchema,
   SPARING_LEVELS,
   AGE_CATEGORIES,
+  PITCH_STATUSES,
   type SparingLevel,
   type AgeCategory,
 } from "@/lib/validators/sparing";
-import { SPARING_LEVEL_LABELS, AGE_CATEGORY_LABELS } from "@/lib/labels";
+import { SPARING_LEVEL_LABELS, AGE_CATEGORY_LABELS, PITCH_STATUS_LABELS } from "@/lib/labels";
 import { getFieldErrors, type FieldErrors } from "@/lib/form-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ type SparingFormProps = {
     preferredTime?: string | null;
     regionId?: number | null;
     costPerTeam?: number | null;
+    pitchStatus?: string | null;
   };
   onSuccess?: (id: string) => void;
 };
@@ -67,6 +69,7 @@ type FormData = {
   ageCategory: string;
   regionId: string;
   costPerTeam: string;
+  pitchStatus: string;
 };
 
 function useSteps() {
@@ -115,6 +118,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
     ageCategory: defaultValues?.ageCategory ?? "",
     regionId: defaultValues?.regionId ? String(defaultValues.regionId) : "",
     costPerTeam: defaultValues?.costPerTeam ? String(defaultValues.costPerTeam) : "",
+    pitchStatus: defaultValues?.pitchStatus ?? "",
   });
 
   function updateField(field: keyof FormData, value: string) {
@@ -133,6 +137,7 @@ export function SparingForm({ mode, defaultValues, onSuccess }: SparingFormProps
       preferredTime: form.preferredTime || undefined,
       regionId: form.regionId ? Number(form.regionId) : undefined,
       costPerTeam: form.costPerTeam ? Number(form.costPerTeam) : undefined,
+      pitchStatus: (form.pitchStatus || undefined) as typeof PITCH_STATUSES[number] | undefined,
     };
   }
 
@@ -574,6 +579,24 @@ function StepTwoFields({
             placeholder={t("0 = darmowy")}
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="pitchStatus" className="inline-flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" />
+            {t("Status boiska")}
+          </Label>
+          <Select value={form.pitchStatus} onValueChange={(v) => updateField("pitchStatus", v)}>
+            <SelectTrigger id="pitchStatus">
+              <SelectValue placeholder={t("Wybierz status boiska")} />
+            </SelectTrigger>
+            <SelectContent>
+              {PITCH_STATUSES.map((ps) => (
+                <SelectItem key={ps} value={ps}>
+                  {t(PITCH_STATUS_LABELS[ps] ?? ps)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );
@@ -617,6 +640,7 @@ function StepThreeSummary({
           {form.ageCategory && <SummaryRow label={t("Kategoria wiekowa")} value={t(AGE_CATEGORY_LABELS[form.ageCategory] ?? form.ageCategory)} />}
           {form.preferredTime && <SummaryRow label={t("Preferowane godziny")} value={form.preferredTime} />}
           {form.costPerTeam && Number(form.costPerTeam) > 0 && <SummaryRow label={t("Koszt na drużynę")} value={`${form.costPerTeam} PLN`} />}
+          {form.pitchStatus && <SummaryRow label={t("Status boiska")} value={t(PITCH_STATUS_LABELS[form.pitchStatus] ?? form.pitchStatus)} />}
         </CardContent>
       </Card>
 

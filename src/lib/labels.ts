@@ -63,6 +63,12 @@ export const AGE_CATEGORY_LABELS: Record<string, string> = {
   VETERAN: "Oldboj (35+)",
 };
 
+export const PITCH_STATUS_LABELS: Record<string, string> = {
+  WE_HAVE_PITCH: "Mamy boisko",
+  LOOKING_FOR_PITCH: "Szukamy boiska",
+  SPLIT_COSTS: "Dzielimy koszty",
+};
+
 export const SPARING_STATUS_LABELS: Record<string, string> = {
   OPEN: "Otwarty",
   MATCHED: "Dopasowany",

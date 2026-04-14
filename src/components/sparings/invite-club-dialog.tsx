@@ -33,7 +33,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedClub, setSelectedClub] = useState<ClubSearchResult | null>(null);
+  const [selectedClubs, setSelectedClubs] = useState<ClubSearchResult[]>([]);
   const [message, setMessage] = useState("");
   const [expiresInHours, setExpiresInHours] = useState(48);
 
@@ -91,9 +91,9 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
   const inviteMut = api.sparing.invite.useMutation({
     onSuccess: () => {
-      toast.success(t("Zaproszenie wysłane!"));
+      toast.success(t("Zaproszenia wysłane!"));
       setOpen(false);
-      setSelectedClub(null);
+      setSelectedClubs([]);
       setMessage("");
       setSearch("");
       setRegionId(null);
@@ -104,11 +104,23 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
     onError: (err) => toast.error(err.message),
   });
 
+  function toggleClub(club: ClubSearchResult) {
+    setSelectedClubs((prev) => {
+      const exists = prev.some((c) => c.id === club.id);
+      if (exists) return prev.filter((c) => c.id !== club.id);
+      if (prev.length >= 5) {
+        toast.error(t("Maksymalnie 5 klubów na raz"));
+        return prev;
+      }
+      return [...prev, club];
+    });
+  }
+
   function handleSend() {
-    if (!selectedClub) return;
+    if (selectedClubs.length === 0) return;
     inviteMut.mutate({
       sparingOfferId,
-      toClubId: selectedClub.id,
+      toClubIds: selectedClubs.map((c) => c.id),
       message: message || undefined,
       expiresInHours,
     });
@@ -143,7 +155,24 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
           </button>
         </div>
 
-        {!selectedClub ? (
+        {/* Selected clubs badges */}
+        {selectedClubs.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedClubs.map((club) => (
+              <Badge key={club.id} variant="secondary" className="gap-1.5 pr-1">
+                {club.name}
+                <button onClick={() => toggleClub(club)} className="rounded-full p-0.5 hover:bg-muted-foreground/20">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+            <span className="self-center text-[11px] text-muted-foreground">
+              {selectedClubs.length}/5
+            </span>
+          </div>
+        )}
+
+        {selectedClubs.length < 5 ? (
           <>
             {/* Search by name */}
             <div className="space-y-2">
@@ -251,11 +280,13 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                         ? `${t("Wyniki wyszukiwania")} (${clubs.length})`
                         : `${t("Kluby")} (${clubs.length})`}
                     </p>
-                    {clubs.map((club: ClubSearchResult) => (
+                    {clubs.map((club: ClubSearchResult) => {
+                      const isSelected = selectedClubs.some((c) => c.id === club.id);
+                      return (
                       <button
                         key={club.id}
-                        onClick={() => setSelectedClub(club)}
-                        className="flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-left transition hover:border-border hover:bg-muted"
+                        onClick={() => toggleClub(club)}
+                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted ${isSelected ? "border-primary/40 bg-primary/5" : "border-transparent hover:border-border"}`}
                       >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                           {club.logoUrl ? (
@@ -291,48 +322,17 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                           </p>
                         </div>
                       </button>
-                    ))}
+                    );
+                    })}
                   </>
                 )}
               </div>
             )}
           </>
-        ) : (
-          <>
-            <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-                {selectedClub.logoUrl ? (
-                  <img src={selectedClub.logoUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-[10px] font-bold text-muted-foreground">
-                    {selectedClub.name.slice(0, 2).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-[13px] font-semibold">{selectedClub.name}</p>
-                <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-                  {selectedClub.city}
-                  {selectedClub.region && (
-                    <>
-                      {selectedClub.city && <span>·</span>}
-                      <RegionLogo slug={selectedClub.region.slug} name={selectedClub.region.name} size={12} />
-                      <span>{selectedClub.region.name}</span>
-                    </>
-                  )}
-                  {selectedClub.leagueGroup && (
-                    <>
-                      <span>·</span>
-                      <span>{selectedClub.leagueGroup.leagueLevel.name} — {selectedClub.leagueGroup.name}</span>
-                    </>
-                  )}
-                </p>
-              </div>
-              <button onClick={() => setSelectedClub(null)} className="text-muted-foreground hover:text-foreground">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+        ) : null}
 
+        {selectedClubs.length > 0 && (
+          <>
             <div className="space-y-2">
               <Label>{t("Wiadomość (opcjonalnie)")}</Label>
               <Textarea
@@ -363,7 +363,11 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
 
             <Button onClick={handleSend} disabled={inviteMut.isPending} className="w-full gap-2">
               <Send className="h-4 w-4" />
-              {inviteMut.isPending ? t("Wysyłanie...") : t("Wyślij zaproszenie")}
+              {inviteMut.isPending
+                ? t("Wysyłanie...")
+                : selectedClubs.length === 1
+                  ? t("Wyślij zaproszenie")
+                  : `${t("Wyślij zaproszenia")} (${selectedClubs.length})`}
             </Button>
           </>
         )}

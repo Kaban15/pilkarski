@@ -294,6 +294,12 @@ enum AgeCategory {
   VETERAN     // Oldboj (35+)
 }
 
+enum PitchStatus {
+  WE_HAVE_PITCH     // Mamy boisko
+  LOOKING_FOR_PITCH  // Szukamy boiska
+  SPLIT_COSTS        // Dzielimy koszty
+}
+
 enum SparingStatus {
   OPEN
   MATCHED
@@ -324,6 +330,7 @@ model SparingOffer {
   status           SparingStatus @default(OPEN)
   regionId         Int?          @map("region_id")
   costPerTeam      Int?          @map("cost_per_team")
+  pitchStatus      PitchStatus?  @map("pitch_status")
   createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 

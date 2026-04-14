@@ -7,6 +7,7 @@ import {
   SPARING_LEVEL_LABELS,
   SPARING_LEVEL_COLORS,
   AGE_CATEGORY_LABELS,
+  PITCH_STATUS_LABELS,
 } from "@/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -23,6 +24,7 @@ export type SparingCardItem = {
   ageCategory?: string | null;
   preferredTime?: string | null;
   costPerTeam?: number | null;
+  pitchStatus?: string | null;
   club: {
     id: string;
     name: string;
@@ -134,6 +136,17 @@ export function SparingCard({
           {sparing.costPerTeam != null && sparing.costPerTeam > 0 && (
             <span className="shrink-0 bg-amber-500/10 text-amber-400 text-[10px] font-semibold px-2 py-0.5 rounded-md">
               {sparing.costPerTeam} PLN
+            </span>
+          )}
+          {sparing.pitchStatus && (
+            <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+              sparing.pitchStatus === "WE_HAVE_PITCH"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : sparing.pitchStatus === "LOOKING_FOR_PITCH"
+                  ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+            }`}>
+              {t(PITCH_STATUS_LABELS[sparing.pitchStatus] ?? sparing.pitchStatus)}
             </span>
           )}
           {countdown && (

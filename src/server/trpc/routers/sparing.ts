@@ -36,6 +36,7 @@ export const sparingRouter = router({
           preferredTime: input.preferredTime,
           regionId: input.regionId ?? club.regionId,
           costPerTeam: input.costPerTeam,
+          pitchStatus: input.pitchStatus,
         },
       });
 
@@ -90,6 +91,7 @@ export const sparingRouter = router({
           preferredTime: input.preferredTime,
           regionId: input.regionId,
           costPerTeam: input.costPerTeam,
+          pitchStatus: input.pitchStatus,
         },
       });
     }),
@@ -406,7 +408,7 @@ export const sparingRouter = router({
     .input(
       z.object({
         sparingOfferId: z.string().uuid(),
-        toClubId: z.string().uuid(),
+        toClubIds: z.array(z.string().uuid()).min(1).max(5),
         message: z.string().max(500).optional(),
         expiresInHours: z.number().int().min(1).max(168).default(48),
       })
@@ -426,63 +428,71 @@ export const sparingRouter = router({
       if (sparing.status !== "OPEN") {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Sparing nie jest otwarty" });
       }
-      if (input.toClubId === club.id) {
+
+      const filteredIds = input.toClubIds.filter((id) => id !== club.id);
+      if (filteredIds.length === 0) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Nie możesz zaprosić własnego klubu" });
       }
 
-      const toClub = await ctx.db.club.findUnique({
-        where: { id: input.toClubId },
+      const toClubs = await ctx.db.club.findMany({
+        where: { id: { in: filteredIds } },
         select: { id: true, userId: true, name: true },
       });
-      if (!toClub) throw new TRPCError({ code: "NOT_FOUND", message: "Klub nie znaleziony" });
+      if (toClubs.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Żaden klub nie znaleziony" });
 
       const expiresAt = new Date(Date.now() + input.expiresInHours * 60 * 60 * 1000);
 
-      const invitation = await ctx.db.sparingInvitation.upsert({
-        where: {
-          sparingOfferId_toClubId: {
-            sparingOfferId: input.sparingOfferId,
-            toClubId: input.toClubId,
+      const invitations = await Promise.all(
+        toClubs.map((toClub) =>
+          ctx.db.sparingInvitation.upsert({
+            where: {
+              sparingOfferId_toClubId: {
+                sparingOfferId: input.sparingOfferId,
+                toClubId: toClub.id,
+              },
+            },
+            create: {
+              sparingOfferId: input.sparingOfferId,
+              fromClubId: club.id,
+              toClubId: toClub.id,
+              message: input.message,
+              expiresAt,
+            },
+            update: {
+              message: input.message,
+              status: "PENDING",
+              expiresAt,
+            },
+          })
+        )
+      );
+
+      // Notify all invited clubs (fire-and-forget)
+      for (const toClub of toClubs) {
+        ctx.db.notification.create({
+          data: {
+            userId: toClub.userId,
+            type: "SPARING_INVITATION",
+            title: "Zaproszenie na sparing",
+            message: `${club.name} zaprasza Cię na sparing: "${sparing.title}"`,
+            link: `/sparings/${sparing.id}`,
           },
-        },
-        create: {
-          sparingOfferId: input.sparingOfferId,
-          fromClubId: club.id,
-          toClubId: input.toClubId,
-          message: input.message,
-          expiresAt,
-        },
-        update: {
-          message: input.message,
-          status: "PENDING",
-          expiresAt,
-        },
-      });
+        }).catch((err) => console.error("[notification]", err));
 
-      // Notify invited club
-      ctx.db.notification.create({
-        data: {
-          userId: toClub.userId,
-          type: "SPARING_INVITATION",
+        sendPushToUser(toClub.userId, {
           title: "Zaproszenie na sparing",
-          message: `${club.name} zaprasza Cię na sparing: "${sparing.title}"`,
-          link: `/sparings/${sparing.id}`,
-        },
-      }).catch((err) => console.error("[notification]", err));
+          body: `${club.name} zaprasza na: ${sparing.title}`,
+          url: `/sparings/${sparing.id}`,
+        }).catch((err) => console.error("[push]", err));
+        sendEmailToUser(ctx.db, toClub.userId, "Zaproszenie na sparing", {
+          title: "Zaproszenie na sparing",
+          message: `${club.name} zaprasza na: ${sparing.title}`,
+          ctaLabel: "Zobacz zaproszenie",
+          ctaUrl: `${baseUrl}/sparings/${sparing.id}`,
+        }).catch((err) => console.error("[email]", err));
+      }
 
-      sendPushToUser(toClub.userId, {
-        title: "Zaproszenie na sparing",
-        body: `${club.name} zaprasza na: ${sparing.title}`,
-        url: `/sparings/${sparing.id}`,
-      }).catch((err) => console.error("[push]", err));
-      sendEmailToUser(ctx.db, toClub.userId, "Zaproszenie na sparing", {
-        title: "Zaproszenie na sparing",
-        message: `${club.name} zaprasza na: ${sparing.title}`,
-        ctaLabel: "Zobacz zaproszenie",
-        ctaUrl: `${baseUrl}/sparings/${sparing.id}`,
-      }).catch((err) => console.error("[email]", err));
-
-      return invitation;
+      return invitations;
     }),
 
   respondToInvitation: protectedProcedure

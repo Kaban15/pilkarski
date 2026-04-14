@@ -5,6 +5,7 @@ export const AGE_CATEGORIES = [
   "JUNIOR_E", "JUNIOR_D", "JUNIOR_C", "JUNIOR_B",
   "JUNIOR_A", "SENIOR_JR", "SENIOR", "VETERAN",
 ] as const;
+export const PITCH_STATUSES = ["WE_HAVE_PITCH", "LOOKING_FOR_PITCH", "SPLIT_COSTS"] as const;
 
 export const createSparingSchema = z.object({
   title: z.string().min(3, "Tytuł musi mieć min. 3 znaki").max(300),
@@ -24,6 +25,7 @@ export const createSparingSchema = z.object({
   preferredTime: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),
   costPerTeam: z.number().int().min(0).max(10000).optional(),
+  pitchStatus: z.enum(PITCH_STATUSES).optional(),
 }).strict();
 
 export const applySparingSchema = z.object({
