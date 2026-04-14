@@ -1118,3 +1118,76 @@ Eliminacja waterfall na najważniejszych stronach przez server-side prefetch + p
 - `src/hooks/use-prefetch-route.ts` — time-aware prefetch
 - `src/components/dashboard/club-sections.tsx` — staleTime 120s
 - `package.json` — dodany `server-only`
+
+---
+
+## Etap 47: Dashboard & Visual Redesign ✅
+
+### Design System — Deep Charcoal
+- Dark mode: tło `#09090b`, karty `#111116`, border `rgba(139,92,246,0.06)`
+- Light mode: tło `#fafafa`, karty `#ffffff`, sport-orange `#ea580c` (WCAG contrast fix)
+- Nowy token `--sport-orange` (dual accent: violet + orange)
+- Nowy token `--shadow-hero` dla hero kart
+- Sidebar accent w dark mode: orange-tinted (`rgba(249,115,22,0.12)`)
+
+### Layout — Sportstream Hybrid
+- Sidebar collapsed by default (64px, ikony), expand toggle z chevron, overlay na expand
+- `useSidebarState` hook z localStorage persist
+- Flat nav list (10 items) zamiast "Więcej" toggle
+- Active state: orange tint bg + gradient bar (violet→orange)
+- Top tabs: role-specific nawigacja (CLUB 6 tabów, PLAYER 5, COACH 5), sticky, pill-style
+- Layout: `md:ml-16` (z 64), TopTabs nad contentem
+- Right panel (lg+ only, 260px): mini kalendarz, upcoming, ranking, quick actions
+
+### Dashboard Components
+- `DashboardStats`: 4 stat cards per rola (Rubik 28px bold, trend indicators)
+  - CLUB: aktywne sparingi, oczekujące aplikacje, wydarzenia, ranking
+  - PLAYER: zgłoszenia, treningi, wiadomości, ranking
+  - COACH: zaplanowane treningi, zapisy, wydarzenia, wiadomości
+- `HeroCard`: VS layout z herbami (CLUB — next matched sparing z countdown), SimpleHeroCard CTA (PLAYER/COACH)
+- `MiniCalendar`: 7-kolumnowy grid, highlighted days (orange=sparing, violet=event)
+- `UpcomingWidget`: 4 najbliższe wydarzenia/sparingi z colored bar
+- `RankingWidget`: 5 pozycji wokół usera z highlight
+
+### Feed & UI Updates
+- Feed cards: ikony z tint per typ (orange=sparing, violet=event, green=turniej, cyan=transfer, blue=post)
+- Bottom nav: `text-sport-cyan` → `text-sport-orange`, badge gradient `from-violet-500 to-sport-orange`
+- Button: nowy `accent` variant (orange gradient), `sport` variant zaktualizowany (cyan→orange)
+- Landing page: `border-white/[0.06]` → `border-border`, stats counter `text-sport-cyan` → `text-sport-orange`
+
+### Cleanup & Simplify
+- Usunięto duplicate `ClubNextMatch` z feed-client (HeroCard go zastępuje)
+- Usunięto duplicate `CoachDashboardStats` (DashboardStats obsługuje COACH)
+- Usunięto `as any` casty — poprawne typowanie z tRPC inference + `session.user.id`
+- Wyrównano `staleTime` na `stats.clubDashboard` (300_000) w 5 komponentach
+- Dodano `staleTime: 60_000` do sidebar unread count queries
+- Extract `SimpleHeroCard` z duplikacji PlayerHero/CoachHero
+- Usunięto unused `mounted` z `useSidebarState`
+
+### Nowe pliki (8)
+- `src/hooks/use-sidebar-state.ts`
+- `src/components/layout/top-tabs.tsx`
+- `src/components/layout/right-panel.tsx`
+- `src/components/dashboard/dashboard-stats.tsx`
+- `src/components/dashboard/hero-card.tsx`
+- `src/components/dashboard/mini-calendar.tsx`
+- `src/components/dashboard/upcoming-widget.tsx`
+- `src/components/dashboard/ranking-widget.tsx`
+
+### Pliki zmodyfikowane (16)
+- `src/styles/globals.css` — nowe tokeny Deep Charcoal
+- `src/components/layout/sidebar.tsx` — collapsed-first rewrite
+- `src/app/(dashboard)/layout.tsx` — TopTabs + ml-16
+- `src/components/layout/bottom-nav.tsx` — orange accent
+- `src/components/ui/button.tsx` — accent variant + sport update
+- `src/app/(dashboard)/feed/feed-client.tsx` — stats + hero + right panel integration
+- `src/app/page.tsx` — border-border, sport-orange stats
+- `src/app/(dashboard)/tournaments/[id]/page.tsx` — bg-card
+- `src/components/events/invite-player-dialog.tsx` — sport-orange
+- `src/components/feed/sparing-feed-card.tsx` — orange icon tint
+- `src/components/feed/event-feed-card.tsx` — violet icon tint
+- `src/components/feed/tournament-feed-card.tsx` — green icon tint
+- `src/components/feed/transfer-feed-card.tsx` — cyan icon tint
+- `src/components/feed/club-post-feed-card.tsx` — blue icon tint
+- `src/components/feed/new-member-feed-card.tsx` — unified hover
+- `STATE.md` — Etap 47

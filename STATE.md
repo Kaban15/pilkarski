@@ -101,7 +101,7 @@
 - **Pipeline rekrutacyjny:** gradient tiles w 2x2 grid, duże liczby 32px
 - **Kalendarz:** gradient highlights na dniach z wydarzeniami (orange/violet per typ)
 - **Micro-interactions:** heart bounce, check-pop, countdown pulse, hover glow, card elevation transitions
-- Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog
+- Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog, DashboardStats, HeroCard, MiniCalendar, UpcomingWidget, RankingWidget, TopTabs, RightPanel
 - Bottom Nav mobile (role-aware)
 - shadcn/ui: 15 komponentów
 - Dark mode: class-based, ThemeToggle, zero-flash script
