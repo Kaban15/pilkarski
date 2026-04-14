@@ -131,7 +131,7 @@ export const playerRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: any = {};
+      const where: any = { isDiscreet: false };
 
       if (input.search && input.search.length >= 2) {
         where.OR = [

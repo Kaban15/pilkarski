@@ -49,6 +49,7 @@ interface PlayerProfileFormProps {
     facebookUrl: string | null;
     instagramUrl: string | null;
     lookingForClub: boolean;
+    isDiscreet: boolean;
     careerEntries: { id: string; clubName: string; season: string; notes: string | null }[];
   };
   regions: { id: number; name: string }[];
@@ -105,6 +106,7 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
       facebookUrl: (fd.get("facebookUrl") as string) || undefined,
       instagramUrl: (fd.get("instagramUrl") as string) || undefined,
       lookingForClub: fd.get("lookingForClub") === "on",
+      isDiscreet: fd.get("isDiscreet") === "on",
     });
   }
 
@@ -288,6 +290,22 @@ export function PlayerProfileForm({ player, regions }: PlayerProfileFormProps) {
                   {player.regionId
                     ? t("Otrzymasz powiadomienie gdy klub w Twoim regionie ogłosi nabór. Nie jest widoczne dla innych.")
                     : t("Ustaw region aby włączyć tę opcję.")}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+              <input
+                type="checkbox"
+                id="isDiscreet"
+                name="isDiscreet"
+                defaultChecked={player.isDiscreet}
+                className="mt-1 rounded border-input"
+              />
+              <div>
+                <Label htmlFor="isDiscreet" className="cursor-pointer">{t("Tryb dyskretny")}</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t("Ukryj mój profil przed obecnym klubem i w wynikach publicznych. Pokazuj tylko klubom, do których aplikuję.")}
                 </p>
               </div>
             </div>

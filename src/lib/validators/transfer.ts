@@ -10,6 +10,7 @@ export const createTransferSchema = z.object({
   maxAge: z.number().int().min(10).max(60).optional(),
   availableFrom: z.string().optional(),
   preferredLevel: z.enum(["YOUTH", "AMATEUR", "SEMI_PRO", "PRO"]).optional(),
+  isDiscreet: z.boolean().optional(),
 }).strict();
 
 export const updateTransferSchema = createTransferSchema.extend({

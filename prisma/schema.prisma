@@ -208,6 +208,7 @@ model Player {
   facebookUrl       String?         @map("facebook_url") @db.VarChar(300)
   instagramUrl      String?         @map("instagram_url") @db.VarChar(300)
   lookingForClub    Boolean         @default(false) @map("looking_for_club")
+  isDiscreet        Boolean         @default(false) @map("is_discreet")
   createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -642,6 +643,7 @@ model Transfer {
   maxAge         Int?            @map("max_age")
   availableFrom  DateTime?       @map("available_from") @db.Date
   preferredLevel SparingLevel?   @map("preferred_level")
+  isDiscreet     Boolean         @default(false) @map("is_discreet")
   createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 

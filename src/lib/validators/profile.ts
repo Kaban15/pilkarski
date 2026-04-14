@@ -34,6 +34,7 @@ export const updatePlayerSchema = z.object({
   facebookUrl: z.string().url().max(300).optional(),
   instagramUrl: z.string().url().max(300).optional(),
   lookingForClub: z.boolean().optional(),
+  isDiscreet: z.boolean().optional(),
 }).strict();
 
 export const careerEntrySchema = z.object({

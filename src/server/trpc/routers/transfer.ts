@@ -168,7 +168,7 @@ export const transferRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: any = { status: input.status };
+      const where: any = { status: input.status, isDiscreet: false };
       if (input.type) where.type = input.type;
       if (input.position) where.position = input.position;
       if (input.regionId) where.regionId = input.regionId;

@@ -29,6 +29,7 @@ export const searchRouter = router({
         }),
         ctx.db.player.findMany({
           where: {
+            isDiscreet: false,
             OR: [
               { firstName: { contains: input.query, mode: "insensitive" } },
               { lastName: { contains: input.query, mode: "insensitive" } },

@@ -222,6 +222,7 @@ export const feedRouter = router({
           type: { in: ["LOOKING_FOR_CLUB", "FREE_AGENT"] },
           status: "ACTIVE",
           regionId: club.regionId,
+          isDiscreet: false,
         },
         include: {
           user: {
