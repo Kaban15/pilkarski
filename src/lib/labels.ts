@@ -234,15 +234,10 @@ export const NOTIFICATION_TYPE_COLORS: Record<string, string> = {
   MEMBERSHIP_REQUEST: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
   MEMBERSHIP_ACCEPTED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
   CLUB_INVITATION: "text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950",
-  SCORE_SUBMITTED: "text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-950",
-  SCORE_CONFIRMED: "text-green-800 dark:text-green-200 bg-green-50 dark:bg-green-950",
-  SCORE_REJECTED: "text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-950",
-  GOAL_ADDED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
   TOURNAMENT_APPLICATION: "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300",
   TOURNAMENT_ACCEPTED: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300",
   TOURNAMENT_REJECTED: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300",
   TOURNAMENT_STARTED: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
-  TOURNAMENT_SCORE_SUBMITTED: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300",
 };
 
 export const TRANSFER_TYPE_COLORS: Record<string, string> = {
