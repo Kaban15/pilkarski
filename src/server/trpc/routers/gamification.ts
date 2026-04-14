@@ -1,6 +1,12 @@
 import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { BADGES, type BadgeCheckStats } from "@/lib/gamification";
+import {
+  aggregateDailyCounts,
+  computeStreaks,
+  computeBestMonth,
+  computeBestDow,
+} from "@/lib/activity-utils";
 
 export const gamificationRouter = router({
   // Get current user's total points and recent point history
@@ -108,6 +114,38 @@ export const gamificationRouter = router({
           profileId: user?.club?.id ?? user?.player?.id ?? null,
         };
       });
+    }),
+
+  // Activity heatmap for public profiles
+  activityHeatmap: publicProcedure
+    .input(z.object({ userId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+      const entries = await ctx.db.userPoints.findMany({
+        where: {
+          userId: input.userId,
+          createdAt: { gte: oneYearAgo },
+        },
+        select: { createdAt: true },
+        orderBy: { createdAt: "asc" },
+      });
+
+      const dailyCounts = aggregateDailyCounts(entries);
+      const { currentStreak, longestStreak } = computeStreaks(dailyCounts, new Date());
+      const bestMonth = computeBestMonth(entries);
+      const bestDow = computeBestDow(entries);
+
+      return {
+        dailyCounts,
+        totalActions: entries.length,
+        activeDays: Object.keys(dailyCounts).length,
+        currentStreak,
+        longestStreak,
+        bestMonth,
+        bestDow,
+      };
     }),
 });
 
