@@ -372,6 +372,9 @@ export const eventRouter = router({
             },
             orderBy: { createdAt: "desc" },
           },
+          attendance: {
+            select: { userId: true, status: true },
+          },
         },
       });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
@@ -596,16 +599,27 @@ export const eventRouter = router({
 
       const event = await ctx.db.event.findUnique({
         where: { id: input.eventId },
-        select: { visibility: true, clubId: true },
+        select: { visibility: true, clubId: true, type: true },
       });
       if (!event) throw new TRPCError({ code: "NOT_FOUND" });
-      if (event.visibility !== "INTERNAL") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Obecność dostępna tylko dla wydarzeń wewnętrznych" });
-      }
-      if (!event.clubId) throw new TRPCError({ code: "BAD_REQUEST" });
 
-      const member = await isClubMember(userId, event.clubId);
-      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      // Path 1: INTERNAL events — club members only
+      if (event.visibility === "INTERNAL") {
+        if (!event.clubId) throw new TRPCError({ code: "BAD_REQUEST" });
+        const member = await isClubMember(userId, event.clubId);
+        if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      } else {
+        // Path 2: TRYOUT/RECRUITMENT — players with ACCEPTED application
+        if (event.type !== "TRYOUT" && event.type !== "RECRUITMENT") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Potwierdzanie obecności niedostępne dla tego typu wydarzenia" });
+        }
+        const player = await ctx.db.player.findUnique({ where: { userId }, select: { id: true } });
+        if (!player) throw new TRPCError({ code: "FORBIDDEN" });
+        const accepted = await ctx.db.eventApplication.findFirst({
+          where: { eventId: input.eventId, playerId: player.id, status: "ACCEPTED" },
+        });
+        if (!accepted) throw new TRPCError({ code: "FORBIDDEN", message: "Tylko zaakceptowani zawodnicy mogą potwierdzić obecność" });
+      }
 
       return ctx.db.eventAttendance.upsert({
         where: { eventId_userId: { eventId: input.eventId, userId } },

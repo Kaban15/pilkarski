@@ -33,6 +33,7 @@ import {
   Trophy,
   Target,
   Banknote,
+  AlertTriangle,
 } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 
@@ -46,6 +47,7 @@ type EventApplication = {
     lastName: string;
     primaryPosition: string | null;
     photoUrl: string | null;
+    userId: string;
   };
 };
 
@@ -60,6 +62,14 @@ export default function EventDetailPage() {
 
   const utils = api.useUtils();
   const { data: event } = api.event.getById.useQuery({ id }, { enabled: !!id });
+
+  const attendanceMut = api.event.setAttendance.useMutation({
+    onSuccess: () => {
+      utils.event.getById.invalidate({ id });
+      toast.success(t("Obecność zaktualizowana"));
+    },
+    onError: (err: { message: string }) => toast.error(err.message),
+  });
 
   const { data: myMembership } = api.clubMembership.myMembership.useQuery(
     { clubId: event?.clubId ?? "" },
@@ -99,8 +109,84 @@ export default function EventDetailPage() {
   const hasApplications = event.applications.length > 0;
   const myApplication = !isOwner && hasApplications ? event.applications[0] : null;
 
+  // Anti No-Show: show banner for PLAYER with ACCEPTED application on TRYOUT/RECRUITMENT, <48h to event
+  const isPlayer = session?.user?.role === "PLAYER";
+  const isAccepted = myApplication?.status === "ACCEPTED";
+  const isRecruitmentType = event.type === "TRYOUT" || event.type === "RECRUITMENT";
+  const hoursToEvent = (new Date(event.eventDate).getTime() - Date.now()) / (1000 * 60 * 60);
+  const showAntiNoShow = isPlayer && isAccepted && isRecruitmentType && hoursToEvent > 0 && hoursToEvent <= 48;
+  const myAttendance = event.attendance?.find((a: { userId: string; status: string }) => a.userId === session?.user?.id);
+
+  // Build attendance map for coach view: userId → status
+  const attendanceMap = new Map<string, string>();
+  for (const a of event.attendance ?? []) {
+    attendanceMap.set(a.userId, a.status);
+  }
+
   return (
     <div className="animate-fade-in">
+      {/* Anti No-Show Banner */}
+      {showAntiNoShow && !myAttendance && (
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-amber-800 dark:text-amber-300">
+                {t("Trener musi wiedzieć, czy się pojawisz!")}
+              </p>
+              <p className="mt-0.5 text-sm text-amber-700/80 dark:text-amber-400/80">
+                {t("Potwierdź swoją obecność, aby trener mógł zaplanować skład.")}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => attendanceMut.mutate({ eventId: id, status: "YES" })}
+                  disabled={attendanceMut.isPending}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t("Będę na 100%")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 border-red-500/30 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                  onClick={() => attendanceMut.mutate({ eventId: id, status: "NO" })}
+                  disabled={attendanceMut.isPending}
+                >
+                  <XCircle className="h-4 w-4" />
+                  {t("Jednak rezygnuję")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Attendance confirmed/declined banner */}
+      {showAntiNoShow && myAttendance && (
+        <div className={`mb-6 rounded-xl border p-4 ${
+          myAttendance.status === "YES"
+            ? "border-emerald-500/30 bg-emerald-500/10"
+            : "border-red-500/30 bg-red-500/10"
+        }`}>
+          <div className="flex items-center gap-2">
+            {myAttendance.status === "YES" ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            )}
+            <p className="font-medium">
+              {myAttendance.status === "YES"
+                ? t("Potwierdziłeś obecność")
+                : t("Zrezygnowałeś z udziału")}
+            </p>
+          </div>
+        </div>
+      )}
+
       <Breadcrumbs
         items={[
           { label: t("Wydarzenia"), href: "/events" },
@@ -354,6 +440,19 @@ export default function EventDetailPage() {
                       <Badge variant="secondary" className={APPLICATION_STATUS_COLORS[app.status]}>
                         {t(APPLICATION_STATUS_LABELS[app.status])}
                       </Badge>
+                      {app.status === "ACCEPTED" && attendanceMap.has(app.player.userId) && (
+                        attendanceMap.get(app.player.userId) === "YES" ? (
+                          <Badge className="bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-400 gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t("Potwierdzony")}
+                          </Badge>
+                        ) : attendanceMap.get(app.player.userId) === "NO" ? (
+                          <Badge className="bg-red-500/10 text-red-700 hover:bg-red-500/10 dark:text-red-400 gap-1">
+                            <XCircle className="h-3 w-3" />
+                            {t("Zrezygnował")}
+                          </Badge>
+                        ) : null
+                      )}
                       {app.status === "PENDING" && (
                         <>
                           <Button
