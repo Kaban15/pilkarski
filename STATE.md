@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-14
-**Aktualny etap:** 48 etapów ukończonych
+**Aktualny etap:** 49 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -27,7 +27,7 @@
 ### Wydarzenia (7 typów)
 - Typy: OPEN_TRAINING, RECRUITMENT, TRYOUT, CAMP, CONTINUOUS_RECRUITMENT, INDIVIDUAL_TRAINING, GROUP_TRAINING
 - Widoczność: PUBLIC / INTERNAL (tylko kadra)
-- Obecność: YES/NO/MAYBE (AttendanceSection)
+- Obecność: YES/NO/MAYBE (AttendanceSection) + **Anty No-Show**: baner 48h dla TRYOUT/RECRUITMENT z ACCEPTED, badge attendance na liście zgłoszeń
 - Smart lokalizacje: auto-ładowanie ostatniej, picker z zapisanymi, edycja inline
 - Delegowanie uprawnień (canManageEvents)
 - COACH tworzy treningi przez klub (membership required)
@@ -124,7 +124,7 @@
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
 - E2E: Playwright, 26+ testów (z `test.skip` guards na shared state)
-- Unit: Vitest 57 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router), coverage v8
+- Unit: Vitest 57 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router, tournament-logic), coverage v8
 - Security: headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist
 - Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
 - Route boundaries: skeleton `loading.tsx` + `error.tsx` w 8 dashboard segments
@@ -140,11 +140,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 | 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
 | 47 | 2026-04-14 | Dashboard Redesign: Deep Charcoal palette, Sportstream layout, TopTabs, RightPanel, HeroCard |
 | 46 | 2026-04-08 | Perf: RSC data prefetch (feed+sparings), time-aware prefetch hook, staleTime normalization, usunięty Bilans W-R-P |
-| 45 | 2026-04-08 | Visual redesign: głębia (cienie, zaokrąglenia), Rubik font, gradient akcenty, SVG hero, VS sparing cards, pipeline gradient tiles, calendar highlights, sidebar simplification |
-| 44 | 2026-04-08 | Feed redesign: zróżnicowane karty (6 typów), 3-kolumnowy layout (feed+right panel), pull-to-refresh, leaderboard widget |
+| 45 | 2026-04-08 | Visual redesign: głębia, Rubik font, gradient akcenty, VS sparing cards, pipeline gradient tiles, calendar highlights |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

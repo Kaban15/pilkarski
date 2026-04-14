@@ -1249,3 +1249,25 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - `src/components/sparings/sparing-card.tsx` — pitchStatus badge
 - `src/components/sparings/invite-club-dialog.tsx` — multi-select 1-5 klubów
 - `src/components/forms/player-profile-form.tsx` — toggle tryb dyskretny
+
+---
+
+## Etap 49 — Stabilizacja + Anty No-Show (2026-04-14)
+
+### Stabilizacja po refaktorze
+- Naprawiony E2E test `sparing.spec.ts` — wizard flow (Dalej → Opublikuj), usunięte martwe pole `#costSplitInfo`
+- Naprawiony unit test `gamification.test.ts` — 18 akcji w POINTS_MAP (było 20 przed usunięciem scores)
+
+### Funkcja Anty No-Show (twarde potwierdzenie obecności)
+- **Backend**: Rozszerzony `setAttendance` — oprócz INTERNAL events obsługuje TRYOUT/RECRUITMENT dla graczy z ACCEPTED application
+- **Backend**: `getById` zwraca `attendance` (userId + status) do wyświetlenia na froncie
+- **Frontend baner**: Bursztynowy baner ostrzegawczy na `events/[id]` gdy: rola=PLAYER, aplikacja=ACCEPTED, typ=TRYOUT/RECRUITMENT, <48h do wydarzenia
+  - Przyciski: "Będę na 100%" (YES) / "Jednak rezygnuję" (NO)
+  - Po odpowiedzi → zielony/czerwony baner z potwierdzeniem statusu
+- **Frontend widok trenera**: Badge "Potwierdzony" (zielony) i "Zrezygnował" (czerwony) na liście zgłoszeń obok statusu aplikacji
+
+### Pliki zmodyfikowane (4)
+- `e2e/sparing.spec.ts` — wizard flow, usunięte costSplitInfo
+- `src/__tests__/gamification.test.ts` — POINTS_MAP count 18
+- `src/server/trpc/routers/event.ts` — rozszerzony setAttendance, attendance w getById
+- `src/app/(dashboard)/events/[id]/page.tsx` — baner Anty No-Show, badge attendance
