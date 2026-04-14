@@ -45,14 +45,3 @@ export const confirmScoreSchema = z.object({
   confirmed: z.boolean(),
 }).strict();
 
-export const tournamentGoalSchema = z.object({
-  matchId: z.string().uuid(),
-  scorerUserId: z.string().uuid(),
-  minute: z.number().int().min(0).max(120).optional(),
-  ownGoal: z.boolean().default(false),
-}).strict();
-
-export const markTeamPaidSchema = z.object({
-  teamId: z.string().uuid(),
-  paid: z.boolean(),
-}).strict();

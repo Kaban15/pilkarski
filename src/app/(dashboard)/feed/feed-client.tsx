@@ -427,7 +427,6 @@ function ClubPendingAlerts({ pendingApplications }: { pendingApplications: any[]
 
 type ClubDashboardQueryData = {
   squadCount: number;
-  winRecord: { wins: number; draws: number; losses: number };
   nextMatch: {
     id: string;
     title: string;

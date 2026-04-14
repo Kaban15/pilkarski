@@ -14,8 +14,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SendMessageButton } from "@/components/send-message-button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { api } from "@/lib/trpc-react";
-import { toast } from "sonner";
 import {
   Calendar,
   MapPin,
@@ -43,7 +41,6 @@ type SparingInfoProps = {
   onComplete: () => void;
   deleting: boolean;
   completing: boolean;
-  onRefresh?: () => void;
 };
 
 export function SparingInfo({
@@ -59,17 +56,8 @@ export function SparingInfo({
   onComplete,
   deleting,
   completing,
-  onRefresh,
 }: SparingInfoProps) {
   const { t } = useI18n();
-  const utils = api.useUtils();
-  const markCostPaidMut = api.sparing.markCostPaid.useMutation({
-    onSuccess: () => {
-      utils.sparing.getById.invalidate({ id: sparing.id });
-      onRefresh?.();
-    },
-    onError: (e) => toast.error(e.message),
-  });
 
   const opponent = acceptedApp?.applicantClub;
   return (
@@ -271,59 +259,6 @@ export function SparingInfo({
         </CardContent>
       </Card>
 
-      {/* Rozliczenie — visible to participants when MATCHED/COMPLETED and costPerTeam > 0 */}
-      {sparing.costPerTeam != null && sparing.costPerTeam > 0 &&
-        (sparing.status === "MATCHED" || sparing.status === "COMPLETED") &&
-        (isOwner || (acceptedApp && sessionUserId === acceptedApp.applicantClub?.userId)) && (
-        <Card className="mb-6 border-amber-500/20">
-          <CardContent className="py-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Banknote className="h-4 w-4 text-amber-500" />
-              <p className="text-sm font-semibold">{t("Rozliczenie")}</p>
-            </div>
-            <div className="space-y-2">
-              {/* Home side */}
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-muted-foreground">{t("Gospodarze")} ({sparing.club.name})</span>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${sparing.costPaidHome ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                    {sparing.costPaidHome ? t("Opłacone") : t("Nieopłacone")}
-                  </span>
-                  {isOwner && (
-                    <button
-                      onClick={() => markCostPaidMut.mutate({ sparingId: sparing.id, side: "home", paid: !sparing.costPaidHome })}
-                      disabled={markCostPaidMut.isPending}
-                      className="text-[11px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
-                    >
-                      {sparing.costPaidHome ? t("Cofnij") : t("Oznacz")}
-                    </button>
-                  )}
-                </div>
-              </div>
-              {/* Away side */}
-              {acceptedApp && (
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">{t("Goście")} ({acceptedApp.applicantClub?.name})</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${sparing.costPaidAway ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                      {sparing.costPaidAway ? t("Opłacone") : t("Nieopłacone")}
-                    </span>
-                    {sessionUserId === acceptedApp.applicantClub?.userId && (
-                      <button
-                        onClick={() => markCostPaidMut.mutate({ sparingId: sparing.id, side: "away", paid: !sparing.costPaidAway })}
-                        disabled={markCostPaidMut.isPending}
-                        className="text-[11px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
-                      >
-                        {sparing.costPaidAway ? t("Cofnij") : t("Oznacz")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </>
   );
 }

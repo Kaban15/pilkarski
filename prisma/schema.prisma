@@ -120,10 +120,8 @@ model User {
   followedClubs            ClubFollower[]
   clubMemberships          ClubMembership[]
   eventAttendance          EventAttendance[]
-  goals                    MatchGoal[]
   tournaments              Tournament[]
   tournamentTeams          TournamentTeam[]
-  tournamentGoals          TournamentGoal[]
   clubPostReports          ClubPostReport[]
 
   @@map("users")
@@ -325,13 +323,7 @@ model SparingOffer {
   preferredTime String?       @map("preferred_time") @db.VarChar(100)
   status           SparingStatus @default(OPEN)
   regionId         Int?          @map("region_id")
-  homeScore        Int?          @map("home_score")
-  awayScore        Int?          @map("away_score")
-  scoreSubmittedBy String?       @map("score_submitted_by") @db.Uuid
-  scoreConfirmed   Boolean       @default(false) @map("score_confirmed")
   costPerTeam      Int?          @map("cost_per_team")
-  costPaidHome     Boolean       @default(false) @map("cost_paid_home")
-  costPaidAway     Boolean       @default(false) @map("cost_paid_away")
   createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -341,7 +333,6 @@ model SparingOffer {
   invitations  SparingInvitation[]
   favorites    Favorite[]
   reviews      Review[]
-  goals        MatchGoal[]
 
   @@index([regionId, status])
   @@index([matchDate])
@@ -501,16 +492,11 @@ enum NotificationType {
   SPARING_INVITATION     // zaproszenie na sparing od innego klubu
   MEMBERSHIP_REQUEST     // prośba o dołączenie do klubu
   MEMBERSHIP_ACCEPTED    // akceptacja prośby o dołączenie
-  SCORE_SUBMITTED        // wynik wpisany — czeka na potwierdzenie
-  SCORE_CONFIRMED        // wynik potwierdzony
-  SCORE_REJECTED         // wynik odrzucony
-  GOAL_ADDED             // bramka w meczu
   CLUB_INVITATION        // zaproszenie do kadry klubu
   TOURNAMENT_APPLICATION
   TOURNAMENT_ACCEPTED
   TOURNAMENT_REJECTED
   TOURNAMENT_STARTED
-  TOURNAMENT_SCORE_SUBMITTED
 }
 
 model Notification {
@@ -903,24 +889,6 @@ model ClubFollower {
   @@map("club_followers")
 }
 
-// ============================================================
-// BRAMKI MECZOWE
-// ============================================================
-
-model MatchGoal {
-  id              String        @id @default(uuid()) @db.Uuid
-  sparingOfferId  String        @map("sparing_offer_id") @db.Uuid
-  scorerUserId    String        @map("scorer_user_id") @db.Uuid
-  minute          Int?
-  ownGoal         Boolean       @default(false) @map("own_goal")
-  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
-
-  sparingOffer    SparingOffer  @relation(fields: [sparingOfferId], references: [id], onDelete: Cascade)
-  scorerUser      User          @relation(fields: [scorerUserId], references: [id], onDelete: Cascade)
-
-  @@index([sparingOfferId])
-  @@map("match_goals")
-}
 
 // ============================================================
 // TURNIEJE
@@ -967,7 +935,6 @@ model TournamentTeam {
   groupLabel   String?              @map("group_label") @db.VarChar(2)
   seed         Int?
   message      String?
-  costPaid     Boolean              @default(false) @map("cost_paid")
   createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
 
   tournament    Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
@@ -1004,26 +971,11 @@ model TournamentMatch {
   tournament   Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   homeTeam     TournamentTeam      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam     TournamentTeam      @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  goals        TournamentGoal[]
 
   @@index([tournamentId])
   @@map("tournament_matches")
 }
 
-model TournamentGoal {
-  id           String          @id @default(uuid()) @db.Uuid
-  matchId      String          @map("match_id") @db.Uuid
-  scorerUserId String          @map("scorer_user_id") @db.Uuid
-  minute       Int?
-  ownGoal      Boolean         @default(false) @map("own_goal")
-  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
-
-  match        TournamentMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  scorerUser   User            @relation(fields: [scorerUserId], references: [id])
-
-  @@index([matchId])
-  @@map("tournament_goals")
-}
 
 model TournamentStanding {
   id           String         @id @default(uuid()) @db.Uuid

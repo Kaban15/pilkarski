@@ -190,7 +190,7 @@ export const statsRouter = router({
 
     const now = new Date();
 
-    const [activeSparings, upcomingEvents, pendingApplications, squadCount, completedSparings, nextMatchOffer] = await Promise.all([
+    const [activeSparings, upcomingEvents, pendingApplications, squadCount, nextMatchOffer] = await Promise.all([
       ctx.db.sparingOffer.findMany({
         where: { clubId: club.id, status: "OPEN" },
         include: {
@@ -225,17 +225,6 @@ export const statsRouter = router({
       ctx.db.clubMembership.count({
         where: { clubId: club.id, status: "ACCEPTED" },
       }),
-      // Completed sparings with confirmed scores for win record
-      ctx.db.sparingOffer.findMany({
-        where: {
-          clubId: club.id,
-          status: "COMPLETED",
-          scoreConfirmed: true,
-          homeScore: { not: null },
-          awayScore: { not: null },
-        },
-        select: { homeScore: true, awayScore: true },
-      }),
       // Next upcoming MATCHED sparing
       ctx.db.sparingOffer.findFirst({
         where: {
@@ -255,15 +244,6 @@ export const statsRouter = router({
         orderBy: { matchDate: "asc" },
       }),
     ]);
-
-    // Compute win record from completed sparings (club is always home in its own offers)
-    let wins = 0, draws = 0, losses = 0;
-    for (const s of completedSparings) {
-      if (s.homeScore == null || s.awayScore == null) continue;
-      if (s.homeScore > s.awayScore) wins++;
-      else if (s.homeScore === s.awayScore) draws++;
-      else losses++;
-    }
 
     // Build nextMatch data
     let nextMatch: {
@@ -288,7 +268,6 @@ export const statsRouter = router({
       upcomingEvents,
       pendingApplications,
       squadCount,
-      winRecord: { wins, draws, losses },
       nextMatch,
     };
   }),

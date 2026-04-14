@@ -14,9 +14,6 @@ interface MatchCardProps {
   homeClub: ClubInfo;
   awayClub: ClubInfo;
   date: Date;
-  homeScore?: number | null;
-  awayScore?: number | null;
-  scoreConfirmed?: boolean;
   variant?: "compact" | "highlight";
 }
 
@@ -38,24 +35,8 @@ function ClubAvatar({ club, size = "sm" }: { club: ClubInfo; size?: "sm" | "md" 
   );
 }
 
-function ScoreBadge({ home, away, isHome }: { home: number; away: number; isHome: boolean }) {
-  const won = isHome ? home > away : away > home;
-  const lost = isHome ? home < away : away < home;
-  const colorClass = won
-    ? "bg-emerald-500/20 text-emerald-400"
-    : lost
-      ? "bg-red-500/20 text-red-400"
-      : "bg-muted/30 text-muted-foreground";
 
-  return (
-    <div className={`${colorClass} px-3 py-1 rounded-lg text-sm font-extrabold`}>
-      {home} : {away}
-    </div>
-  );
-}
-
-export function MatchCard({ homeClub, awayClub, date, homeScore, awayScore, scoreConfirmed, variant = "compact" }: MatchCardProps) {
-  const hasScore = homeScore != null && awayScore != null && scoreConfirmed;
+export function MatchCard({ homeClub, awayClub, date, variant = "compact" }: MatchCardProps) {
   const dateStr = formatShortDate(date);
   const timeStr = date.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
 
@@ -93,7 +74,7 @@ export function MatchCard({ homeClub, awayClub, date, homeScore, awayScore, scor
     <div className="flex items-center py-3 px-3">
       <div className="w-11 text-center mr-3 shrink-0">
         <div className="text-[11px] text-muted-foreground">{dateStr}</div>
-        {!hasScore && <div className="text-[10px] text-muted-foreground">{timeStr}</div>}
+        <div className="text-[10px] text-muted-foreground">{timeStr}</div>
       </div>
       <div className="w-px h-8 bg-border mr-3 shrink-0" />
       <Link href={`/clubs/${homeClub.id}`} className="flex items-center gap-2 flex-1 min-w-0 hover:text-primary transition-colors">
@@ -101,11 +82,7 @@ export function MatchCard({ homeClub, awayClub, date, homeScore, awayScore, scor
         <span className="text-[13px] font-semibold truncate">{homeClub.name}</span>
       </Link>
       <div className="mx-2 shrink-0">
-        {hasScore ? (
-          <ScoreBadge home={homeScore} away={awayScore} isHome />
-        ) : (
-          <span className="text-[13px] font-extrabold text-muted-foreground">vs</span>
-        )}
+        <span className="text-[13px] font-extrabold text-muted-foreground">vs</span>
       </div>
       <Link href={`/clubs/${awayClub.id}`} className="flex items-center gap-2 flex-1 min-w-0 justify-end hover:text-primary transition-colors">
         <span className="text-[13px] font-semibold truncate">{awayClub.name}</span>

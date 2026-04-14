@@ -54,12 +54,6 @@ export const updateSparingSchema = createSparingSchema.extend({
 export type CreateSparingInput = z.infer<typeof createSparingSchema>;
 export type UpdateSparingInput = z.infer<typeof updateSparingSchema>;
 
-export const markCostPaidSchema = z.object({
-  sparingId: z.string().uuid(),
-  side: z.enum(["home", "away"]),
-  paid: z.boolean(),
-}).strict();
-
 export type SparingLevel = (typeof SPARING_LEVELS)[number];
 export type AgeCategory = (typeof AGE_CATEGORIES)[number];
 export type SparingSortBy = "matchDate" | "createdAt" | "title";

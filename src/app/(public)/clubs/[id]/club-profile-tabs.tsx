@@ -31,28 +31,12 @@ interface ClubInfo {
 interface UpcomingMatch {
   id: string;
   matchDate: Date;
-  homeScore: number | null;
-  awayScore: number | null;
-  scoreConfirmed: boolean;
   clubId: string;
   club: { id: string; name: string; logoUrl: string | null };
   applications: { applicantClub: { id: string; name: string; logoUrl: string | null } }[];
 }
 
-interface MatchGoal {
-  id: string;
-  minute: number | null;
-  ownGoal: boolean;
-  scorerUser: {
-    player: { firstName: string; lastName: string } | null;
-    coach: { firstName: string; lastName: string } | null;
-  } | null;
-}
-
 interface CompletedMatch extends UpcomingMatch {
-  homeScore: number;
-  awayScore: number;
-  goals: MatchGoal[];
 }
 
 interface Member {
@@ -194,7 +178,7 @@ export function ClubProfileTabs({
           {completedMatches.length > 0 && (
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                {t("Ostatnie wyniki")}
+                {t("Ostatnie mecze")}
               </p>
               <div className="bg-card rounded-xl divide-y divide-border overflow-hidden">
                 {completedMatches.map((match) => {
@@ -206,35 +190,13 @@ export function ClubProfileTabs({
                   const awayClubInfo = rival
                     ? toClubInfo(rival)
                     : { id: "unknown", name: t("Przeciwnik"), logoUrl: null, initials: "??" };
-                  const goalLine =
-                    match.goals.length > 0
-                      ? match.goals
-                          .map((g) => {
-                            const p = g.scorerUser?.player;
-                            const c = g.scorerUser?.coach;
-                            const lastName = p?.lastName ?? c?.lastName ?? "?";
-                            const suffix = g.ownGoal ? " (s)" : "";
-                            const minute = g.minute != null ? ` ${g.minute}'` : "";
-                            return `${lastName}${suffix}${minute}`;
-                          })
-                          .join(", ")
-                      : null;
                   return (
-                    <div key={match.id}>
-                      <MatchCard
-                        homeClub={homeClubInfo}
-                        awayClub={awayClubInfo}
-                        date={match.matchDate}
-                        homeScore={match.homeScore}
-                        awayScore={match.awayScore}
-                        scoreConfirmed={match.scoreConfirmed}
-                      />
-                      {goalLine && (
-                        <p className="text-[11px] text-muted-foreground ml-14 mt-0.5 pb-1.5">
-                          ⚽ {goalLine}
-                        </p>
-                      )}
-                    </div>
+                    <MatchCard
+                      key={match.id}
+                      homeClub={homeClubInfo}
+                      awayClub={awayClubInfo}
+                      date={match.matchDate}
+                    />
                   );
                 })}
               </div>

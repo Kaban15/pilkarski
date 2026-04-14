@@ -75,11 +75,10 @@ export default async function ClubPublicProfilePage({ params }: Props) {
           },
         },
       }),
-      // Completed sparings with confirmed scores
+      // Completed sparings
       db.sparingOffer.findMany({
         where: {
           status: "COMPLETED",
-          scoreConfirmed: true,
           OR: [
             { clubId: id },
             { applications: { some: { status: "ACCEPTED", applicantClub: { id } } } },
@@ -90,17 +89,6 @@ export default async function ClubPublicProfilePage({ params }: Props) {
           applications: {
             where: { status: "ACCEPTED" },
             include: { applicantClub: { select: { id: true, name: true, logoUrl: true } } },
-          },
-          goals: {
-            include: {
-              scorerUser: {
-                select: {
-                  player: { select: { firstName: true, lastName: true } },
-                  coach: { select: { firstName: true, lastName: true } },
-                },
-              },
-            },
-            orderBy: [{ minute: { sort: "asc", nulls: "last" } }],
           },
         },
         take: 10,
@@ -172,17 +160,6 @@ export default async function ClubPublicProfilePage({ params }: Props) {
         orderBy: { acceptedAt: "desc" },
       }),
     ]);
-
-  // W/D/L record from completed matches
-  const record = { wins: 0, draws: 0, losses: 0 };
-  for (const match of completedMatches) {
-    const isHome = match.clubId === id;
-    const myScore = isHome ? match.homeScore! : match.awayScore!;
-    const theirScore = isHome ? match.awayScore! : match.homeScore!;
-    if (myScore > theirScore) record.wins++;
-    else if (myScore === theirScore) record.draws++;
-    else record.losses++;
-  }
 
   const leagueGroupHref =
     club.leagueGroup && club.region
@@ -282,13 +259,7 @@ export default async function ClubPublicProfilePage({ params }: Props) {
         {/* StatsBar */}
         <div className="bg-card rounded-xl overflow-hidden flex divide-x divide-border my-4">
           <div className="flex-1">
-            <StatsCell value={record.wins} label="Wygrane" color="emerald" />
-          </div>
-          <div className="flex-1">
-            <StatsCell value={record.draws} label="Remisy" color="default" />
-          </div>
-          <div className="flex-1">
-            <StatsCell value={record.losses} label="Porażki" color="red" />
+            <StatsCell value={completedMatches.length} label="Mecze" color="default" />
           </div>
           <div className="flex-1">
             <StatsCell value={members.length} label="Kadra" color="sky" />
@@ -299,9 +270,7 @@ export default async function ClubPublicProfilePage({ params }: Props) {
         <ClubProfileTabs
           clubId={id}
           upcomingMatches={upcomingMatches}
-          completedMatches={
-            completedMatches as Parameters<typeof ClubProfileTabs>[0]["completedMatches"]
-          }
+          completedMatches={completedMatches}
           members={members}
           recruitmentEvents={eventsRes}
           reviews={recentReviews}

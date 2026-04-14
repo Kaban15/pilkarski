@@ -21,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GroupTable } from "@/components/tournament/group-table";
 import { BracketView } from "@/components/tournament/bracket-view";
-import { TopScorers } from "@/components/tournament/top-scorers";
 import { MatchRow } from "@/components/tournament/match-row";
 import { MapPin, Calendar, Users, Trophy, Info, Banknote } from "lucide-react";
 
@@ -37,7 +36,6 @@ const ALL_TABS = [
   { key: "teams", labelKey: "Drużyny" },
   { key: "groups", labelKey: "Grupy" },
   { key: "bracket", labelKey: "Drabinka" },
-  { key: "scorers", labelKey: "Strzelcy" },
   { key: "info", labelKey: "Info" },
 ] as const;
 
@@ -101,18 +99,6 @@ export default function TournamentDetailPage() {
     { enabled: !!id }
   );
 
-  const { data: topScorersRaw = [] } = api.tournament.getTopScorers.useQuery(
-    { tournamentId: id },
-    { enabled: !!id }
-  );
-
-  const topScorers = topScorersRaw.map((s) => ({
-    scorerUserId: s.userId,
-    scorerName: s.name,
-    teamName: s.teamName,
-    goalCount: s.goals,
-  }));
-
   // ─── mutations ──────────────────────────────────────────────────────────────
 
   const invalidate = () => utils.tournament.getById.invalidate({ tournamentId: id });
@@ -152,11 +138,6 @@ export default function TournamentDetailPage() {
       toast.success(vars.confirmed ? t("Wynik potwierdzony!") : t("Wynik odrzucony"));
       invalidate();
     },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const markTeamPaidMut = api.tournament.markTeamPaid.useMutation({
-    onSuccess: () => { invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -399,21 +380,6 @@ export default function TournamentDetailPage() {
                     >
                       {t(STATUS_LABEL_MAP[appStatus] ?? appStatus)}
                     </span>
-                    {/* Creator: payment badge + toggle */}
-                    {isCreator && (tournament as any).costPerTeam != null && (tournament as any).costPerTeam > 0 && appStatus === "ACCEPTED" && (
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${(team as any).costPaid ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                          {(team as any).costPaid ? t("Opłacone") : t("Nieopłacone")}
-                        </span>
-                        <button
-                          onClick={() => markTeamPaidMut.mutate({ teamId: team.id, paid: !(team as any).costPaid })}
-                          disabled={markTeamPaidMut.isPending}
-                          className="text-[10px] font-semibold bg-muted hover:bg-muted/80 text-foreground rounded px-2 py-0.5 transition-colors"
-                        >
-                          {(team as any).costPaid ? t("Cofnij") : t("Oznacz")}
-                        </button>
-                      </div>
-                    )}
                     {/* Creator accept/reject on PENDING */}
                     {isCreator && appStatus === "PENDING" && (
                       <div className="flex gap-1.5 shrink-0">
@@ -565,11 +531,6 @@ export default function TournamentDetailPage() {
             scoreConfirmed: m.scoreConfirmed,
           }))} />
         </div>
-      )}
-
-      {/* ── Tab: Strzelcy ── */}
-      {validTab === "scorers" && (
-        <TopScorers scorers={topScorers} />
       )}
 
       {/* ── Tab: Info ── */}

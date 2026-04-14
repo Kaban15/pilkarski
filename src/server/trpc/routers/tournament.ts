@@ -7,8 +7,7 @@ import { sendEmailToUser } from "@/server/send-email";
 import { generateRoundRobin, generateKnockoutBracket, recalculateStandings, getNextPhase } from "@/server/tournament-logic";
 import {
   createTournamentSchema, updateTournamentSchema, applyTeamSchema,
-  respondApplicationSchema, submitScoreSchema, confirmScoreSchema, tournamentGoalSchema,
-  markTeamPaidSchema,
+  respondApplicationSchema, submitScoreSchema, confirmScoreSchema,
 } from "@/lib/validators/tournament";
 import { getUserDisplayName } from "@/lib/labels";
 
@@ -225,12 +224,6 @@ export const tournamentRouter = router({
             include: {
               homeTeam: { select: { id: true, teamName: true } },
               awayTeam: { select: { id: true, teamName: true } },
-              goals: {
-                include: {
-                  scorerUser: { select: { id: true, email: true } },
-                },
-                orderBy: { minute: "asc" },
-              },
             },
             orderBy: { matchOrder: "asc" },
           },
@@ -872,138 +865,4 @@ export const tournamentRouter = router({
       return { ok: true };
     }),
 
-  addGoal: protectedProcedure
-    .input(tournamentGoalSchema)
-    .mutation(async ({ ctx, input }) => {
-      const match = await ctx.db.tournamentMatch.findUnique({
-        where: { id: input.matchId },
-        include: {
-          homeTeam: { select: { id: true, userId: true } },
-          awayTeam: { select: { id: true, userId: true } },
-        },
-      });
-      if (!match) throw new TRPCError({ code: "NOT_FOUND" });
-      if (!match.scoreConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Wynik meczu nie jest jeszcze potwierdzony" });
-
-      const isHome = match.homeTeam.userId === ctx.session.user.id;
-      const isAway = match.awayTeam.userId === ctx.session.user.id;
-      if (!isHome && !isAway) throw new TRPCError({ code: "FORBIDDEN", message: "Nie jesteś uczestnikiem tego meczu" });
-
-      const goal = await ctx.db.tournamentGoal.create({
-        data: {
-          matchId: input.matchId,
-          scorerUserId: input.scorerUserId,
-          minute: input.minute,
-          ownGoal: input.ownGoal,
-        },
-      });
-
-      awardPoints(ctx.db, input.scorerUserId, "tournament_goal", input.matchId).catch((err) => console.error("[awardPoints]", err));
-
-      ctx.db.notification.create({
-        data: {
-          userId: input.scorerUserId,
-          type: "TOURNAMENT_APPLICATION",
-          title: "Bramka dodana!",
-          message: "Twoja bramka została dodana w turnieju",
-          link: `/tournaments/${match.tournamentId}`,
-        },
-      }).catch((err) => console.error("[notification]", err));
-      sendPushToUser(input.scorerUserId, {
-        title: "Bramka dodana!",
-        body: "Twoja bramka została dodana w turnieju",
-        url: `/tournaments/${match.tournamentId}`,
-      }).catch((err) => console.error("[push]", err));
-
-      return goal;
-    }),
-
-  removeGoal: protectedProcedure
-    .input(z.object({ goalId: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const goal = await ctx.db.tournamentGoal.findUnique({
-        where: { id: input.goalId },
-        include: {
-          match: {
-            include: {
-              homeTeam: { select: { userId: true } },
-              awayTeam: { select: { userId: true } },
-            },
-          },
-        },
-      });
-      if (!goal) throw new TRPCError({ code: "NOT_FOUND" });
-
-      const isHome = goal.match.homeTeam.userId === ctx.session.user.id;
-      const isAway = goal.match.awayTeam.userId === ctx.session.user.id;
-      if (!isHome && !isAway) throw new TRPCError({ code: "FORBIDDEN", message: "Nie jesteś uczestnikiem tego meczu" });
-
-      await ctx.db.tournamentGoal.delete({ where: { id: input.goalId } });
-
-      return { ok: true };
-    }),
-
-  getTopScorers: publicProcedure
-    .input(z.object({ tournamentId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      // Get all goals for this tournament's matches
-      const goals = await ctx.db.tournamentGoal.findMany({
-        where: {
-          match: { tournamentId: input.tournamentId },
-          ownGoal: false,
-        },
-        include: {
-          scorerUser: {
-            select: {
-              id: true,
-              email: true,
-              player: { select: { firstName: true, lastName: true } },
-              coach: { select: { firstName: true, lastName: true } },
-              club: { select: { name: true } },
-              tournamentTeams: {
-                where: { tournamentId: input.tournamentId },
-                select: { teamName: true },
-                take: 1,
-              },
-            },
-          },
-        },
-      });
-
-      // Group by scorerUserId and count
-      const scorerMap = new Map<string, { userId: string; name: string; teamName: string; goals: number }>();
-      for (const goal of goals) {
-        const userId = goal.scorerUserId;
-        if (!scorerMap.has(userId)) {
-          const user = goal.scorerUser;
-          const name = getUserDisplayName(user);
-          const teamName = user.tournamentTeams[0]?.teamName ?? user.club?.name ?? "";
-          scorerMap.set(userId, { userId, name, teamName, goals: 0 });
-        }
-        scorerMap.get(userId)!.goals++;
-      }
-
-      const sorted = Array.from(scorerMap.values())
-        .sort((a, b) => b.goals - a.goals)
-        .slice(0, 10);
-
-      return sorted;
-    }),
-
-  markTeamPaid: protectedProcedure
-    .input(markTeamPaidSchema)
-    .mutation(async ({ ctx, input }) => {
-      const team = await ctx.db.tournamentTeam.findUnique({
-        where: { id: input.teamId },
-        include: { tournament: { select: { creatorUserId: true } } },
-      });
-      if (!team) throw new TRPCError({ code: "NOT_FOUND" });
-      if (team.tournament.creatorUserId !== ctx.session.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Tylko organizator może oznaczać opłaty" });
-      }
-      return ctx.db.tournamentTeam.update({
-        where: { id: input.teamId },
-        data: { costPaid: input.paid },
-      });
-    }),
 });

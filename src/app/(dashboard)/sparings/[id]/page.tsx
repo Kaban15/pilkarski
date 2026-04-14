@@ -27,7 +27,6 @@ type SparingApplication = {
 
 import { SparingInfo } from "./_components/sparing-info";
 import { SparingTimeline } from "./_components/sparing-timeline";
-import { ScoreSection } from "./_components/score-section";
 import { ApplyForm } from "./_components/apply-form";
 import { SparingApplications } from "./_components/sparing-applications";
 import { SparingReviews } from "./_components/sparing-reviews";
@@ -157,7 +156,6 @@ export default function SparingDetailPage() {
         onComplete={handleComplete}
         deleting={deleteMutation.isPending}
         completing={completeMutation.isPending}
-        onRefresh={reload}
       />
 
       <SparingTimeline
@@ -169,35 +167,6 @@ export default function SparingDetailPage() {
           reviewSectionRef.current?.scrollIntoView({ behavior: "smooth" })
         }
       />
-
-      {sparing && session?.user && (
-        <ScoreSection
-          sparingId={id}
-          sparingOfferId={id}
-          homeScore={sparing.homeScore}
-          awayScore={sparing.awayScore}
-          scoreSubmittedBy={sparing.scoreSubmittedBy}
-          scoreConfirmed={sparing.scoreConfirmed}
-          status={sparing.status}
-          isOwner={sparing.club.userId === session.user.id}
-          isRival={sparing.applications?.some(
-            (a: SparingApplication) => a.status === "ACCEPTED" && a.applicantClub.userId === session.user.id
-          ) ?? false}
-          isParticipant={isParticipant}
-          userId={session.user.id}
-          ownerClubName={sparing.club.name}
-          rivalClubName={
-            sparing.applications?.find((a: SparingApplication) => a.status === "ACCEPTED")
-              ?.applicantClub.name ?? "Rywal"
-          }
-          homeClubId={sparing.club.id}
-          awayClubId={
-            sparing.applications?.find((a: SparingApplication) => a.status === "ACCEPTED")
-              ?.applicantClub.id ?? null
-          }
-          onUpdate={reload}
-        />
-      )}
 
       {/* Invitations */}
       {isOwner && sparing.status === "OPEN" && (

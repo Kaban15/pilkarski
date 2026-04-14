@@ -93,15 +93,10 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   MEMBERSHIP_REQUEST: "Prośba o dołączenie",
   MEMBERSHIP_ACCEPTED: "Dołączenie do klubu",
   CLUB_INVITATION: "Zaproszenie do klubu",
-  SCORE_SUBMITTED: "Wynik do potwierdzenia",
-  SCORE_CONFIRMED: "Wynik potwierdzony",
-  SCORE_REJECTED: "Wynik odrzucony",
-  GOAL_ADDED: "Bramka",
   TOURNAMENT_APPLICATION: "Zgłoszenie do turnieju",
   TOURNAMENT_ACCEPTED: "Przyjęty do turnieju",
   TOURNAMENT_REJECTED: "Odrzucony z turnieju",
   TOURNAMENT_STARTED: "Turniej rozpoczęty",
-  TOURNAMENT_SCORE_SUBMITTED: "Wynik turnieju do potwierdzenia",
 };
 
 export const TRANSFER_TYPE_LABELS: Record<string, string> = {
