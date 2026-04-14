@@ -18,8 +18,11 @@ import {
   ClubPostFeedCard,
   NewMemberFeedCard,
 } from "@/components/feed";
-import { FeedRightPanel } from "@/components/feed/feed-right-panel";
 import { PullToRefreshIndicator } from "@/components/feed/pull-to-refresh-indicator";
+import { RightPanel } from "@/components/layout/right-panel";
+import { MiniCalendar } from "@/components/dashboard/mini-calendar";
+import { UpcomingWidget } from "@/components/dashboard/upcoming-widget";
+import { RankingWidget } from "@/components/dashboard/ranking-widget";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { DashboardStats as DashboardStatsWidget } from "@/components/dashboard/dashboard-stats";
 import { HeroCard } from "@/components/dashboard/hero-card";
@@ -573,6 +576,25 @@ function ClubDashboard({
   );
 }
 
+function QuickActions() {
+  const { t } = useI18n();
+  return (
+    <div>
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        {t("Szybkie akcje")}
+      </p>
+      <div className="flex flex-col gap-1.5">
+        <Button asChild size="sm" className="w-full justify-start">
+          <Link href="/sparings/new"><Plus className="mr-1.5 h-3.5 w-3.5" />{t("Nowy sparing")}</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="w-full justify-start">
+          <Link href="/events/new"><Calendar className="mr-1.5 h-3.5 w-3.5" />{t("Dodaj wydarzenie")}</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function FeedClient() {
   const { t } = useI18n();
   const { data: session } = useSession();
@@ -730,12 +752,12 @@ export default function FeedClient() {
       )}
       </div>
 
-      {/* Right panel — desktop only */}
-      <aside className="hidden lg:block lg:w-72 xl:w-80 shrink-0">
-        <div className="sticky top-6">
-          <FeedRightPanel />
-        </div>
-      </aside>
+      <RightPanel>
+        <MiniCalendar />
+        <UpcomingWidget />
+        <RankingWidget />
+        <QuickActions />
+      </RightPanel>
     </div>
   );
 }
