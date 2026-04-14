@@ -1191,3 +1191,61 @@ Eliminacja waterfall na najważniejszych stronach przez server-side prefetch + p
 - `src/components/feed/club-post-feed-card.tsx` — blue icon tint
 - `src/components/feed/new-member-feed-card.tsx` — unified hover
 - `STATE.md` — Etap 47
+
+## Etap 48: Pivot matchmaking — usunięcie wyników/bramek/opłat, PitchStatus, grupowe zaproszenia, tryb dyskretny ✅
+
+**Data:** 2026-04-14
+
+Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usunięcie zbędnych ficzerów, dodanie nowych wspierających core flow.
+
+### Usunięte (redukcja szumu)
+- **Modele:** `MatchGoal`, `TournamentGoal` — usunięte całkowicie
+- **Pola SparingOffer:** `homeScore`, `awayScore`, `scoreSubmittedBy`, `scoreConfirmed`, `costPaidHome`, `costPaidAway`
+- **Pole TournamentTeam:** `costPaid`
+- **Typy notyfikacji:** `SCORE_SUBMITTED`, `SCORE_CONFIRMED`, `SCORE_REJECTED`, `GOAL_ADDED`, `TOURNAMENT_SCORE_SUBMITTED`
+- **Endpointy tRPC sparing:** `submitScore`, `confirmScore`, `getGoals`, `addGoal`, `removeGoal`, `markCostPaid`
+- **Endpointy tRPC tournament:** `addGoal`, `removeGoal`, `getTopScorers`, `markTeamPaid`
+- **Walidatory:** `match-goal.ts` (cały plik), `markCostPaidSchema`, `tournamentGoalSchema`, `markTeamPaidSchema`
+- **Gamifikacja:** usunięto akcje `goal_scored`, `tournament_goal` (15→15 akcji)
+- **Komponent:** `score-section.tsx` (416 linii), cost-paid toggles z `sparing-info.tsx`
+- **UI:** win record z dashboardu i profilu klubu, tab "Strzelcy" z turnieju
+
+### Dodane
+- **PitchStatus** enum (`WE_HAVE_PITCH`, `LOOKING_FOR_PITCH`, `SPLIT_COSTS`) — pole `pitchStatus` na `SparingOffer`
+  - Select w formularzu tworzenia/edycji sparingu
+  - Kolorowe badge na kartach (zielone "Mamy boisko", pomarańczowe "Szukamy boiska", niebieskie "Dzielimy koszty")
+- **Grupowe zaproszenia** — endpoint `invite` przyjmuje `toClubIds` (tablica 1-5 UUID) zamiast `toClubId`
+  - `InviteClubDialog` — multi-select z chipami, counter, limit 5
+- **Tryb dyskretny** — pole `isDiscreet` na `Player` i `Transfer`
+  - Filtrowanie w `search.global`, `feed.suggestedPlayers`, `transfer.list`, `player.search`
+  - Toggle w profilu zawodnika z opisem ("Ukryj mój profil...")
+
+### Migracje
+- `20260414170000_simplify_removing_scores_and_payments` — DROP tabel, ALTER kolumn, recreate NotificationType enum
+- `20260414180000_add_pitch_status` — nowy enum + kolumna
+- `20260414190000_add_discreet_mode` — `is_discreet` na `players` i `transfers`
+
+### Pliki usunięte (2)
+- `src/app/(dashboard)/sparings/[id]/_components/score-section.tsx`
+- `src/lib/validators/match-goal.ts`
+
+### Pliki zmodyfikowane (19)
+- `prisma/schema.prisma` — usunięte modele/pola, nowe enum + pola
+- `prisma/prisma.config.ts` — fix: `--config` flag required for migrate
+- `src/server/trpc/routers/sparing.ts` — usunięte endpointy, dodany pitchStatus, bulk invite
+- `src/server/trpc/routers/tournament.ts` — usunięte endpointy goal/payment
+- `src/server/trpc/routers/stats.ts` — usunięty win record
+- `src/server/trpc/routers/feed.ts` — filtr isDiscreet
+- `src/server/trpc/routers/search.ts` — filtr isDiscreet
+- `src/server/trpc/routers/transfer.ts` — filtr isDiscreet
+- `src/server/trpc/routers/player.ts` — filtr isDiscreet
+- `src/lib/labels.ts` — usunięte score labels/kolory, dodane PITCH_STATUS_LABELS
+- `src/lib/gamification.ts` — usunięte goal_scored, tournament_goal
+- `src/lib/validators/sparing.ts` — usunięty markCostPaidSchema, dodany pitchStatus
+- `src/lib/validators/tournament.ts` — usunięte tournamentGoalSchema, markTeamPaidSchema
+- `src/lib/validators/profile.ts` — dodany isDiscreet
+- `src/lib/validators/transfer.ts` — dodany isDiscreet
+- `src/components/sparings/sparing-form.tsx` — pitchStatus select
+- `src/components/sparings/sparing-card.tsx` — pitchStatus badge
+- `src/components/sparings/invite-club-dialog.tsx` — multi-select 1-5 klubów
+- `src/components/forms/player-profile-form.tsx` — toggle tryb dyskretny

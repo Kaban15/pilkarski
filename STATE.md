@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-14
-**Aktualny etap:** 47 etapów ukończonych
+**Aktualny etap:** 48 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -18,12 +18,11 @@
 ### Sparingi (pełny flow)
 - CRUD + aplikacje + kontr-propozycje (COUNTER_PROPOSED) + dopasowanie (MATCHED) + zakończenie (COMPLETED)
 - 3-krokowy wizard tworzenia + tryb "Szybki sparing"
-- Zaproszenia (`SparingInvitation` z expiresAt)
-- Wyniki meczów (submit + confirm flow, push + email notifications)
-- Protokół meczowy: strzelcy bramek (MatchGoal) z kadry obu klubów, powiadomienia + gamifikacja
-- Koszty: costPerTeam na sparingach/turniejach, costPerPerson na wydarzeniach, status opłacone/nieopłacone per strona
+- Zaproszenia (`SparingInvitation` z expiresAt) — grupowe do 5 klubów na raz
+- Koszty: costPerTeam (tylko info tekstowe, bez śledzenia opłat)
+- **PitchStatus**: WE_HAVE_PITCH / LOOKING_FOR_PITCH / SPLIT_COSTS — select w formularzu, kolorowe badge na kartach
 - Recenzje (rating 1-5, StarRating komponent)
-- Post-match timeline, "Moje sparingi" z tabs per status
+- "Moje sparingi" z tabs per status
 
 ### Wydarzenia (7 typów)
 - Typy: OPEN_TRAINING, RECRUITMENT, TRYOUT, CAMP, CONTINUOUS_RECRUITMENT, INDIVIDUAL_TRAINING, GROUP_TRAINING
@@ -38,10 +37,10 @@
 - Rejestracja: kluby i ad-hoc drużyny, accept/reject przez organizatora
 - Round-robin + knockout bracket (auto-generowane)
 - Wyniki z dwustronnym potwierdzeniem, karne w fazie pucharowej
-- Tabele grupowe (materialized standings), strzelcy turnieju
-- 5-tabowa strona turnieju (Drużyny/Grupy/Drabinka/Strzelcy/Info)
+- Tabele grupowe (materialized standings)
+- 4-tabowa strona turnieju (Drużyny/Grupy/Drabinka/Info)
 - Feed + kalendarz + sidebar integration (orange accent)
-- Gamifikacja: tournament_created/win/goal + badge "Mistrz turniejów"
+- Gamifikacja: tournament_created/win + badge "Mistrz turniejów"
 
 ### Transfery & Rekrutacja
 - Ogłoszenia transferowe (LOOKING_FOR_CLUB/PLAYER/FREE_AGENT)
@@ -49,6 +48,7 @@
 - RecruitmentEvent timeline, stats, CSV export
 - "Na radar" button, "Nabory dla Ciebie" (region-matched)
 - "Szukam klubu" toggle na profilu (prywatny, powiadomienia na nabory/transfery w regionie)
+- **Tryb dyskretny** (`isDiscreet` na Player + Transfer) — ukrywa profil w wyszukiwarce, feed i listach transferowych; widoczny tylko dla klubów do których zawodnik aplikuje
 - Smart club sorting w zaproszeniach sparingowych (LeagueLevel + Region priority)
 - Zapraszanie zawodników na wydarzenia (`player.search` + `event.invitePlayer` + `InvitePlayerDialog`)
 
@@ -76,13 +76,13 @@
 - Dynamic sitemap (~480 URL-i)
 
 ### Powiadomienia & Push & Email
-- In-app: 15+ typów, fire-and-forget z kontekstowym error logging, bell badge z polling 60s
+- In-app: 19 typów, fire-and-forget z kontekstowym error logging, bell badge z polling 60s
 - Push: web-push + VAPID, Service Worker, auto-cleanup expired subscriptions
-- Email: Resend (6 triggerów: sparing apply/respond/invite, score submit, message, club invite), throttle 15min na wiadomościach
+- Email: Resend (5 triggerów: sparing apply/respond/invite, message, club invite), throttle 15min na wiadomościach
 - Przypomnienia 24h (attendance, inactive clubs, stale pipeline)
 
 ### Gamifikacja
-- Punkty (17 akcji w tym goal_scored), 9 odznak, leaderboard top 20
+- Punkty (15 akcji), 9 odznak, leaderboard top 20
 - `/ranking` — punkty, odznaki, historia
 
 ### UI/Design
@@ -140,11 +140,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
+| 47 | 2026-04-14 | Dashboard Redesign: Deep Charcoal palette, Sportstream layout, TopTabs, RightPanel, HeroCard |
 | 46 | 2026-04-08 | Perf: RSC data prefetch (feed+sparings), time-aware prefetch hook, staleTime normalization, usunięty Bilans W-R-P |
 | 45 | 2026-04-08 | Visual redesign: głębia (cienie, zaokrąglenia), Rubik font, gradient akcenty, SVG hero, VS sparing cards, pipeline gradient tiles, calendar highlights, sidebar simplification |
 | 44 | 2026-04-08 | Feed redesign: zróżnicowane karty (6 typów), 3-kolumnowy layout (feed+right panel), pull-to-refresh, leaderboard widget |
-| 43 | 2026-04-08 | Perceived performance: skeleton loading, staleTime tuning, tRPC prefetch on hover, RSC router cache |
-| 42 | 2026-04-07 | Security hardening + ai-toolkit compliance: headers, Zod `.strict()`, env validation, upload whitelist, eliminacja `any`/`!`, fire-and-forget logging, Prisma transactions, loading/error boundaries, unit testy auth, coverage config |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -175,7 +175,7 @@
 ```
 prisma/schema.prisma              — schemat BD (27+ modeli)
 prisma/prisma.config.ts           — konfiguracja Prisma 7
-prisma/migrations/                — migracje BD (16 migracji)
+prisma/migrations/                — migracje BD (25 migracji)
 prisma/seed.ts                    — seed regionów/lig/grup
 
 src/middleware.ts                  — ochrona tras (JWT, public prefixes)
