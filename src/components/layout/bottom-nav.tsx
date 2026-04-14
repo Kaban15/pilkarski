@@ -91,14 +91,14 @@ export function BottomNav() {
               onTouchStart={() => prefetch(item.href)}
               className={`relative flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium transition-colors ${
                 isActive
-                  ? "text-sport-cyan"
+                  ? "text-sport-orange"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <div className="relative">
                 <item.icon className="h-5 w-5" />
                 {badge > 0 && (
-                  <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-sport-cyan px-1 text-[9px] font-bold text-white">
+                  <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-sport-orange px-1 text-[9px] font-bold text-white">
                     {badge > 9 ? "9+" : badge}
                   </span>
                 )}
