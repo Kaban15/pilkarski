@@ -31,6 +31,7 @@
   --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sport-cyan: var(--sport-cyan);
   --color-sport-yellow: var(--sport-yellow);
+  --color-sport-orange: var(--sport-orange);
   --color-x-blue: var(--x-blue);
   --radius: 0.5rem;
   --font-display: var(--font-rubik), sans-serif;
@@ -111,7 +112,7 @@
 }
 
 :root {
-  --background: #ffffff;
+  --background: #fafafa;
   --foreground: #0f1419;
   --card: #ffffff;
   --card-foreground: #0f1419;
@@ -119,69 +120,73 @@
   --popover-foreground: #0f1419;
   --primary: #8b5cf6;
   --primary-foreground: #ffffff;
-  --secondary: #f7f9f9;
+  --secondary: #f5f5f5;
   --secondary-foreground: #0f1419;
-  --muted: #f7f9f9;
-  --muted-foreground: #536471;
-  --accent: #f7f9f9;
+  --muted: #f5f5f5;
+  --muted-foreground: #52525b;
+  --accent: #f5f5f5;
   --accent-foreground: #6d28d9;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #eff3f4;
-  --input: #eff3f4;
+  --border: rgba(139, 92, 246, 0.08);
+  --input: rgba(139, 92, 246, 0.08);
   --ring: #8b5cf6;
   --sidebar-background: #ffffff;
   --sidebar-foreground: #0f1419;
-  --sidebar-border: #eff3f4;
-  --sidebar-accent: #f7f9f9;
+  --sidebar-border: rgba(139, 92, 246, 0.06);
+  --sidebar-accent: #f5f5f5;
   --sidebar-accent-foreground: #6d28d9;
-  --sidebar-muted: #f7f9f9;
-  --sidebar-muted-foreground: #536471;
+  --sidebar-muted: #f5f5f5;
+  --sidebar-muted-foreground: #52525b;
   --sport-cyan: #06B6D4;
   --sport-yellow: #FACC15;
+  --sport-orange: #f97316;
   --x-blue: #1d9bf0;
   --card-elevated-bg: #ffffff;
-  --card-elevated-border: rgba(139, 92, 246, 0.08);
+  --card-elevated-border: rgba(139, 92, 246, 0.06);
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-card-hover: 0 4px 24px rgba(139, 92, 246, 0.08);
-  --shadow-button-primary: 0 4px 16px rgba(139, 92, 246, 0.15);
+  --shadow-card-hover: 0 4px 16px rgba(139, 92, 246, 0.06);
+  --shadow-button-primary: 0 4px 12px rgba(139, 92, 246, 0.12);
+  --shadow-hero: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #ededed;
-  --card: #0a0a0f;
-  --card-foreground: #ededed;
-  --popover: #111111;
-  --popover-foreground: #ededed;
+  --background: #09090b;
+  --foreground: #e4e4e7;
+  --card: #111116;
+  --card-foreground: #e4e4e7;
+  --popover: #111116;
+  --popover-foreground: #e4e4e7;
   --primary: #8b5cf6;
   --primary-foreground: #ffffff;
-  --secondary: #16181c;
-  --secondary-foreground: #a1a1a1;
-  --muted: #16181c;
-  --muted-foreground: #9ca3af;
-  --accent: #16181c;
+  --secondary: #1c1c24;
+  --secondary-foreground: #a1a1aa;
+  --muted: #1c1c24;
+  --muted-foreground: #52525b;
+  --accent: #1c1c24;
   --accent-foreground: #a78bfa;
   --destructive: #dc2626;
   --destructive-foreground: #fef2f2;
-  --border: rgba(139, 92, 246, 0.10);
-  --input: rgba(139, 92, 246, 0.10);
+  --border: rgba(139, 92, 246, 0.06);
+  --input: rgba(139, 92, 246, 0.08);
   --ring: #8b5cf6;
-  --sidebar-background: #000000;
-  --sidebar-foreground: #a1a1a1;
-  --sidebar-border: #2f3336;
-  --sidebar-accent: rgba(255,255,255,0.08);
-  --sidebar-accent-foreground: #a78bfa;
-  --sidebar-muted: #16181c;
-  --sidebar-muted-foreground: #6b7280;
+  --sidebar-background: #0a0a0f;
+  --sidebar-foreground: #a1a1aa;
+  --sidebar-border: rgba(139, 92, 246, 0.06);
+  --sidebar-accent: rgba(249, 115, 22, 0.12);
+  --sidebar-accent-foreground: #f97316;
+  --sidebar-muted: #111116;
+  --sidebar-muted-foreground: #52525b;
   --sport-cyan: #22D3EE;
   --sport-yellow: #FDE047;
+  --sport-orange: #fb923c;
   --x-blue: #1d9bf0;
-  --card-elevated-bg: #0a0a0f;
-  --card-elevated-border: rgba(139, 92, 246, 0.10);
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.05);
-  --shadow-card-hover: 0 4px 24px rgba(139, 92, 246, 0.15);
-  --shadow-button-primary: 0 4px 16px rgba(139, 92, 246, 0.3);
+  --card-elevated-bg: #111116;
+  --card-elevated-border: rgba(139, 92, 246, 0.06);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 4px 24px rgba(139, 92, 246, 0.08);
+  --shadow-button-primary: 0 4px 16px rgba(139, 92, 246, 0.25);
+  --shadow-hero: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 body {
