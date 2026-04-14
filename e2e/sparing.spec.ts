@@ -14,17 +14,27 @@ test.describe.serial("Sparingi", () => {
 
     await page.goto("/sparings/new");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Nowy sparing")).toBeVisible();
 
+    // Step 1 — Dane sparingu
+    await expect(page.getByText("Dane sparingu")).toBeVisible();
+    await page.fill("#title", "Sparing testowy E2E");
+
+    await page.getByRole("button", { name: "Dalej" }).click();
+
+    // Step 2 — Termin i miejsce
+    await expect(page.getByText("Termin i miejsce")).toBeVisible();
     const tomorrow = new Date(Date.now() + 86400000);
     const dateStr = tomorrow.toISOString().slice(0, 16);
-    await page.fill("#title", "Sparing testowy E2E");
     await page.fill("#matchDate", dateStr);
     await page.fill("#location", "Boisko Testowe, Warszawa");
-    await page.fill("#costSplitInfo", "50/50");
-    await page.fill("textarea", "Opis testowy sparingu");
 
-    await page.getByRole("button", { name: "Utwórz sparing" }).click();
+    await page.getByRole("button", { name: "Dalej" }).click();
+
+    // Step 3 — Podsumowanie
+    await expect(page.getByText("Podsumowanie")).toBeVisible();
+    await expect(page.getByText("Sparing testowy E2E")).toBeVisible();
+
+    await page.getByRole("button", { name: "Opublikuj sparing" }).click();
 
     // Wait for redirect to detail page (not /sparings/new)
     await page.waitForURL(/\/sparings\/(?!new)/, { timeout: 15000 });

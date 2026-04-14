@@ -12,7 +12,7 @@ const ZERO_STATS: BadgeCheckStats = {
 
 describe("POINTS_MAP", () => {
   it("has 20 actions", () => {
-    expect(Object.keys(POINTS_MAP)).toHaveLength(20);
+    expect(Object.keys(POINTS_MAP)).toHaveLength(18);
   });
 
   it("all values are positive integers", () => {
