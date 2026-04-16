@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-14
-**Aktualny etap:** 50 etapów ukończonych
+**Ostatnia sesja:** 2026-04-16
+**Aktualny etap:** 51 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -120,7 +120,8 @@
 - Edge middleware: `/admin` dostępne tylko dla isAdmin
 
 ### Inne
-- Feed z regionu: zróżnicowane karty (6 typów z unikalnymi layoutami), 3-kolumnowy layout desktop (feed+right panel z quicklinks/leaderboard), pull-to-refresh (mobile gesture)
+- Feed z regionu: zróżnicowane karty (6 typów z unikalnymi layoutami), 3-kolumnowy layout desktop (feed+right panel 320px z kalendarzem/rankingiem/nawigacją sekcji), pull-to-refresh (mobile gesture)
+- **Dashboard sekcje (CLUB):** Pulpit podzielony na 3 nawigowalne sekcje (Aktywność/Terminarz/Rekrutacja) z query param routing (`?section=`), SectionNav w sidebarze (desktop) + pill bar (mobile)
 - Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
@@ -141,11 +142,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy podzielony na 3 sekcje (Aktywność/Terminarz/Rekrutacja) z query param routing, SectionNav w sidebarze 320px, mobile pill bar |
 | 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
 | 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 | 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
 | 47 | 2026-04-14 | Dashboard Redesign: Deep Charcoal palette, Sportstream layout, TopTabs, RightPanel, HeroCard |
-| 46 | 2026-04-08 | Perf: RSC data prefetch (feed+sparings), time-aware prefetch hook, staleTime normalization, usunięty Bilans W-R-P |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

@@ -1301,3 +1301,38 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - `src/app/(public)/clubs/[id]/page.tsx` — ActivityHeatmap pod StatsBar
 - `src/app/(public)/players/[id]/page.tsx` — ActivityHeatmap pod stats bar
 - `src/app/(public)/coaches/[id]/page.tsx` — ActivityHeatmap na początku content section
+
+---
+
+## Etap 51: Dashboard Sections Redesign ✅
+
+**Data:** 2026-04-16
+**Scope:** Reorganizacja Pulpitu klubowego — z jednego długiego scrollu na 3 nawigowalne sekcje
+
+### Zmiany
+- **Sekcje dashboardu (CLUB only):** Pulpit podzielony na 3 sekcje: Aktywność (feed), Terminarz (sparingi + wydarzenia), Rekrutacja (pipeline + nabory + sugerowani)
+- **Query param routing:** `?section=activity|schedule|recruitment` z `useSearchParams` + `<Suspense>` boundary
+- **SectionNav:** nawigacja w prawym sidebarze (desktop) — 3 pozycje z ikonami, aktywna sekcja podświetlona sport-orange
+- **SectionNavMobile:** pill bar pod hero zone (mobile, `lg:hidden`)
+- **Prawy sidebar:** poszerzony z 260px na 320px, SectionNav pod kalendarzem/rankingiem
+- **EventCard:** wyekstrahowany z inline rendering w `club-sections.tsx` do reużywalnego komponentu
+- **FeedCard router:** wyekstrahowany z `feed-client.tsx` do shared modułu `feed-card-router.tsx`
+- **ClubRecruitment:** dodany `showSection` prop do warunkowego renderowania subsections
+- **Usunięte z Pulpitu:** ClubHeaderCard, ClubStatsRow, ClubQuickActions, ClubPendingAlerts, QuickActions (~300 linii)
+- **Optymalizacja:** feed query disabled dla klubów (`enabled: !isClub`), `useSectionNav` hook eliminuje duplikację
+- **PLAYER/COACH:** dashboardy bez zmian
+
+### Pliki utworzone (7)
+- `src/components/dashboard/section-nav.tsx` — SectionNav + useSectionNav hook + SECTIONS const + SectionKey type
+- `src/components/dashboard/section-nav-mobile.tsx` — mobile pill bar
+- `src/components/dashboard/sections/activity-section.tsx` — feed-only sekcja
+- `src/components/dashboard/sections/schedule-section.tsx` — sparingi + wydarzenia z filtrami
+- `src/components/dashboard/sections/recruitment-section.tsx` — pipeline + nabory + sugerowani z sub-tabami
+- `src/components/events/event-card.tsx` — reużywalny EventCard
+- `src/components/feed/feed-card-router.tsx` — FeedCard switch-case + FeedItem type
+
+### Pliki zmodyfikowane (4)
+- `src/app/(dashboard)/feed/feed-client.tsx` — query param routing, usunięte inline komponenty (~300 linii), feed query disabled for clubs
+- `src/app/(dashboard)/feed/page.tsx` — Suspense boundary dla useSearchParams
+- `src/components/dashboard/club-recruitment.tsx` — showSection prop
+- `src/components/layout/right-panel.tsx` — width 260→320px
