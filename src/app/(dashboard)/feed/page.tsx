@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/server/auth/config";
 import { HydrateClient, trpc, getQueryClient } from "@/lib/trpc-server";
 import FeedClient from "./feed-client";
@@ -17,7 +18,9 @@ export default async function FeedPage() {
 
   return (
     <HydrateClient>
-      <FeedClient />
+      <Suspense>
+        <FeedClient />
+      </Suspense>
     </HydrateClient>
   );
 }

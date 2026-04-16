@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
@@ -16,31 +17,24 @@ import { RightPanel } from "@/components/layout/right-panel";
 import { MiniCalendar } from "@/components/dashboard/mini-calendar";
 import { UpcomingWidget } from "@/components/dashboard/upcoming-widget";
 import { RankingWidget } from "@/components/dashboard/ranking-widget";
+import { SectionNav } from "@/components/dashboard/section-nav";
+import { SectionNavMobile } from "@/components/dashboard/section-nav-mobile";
+import { ActivitySection } from "@/components/dashboard/sections/activity-section";
+import { ScheduleSection } from "@/components/dashboard/sections/schedule-section";
+import { RecruitmentSection } from "@/components/dashboard/sections/recruitment-section";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { DashboardStats as DashboardStatsWidget } from "@/components/dashboard/dashboard-stats";
 import { HeroCard } from "@/components/dashboard/hero-card";
-import { ClubDashboardSections } from "@/components/dashboard/club-sections";
-import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
 import { ClubInvitations } from "@/components/dashboard/club-invitations";
 import { ClubOnboarding } from "@/components/onboarding/club-onboarding";
 import { PlayerOnboarding } from "@/components/onboarding/player-onboarding";
 import { CoachOnboarding } from "@/components/onboarding/coach-onboarding";
-import { RecruitmentStats } from "@/components/recruitment/recruitment-stats";
-import { StatsCell } from "@/components/stats-cell";
 import {
   Swords,
-  Trophy,
-  Calendar,
-  MessageSquare,
-  Plus,
-  Search,
   CheckCircle2,
   GraduationCap,
-  Target,
-  ChevronDown,
   Users,
-  Star,
 } from "lucide-react";
 
 type DashboardStats = {
@@ -158,312 +152,6 @@ function NewClubsInRegion() {
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// CLUB DASHBOARD — FotMob/Sofascore card stack
-// ─────────────────────────────────────────────────────────
-
-
-function ClubHeaderCard({
-  clubProfile,
-  stats,
-}: {
-  clubProfile: {
-    name: string;
-    city: string | null;
-    logoUrl: string | null;
-    region: { name: string } | null;
-    leagueGroup: { name: string; leagueLevel?: { name: string } | null } | null;
-  } | null | undefined;
-  stats: { avgRating?: number } | null;
-}) {
-  if (!clubProfile) return null;
-
-  const initials = clubProfile.name.slice(0, 2).toUpperCase();
-  const regionLabel = clubProfile.region?.name ?? null;
-  const leagueLabel = clubProfile.leagueGroup?.name ?? null;
-  const rating = stats?.avgRating ?? null;
-
-  return (
-    <div className="bg-gradient-to-br from-[#0a0a1a] via-[#12061f] to-[#0a0a1a] rounded-2xl p-5 relative overflow-hidden mb-3">
-      {/* SVG pitch overlay */}
-      <svg
-        className="absolute inset-0 w-full h-full opacity-[0.04]"
-        viewBox="0 0 400 200"
-        fill="none"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <rect x="10" y="10" width="380" height="180" stroke="white" strokeWidth="1.5" rx="4" />
-        <line x1="200" y1="10" x2="200" y2="190" stroke="white" strokeWidth="1" />
-        <circle cx="200" cy="100" r="40" stroke="white" strokeWidth="1" />
-        <rect x="10" y="50" width="60" height="100" stroke="white" strokeWidth="1" />
-        <rect x="330" y="50" width="60" height="100" stroke="white" strokeWidth="1" />
-        <rect x="10" y="70" width="25" height="60" stroke="white" strokeWidth="1" />
-        <rect x="365" y="70" width="25" height="60" stroke="white" strokeWidth="1" />
-      </svg>
-      {/* Gradient glow */}
-      <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.15),transparent_70%)]" />
-      <div className="relative flex items-center gap-3">
-        {/* Club logo */}
-        <div className="h-[72px] w-[72px] shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] flex items-center justify-center shadow-[0_4px_20px_rgba(139,92,246,0.3)]">
-          {clubProfile.logoUrl ? (
-            <img src={clubProfile.logoUrl} alt={clubProfile.name} className="h-full w-full object-cover" />
-          ) : (
-            <span className="text-2xl font-extrabold text-white">{initials}</span>
-          )}
-        </div>
-        {/* Club info */}
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-[26px] font-bold text-white leading-tight line-clamp-1 tracking-[-0.5px]">
-            {clubProfile.name}
-          </p>
-          {(clubProfile.city || regionLabel) && (
-            <p className="text-xs text-accent-foreground mt-0.5">
-              {[clubProfile.city, regionLabel].filter(Boolean).join(" · ")}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            {leagueLabel && (
-              <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80">
-                {leagueLabel}
-              </span>
-            )}
-            {rating != null && rating > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
-                <Star className="h-2.5 w-2.5" />
-                {rating.toFixed(1)}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ClubStatsRow({
-  activeSparings,
-  pendingApplications,
-  squadCount,
-}: {
-  activeSparings: number;
-  pendingApplications: number;
-  squadCount: number;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <div className="grid grid-cols-3 gap-2 mb-3">
-      <Link href="/sparings">
-        <StatsCell value={activeSparings} label={t("Aktywne sparingi")} color="violet" />
-      </Link>
-      <Link href="/sparings">
-        <StatsCell value={pendingApplications} label={t("Zgłoszenia")} color="amber" />
-      </Link>
-      <Link href="/squad">
-        <StatsCell value={squadCount} label={t("Kadra")} color="sky" />
-      </Link>
-    </div>
-  );
-}
-
-
-function ClubQuickActions() {
-  const { t } = useI18n();
-  const [showMore, setShowMore] = useState(false);
-
-  return (
-    <div className="mb-3">
-      <div className="flex gap-2">
-        <Link href="/sparings/new" className="flex-1">
-          <Button className="w-full h-10 rounded-lg text-sm font-semibold gap-2 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white border-0">
-            <Swords className="h-4 w-4" />
-            {t("Nowy sparing")}
-          </Button>
-        </Link>
-        <Link href="/events/new">
-          <Button variant="outline" className="h-10 rounded-lg text-sm font-semibold gap-2">
-            <Trophy className="h-4 w-4" />
-            {t("Nabór")}
-          </Button>
-        </Link>
-        <Link href="/recruitment">
-          <Button variant="outline" className="h-10 rounded-lg text-sm font-semibold gap-2">
-            <Target className="h-4 w-4" />
-            Pipeline
-          </Button>
-        </Link>
-      </div>
-
-      <div className="mt-2">
-        <button
-          onClick={() => setShowMore(!showMore)}
-          className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition hover:text-foreground"
-        >
-          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showMore ? "rotate-180" : ""}`} />
-          {t("Więcej działań")}
-        </button>
-        {showMore && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Link href="/calendar">
-              <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
-                <Calendar className="h-3.5 w-3.5" />
-                {t("Kalendarz")}
-              </Button>
-            </Link>
-            <Link href="/search">
-              <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
-                <Search className="h-3.5 w-3.5" />
-                {t("Szukaj rywala")}
-              </Button>
-            </Link>
-            <Link href="/community">
-              <Button size="sm" variant="ghost" className="gap-2 rounded-lg">
-                <MessageSquare className="h-3.5 w-3.5" />
-                {t("Tablica")}
-              </Button>
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function relativeTime(date: Date | string) {
-  const d = new Date(date);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / 60_000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffMins < 1) return "przed chwilą";
-  if (diffMins < 60) return `${diffMins} min temu`;
-  if (diffHours < 24) return `${diffHours} godz. temu`;
-  return `${diffDays} dni temu`;
-}
-
-function ClubPendingAlerts({ pendingApplications }: { pendingApplications: any[] }) {
-  const { t } = useI18n();
-  if (!pendingApplications || pendingApplications.length === 0) return null;
-
-  const alerts = pendingApplications.slice(0, 5).map((app) => ({
-    id: app.id,
-    type: app.status === "COUNTER_PROPOSED" ? "counter_proposal" : "new_application",
-    title: app.applicantClub.name,
-    description: app.sparingOffer.title,
-    createdAt: app.createdAt ?? new Date(),
-    href: `/sparings/${app.sparingOffer.id}`,
-    dotColor:
-      app.status === "COUNTER_PROPOSED"
-        ? "bg-amber-400"
-        : "bg-emerald-400",
-    statusLabel:
-      app.status === "COUNTER_PROPOSED"
-        ? t("Kontrpropozycja")
-        : t("Nowe zgłoszenie"),
-  }));
-
-  return (
-    <div className="bg-card rounded-xl border mb-3">
-      <div className="flex items-center justify-between px-4 pt-3 pb-2">
-        <p className="text-sm font-semibold">{t("Wymagają uwagi")}</p>
-        <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-red-500/15 text-red-500 text-[11px] font-bold px-1.5">
-          {alerts.length}
-        </span>
-      </div>
-      <div className="divide-y divide-border">
-        {alerts.map((alert) => (
-          <Link
-            key={alert.id}
-            href={alert.href}
-            className="flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-colors"
-          >
-            <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${alert.dotColor}`} />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold leading-tight truncate">{alert.title}</p>
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{alert.description}</p>
-              <p className="text-[10px] text-muted-foreground mt-1">{alert.statusLabel}</p>
-            </div>
-            <span className="text-[11px] text-muted-foreground shrink-0 mt-0.5">
-              {relativeTime(alert.createdAt)}
-            </span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-type ClubDashboardQueryData = {
-  squadCount: number;
-  nextMatch: {
-    id: string;
-    title: string;
-    matchDate: Date;
-    opponentClub: { id: string; name: string; logoUrl: string | null } | null;
-  } | null;
-  pendingApplications: any[];
-  activeSparings: any[];
-  upcomingEvents: any[];
-} | null | undefined;
-
-function ClubDashboard({
-  clubProfile,
-  dashboardStats,
-  clubDashboard,
-}: {
-  clubProfile: any;
-  dashboardStats: DashboardStats | null;
-  clubDashboard: ClubDashboardQueryData;
-}) {
-  const activeSparings = dashboardStats?.activeSparings ?? 0;
-  const pendingApplications = dashboardStats?.pendingApplications ?? 0;
-  const squadCount = clubDashboard?.squadCount ?? 0;
-  const pendingApplicationsList = clubDashboard?.pendingApplications ?? [];
-
-  // Build a review-based stats object from detailed stats if available
-  const statsForHeader = null; // avgRating would come from stats.detailed, skip for now
-
-  return (
-    <div className="mb-6">
-      {/* 1. Hero header card */}
-      <ClubHeaderCard clubProfile={clubProfile} stats={statsForHeader} />
-
-      {/* 2. Stats row */}
-      <ClubStatsRow
-        activeSparings={activeSparings}
-        pendingApplications={pendingApplications}
-        squadCount={squadCount}
-      />
-
-      {/* 3. Quick actions */}
-      <ClubQuickActions />
-
-      {/* 4. Pending alerts (conditional) */}
-      <ClubPendingAlerts pendingApplications={pendingApplicationsList} />
-    </div>
-  );
-}
-
-function QuickActions() {
-  const { t } = useI18n();
-  return (
-    <div>
-      <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {t("Szybkie akcje")}
-      </p>
-      <div className="flex flex-col gap-1.5">
-        <Button asChild size="sm" className="w-full justify-start">
-          <Link href="/sparings/new"><Plus className="mr-1.5 h-3.5 w-3.5" />{t("Nowy sparing")}</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="w-full justify-start">
-          <Link href="/events/new"><Calendar className="mr-1.5 h-3.5 w-3.5" />{t("Dodaj wydarzenie")}</Link>
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function FeedClient() {
   const { t } = useI18n();
   const { data: session } = useSession();
@@ -481,6 +169,8 @@ export default function FeedClient() {
     enabled: isClub,
     staleTime: 300_000,
   });
+  const searchParams = useSearchParams();
+  const section = searchParams.get("section") ?? "activity";
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [playerOnboardingDone, setPlayerOnboardingDone] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -569,19 +259,15 @@ export default function FeedClient() {
         </Card>
       )}
 
-      {/* CLUB — new FotMob-style card stack */}
+      {/* CLUB — section navigation + routed content */}
       {isClub && !showOnboarding && (
-        <ClubDashboard
-          clubProfile={clubProfile.data}
-          dashboardStats={(stats.data as DashboardStats) ?? null}
-          clubDashboard={clubDashboard.data as ClubDashboardQueryData}
-        />
+        <>
+          <SectionNavMobile />
+          {section === "schedule" && <ScheduleSection />}
+          {section === "recruitment" && <RecruitmentSection />}
+          {section !== "schedule" && section !== "recruitment" && <ActivitySection />}
+        </>
       )}
-
-      {/* CLUB — existing sections below the new card stack */}
-      {isClub && <RecruitmentStats />}
-      {isClub && <ClubRecruitment />}
-      {isClub && <ClubDashboardSections />}
 
       {/* CoachDashboardStats removed — DashboardStats already shows coach KPIs */}
       {(isPlayer || isCoach) && <ClubInvitations />}
@@ -589,35 +275,39 @@ export default function FeedClient() {
       {(isPlayer || isCoach) && <PlayerRecruitments />}
       {(isPlayer || isCoach) && <PlayerDevelopment />}
 
-      {feed.isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <FeedCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : feed.error ? (
-        <Card className="border-destructive/20">
-          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-sm text-destructive">{t("Nie udało się załadować feedu")}</p>
-            <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
-              {t("Spróbuj ponownie")}
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (feed.data?.items?.length ?? 0) === 0 ? (
-        <EmptyState
-          icon={Swords}
-          title={t("Brak aktywności")}
-          description={t("Uzupełnij profil i wybierz region, aby zobaczyć dopasowane sparingi, wydarzenia i nowych członków.")}
-          actionLabel={t("Uzupełnij profil")}
-          actionHref="/profile"
-        />
-      ) : (
-        <div className="space-y-3">
-          {(feed.data!.items as FeedItem[]).map((item) => (
-            <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
-          ))}
-        </div>
+      {!isClub && (
+        <>
+          {feed.isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <FeedCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : feed.error ? (
+            <Card className="border-destructive/20">
+              <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+                <p className="text-sm text-destructive">{t("Nie udało się załadować feedu")}</p>
+                <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
+                  {t("Spróbuj ponownie")}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (feed.data?.items?.length ?? 0) === 0 ? (
+            <EmptyState
+              icon={Swords}
+              title={t("Brak aktywności")}
+              description={t("Uzupełnij profil i wybierz region, aby zobaczyć dopasowane sparingi, wydarzenia i nowych członków.")}
+              actionLabel={t("Uzupełnij profil")}
+              actionHref="/profile"
+            />
+          ) : (
+            <div className="space-y-3">
+              {(feed.data!.items as FeedItem[]).map((item) => (
+                <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
+              ))}
+            </div>
+          )}
+        </>
       )}
       </div>
 
@@ -625,7 +315,7 @@ export default function FeedClient() {
         <MiniCalendar />
         <UpcomingWidget />
         <RankingWidget />
-        <QuickActions />
+        {isClub && <SectionNav />}
       </RightPanel>
     </div>
   );
