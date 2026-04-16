@@ -1417,3 +1417,15 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - `e2e/sparing.spec.ts` — `.first()` na duplikatach
 - `e2e/sparing-advanced.spec.ts` — `.first()` na duplikatach
 - `e2e/onboarding.spec.ts` — zaktualizowany assert, `test.skip` na problematycznym teście, lepsze selektory
+
+### Simplify cleanup (code review follow-up, commit `e6ddf07`)
+- **Usunięty duplikat `robustLogin`** w `e2e/dashboard-sections.spec.ts` — był byte-for-byte klonem `helpers.ts:login()` po fix cookie race; teraz używa shared helper (6 call-site'ów zaktualizowanych, -23 linie).
+- **`test.skip(title, fn)` → `test.fixme(title, async () => {})`** w `onboarding.spec.ts:55` — usunięte ~26 linii dead body; `fixme` jest właściwą semantyką dla "broken, needs fix".
+- **Strip etap-tag comment** w `auth.spec.ts:12` — usunięte `(Etap 47)` noise (git historia).
+
+### Odrzucone findings (scope-creep / risk, do osobnej sesji)
+- Refactor middleware do Auth.js v5 `auth()` callback API (wymaga testów integracyjnych).
+- `storageState` fixture dla auth reuse (biggest CI win — 12-20s/run, zmiana architektury testów).
+- Zastąpienie `networkidle` deterministycznym wait (risk regresji w innych testach).
+- `StageValue` z Prisma enum + lucide icons w `recruitment/page.tsx` (pre-existing kod).
+- Merge `stageCounts` + `entriesByStage` do single useMemo pass (micro-opt <100 entries).

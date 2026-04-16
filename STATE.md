@@ -142,7 +142,7 @@
 
 | Etap | Data | Opis |
 |------|------|------|
-| 53 | 2026-04-16 | Stabilizacja E2E (bug #7): +16 testów odblokowanych — recruitment-board 4/4 (+fix Rules of Hooks violation w `/recruitment`), coach 4/4, event, messages, sparing, sparing-advanced, public-profiles, onboarding. Robust `login()` helper w helpers.ts. 43/47 pass (91.4%). |
+| 53 | 2026-04-16 | Stabilizacja E2E (bug #7): +16 testów odblokowanych — recruitment-board 4/4 (+fix Rules of Hooks violation w `/recruitment`), coach 4/4, event, messages, sparing, sparing-advanced, public-profiles, onboarding. Robust `login()` helper w helpers.ts. 43/47 pass (91.4%). Simplify review: usunięty duplikat `robustLogin`, `test.skip` → `test.fixme`. |
 | 52 | 2026-04-16 | Stabilizacja: E2E spec dla Etap 51 (5 testów — SectionNav desktop/mobile, URL routing, filtr pozycji, PLAYER bez sekcji), fix middleware cookie name (HTTP/HTTPS-aware), archiwizacja 3 przedawnionych planów po pivocie matchmaking |
 | 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy z 5 sekcjami (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby), filtr pozycji, feed redistribution, deduplikacja, date picker fix |
 | 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
