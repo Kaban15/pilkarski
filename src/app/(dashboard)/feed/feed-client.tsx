@@ -159,14 +159,14 @@ export default function FeedClient() {
   const isClub = userRole === "CLUB";
   const isPlayer = userRole === "PLAYER";
   const isCoach = userRole === "COACH";
-  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000, enabled: !isClub });
+  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000 });
   const stats = api.stats.dashboard.useQuery(undefined, { staleTime: 300_000 });
   const clubProfile = api.club.me.useQuery(undefined, {
     enabled: isClub,
     staleTime: Infinity,
   });
   const searchParams = useSearchParams();
-  const section = searchParams.get("section") ?? "activity";
+  const section = searchParams.get("section") ?? "schedule";
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [playerOnboardingDone, setPlayerOnboardingDone] = useState(() => {
     if (typeof window === "undefined") return false;

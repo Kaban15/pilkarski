@@ -2,16 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { Users } from "lucide-react";
 import { RecruitmentStats } from "@/components/recruitment/recruitment-stats";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
+import { FeedCard, type FeedItem } from "@/components/feed/feed-card-router";
 
 type SubTab = "pipeline" | "recruitments" | "suggested";
+
+const RECRUITMENT_FEED_TYPES = new Set(["player", "club", "transfer"]);
 
 export function RecruitmentSection() {
   const { t } = useI18n();
   const [subTab, setSubTab] = useState<SubTab>("pipeline");
+  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000 });
+
+  const feedItems = (feed.data?.items as FeedItem[] | undefined)?.filter((i) =>
+    RECRUITMENT_FEED_TYPES.has(i.type)
+  ) ?? [];
 
   const TABS: { key: SubTab; label: string }[] = [
     { key: "pipeline", label: "Pipeline" },
@@ -53,6 +62,20 @@ export function RecruitmentSection() {
       {subTab === "pipeline" && <RecruitmentStats />}
       {subTab === "recruitments" && <ClubRecruitment showSection="recruitments" />}
       {subTab === "suggested" && <ClubRecruitment showSection="suggested" />}
+
+      {/* Feed: nowi zawodnicy, kluby, transfery z regionu */}
+      {feedItems.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {t("Nowe w regionie")}
+          </h3>
+          <div className="space-y-3">
+            {feedItems.map((item) => (
+              <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

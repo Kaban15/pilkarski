@@ -4,10 +4,12 @@ import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Swords } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { FeedCard, type FeedItem } from "@/components/feed/feed-card-router";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
 import { EmptyState } from "@/components/empty-state";
+
+const ACTIVITY_TYPES = new Set(["clubPost"]);
 
 export function ActivitySection() {
   const { t } = useI18n();
@@ -16,7 +18,7 @@ export function ActivitySection() {
   if (feed.isLoading) {
     return (
       <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <FeedCardSkeleton key={i} />
         ))}
       </div>
@@ -36,21 +38,23 @@ export function ActivitySection() {
     );
   }
 
-  if ((feed.data?.items?.length ?? 0) === 0) {
+  const items = (feed.data?.items as FeedItem[] | undefined)?.filter((i) =>
+    ACTIVITY_TYPES.has(i.type)
+  ) ?? [];
+
+  if (items.length === 0) {
     return (
       <EmptyState
-        icon={Swords}
-        title={t("Brak aktywności")}
-        description={t("Uzupełnij profil i wybierz region, aby zobaczyć dopasowane sparingi, wydarzenia i nowych członków.")}
-        actionLabel={t("Uzupełnij profil")}
-        actionHref="/profile"
+        icon={MessageSquare}
+        title={t("Brak postów")}
+        description={t("Posty klubowe z Twojego regionu pojawią się tutaj.")}
       />
     );
   }
 
   return (
     <div className="space-y-3">
-      {(feed.data!.items as FeedItem[]).map((item) => (
+      {items.map((item) => (
         <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
       ))}
     </div>

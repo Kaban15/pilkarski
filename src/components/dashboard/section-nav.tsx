@@ -16,11 +16,11 @@ export function useSectionNav() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const current = (searchParams.get("section") as SectionKey) ?? "activity";
+  const current = (searchParams.get("section") as SectionKey) ?? "schedule";
 
   function navigate(key: SectionKey) {
     const params = new URLSearchParams(searchParams.toString());
-    if (key === "activity") {
+    if (key === "schedule") {
       params.delete("section");
     } else {
       params.set("section", key);

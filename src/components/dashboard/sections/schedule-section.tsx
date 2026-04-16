@@ -9,9 +9,12 @@ import { EventCard } from "@/components/events/event-card";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { FeedCard, type FeedItem } from "@/components/feed/feed-card-router";
 import { CalendarDays, Plus, Swords, Users } from "lucide-react";
 
 type FilterType = "all" | "sparings" | "events";
+
+const SCHEDULE_FEED_TYPES = new Set(["sparing", "tournament"]);
 
 export function ScheduleSection() {
   const { t } = useI18n();
@@ -20,10 +23,15 @@ export function ScheduleSection() {
   const { data, isLoading } = api.stats.clubDashboard.useQuery(undefined, {
     staleTime: 120_000,
   });
+  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000 });
 
   if (isLoading || !data) return null;
 
   const { activeSparings, upcomingEvents } = data;
+
+  const feedItems = (feed.data?.items as FeedItem[] | undefined)?.filter((i) =>
+    SCHEDULE_FEED_TYPES.has(i.type)
+  ) ?? [];
 
   const sparingItems = activeSparings.map((s) => ({
     type: "sparing" as const,
@@ -138,6 +146,20 @@ export function ScheduleSection() {
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {/* Feed: sparingi + turnieje z regionu */}
+      {feedItems.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {t("Z regionu")}
+          </h3>
+          <div className="space-y-3">
+            {feedItems.map((item) => (
+              <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
+            ))}
+          </div>
         </div>
       )}
     </section>
