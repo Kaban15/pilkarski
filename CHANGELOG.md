@@ -1322,19 +1322,30 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - **Optymalizacja:** feed query disabled dla klubów w feed-client (`enabled: !isClub`), `useSectionNav` hook eliminuje duplikację
 - **Feed redistribution:** feed items pogrupowane per sekcja — sparingi+turnieje → Terminarz, zawodnicy+kluby+transfery → Rekrutacja, posty klubowe → Aktywność
 - **Domyślna sekcja:** Terminarz (zamiast Aktywność) — najbardziej akcjonable dane na pierwszym planie
+- **Nowe sekcje:** "Szukający klubu" (zawodnicy z aktywnym transferem, filtr po pozycji) + "Nowe kluby" (nowe kluby w regionie) — osobne pozycje w nawigacji sidebara
+- **Filtr pozycji:** Wszyscy / Bramkarze / Obrońcy / Pomocnicy / Napastnicy w sekcji "Szukający klubu"
+- **Feed limity:** zwiększone z 5 do 30 per typ (zawodnicy, kluby, turnieje), usunięty globalny slice
+- **Deduplikacja:** sparingi z feeda nie powtarzają się z własnymi sparingami w Terminarzu
+- **Linki "Zobacz wszystko":** dodane do sekcji Szukający klubu (→ /transfers) i Nowe kluby (→ /search)
+- **Feed filtr:** zawodnicy w feedzie filtrowane do tych z aktywnym transferem LOOKING_FOR_CLUB/FREE_AGENT + isDiscreet=false
+- **Date picker:** ikona kalendarza widoczna na dark mode (CSS fix globalny)
 - **PLAYER/COACH:** dashboardy bez zmian
 
-### Pliki utworzone (7)
+### Pliki utworzone (9)
 - `src/components/dashboard/section-nav.tsx` — SectionNav + useSectionNav hook + SECTIONS const + SectionKey type
 - `src/components/dashboard/section-nav-mobile.tsx` — mobile pill bar
-- `src/components/dashboard/sections/activity-section.tsx` — feed-only sekcja
-- `src/components/dashboard/sections/schedule-section.tsx` — sparingi + wydarzenia z filtrami
+- `src/components/dashboard/sections/activity-section.tsx` — posty klubowe
+- `src/components/dashboard/sections/schedule-section.tsx` — sparingi + wydarzenia z filtrami + feed z regionu
 - `src/components/dashboard/sections/recruitment-section.tsx` — pipeline + nabory + sugerowani z sub-tabami
+- `src/components/dashboard/sections/players-section.tsx` — zawodnicy szukający klubu z filtrem pozycji
+- `src/components/dashboard/sections/clubs-section.tsx` — nowe kluby w regionie
 - `src/components/events/event-card.tsx` — reużywalny EventCard
 - `src/components/feed/feed-card-router.tsx` — FeedCard switch-case + FeedItem type
 
-### Pliki zmodyfikowane (4)
-- `src/app/(dashboard)/feed/feed-client.tsx` — query param routing, usunięte inline komponenty (~300 linii), feed query disabled for clubs
+### Pliki zmodyfikowane (6)
+- `src/app/(dashboard)/feed/feed-client.tsx` — query param routing (5 sekcji), usunięte inline komponenty (~300 linii)
 - `src/app/(dashboard)/feed/page.tsx` — Suspense boundary dla useSearchParams
 - `src/components/dashboard/club-recruitment.tsx` — showSection prop
 - `src/components/layout/right-panel.tsx` — width 260→320px
+- `src/server/trpc/routers/feed.ts` — limity per typ 5→30, filtr zawodników LOOKING_FOR_CLUB
+- `src/styles/globals.css` — date input calendar icon dark mode fix

@@ -121,7 +121,7 @@
 
 ### Inne
 - Feed z regionu: zróżnicowane karty (6 typów z unikalnymi layoutami), 3-kolumnowy layout desktop (feed+right panel 320px z kalendarzem/rankingiem/nawigacją sekcji), pull-to-refresh (mobile gesture)
-- **Dashboard sekcje (CLUB):** Pulpit podzielony na 3 nawigowalne sekcje (Aktywność/Terminarz/Rekrutacja) z query param routing (`?section=`), SectionNav w sidebarze (desktop) + pill bar (mobile)
+- **Dashboard sekcje (CLUB):** Pulpit podzielony na 5 nawigowalnych sekcji (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby) z query param routing (`?section=`), SectionNav w sidebarze (desktop) + pill bar (mobile), filtr pozycji w sekcji zawodników
 - Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
@@ -142,7 +142,7 @@
 
 | Etap | Data | Opis |
 |------|------|------|
-| 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy podzielony na 3 sekcje (Terminarz domyślny/Aktywność/Rekrutacja) z query param routing, SectionNav w sidebarze 320px, mobile pill bar. Feed items pogrupowane per sekcja. |
+| 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy z 5 sekcjami (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby), filtr pozycji, feed redistribution, deduplikacja, date picker fix |
 | 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
 | 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 | 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
