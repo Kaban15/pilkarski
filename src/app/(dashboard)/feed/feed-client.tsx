@@ -10,14 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FeedCardSkeleton } from "@/components/card-skeleton";
 import { useI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/empty-state";
-import {
-  SparingFeedCard,
-  EventFeedCard,
-  TransferFeedCard,
-  TournamentFeedCard,
-  ClubPostFeedCard,
-  NewMemberFeedCard,
-} from "@/components/feed";
+import { FeedCard, type FeedItem } from "@/components/feed/feed-card-router";
 import { PullToRefreshIndicator } from "@/components/feed/pull-to-refresh-indicator";
 import { RightPanel } from "@/components/layout/right-panel";
 import { MiniCalendar } from "@/components/dashboard/mini-calendar";
@@ -49,30 +42,6 @@ import {
   Users,
   Star,
 } from "lucide-react";
-
-type FeedItem = {
-  type: "sparing" | "event" | "transfer" | "club" | "player" | "tournament" | "clubPost";
-  data: any;
-  createdAt: string | Date;
-};
-
-function FeedCard({ item }: { item: FeedItem }) {
-  switch (item.type) {
-    case "sparing":
-      return <SparingFeedCard data={item.data} createdAt={item.createdAt} />;
-    case "event":
-      return <EventFeedCard data={item.data} createdAt={item.createdAt} />;
-    case "transfer":
-      return <TransferFeedCard data={item.data} createdAt={item.createdAt} />;
-    case "tournament":
-      return <TournamentFeedCard data={item.data} createdAt={item.createdAt} />;
-    case "clubPost":
-      return <ClubPostFeedCard data={item.data} createdAt={item.createdAt} />;
-    case "club":
-    case "player":
-      return <NewMemberFeedCard type={item.type} data={item.data} createdAt={item.createdAt} />;
-  }
-}
 
 type DashboardStats = {
   role: "CLUB" | "PLAYER" | "COACH";
