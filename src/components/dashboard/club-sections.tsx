@@ -15,9 +15,9 @@ import {
   ArrowRight,
   Calendar,
   Users,
-  CalendarClock,
   FileText,
 } from "lucide-react";
+import { EventCard } from "@/components/events/event-card";
 
 export function ClubDashboardSections() {
   const { t, locale } = useI18n();
@@ -185,26 +185,7 @@ export function ClubDashboardSections() {
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             {upcomingEvents.map((e) => (
-              <Link key={e.id} href={`/events/${e.id}`} className="group block">
-                <Card className="h-full rounded-xl transition-colors hover:border-primary/40">
-                  <CardContent className="p-4">
-                    <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                      {e.title}
-                    </h3>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <CalendarClock className="h-3 w-3" />
-                        {formatDate(e.eventDate)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {e._count.applications}
-                        {e.maxParticipants && ` / ${e.maxParticipants}`}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <EventCard key={e.id} event={e} />
             ))}
           </div>
         </section>
