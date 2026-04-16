@@ -1319,7 +1319,9 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - **FeedCard router:** wyekstrahowany z `feed-client.tsx` do shared modułu `feed-card-router.tsx`
 - **ClubRecruitment:** dodany `showSection` prop do warunkowego renderowania subsections
 - **Usunięte z Pulpitu:** ClubHeaderCard, ClubStatsRow, ClubQuickActions, ClubPendingAlerts, QuickActions (~300 linii)
-- **Optymalizacja:** feed query disabled dla klubów (`enabled: !isClub`), `useSectionNav` hook eliminuje duplikację
+- **Optymalizacja:** feed query disabled dla klubów w feed-client (`enabled: !isClub`), `useSectionNav` hook eliminuje duplikację
+- **Feed redistribution:** feed items pogrupowane per sekcja — sparingi+turnieje → Terminarz, zawodnicy+kluby+transfery → Rekrutacja, posty klubowe → Aktywność
+- **Domyślna sekcja:** Terminarz (zamiast Aktywność) — najbardziej akcjonable dane na pierwszym planie
 - **PLAYER/COACH:** dashboardy bez zmian
 
 ### Pliki utworzone (7)

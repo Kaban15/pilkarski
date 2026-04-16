@@ -142,7 +142,7 @@
 
 | Etap | Data | Opis |
 |------|------|------|
-| 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy podzielony na 3 sekcje (Aktywność/Terminarz/Rekrutacja) z query param routing, SectionNav w sidebarze 320px, mobile pill bar |
+| 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy podzielony na 3 sekcje (Terminarz domyślny/Aktywność/Rekrutacja) z query param routing, SectionNav w sidebarze 320px, mobile pill bar. Feed items pogrupowane per sekcja. |
 | 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
 | 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 | 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
