@@ -29,8 +29,9 @@ export function ScheduleSection() {
 
   const { activeSparings, upcomingEvents } = data;
 
+  const ownSparingIds = new Set(activeSparings.map((s) => s.id));
   const feedItems = (feed.data?.items as FeedItem[] | undefined)?.filter((i) =>
-    SCHEDULE_FEED_TYPES.has(i.type)
+    SCHEDULE_FEED_TYPES.has(i.type) && !(i.type === "sparing" && ownSparingIds.has(i.data.id))
   ) ?? [];
 
   const sparingItems = activeSparings.map((s) => ({

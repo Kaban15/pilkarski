@@ -68,7 +68,7 @@ export const feedRouter = router({
             leagueGroup: { include: { leagueLevel: { select: { name: true } } } },
           },
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: input.limit,
         }),
         ctx.db.player.findMany({
           where: {
@@ -85,7 +85,7 @@ export const feedRouter = router({
           },
           include: { region: { select: { name: true, slug: true } } },
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: input.limit,
         }),
         ctx.db.clubPost.findMany({
           where: {
@@ -105,7 +105,7 @@ export const feedRouter = router({
             ...(regionId ? { regionId } : {}),
           },
           orderBy: { createdAt: "desc" },
-          take: 5,
+          take: input.limit,
           include: {
             creator: {
               select: {
@@ -150,7 +150,7 @@ export const feedRouter = router({
       }
 
       return {
-        items: items.slice(0, input.limit),
+        items,
         regionName,
       };
     }),
