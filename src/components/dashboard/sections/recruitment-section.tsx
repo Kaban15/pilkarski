@@ -2,23 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { Users } from "lucide-react";
 import { RecruitmentStats } from "@/components/recruitment/recruitment-stats";
 import { ClubRecruitment } from "@/components/dashboard/club-recruitment";
-import { FeedCard, type FeedItem } from "@/components/feed/feed-card-router";
 
 type SubTab = "pipeline" | "recruitments" | "suggested";
 
 export function RecruitmentSection() {
   const { t } = useI18n();
   const [subTab, setSubTab] = useState<SubTab>("pipeline");
-  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000 });
-
-  const allFeedItems = (feed.data?.items as FeedItem[] | undefined) ?? [];
-  const playerItems = allFeedItems.filter((i) => i.type === "player" || i.type === "transfer");
-  const clubItems = allFeedItems.filter((i) => i.type === "club");
 
   const TABS: { key: SubTab; label: string }[] = [
     { key: "pipeline", label: "Pipeline" },
@@ -28,7 +21,6 @@ export function RecruitmentSection() {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Users className="h-5 w-5 text-primary" />
@@ -39,7 +31,6 @@ export function RecruitmentSection() {
         </Link>
       </div>
 
-      {/* Sub-tabs */}
       <div className="mb-4 flex gap-1.5">
         {TABS.map(({ key, label }) => (
           <button
@@ -56,36 +47,9 @@ export function RecruitmentSection() {
         ))}
       </div>
 
-      {/* Content */}
       {subTab === "pipeline" && <RecruitmentStats />}
       {subTab === "recruitments" && <ClubRecruitment showSection="recruitments" />}
       {subTab === "suggested" && <ClubRecruitment showSection="suggested" />}
-
-      {playerItems.length > 0 && (
-        <div className="mt-6">
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {t("Zawodnicy szukający klubu")}
-          </h3>
-          <div className="space-y-3">
-            {playerItems.map((item) => (
-              <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {clubItems.length > 0 && (
-        <div className="mt-6">
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {t("Nowe kluby w regionie")}
-          </h3>
-          <div className="space-y-3">
-            {clubItems.map((item) => (
-              <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

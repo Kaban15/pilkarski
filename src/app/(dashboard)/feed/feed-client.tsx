@@ -22,6 +22,8 @@ import { SectionNavMobile } from "@/components/dashboard/section-nav-mobile";
 import { ActivitySection } from "@/components/dashboard/sections/activity-section";
 import { ScheduleSection } from "@/components/dashboard/sections/schedule-section";
 import { RecruitmentSection } from "@/components/dashboard/sections/recruitment-section";
+import { PlayersSection } from "@/components/dashboard/sections/players-section";
+import { ClubsSection } from "@/components/dashboard/sections/clubs-section";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { DashboardStats as DashboardStatsWidget } from "@/components/dashboard/dashboard-stats";
 import { HeroCard } from "@/components/dashboard/hero-card";
@@ -261,7 +263,10 @@ export default function FeedClient() {
           <SectionNavMobile />
           {section === "schedule" && <ScheduleSection />}
           {section === "recruitment" && <RecruitmentSection />}
-          {section !== "schedule" && section !== "recruitment" && <ActivitySection />}
+          {section === "players" && <PlayersSection />}
+          {section === "clubs" && <ClubsSection />}
+          {section === "activity" && <ActivitySection />}
+          {!["schedule", "recruitment", "players", "clubs", "activity"].includes(section) && <ScheduleSection />}
         </>
       )}
 

@@ -1,13 +1,15 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Activity, CalendarDays, Users } from "lucide-react";
+import { Activity, CalendarDays, Users, UserSearch, Building2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export const SECTIONS = [
   { key: "activity", icon: Activity, label: "Aktywność" },
   { key: "schedule", icon: CalendarDays, label: "Terminarz" },
   { key: "recruitment", icon: Users, label: "Rekrutacja" },
+  { key: "players", icon: UserSearch, label: "Szukający klubu" },
+  { key: "clubs", icon: Building2, label: "Nowe kluby" },
 ] as const;
 
 export type SectionKey = (typeof SECTIONS)[number]["key"];
