@@ -274,7 +274,8 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | # | Problem | Priorytet |
 |---|---------|-----------|
 | ~~1~~ | ~~Cookie `__Secure-` nie działa na localhost (HTTP)~~ | ~~✅ Naprawione (Etap 52 — middleware sprawdza protokół, HTTPS=__Secure-, HTTP=bez prefixu)~~ |
-| 6 | 2 testy w `e2e/auth.spec.ts` failing (outdated: h1 "Feed"→"Pulpit" po Etap 47, `tab`→`button` role selector) | Low |
+| ~~6~~ | ~~2 testy w `e2e/auth.spec.ts` failing (outdated: h1 "Feed"→"Pulpit" po Etap 47, `tab`→`button` role selector)~~ | ~~✅ Naprawione (Etap 52)~~ |
+| 7 | 14 E2E testów failing (pre-existing, odblokowane po fix middleware): `coach.spec` 3/4, `recruitment-board.spec` 4/4, `onboarding.spec` 2/5, `event.spec` 1, `messages.spec` 1, `sparing.spec` 1, `sparing-advanced.spec` 1, `public-profiles.spec` 1. Głównie: shared state między testami, `test.skip` guards. | Medium |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
 | ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |

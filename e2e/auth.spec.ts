@@ -9,8 +9,8 @@ test.describe("Rejestracja i logowanie", () => {
     await registerClub(page, email, PASSWORD, "Testowy Klub E2E");
     await login(page, email, PASSWORD);
 
-    // h1 "Feed" is the page heading (nav also has "Feed" link)
-    await expect(page.locator("h1")).toContainText("Feed");
+    // Dashboard h1: "Pulpit" for CLUB, "Feed" for PLAYER/COACH (Etap 47)
+    await expect(page.locator("h1")).toContainText(/Pulpit|Feed/);
   });
 
   test("rejestracja zawodnika i logowanie", async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe("Rejestracja i logowanie", () => {
     await registerPlayer(page, email, PASSWORD, "Jan", "Testowy");
     await login(page, email, PASSWORD);
 
-    await expect(page.locator("h1")).toContainText("Feed");
+    await expect(page.locator("h1")).toContainText(/Pulpit|Feed/);
   });
 
   test("logowanie z błędnym hasłem", async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe("Rejestracja i logowanie", () => {
     await registerClub(page, email, PASSWORD, "Klub Duplikat");
 
     await page.goto("/register");
-    await page.getByRole("tab", { name: "Klub" }).click();
+    await page.getByRole("button", { name: "Klub" }).click();
     await page.fill("#email", email);
     await page.fill("#password", PASSWORD);
     await page.fill("#clubName", "Klub Duplikat 2");

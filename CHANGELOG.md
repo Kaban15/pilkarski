@@ -1375,3 +1375,7 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - `docs/superpowers/plans/archived/2026-03-27-sparing-scores-seo.md`
 - `docs/superpowers/plans/archived/2026-03-28-cost-tracking.md`
 - `docs/superpowers/plans/archived/2026-03-28-etap-b-email-goals.md`
+
+### Follow-up (w tym samym etapie)
+- **Fix outdated asserts w `e2e/auth.spec.ts`:** h1 `"Feed"` → regex `/Pulpit|Feed/` (CLUB używa "Pulpit" od Etap 47), `getByRole("tab")` → `getByRole("button")` dla role selectora. 5/5 auth testów przechodzi.
+- **Smoke test pełnego E2E:** 24 passed / 14 failed / 9 did not run. Fix middleware odblokował ok. 10-15 testów zależnych od loginu. Pozostałe failing to pre-existing regresje (shared state, outdated) — zaraportowane jako bug #7 w backlogu (Medium).
