@@ -71,7 +71,18 @@ export const feedRouter = router({
           take: 5,
         }),
         ctx.db.player.findMany({
-          where: regionId ? { regionId } : {},
+          where: {
+            ...(regionId ? { regionId } : {}),
+            isDiscreet: false,
+            user: {
+              transfers: {
+                some: {
+                  type: { in: ["LOOKING_FOR_CLUB", "FREE_AGENT"] },
+                  status: "ACTIVE",
+                },
+              },
+            },
+          },
           include: { region: { select: { name: true, slug: true } } },
           orderBy: { createdAt: "desc" },
           take: 5,
