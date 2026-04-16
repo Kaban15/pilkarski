@@ -4,7 +4,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Activity, CalendarDays, Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const SECTIONS = [
+export const SECTIONS = [
   { key: "activity", icon: Activity, label: "Aktywność" },
   { key: "schedule", icon: CalendarDays, label: "Terminarz" },
   { key: "recruitment", icon: Users, label: "Rekrutacja" },
@@ -12,8 +12,7 @@ const SECTIONS = [
 
 export type SectionKey = (typeof SECTIONS)[number]["key"];
 
-export function SectionNav() {
-  const { t } = useI18n();
+export function useSectionNav() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -29,6 +28,13 @@ export function SectionNav() {
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
+
+  return { current, navigate };
+}
+
+export function SectionNav() {
+  const { t } = useI18n();
+  const { current, navigate } = useSectionNav();
 
   return (
     <div className="mt-6 border-t border-border pt-4">
