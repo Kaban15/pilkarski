@@ -149,7 +149,6 @@ export function ScheduleSection() {
         </div>
       )}
 
-      {/* Feed: sparingi + turnieje z regionu */}
       {feedItems.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">

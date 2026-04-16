@@ -159,7 +159,7 @@ export default function FeedClient() {
   const isClub = userRole === "CLUB";
   const isPlayer = userRole === "PLAYER";
   const isCoach = userRole === "COACH";
-  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000 });
+  const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000, enabled: !isClub });
   const stats = api.stats.dashboard.useQuery(undefined, { staleTime: 300_000 });
   const clubProfile = api.club.me.useQuery(undefined, {
     enabled: isClub,
