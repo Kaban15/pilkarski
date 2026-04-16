@@ -18,13 +18,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check JWT token directly (no Prisma dependency)
+  // Check JWT token directly (no Prisma dependency).
+  // Cookie name prefix differs by protocol: HTTPS uses __Secure- prefix, HTTP does not.
   const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+  const isSecure = req.nextUrl.protocol === "https:";
+  const cookieName = isSecure
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token";
   const token = await getToken({
     req,
     secret,
-    salt: "__Secure-authjs.session-token",
-    cookieName: "__Secure-authjs.session-token",
+    salt: cookieName,
+    cookieName,
   });
 
   if (!token) {

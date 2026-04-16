@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-16
-**Aktualny etap:** 51 etapów ukończonych
+**Aktualny etap:** 52 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -125,7 +125,7 @@
 - Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
 - Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
 - Klikalne profile na 11+ stronach (`getProfileHref()`)
-- E2E: Playwright, 26+ testów (z `test.skip` guards na shared state)
+- E2E: Playwright, 31+ testów (z `test.skip` guards na shared state), w tym `dashboard-sections.spec.ts` pokrywający Etap 51 (SectionNav desktop/mobile, URL routing, filtr pozycji, brak sekcji dla PLAYER)
 - Unit: Vitest 67 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router, tournament-logic, activity-utils), coverage v8
 - Security: headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist
 - Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
@@ -142,11 +142,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 52 | 2026-04-16 | Stabilizacja: E2E spec dla Etap 51 (5 testów — SectionNav desktop/mobile, URL routing, filtr pozycji, PLAYER bez sekcji), fix middleware cookie name (HTTP/HTTPS-aware), archiwizacja 3 przedawnionych planów po pivocie matchmaking |
 | 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy z 5 sekcjami (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby), filtr pozycji, feed redistribution, deduplikacja, date picker fix |
 | 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
 | 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 | 48 | 2026-04-14 | Pivot matchmaking: usunięto wyniki/bramki/opłaty, dodano PitchStatus, grupowe zaproszenia (1-5 klubów), tryb dyskretny |
-| 47 | 2026-04-14 | Dashboard Redesign: Deep Charcoal palette, Sportstream layout, TopTabs, RightPanel, HeroCard |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -273,7 +273,8 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 
 | # | Problem | Priorytet |
 |---|---------|-----------|
-| 1 | Cookie `__Secure-` nie działa na localhost (HTTP) | Low |
+| ~~1~~ | ~~Cookie `__Secure-` nie działa na localhost (HTTP)~~ | ~~✅ Naprawione (Etap 52 — middleware sprawdza protokół, HTTPS=__Secure-, HTTP=bez prefixu)~~ |
+| 6 | 2 testy w `e2e/auth.spec.ts` failing (outdated: h1 "Feed"→"Pulpit" po Etap 47, `tab`→`button` role selector) | Low |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
 | ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |

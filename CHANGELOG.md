@@ -1349,3 +1349,29 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - `src/components/layout/right-panel.tsx` — width 260→320px
 - `src/server/trpc/routers/feed.ts` — limity per typ 5→30, filtr zawodników LOOKING_FOR_CLUB
 - `src/styles/globals.css` — date input calendar icon dark mode fix
+
+---
+
+## Etap 52: Stabilizacja E2E + fix middleware cookie ✅
+
+### Zmiany
+- **E2E dla Etapu 51:** nowy plik `e2e/dashboard-sections.spec.ts` z 5 testami:
+  - SectionNav widoczny w right panel na desktopie (5 buttonów: Aktywność, Terminarz, Rekrutacja, Szukający klubu, Nowe kluby)
+  - Kliknięcie section nav aktualizuje URL query param (`?section=recruitment|players`, Terminarz usuwa param)
+  - Filtr pozycji w PlayersSection (5 pill buttonów: Wszyscy/Bramkarze/Obrońcy/Pomocnicy/Napastnicy)
+  - SectionNavMobile widoczny na mobile viewport (375×812)
+  - PLAYER dashboard nie pokazuje SectionNav (tylko CLUB)
+- **Fix middleware cookie name (bug #1 z backlogu):** `src/middleware.ts` hardcodował `__Secure-authjs.session-token` jako cookie name. Na HTTPS (Vercel) działało, ale na HTTP (localhost) Auth.js ustawia cookie bez `__Secure-` prefixu → middleware nie znajdował tokenu → infinite redirect do /login. Teraz dynamiczne: `req.nextUrl.protocol === "https:" ? "__Secure-..." : "authjs.session-token"`. Odblokowało E2E auth flow.
+- **Robust login helper:** lokalny `robustLogin` w spec używa twardego `page.goto("/feed")` po kliknięciu Zaloguj zamiast polegać na `router.push` (cookie race z middleware).
+- **Archiwizacja przedawnionych planów:** 3 plany przeniesione do `docs/superpowers/plans/archived/` (`sparing-scores-seo`, `cost-tracking`, `etap-b-email-goals` — niezgodne z pivotem matchmaking z Etap 48).
+
+### Pliki utworzone (1)
+- `e2e/dashboard-sections.spec.ts` — 5 testów E2E pokrywających Etap 51
+
+### Pliki zmodyfikowane (1)
+- `src/middleware.ts` — dynamiczna nazwa cookie bazowana na protokole (HTTPS/HTTP)
+
+### Pliki przeniesione (3)
+- `docs/superpowers/plans/archived/2026-03-27-sparing-scores-seo.md`
+- `docs/superpowers/plans/archived/2026-03-28-cost-tracking.md`
+- `docs/superpowers/plans/archived/2026-03-28-etap-b-email-goals.md`
