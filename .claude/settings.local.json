@@ -105,7 +105,16 @@
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs",
       "Bash(tasklist)",
-      "Bash(python3 -c ':*)"
+      "Bash(python3 -c ':*)",
+      "Skill(plan)",
+      "Bash(gh api:*)",
+      "Bash(find .next/static/chunks/app -name \"*.js\" -type f -exec du -h {} \\\\;)",
+      "Bash(find .next/static -name \"*.js\" -type f -exec du -h {} \\\\;)",
+      "Bash(python3 -c \" import json, sys data = json.load\\(sys.stdin\\) pages = data.get\\('pages', {}\\) for page, chunks in sorted\\(pages.items\\(\\)\\): if 'dashboard' in page or page in ['/', '/feed']: total = len\\(chunks\\) print\\(f'{page}: {total} chunks'\\) \")",
+      "Bash(npm ls:*)",
+      "Bash(cp:*)",
+      "Bash(bash:*)",
+      "Read(//tmp/**)"
     ]
   }
 }

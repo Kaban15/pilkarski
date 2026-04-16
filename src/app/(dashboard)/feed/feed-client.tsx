@@ -165,10 +165,6 @@ export default function FeedClient() {
     enabled: isClub,
     staleTime: Infinity,
   });
-  const clubDashboard = api.stats.clubDashboard.useQuery(undefined, {
-    enabled: isClub,
-    staleTime: 300_000,
-  });
   const searchParams = useSearchParams();
   const section = searchParams.get("section") ?? "activity";
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
