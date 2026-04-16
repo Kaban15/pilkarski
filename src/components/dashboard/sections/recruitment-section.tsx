@@ -11,16 +11,14 @@ import { FeedCard, type FeedItem } from "@/components/feed/feed-card-router";
 
 type SubTab = "pipeline" | "recruitments" | "suggested";
 
-const RECRUITMENT_FEED_TYPES = new Set(["player", "club", "transfer"]);
-
 export function RecruitmentSection() {
   const { t } = useI18n();
   const [subTab, setSubTab] = useState<SubTab>("pipeline");
   const feed = api.feed.get.useQuery({ limit: 30 }, { staleTime: 300_000 });
 
-  const feedItems = (feed.data?.items as FeedItem[] | undefined)?.filter((i) =>
-    RECRUITMENT_FEED_TYPES.has(i.type)
-  ) ?? [];
+  const allFeedItems = (feed.data?.items as FeedItem[] | undefined) ?? [];
+  const playerItems = allFeedItems.filter((i) => i.type === "player" || i.type === "transfer");
+  const clubItems = allFeedItems.filter((i) => i.type === "club");
 
   const TABS: { key: SubTab; label: string }[] = [
     { key: "pipeline", label: "Pipeline" },
@@ -63,13 +61,26 @@ export function RecruitmentSection() {
       {subTab === "recruitments" && <ClubRecruitment showSection="recruitments" />}
       {subTab === "suggested" && <ClubRecruitment showSection="suggested" />}
 
-      {feedItems.length > 0 && (
+      {playerItems.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {t("Nowe w regionie")}
+            {t("Zawodnicy szukający klubu")}
           </h3>
           <div className="space-y-3">
-            {feedItems.map((item) => (
+            {playerItems.map((item) => (
+              <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {clubItems.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {t("Nowe kluby w regionie")}
+          </h3>
+          <div className="space-y-3">
+            {clubItems.map((item) => (
               <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
             ))}
           </div>
