@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { Building2 } from "lucide-react";
@@ -37,10 +38,15 @@ export function ClubsSection() {
 
   return (
     <div>
-      <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-        <Building2 className="h-4 w-4 text-primary" />
-        {t("Nowe kluby w regionie")}
-      </h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+          <Building2 className="h-4 w-4 text-primary" />
+          {t("Nowe kluby w regionie")}
+        </h2>
+        <Link href="/search" className="text-xs font-medium text-primary hover:underline">
+          {t("Szukaj klubów →")}
+        </Link>
+      </div>
       <div className="space-y-3">
         {items.map((item) => (
           <FeedCard key={`${item.type}-${item.data.id}`} item={item} />
