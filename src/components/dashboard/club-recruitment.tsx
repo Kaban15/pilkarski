@@ -11,7 +11,7 @@ import { Target, ArrowRight, Calendar } from "lucide-react";
 
 const RECRUITMENT_TYPES = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
 
-export function ClubRecruitment() {
+export function ClubRecruitment({ showSection }: { showSection?: "recruitments" | "suggested" }) {
   const { t, locale } = useI18n();
   const eventTypeLabels = getLabels(EVENT_TYPE_LABELS, locale);
   const positionLabels = getLabels(POSITION_LABELS, locale);
@@ -38,7 +38,7 @@ export function ClubRecruitment() {
         {t("Rekrutacja")}
       </h2>
 
-      {activeRecruitments.length > 0 && (
+      {(!showSection || showSection === "recruitments") && activeRecruitments.length > 0 && (
         <div>
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-sm font-medium text-muted-foreground">
@@ -85,7 +85,7 @@ export function ClubRecruitment() {
         </div>
       )}
 
-      {suggested && suggested.items.length > 0 && (
+      {(!showSection || showSection === "suggested") && suggested && suggested.items.length > 0 && (
         <div>
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-sm font-medium text-muted-foreground">
