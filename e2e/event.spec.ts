@@ -22,8 +22,8 @@ test.describe.serial("Wydarzenia", () => {
     await page.selectOption("#type", "OPEN_TRAINING");
     await page.fill("#title", "Trening testowy E2E");
     await page.fill("#eventDate", dateStr);
-    await page.fill("#location", "Hala Sportowa Testowa");
-    await page.fill("#maxParticipants", "20");
+    // Location input has no id — target by placeholder
+    await page.getByPlaceholder("np. Stadion Miejski, Kraków").fill("Hala Sportowa Testowa");
     await page.fill("textarea", "Opis testowego treningu");
 
     await page.getByRole("button", { name: "Utwórz wydarzenie" }).click();
@@ -48,13 +48,13 @@ test.describe.serial("Wydarzenia", () => {
 
     await page.goto(eventUrl);
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Trening testowy E2E")).toBeVisible();
+    await expect(page.getByText("Trening testowy E2E").first()).toBeVisible();
 
     await page.fill('input[placeholder="Wiadomość (opcjonalna)"]', "Chcę dołączyć!");
     await page.getByRole("button", { name: "Zgłoś się" }).click();
 
     // After applying, the application should appear with "Oczekuje" status
-    await expect(page.getByText("Oczekuje")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Oczekuje").first()).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Chcę dołączyć!")).toBeVisible();
   });
 

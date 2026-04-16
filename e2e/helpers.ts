@@ -67,15 +67,25 @@ export async function registerCoach(
 }
 
 /**
- * Log in via the UI and wait for redirect to /feed.
+ * Log in via the UI. After signIn, force a hard goto to /feed to avoid
+ * a cookie race between client-side router.push and middleware.
  */
 export async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.fill("#email", email);
   await page.fill("#password", password);
   await page.getByRole("button", { name: "Zaloguj się" }).click();
-  await page.waitForURL("**/feed", { timeout: 15000 });
+  await page
+    .waitForResponse(
+      (r) => r.url().includes("/api/auth/callback/credentials"),
+      { timeout: 15000 },
+    )
+    .catch(() => {});
+  await page.goto("/feed");
   await page.waitForLoadState("networkidle");
+  if (page.url().includes("/login")) {
+    throw new Error(`Login failed for ${email}: ${page.url()}`);
+  }
 }
 
 /**

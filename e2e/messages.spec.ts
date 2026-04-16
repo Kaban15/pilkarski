@@ -18,11 +18,16 @@ test.describe.serial("Wiadomości", () => {
     await page.goto("/sparings/new");
     await page.waitForLoadState("networkidle");
 
-    const tomorrow = new Date(Date.now() + 86400000);
+    // Multi-step wizard: Dane → Termin → Podsumowanie
     await page.fill("#title", "Sparing MSG test");
+    await page.getByRole("button", { name: "Dalej" }).click();
+
+    const tomorrow = new Date(Date.now() + 86400000);
     await page.fill("#matchDate", tomorrow.toISOString().slice(0, 16));
     await page.fill("#location", "Testowe boisko");
-    await page.getByRole("button", { name: "Utwórz sparing" }).click();
+    await page.getByRole("button", { name: "Dalej" }).click();
+
+    await page.getByRole("button", { name: "Opublikuj sparing" }).click();
 
     await page.waitForURL(/\/sparings\/(?!new)/, { timeout: 15000 });
     await expect(page.getByText("Testowe boisko")).toBeVisible();
@@ -37,8 +42,8 @@ test.describe.serial("Wiadomości", () => {
     await page.goto(sparingUrl);
     await page.waitForLoadState("networkidle");
 
-    await expect(page.getByText("Sparing MSG test")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Napisz wiadomość")).toBeVisible();
+    await expect(page.getByText("Sparing MSG test").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Napisz wiadomość").first()).toBeVisible();
   });
 
   test("lista konwersacji dostępna", async ({ page }) => {

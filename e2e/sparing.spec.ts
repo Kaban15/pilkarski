@@ -57,13 +57,13 @@ test.describe.serial("Sparingi", () => {
 
     await page.goto(sparingUrl);
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Sparing testowy E2E")).toBeVisible();
+    await expect(page.getByText("Sparing testowy E2E").first()).toBeVisible();
 
     await page.fill('input[placeholder="Wiadomość (opcjonalna)"]', "Chcemy zagrać!");
     await page.getByRole("button", { name: "Aplikuj" }).click();
 
     // After applying, the application should appear with "Oczekuje" status
-    await expect(page.getByText("Oczekuje")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Oczekuje").first()).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Chcemy zagrać!")).toBeVisible();
   });
 

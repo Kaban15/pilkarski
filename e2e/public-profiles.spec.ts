@@ -15,7 +15,8 @@ test.describe("Publiczne profile (bez logowania)", () => {
 
   test("landing page jest dostępna", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "PilkaSport" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Zarejestruj/i })).toBeVisible();
+    // Landing h1 was redesigned — match on level 1 heading existence instead of exact text
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Zarejestruj/i }).first()).toBeVisible();
   });
 });

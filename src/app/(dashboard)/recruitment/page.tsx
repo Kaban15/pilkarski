@@ -391,6 +391,23 @@ export default function RecruitmentPage() {
     onError: (err) => toast.error(err.message),
   });
 
+  const entries = (pipeline ?? []) as PipelineEntry[];
+
+  const stageCounts = useMemo(() =>
+    STAGES.map((s) => ({
+      ...s,
+      count: entries.filter((e) => e.stage === s.key).length,
+    })), [entries]);
+
+  const entriesByStage = useMemo(() =>
+    STAGES.reduce<Record<string, PipelineEntry[]>>(
+      (acc, s) => {
+        acc[s.key] = entries.filter((e) => e.stage === s.key);
+        return acc;
+      },
+      {}
+    ), [entries]);
+
   if (!isClub) {
     return (
       <EmptyState
@@ -405,24 +422,7 @@ export default function RecruitmentPage() {
     updateStageOrderMut.mutate({ id: entryId, stage: newStage, position });
   }
 
-  const entries = (pipeline ?? []) as PipelineEntry[];
-
-  const stageCounts = useMemo(() =>
-    STAGES.map((s) => ({
-      ...s,
-      count: entries.filter((e) => e.stage === s.key).length,
-    })), [entries]);
-
   const total = stageCounts.reduce((a, b) => a + b.count, 0);
-
-  const entriesByStage = useMemo(() =>
-    STAGES.reduce<Record<string, PipelineEntry[]>>(
-      (acc, s) => {
-        acc[s.key] = entries.filter((e) => e.stage === s.key);
-        return acc;
-      },
-      {}
-    ), [entries]);
 
   const filteredEntries = activeStage
     ? entries.filter((e) => e.stage === activeStage)

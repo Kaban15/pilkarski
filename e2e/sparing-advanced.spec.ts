@@ -34,14 +34,14 @@ test.describe.serial("Sparing — wizard, complete, player view", () => {
 
     // Step 3 — Podsumowanie
     await expect(page.getByText("Podsumowanie")).toBeVisible();
-    await expect(page.getByText("Wizard E2E Sparing")).toBeVisible();
+    await expect(page.getByText("Wizard E2E Sparing").first()).toBeVisible();
     await expect(page.getByText("Stadion Wizard")).toBeVisible();
 
     await page.getByRole("button", { name: "Opublikuj sparing" }).click();
 
     // Should redirect to detail page
     await page.waitForURL(/\/sparings\/(?!new)/, { timeout: 15000 });
-    await expect(page.getByText("Wizard E2E Sparing")).toBeVisible();
+    await expect(page.getByText("Wizard E2E Sparing").first()).toBeVisible();
     sparingUrl = page.url();
   });
 
@@ -54,12 +54,12 @@ test.describe.serial("Sparing — wizard, complete, player view", () => {
 
     // Apply
     await page.getByRole("button", { name: "Aplikuj" }).click();
-    await expect(page.getByText("Oczekuje")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Oczekuje").first()).toBeVisible({ timeout: 15000 });
 
     // Reload — should see already-applied state instead of apply form
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Oczekuje")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Oczekuje").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("club A accepts and completes sparing", async ({ page }) => {
@@ -68,9 +68,9 @@ test.describe.serial("Sparing — wizard, complete, player view", () => {
     await page.waitForLoadState("networkidle");
 
     // Accept application
-    await expect(page.getByText(/Zgłoszenia \([1-9]/)).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Zgłoszenia \([1-9]/).first()).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: "Akceptuj" }).click();
-    await expect(page.getByText("Dopasowany")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Dopasowany").first()).toBeVisible({ timeout: 10000 });
 
     // Complete sparing
     await page.getByRole("button", { name: /Oznacz jako zakończony|Zakończ/ }).click();
