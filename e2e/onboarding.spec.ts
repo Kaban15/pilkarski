@@ -52,33 +52,9 @@ test.describe("Onboarding klubu", () => {
     await expect(page.getByText("Witaj w PilkaSport!")).not.toBeVisible();
   });
 
-  test.skip("klub moze przejsc przez caly onboarding do konca", async ({ page }) => {
-    // Skipped: step transition causes React re-mount; element gets detached mid-click.
-    // Tracked as part of bug #7. Tests step 1 dismiss (prev test) cover partial flow.
-    const email = uniqueEmail("onb-full");
-    await registerClub(page, email, PASSWORD, "Full FC");
-    await login(page, email, PASSWORD);
-
-    await expect(page.getByText("Witaj w PilkaSport!")).toBeVisible();
-
-    // Step 1: select region and save
-    await page.getByRole("combobox").first().click();
-    await page.getByRole("option").first().click();
-    await page.getByRole("button", { name: "Zapisz i dalej" }).click();
-
-    // Step 2: skip to step 3 — click the step 1 "Pomiń" button (not "Pomiń na razie" from step 0)
-    await expect(page.getByRole("link", { name: /Dodaj sparing/ })).toBeVisible({ timeout: 15000 });
-    await page.locator('button').filter({ hasText: /^Pomiń$/ }).click();
-
-    // Step 3: "Klub gotowy!"
-    await expect(page.getByText("Klub gotowy!")).toBeVisible();
-
-    // Finish onboarding
-    await page.getByRole("button", { name: "Przejdź do pulpitu" }).click();
-
-    // Onboarding should be dismissed
-    await expect(page.getByText("Witaj w PilkaSport!")).not.toBeVisible();
-  });
+  // Onboarding step transition re-mounts the "Pomiń" button, detaching it mid-click.
+  // Needs app-level fix (useTransition / flushSync) before the full-flow test is reliable.
+  test.fixme("klub moze przejsc przez caly onboarding do konca", async () => {});
 
   test("rejestracja przekierowuje na /feed lub /login", async ({ page }) => {
     const email = uniqueEmail("onb-redir");

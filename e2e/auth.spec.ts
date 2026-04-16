@@ -9,7 +9,7 @@ test.describe("Rejestracja i logowanie", () => {
     await registerClub(page, email, PASSWORD, "Testowy Klub E2E");
     await login(page, email, PASSWORD);
 
-    // Dashboard h1: "Pulpit" for CLUB, "Feed" for PLAYER/COACH (Etap 47)
+    // Dashboard h1: "Pulpit" for CLUB, "Feed" for PLAYER/COACH
     await expect(page.locator("h1")).toContainText(/Pulpit|Feed/);
   });
 
