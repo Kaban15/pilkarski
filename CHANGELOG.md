@@ -2123,3 +2123,35 @@ images: {
 
 ### Pliki zmienione
 28 plików (patrz: `git log -1 --stat`).
+
+---
+
+## Etap 73 — React Compiler enable (2026-04-17)
+
+### Cel
+Włączyć React Compiler (`babel-plugin-react-compiler ^1.0.0`) dla
+auto-memoizacji przy build — runtime perf win bez manualnych
+`useMemo`/`useCallback`.
+
+### Zmiany
+- `package.json` (dev dep): `babel-plugin-react-compiler@^1.0.0`.
+- `next.config.ts`: `reactCompiler: true` (top-level — Next 16
+  przeniósł konfigurację poza `experimental`).
+
+### Dlaczego eslint-disable z Etap 67 zostają
+Reguły `react-hooks/set-state-in-effect`, `react-hooks/purity`,
+`react-hooks/preserve-manual-memoization` dalej firingują nawet gdy
+compiler jest włączony — to lint-time guidance, a nie runtime
+behavior. Compiler wykonuje optymalizacje niezależnie.
+
+### Weryfikacja (pełna regresja)
+- `npm run build`: ✅ Turbopack + Compiler build passed, wszystkie
+  trasy (ƒ dynamic + ○ static) renderują.
+- `npx tsc --noEmit`: 0 errors.
+- `npx vitest run`: 103/103 pass.
+- `npx playwright test e2e/auth.spec.ts e2e/sparing-advanced.spec.ts
+  e2e/digest-urls.spec.ts`: **12/12 pass**.
+
+### Pliki zmienione
+- `next.config.ts`
+- `package.json` + `package-lock.json`
