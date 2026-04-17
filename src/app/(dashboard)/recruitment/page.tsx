@@ -395,7 +395,10 @@ export default function RecruitmentPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  const entries = (pipeline ?? []) as PipelineEntry[];
+  const entries = useMemo(
+    () => (pipeline ?? []) as PipelineEntry[],
+    [pipeline]
+  );
 
   const stageCounts = useMemo(() =>
     STAGES.map((s) => ({

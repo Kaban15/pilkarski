@@ -66,16 +66,19 @@ export default function ConversationPage() {
     const newLastId = items.length > 0 ? items[items.length - 1].id : null;
     if (newLastId !== lastMessageIdRef.current) {
       // Sync server query → local state for optimistic updates during realtime/poll.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMessages(items);
       lastMessageIdRef.current = newLastId;
       if (conversationId) markAsReadMut.mutate({ conversationId });
     }
+    // markAsReadMut.mutate is stable (TanStack); conversationId is read via closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messagesData]);
 
   useEffect(() => {
     if (!conversationId) return;
     markAsReadMut.mutate({ conversationId });
+    // markAsReadMut.mutate is stable (TanStack).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   useEffect(() => {
@@ -83,9 +86,7 @@ export default function ConversationPage() {
     const conv = (convs as unknown as { id: string; otherUser: { id: string; role?: string; email?: string; club?: { id: string; name: string } | null; player?: { id: string; firstName: string; lastName: string } | null; coach?: { id: string; firstName: string; lastName: string } | null } | null }[]).find((c) => c.id === conversationId);
     if (conv?.otherUser) {
       // Sync conversation metadata to local state when conversations list or id changes.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOtherUserId(conv.otherUser.id);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOtherUserName(getUserDisplayName(conv.otherUser));
     }
   }, [convs, conversationId]);
@@ -118,6 +119,8 @@ export default function ConversationPage() {
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
+    // markAsReadMut.mutate is stable (TanStack); supabase channel lifecycle tied to conversationId only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   useEffect(() => {

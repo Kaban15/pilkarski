@@ -52,7 +52,7 @@ export function CalendarView() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const weekMode = searchParams?.get("range") === "week";
-  const now = new Date();
+  const [now] = useState(() => new Date());
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [onlyMine, setOnlyMine] = useState(false);
@@ -148,7 +148,7 @@ export function CalendarView() {
         })
       : items;
     return filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [items, todayOnly]);
+  }, [items, todayOnly, now]);
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);

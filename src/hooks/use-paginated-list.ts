@@ -27,11 +27,10 @@ export function usePaginatedList<T>(query: PaginatedQuery<T>): UsePaginatedListR
     [query.data]
   );
 
-  // TanStack fetchNextPage is stable across renders; we intentionally depend on it only.
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const { fetchNextPage } = query;
   const fetchNext = useCallback(() => {
-    query.fetchNextPage();
-  }, [query.fetchNextPage]);
+    fetchNextPage();
+  }, [fetchNextPage]);
 
   const sentinelRef = useInfiniteScroll(
     fetchNext,
