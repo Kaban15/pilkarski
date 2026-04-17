@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-17
-**Aktualny etap:** 71 etapów ukończonych
+**Aktualny etap:** 72 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -144,11 +144,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 72 | 2026-04-17 | P1 `<img>` → `<Image />` mass refactor: 34 wystąpień w 27 plikach zmigrowane na `next/image`. `next.config.ts`: dodane `images.remotePatterns` dla `*.supabase.co/storage/v1/object/public/**`. Strategia: fixed `h-N w-N` → `<Image width height />` z px; cover-photo `h-full w-full` w relative parent → `fill + sizes`. `image-upload.tsx`: import jako `NextImage` (kolizja z `new Image()` w `compressImage()`). Lint: 35 → 1 warning. Tests: 103/103 unit + 7/7 E2E (sparing-advanced + digest-urls) pass. |
 | 71 | 2026-04-17 | P2 Digest telemetry stub: `trackDigestClick()` w `digest-card.tsx` — `console.info("[digest:click]", {key, role, count, ts})` na click każdego wiersza. Grep-friendly prefix dla future pipeline (Vercel Analytics/własny sink). Brak mutacji kontraktu API, brak testów do zmiany. |
 | 70 | 2026-04-17 | P1 ESLint exhaustive-deps cleanup: 45 → 35 warnings. `messages/[conversationId]/page.tsx` (3× disable z uzasadnieniem TanStack stable mutate + 3× unused disable removed), `recruitment/page.tsx` (entries wrapped w useMemo), `calendar-view.tsx` (useState initializer dla `now`), `use-paginated-list.ts` (destructure `fetchNextPage`), `theme-toggle.tsx` + `i18n.tsx` (unused disables removed). |
 | 69 | 2026-04-17 | Bug #8 fix E2E sparing-advanced: race condition w `club A accepts and completes sparing` — zamiana `getByText("Dopasowany").first()` (timeline label zawsze w DOM) na `expect(completeBtn).toBeVisible()` — button renderuje się dopiero gdy `status=MATCHED`. Przy okazji fix regex `/Dodaj sparing|Dodaj/` → `a[href="/sparings/new"]` (regex matchował "Dodaj do ulubionych"). 4/4 testy pass. |
 | 68 | 2026-04-17 | P2 E2E smoke dla 10 URL handlerów digestu: nowy `digest-urls.spec.ts` — 3 role × 10 URL (CLUB 5, PLAYER 3, COACH 2). Asercje: status <500, URL preserved, no redirect to `/login`, no error banner. 3/3 pass w 54s. Reusable `assertUrlHandler` helper. Domyka Priority 2 z backlogu. |
-| 67 | 2026-04-17 | P4 ESLint cleanup: 23 errors → **0 errors**. 18 plików. Real fixy: `no-unescaped-entities` (3× polskie `„…”`), `preserve-manual-memoization` (mini-calendar: `useState(() => new Date())`). Disable z komentarzem *why*: `set-state-in-effect` (12× hydration/browser-API sync), `purity` (5× server/client intencjonalne), TanStack stable ref (1×). Warnings (45) odłożone. |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -273,35 +273,32 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 
 ## Następna sesja — TODO (priority-ordered)
 
-> Sesja 2026-04-17 zamknęła etapy 69–71 (Bug #8, exhaustive-deps
-> cleanup, digest telemetry stub). Zostały: `<img>→<Image/>` mass
-> refactor i React Compiler ewaluacja (obie wymagają manualnego QA
-> w dev mode).
+> Sesja 2026-04-17 zamknęła etapy 69–72. **`<img>→<Image/>` domknięty**
+> (lint 45→1 warning). Zostały: React Compiler (deps + experimental)
+> i D3 Unified sparing flow (UX evidence required).
 
 ### ⚠️ Przed startem nowej sesji — status deploy
 - **Migracja prod `add_club_cover_url`:** ✅ zastosowana (2026-04-17
   13:48 UTC), wpis w `_prisma_migrations` potwierdzony.
-- **Branch `main`:** `db300c5` (lokalne commity etap 69–71, wymaga push).
+- **Branch `main`:** lokalne commity 69–72, wymaga push.
 
 ### Priority 1 — pick next (rekomendacja)
 1. **D3 Unified sparing flow** (~4h, high-risk) — „szybki sparing" vs
    3-krokowy wizard = dwa tory z kolizjami. Progressive disclosure
    w jednym formularzu. **Prerequisite:** UX evidence (analytics,
    session recordings). Bez evidence → defer.
-2. **`<img>` → `<Image />` mass refactor** (~3h, medium-risk) — 34
-   wystąpień w 27 plikach. Wymaga dev server + manualna weryfikacja
-   layoutu per miejsce (risk: CLS). Potrzebuje też `images.remotePatterns`
-   dla `*.supabase.co` w `next.config.ts`.
-3. **React Compiler ewaluacja** (~4h, experimental) — włączyć
-   `experimental.reactCompiler: true` → usunąć 18 `eslint-disable`
-   z Etap 67 (reguły `set-state-in-effect`/`purity`/
-   `preserve-manual-memoization` zaprojektowane dla compilera).
-   Wymaga testów regresji SSR/hydration.
+2. **React Compiler ewaluacja** (~4h, experimental) — włączyć
+   `experimental.reactCompiler: true` → usunąć 15× `eslint-disable`
+   w src/ (`set-state-in-effect`/`purity`). **Prerequisite:**
+   `npm install -D babel-plugin-react-compiler` + manualny dev
+   server QA (regresja SSR/hydration).
 
 ### Priority 2 — follow-up
 - ~~Digest telemetria~~ — ✅ Etap 71 (stub console.info, czeka na pipeline).
 - Digest telemetry pipeline — spiąć `[digest:click]` logi do Vercel
   Analytics albo własnego endpointu `/api/telemetry`.
+- ESLint config.mjs warning (`import/no-anonymous-default-export`) —
+  1× pre-existing, assign do var przed eksport.
 
 ### Priority 3 — audit findings domknięte (dla referencji)
 - ~~**A1** Landing hero product shot~~ — ✅ Etap 57
@@ -319,8 +316,8 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 - ~~**`next lint` broken**~~ — ✅ Etap 65 (ESLint 9 flat config)
 - ~~**ESLint cleanup (errors)**~~ — ✅ Etap 67 (0 errors)
 - ~~**ESLint exhaustive-deps cleanup**~~ — ✅ Etap 70 (10 warnings fixed, 45→35)
-- **ESLint img warnings (34×)** — mass refactor, patrz Priority 1.2.
-- **React Compiler ewaluacja** — patrz Priority 1.3.
+- ~~**ESLint img warnings (34×)**~~ — ✅ Etap 72 (0 img warnings, 35→1)
+- **React Compiler ewaluacja** — patrz Priority 1.2.
 
 ---
 
@@ -341,7 +338,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | ~~15~~ | ~~Filtr `?filter=recommended` na `/events`~~ | ~~✅ Etap 55 — filter RECRUITMENT + player's region + upcoming~~ |
 | ~~16~~ | ~~Tab `?tab=applications` na `/trainings`~~ | ~~✅ Etap 55 — nowy endpoint `event.myCoachTrainings` + tab „Zgłoszenia" dla COACH~~ |
 | ~~17~~ | ~~Filtr `?filter=invitations` na `/notifications`~~ | ~~✅ Etap 55 — client-side filter na typach CLUB_INVITATION/SPARING_INVITATION/MEMBERSHIP_REQUEST~~ |
-| 18 | 35 ESLint warnings pre-existing (34× `<img>` → `<Image />`, 1× `exhaustive-deps` w client-expected pattern). Osobny etap — mass refactor, wymaga dev server + manual QA. | Low |
+| ~~18~~ | ~~35 ESLint warnings pre-existing (34× `<img>` → `<Image />`)~~ | ~~✅ Etap 72 — 0 img warnings, only 1 pre-existing (eslint.config.mjs anon default)~~ |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
 | ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |

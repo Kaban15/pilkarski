@@ -2067,3 +2067,59 @@ zmian w kodzie komponentu.
 
 ### Pliki zmienione
 - `src/components/dashboard/digest-card.tsx`
+
+---
+
+## Etap 72 — `<img>` → `<Image />` mass refactor (2026-04-17)
+
+### Cel
+Usunięcie 34 warningów `@next/next/no-img-element` w 27 plikach —
+migracja raw `<img>` na `next/image` dla automatycznego lazy-loading,
+optymalizacji WebP/AVIF i prevention layout shift.
+
+### Zmiany
+#### Config
+- `next.config.ts` — dodane `images.remotePatterns` dla Supabase
+  Storage:
+```ts
+images: {
+  remotePatterns: [
+    { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+  ],
+},
+```
+
+#### Strategia konwersji per pattern
+1. **Fixed-size img** (`<img className="h-8 w-8 ..." />`) →
+   `<Image width={32} height={32} className="..." />`. Tailwind
+   h-N/w-N → px (N * 4).
+2. **Cover pattern** (parent `relative`/`aspect-*` + img
+   `h-full w-full object-cover`) → `<Image fill sizes="100vw"
+   className="object-cover" />`.
+3. **Collision fix** — `image-upload.tsx` używał `new Image()`
+   (browser constructor w `compressImage()`); import z `next/image`
+   zrobiony jako `NextImage` aby uniknąć nakładki.
+
+#### Migrowane pliki (27)
+- Dashboard pages: club-chat, community, feed-client, ranking,
+  recruitment (2×), sparing-applications, sparing-info, squad (2×),
+  trainings.
+- Public pages: club-profile-tabs, clubs/[id] (2×: cover + logo),
+  coaches/[id], leagues/\[regionSlug\]/\[levelId\]/\[groupId\],
+  players/[id].
+- Components: club-invitations, club-recruitment, hero-card,
+  player-recruitments, invite-player-dialog (2×),
+  new-member-feed-card, sparing-feed-card, image-upload (2×),
+  match-card, invite-club-dialog (3×), sparing-card,
+  invite-member-dialog, position-group.
+
+### Weryfikacja
+- `npm run lint`: 35 → **1 warning** (pozostał 1× pre-existing
+  `import/no-anonymous-default-export` w `eslint.config.mjs`).
+- `npx tsc --noEmit`: 0 errors.
+- `npx vitest run`: 103/103 pass.
+- `npx playwright test e2e/sparing-advanced.spec.ts
+  e2e/digest-urls.spec.ts`: **7/7 pass**.
+
+### Pliki zmienione
+28 plików (patrz: `git log -1 --stat`).
