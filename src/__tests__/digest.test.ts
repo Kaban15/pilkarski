@@ -4,6 +4,7 @@ import {
   getClubDigest,
   getPlayerDigest,
   getCoachDigest,
+  type Db,
   type DigestRow,
 } from "@/lib/digest";
 
@@ -42,7 +43,7 @@ describe("getClubDigest", () => {
       event: { count: async () => 0 },
       recruitmentPipeline: { count: async () => 0 },
     };
-    const result = await getClubDigest({ db, userId: "u1" });
+    const result = await getClubDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -57,7 +58,7 @@ describe("getClubDigest", () => {
       event: { count: async () => 0 },
       recruitmentPipeline: { count: async () => 0 },
     };
-    const result = await getClubDigest({ db, userId: "u1" });
+    const result = await getClubDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -77,7 +78,7 @@ describe("getClubDigest", () => {
       // 5. stalePipeline
       recruitmentPipeline: { count: async () => 7 },
     };
-    const result = await getClubDigest({ db, userId: "u1" });
+    const result = await getClubDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows.map((r) => r.key)).toEqual([
       "club.attendance48h",
       "club.pendingSparingApplications",
@@ -107,7 +108,7 @@ describe("getClubDigest", () => {
       event: { count: async () => 0 }, // row 4 sum=0 -> out
       recruitmentPipeline: { count: async () => 2 }, // row 5 -> in
     };
-    const result = await getClubDigest({ db, userId: "u1" });
+    const result = await getClubDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows.map((r) => r.key)).toEqual([
       "club.pendingSparingApplications",
       "club.stalePipeline",
@@ -125,7 +126,7 @@ describe("getClubDigest", () => {
       event: { count: async () => 1 },
       recruitmentPipeline: { count: async () => 1 },
     };
-    const result = await getClubDigest({ db, userId: "u1" });
+    const result = await getClubDigest({ db: db as unknown as Db, userId: "u1" });
     for (const row of result.rows) {
       expect(row.key).toBeTruthy();
       expect(typeof row.count).toBe("number");
@@ -147,7 +148,7 @@ describe("getPlayerDigest", () => {
       eventApplication: { count: async () => 0 },
       event: { count: async () => 0 },
     };
-    const result = await getPlayerDigest({ db, userId: "u1" });
+    const result = await getPlayerDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -160,7 +161,7 @@ describe("getPlayerDigest", () => {
       eventApplication: { count: async () => 0 },
       event: { count: async () => 0 },
     };
-    const result = await getPlayerDigest({ db, userId: "u1" });
+    const result = await getPlayerDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -175,7 +176,7 @@ describe("getPlayerDigest", () => {
       eventApplication: { count: eventAppCount },
       event: { count: async () => 3 }, // recommendedEvents
     };
-    const result = await getPlayerDigest({ db, userId: "u1" });
+    const result = await getPlayerDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows.map((r) => r.key)).toEqual([
       "player.myApplicationsInProgress",
       "player.attendance48h",
@@ -201,7 +202,7 @@ describe("getPlayerDigest", () => {
       eventApplication: { count: eventAppCount },
       event: { count: async () => 0 },
     };
-    const result = await getPlayerDigest({ db, userId: "u1" });
+    const result = await getPlayerDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows.map((r) => r.key)).toEqual(["player.attendance48h"]);
     expect(result.totalCount).toBe(2);
   });
@@ -220,7 +221,7 @@ describe("getPlayerDigest", () => {
         },
       },
     };
-    await getPlayerDigest({ db, userId: "u1" });
+    await getPlayerDigest({ db: db as unknown as Db, userId: "u1" });
     expect(capturedWhere).toBeTruthy();
     expect(capturedWhere.regionId).toBeUndefined();
     expect(capturedWhere.OR).toBeUndefined();
@@ -240,7 +241,7 @@ describe("getCoachDigest", () => {
       event: { count: async () => 0 },
       message: { count: async () => 0 },
     };
-    const result = await getCoachDigest({ db, userId: "u1" });
+    const result = await getCoachDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -253,7 +254,7 @@ describe("getCoachDigest", () => {
       event: { count: async () => 0 },
       message: { count: async () => 0 },
     };
-    const result = await getCoachDigest({ db, userId: "u1" });
+    const result = await getCoachDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows).toEqual([]);
     expect(result.totalCount).toBe(0);
   });
@@ -268,7 +269,7 @@ describe("getCoachDigest", () => {
       event: { count: async () => 4 }, // upcomingWeek
       message: { count: async () => 6 },
     };
-    const result = await getCoachDigest({ db, userId: "u1" });
+    const result = await getCoachDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows.map((r) => r.key)).toEqual([
       "coach.trainingApplications",
       "coach.clubInvitations",
@@ -296,7 +297,7 @@ describe("getCoachDigest", () => {
       event: { count: async () => 0 },
       message: { count: async () => 3 },
     };
-    const result = await getCoachDigest({ db, userId: "u1" });
+    const result = await getCoachDigest({ db: db as unknown as Db, userId: "u1" });
     expect(result.rows.map((r) => r.key)).toEqual([
       "coach.clubInvitations",
       "coach.attendance48h",
@@ -319,7 +320,7 @@ describe("DigestRow shape", () => {
       event: { count: async () => 1 },
       message: { count: async () => 1 },
     };
-    const result = await getCoachDigest({ db, userId: "u1" });
+    const result = await getCoachDigest({ db: db as unknown as Db, userId: "u1" });
     for (const row of result.rows as DigestRow[]) {
       expect(typeof row.key).toBe("string");
       expect(typeof row.count).toBe("number");

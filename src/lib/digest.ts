@@ -1,3 +1,5 @@
+import type { PrismaClient } from "@/generated/prisma/client";
+
 export const DIGEST_THRESHOLDS = {
   attendanceWarnHours: 48,
   upcomingDays: 7,
@@ -33,6 +35,21 @@ export type DigestResponse = {
   generatedAt: string;
 };
 
+export type Db = Pick<
+  PrismaClient,
+  | "club"
+  | "player"
+  | "coach"
+  | "eventApplication"
+  | "sparingApplication"
+  | "sparingInvitation"
+  | "sparingOffer"
+  | "event"
+  | "recruitmentPipeline"
+  | "clubMembership"
+  | "message"
+>;
+
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
@@ -47,7 +64,7 @@ function finalize(candidates: DigestRow[]): { rows: DigestRow[]; totalCount: num
 // ============================================================
 
 export async function getClubDigest(args: {
-  db: any;
+  db: Db;
   userId: string;
 }): Promise<{ rows: DigestRow[]; totalCount: number }> {
   const { db, userId } = args;
@@ -169,7 +186,7 @@ export async function getClubDigest(args: {
 // ============================================================
 
 export async function getPlayerDigest(args: {
-  db: any;
+  db: Db;
   userId: string;
 }): Promise<{ rows: DigestRow[]; totalCount: number }> {
   const { db, userId } = args;
@@ -261,7 +278,7 @@ export async function getPlayerDigest(args: {
 // ============================================================
 
 export async function getCoachDigest(args: {
-  db: any;
+  db: Db;
   userId: string;
 }): Promise<{ rows: DigestRow[]; totalCount: number }> {
   const { db, userId } = args;
