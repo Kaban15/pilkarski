@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-17
-**Aktualny etap:** 54 etapów ukończonych
+**Aktualny etap:** 55 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -143,11 +143,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 55 | 2026-04-17 | Quick-apply + Design sweep + Digest cleanup: (1) Inline „Aplikuj" na `SparingCard` dla CLUB-viewera (1-click, nowy endpoint `sparing.checkApplications`), (2) brand gradients w landing + profilu klubu + sidebar logo: violet→sky → violet→orange (zgodność z DESIGN.md), unifikacja „Pulpit" zamiast mieszanego „Panel/Feed/Pulpit", (3) `recommendedWhere: any` → `Prisma.EventWhereInput`, drop `generatedAt` z `DigestResponse`. 87/87 unit pass, 0 typecheck errors. |
 | 54 | 2026-04-17 | Digest Card: karta „Twój status" na feedzie per rola (CLUB/PLAYER/COACH) — 14 wierszy liczników (aplikacje, zaproszenia, attendance 48h, upcoming 7d, stale pipeline, recommendations). Nowy `digest.get` tRPC endpoint + `src/lib/digest.ts` helpers. 87/87 unit tests pass, 1 E2E (+1 fixme). Inwalidacja cache z 9 mutacji. 9 backlog rows (brakujące filtry `?tab/?filter` — Low). |
 | 53 | 2026-04-16 | Stabilizacja E2E (bug #7): +16 testów odblokowanych — recruitment-board 4/4 (+fix Rules of Hooks violation w `/recruitment`), coach 4/4, event, messages, sparing, sparing-advanced, public-profiles, onboarding. Robust `login()` helper w helpers.ts. 43/47 pass (91.4%). Simplify review: usunięty duplikat `robustLogin`, `test.skip` → `test.fixme`. |
 | 52 | 2026-04-16 | Stabilizacja: E2E spec dla Etap 51 (5 testów — SectionNav desktop/mobile, URL routing, filtr pozycji, PLAYER bez sekcji), fix middleware cookie name (HTTP/HTTPS-aware), archiwizacja 3 przedawnionych planów po pivocie matchmaking |
 | 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy z 5 sekcjami (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby), filtr pozycji, feed redistribution, deduplikacja, date picker fix |
-| 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -276,13 +276,14 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 > **B2 Digest Card** (✅ Etap 54), **D1 Quick-apply**, **E1+E2 Design sweep**. Reszta w `docs/superpowers/specs/2026-04-17-digest-card-design.md` sekcja „Out of scope" + poniższe.
 
 ### Priority 1 — pick next
-- **D1 Inline quick-apply na karcie sparingu** — 1-click apply zamiast 2. Nowy brainstorming → spec → plan → execute. Reużywa istniejący `sparing.applyFor` mutation. Effort: mały. Impact: konwersja × 2 na core business flow.
-- **E1+E2 Design discipline sweep** — łamany własny DESIGN.md (indigo/sky gradienty w landing + profilu klubu), unifikacja „Pulpit/Feed/Panel". Effort: mały. Impact: polish widoczny wszędzie.
+- ~~**D1 Inline quick-apply na karcie sparingu**~~ ✅ Etap 55 — endpoint `sparing.checkApplications` + inline „Aplikuj" w `SparingCard` z `e.preventDefault()`.
+- ~~**E1+E2 Design discipline sweep**~~ ✅ Etap 55 — violet→sky → violet→orange (landing, profil klubu, sidebar logo); unifikacja „Pulpit".
 
-### Priority 2 — follow-up z Etap 54 (non-blocking, drobne)
-- Zamień `recommendedWhere: any` → `Prisma.EventWhereInput` w `src/lib/digest.ts:201` (~10 min).
-- Decyzja dla `generatedAt`: wire relative timestamp (`formatDistanceToNow`) albo drop z `DigestResponse` contract (obecnie unused client-side).
+### Priority 2 — follow-up z Etap 54/55 (non-blocking, drobne)
+- ~~Zamień `recommendedWhere: any` → `Prisma.EventWhereInput`~~ ✅ Etap 55.
+- ~~Decyzja dla `generatedAt`~~ ✅ Etap 55 (drop).
 - Happy-path E2E dla digestu (`e2e/digest.spec.ts:47` fixme) gdy pojawi się seed helper dla pending sparing application.
+- E2E dla quick-apply (`sparing.checkApplications` flow) — wymaga 2-club fixture.
 - Digest telemetria — log click-through per `row.key` (przy własnym telemetry pipeline, obecnie brak).
 
 ### Priority 3 — audit findings odsunięte (osobne cykle)

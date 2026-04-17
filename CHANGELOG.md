@@ -1490,3 +1490,51 @@ Wszystkie 9 param-hrefs → Bucket B (silent ignore, poprawna lista rodzic). Bra
 - Weekly recap, new followers, matchmaking suggestions (warianty C z auditu).
 - Nowe widoki filtrowane (9 backlog rows Low).
 - Telemetria click-through (przyszły spec).
+
+---
+
+## Etap 55: Quick-apply + Design sweep + Digest cleanup ✅
+
+### Digest cleanup (Etap 54 follow-up)
+- `recommendedWhere: any` → `Prisma.EventWhereInput` w `src/lib/digest.ts`.
+- Drop `generatedAt` z `DigestResponse` contract (był nieużywany client-side,
+  hardcoded "zaktualizowano teraz" w `DigestCard` + 120s refetch window).
+- Remove `ISO_PREFIX` assertions z `digest.test.ts`.
+
+### D1 — Inline quick-apply na karcie sparingu
+- Nowy endpoint `sparing.checkApplications({ sparingOfferIds })` — bulk
+  sprawdzenie applied-map + owned-ids dla klub-viewera (mirror `favorite.check`).
+- `SparingCard` rozszerzony o opcjonalny prop `quickApply`: inline button
+  „Aplikuj" z `e.preventDefault()` na Link, status badge po wysłaniu,
+  optimistic `localStatus` + invalidate `digest.get` i `checkApplications`.
+- `SearchTab` w `sparings-client`: wywołanie `checkApplications` gdy viewer=CLUB,
+  przekazanie per-card state do karty.
+- Redukuje aplikację do 1 kliknięcia z listy (było: card → detail → button).
+
+### E1+E2 — Design discipline sweep
+- **Brand gradients** (DESIGN.md rule: nie używać default Tailwind indigo/sky):
+  - Landing (`src/app/page.tsx`): 4× gradient violet→sky → violet→orange
+    (hero headline, primary CTA, step badges, bottom CTA).
+  - Club public profile hero: `from-indigo-950 via-slate-900 to-sky-950` →
+    `from-violet-950 via-slate-900 to-black`.
+  - Sidebar PS logo (collapsed + expanded): violet→sky → violet→orange.
+- **Unifikacja dashboard label**:
+  - Sidebar subtitle „Panel" → „Pulpit".
+  - Feed h1 zawsze „Pulpit" (było mixed: „Pulpit" PL dla CLUB, literal English
+    „Feed" dla PLAYER/COACH).
+
+### Pozostawione (świadomie)
+- Per-role accent w karcie „Dla trenerów" (sky=trener) — semantyczny role distinguisher.
+- Avatar fallback violet/20→sky/20 — low opacity, nie brand.
+- Typy wydarzeń/poziomy w `labels.ts`, `digest calendar: text-sky-500` — per-type semantics.
+- E2E spec dla quick-apply + digest happy-path — wymagają seed fixtures.
+
+### Commits
+- `b7ef2fa` — refactor digest types + drop generatedAt
+- `3a508ed` — feat quick-apply
+- `31ffb48` — design sweep
+
+### Quality gate
+- vitest: 87/87 pass (no new tests, no regression)
+- tsc: 0 errors
+- lint: skipped (`next lint` broken w Next.js 16, pre-existing baseline)
