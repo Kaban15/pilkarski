@@ -979,4 +979,20 @@ export const plToEn: Record<string, string> = {
   "Powrót": "Back",
   "O zawodniku": "About player",
   "Noga": "Foot",
+
+  // ---- Digest ----
+  "Twój status": "Your status",
+  "zaktualizowano teraz": "updated now",
+  "Zgłoszenia bez potwierdzenia (<48h)": "Unconfirmed RSVPs (<48h)",
+  "Aplikacje sparingowe czekają": "Sparring applications waiting",
+  "Nieodebrane zaproszenia": "Unopened invitations",
+  "Wydarzenia w tym tygodniu": "Events this week",
+  "Kandydaci bez ruchu >14 dni": "Stale candidates >14d",
+  "Twoje aplikacje w toku": "Your pending applications",
+  "Potwierdź obecność (<48h)": "Confirm attendance (<48h)",
+  "Nowe nabory dla Ciebie": "New recruitments for you",
+  "Zgłoszenia na treningi": "Training signups",
+  "Zaproszenia od klubów": "Club invitations",
+  "Treningi w tym tygodniu": "Trainings this week",
+  "Nowe wiadomości": "New messages",
 };
