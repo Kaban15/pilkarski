@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-16
-**Aktualny etap:** 53 etapów ukończonych
+**Ostatnia sesja:** 2026-04-17
+**Aktualny etap:** 54 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -85,6 +85,7 @@
 - Punkty (18 akcji), 10 odznak, leaderboard top 20
 - `/ranking` — punkty, odznaki, historia
 - **Activity Heatmap** — GitHub-style heatmap aktywności na publicznych profilach (kluby, zawodnicy, trenerzy), rolling 12 miesięcy, 4 karty statystyk (aktywne dni, aktualna seria, najaktywniejszy miesiąc, najlepszy dzień), violet kolorystyka, responsive
+- **Digest Card** — karta „Twój status" na górze feedu, per rola (CLUB/PLAYER/COACH), agregat liczników (aplikacje, zaproszenia, attendance 48h, upcoming 7d, stale pipeline, recommendations), linki do pre-filtered list, skip gdy `totalCount = 0`, staleTime 2min + invalidation z 8 mutacji, RSC prefetch, test-id per wiersz
 
 ### UI/Design
 - **Dashboard Redesign (Etap 47):** Deep Charcoal palette, Sportstream-inspired hybrid layout
@@ -142,11 +143,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 54 | 2026-04-17 | Digest Card: karta „Twój status" na feedzie per rola (CLUB/PLAYER/COACH) — 14 wierszy liczników (aplikacje, zaproszenia, attendance 48h, upcoming 7d, stale pipeline, recommendations). Nowy `digest.get` tRPC endpoint + `src/lib/digest.ts` helpers. 87/87 unit tests pass, 1 E2E (+1 fixme). Inwalidacja cache z 9 mutacji. 9 backlog rows (brakujące filtry `?tab/?filter` — Low). |
 | 53 | 2026-04-16 | Stabilizacja E2E (bug #7): +16 testów odblokowanych — recruitment-board 4/4 (+fix Rules of Hooks violation w `/recruitment`), coach 4/4, event, messages, sparing, sparing-advanced, public-profiles, onboarding. Robust `login()` helper w helpers.ts. 43/47 pass (91.4%). Simplify review: usunięty duplikat `robustLogin`, `test.skip` → `test.fixme`. |
 | 52 | 2026-04-16 | Stabilizacja: E2E spec dla Etap 51 (5 testów — SectionNav desktop/mobile, URL routing, filtr pozycji, PLAYER bez sekcji), fix middleware cookie name (HTTP/HTTPS-aware), archiwizacja 3 przedawnionych planów po pivocie matchmaking |
 | 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy z 5 sekcjami (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby), filtr pozycji, feed redistribution, deduplikacja, date picker fix |
 | 50 | 2026-04-14 | Activity Heatmap: GitHub-style heatmap aktywności na publicznych profilach (klub/zawodnik/trener), 4 stat cards, tooltip, responsive |
-| 49 | 2026-04-14 | Stabilizacja + Anty No-Show: naprawione E2E/unit testy, baner 48h attendance dla TRYOUT/RECRUITMENT, badge attendance dla trenerów |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 

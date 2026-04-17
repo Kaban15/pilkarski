@@ -1429,3 +1429,64 @@ Zmiana kierunku platformy na czysty system matchmakingowy dla niższych lig. Usu
 - Zastąpienie `networkidle` deterministycznym wait (risk regresji w innych testach).
 - `StageValue` z Prisma enum + lucide icons w `recruitment/page.tsx` (pre-existing kod).
 - Merge `stageCounts` + `entriesByStage` do single useMemo pass (micro-opt <100 entries).
+
+---
+
+## Etap 54: Digest Card — feed "Twój status" ✅
+
+### Co się zmieniło
+Karta na górze feedu pokazująca per-rola agregat rzeczy wymagających akcji: pending aplikacje sparingowe, nieodebrane zaproszenia, attendance 48h, upcoming 7d, stale pipeline (CLUB), recommended events (PLAYER), unread messages (COACH). Cel: retencja D+1.
+
+### Backend
+- **`src/lib/digest.ts`** — `DIGEST_THRESHOLDS` (48h/7d/14d/72h), `DigestRow`/`DigestResponse`/`DigestIconKey` types, narrowed `Db = Pick<PrismaClient, ...>`, 3 per-role helpers (`getClubDigest`/`getPlayerDigest`/`getCoachDigest`). Każdy: reads role profile → `Promise.all` counts → builds `candidates` in fixed order → filters `count > 0` + sums `totalCount`. Wspólny `finalize()` helper.
+- **`src/server/trpc/routers/digest.ts`** — `digest.get` (`protectedProcedure.query`) dispatchuje per rola, dołącza `generatedAt` ISO.
+- **Zarejestrowany** w `router.ts` jako `digest: digestRouter` (przed `admin:`).
+- **Content matrix schema-aligned:** 5 wierszy CLUB, 4 PLAYER (bez `eventInvitations` — `invitePlayer` tworzy tylko Notification), 5 COACH. Attendance 48h bez cross-check `EventAttendance` (MVP uproszczenie udokumentowane w kodzie).
+- **Tests:** 16 unit + 4 router integration (empty/no-profile, all-zero, mixed+order, shape, conditional where).
+
+### Client
+- **`src/components/dashboard/digest-card.tsx`** — `"use client"`, `api.digest.get.useQuery` (staleTime/refetchInterval 2min, refetchOnWindowFocus). Guards: loading → 168px placeholder, error → null, `totalCount === 0` → null. `ICON_MAP` 9 ikon lucide. `formatCount` → "99+" dla count ≥ 100. `data-testid` per wiersz.
+- **`src/lib/translations.ts`** — sekcja Digest (15 kluczy PL→EN).
+- **`src/app/(dashboard)/feed/page.tsx`** — `void trpc.digest.get.prefetch()` (RSC, zero waterfall).
+- **`src/app/(dashboard)/feed/feed-client.tsx`** — render pod H1, ukryty podczas onboarding.
+
+### Cache invalidation (9 plików)
+Mutacje wołają `utils.digest.get.invalidate()` w `onSuccess`:
+- `sparing.applyFor`, `sparing.respond`, `sparing.invite`, `sparing.respondToInvitation`
+- `event.applyFor`, `event.respond`, `event.setAttendance`
+- `recruitment.updateStage`/`updateStageAndOrder`/`remove` (via shared `invalidatePipeline()`)
+- `message.send`, `message.markAsRead`
+
+### E2E (`e2e/digest.spec.ts`)
+- Empty state test: nowy CLUB → dismiss onboarding → `/feed` → `expect(getByTestId("digest-card")).toHaveCount(0)`. 1 pass.
+- Happy path (`test.fixme`) — wymaga seed helpera, odsunięte.
+
+### Routing audit
+Wszystkie 9 param-hrefs → Bucket B (silent ignore, poprawna lista rodzic). Brak rewrite. 9 backlog rows Low w STATE.md „Znane Problemy" dla filtrów do implementacji (`?tab=applications`, `?filter=pending-attendance`, `?range=week`, `?filter=stale`, `?tab=my-applications`, `?filter=recommended`, `?filter=invitations`).
+
+### Commits (9)
+- `c28e0ca` — types + helpers
+- `2e37706` — narrow `db` type
+- `2f57ea5` — router
+- `5d6b822` — router tests
+- `56187a4` — component + i18n
+- `b75663e` — feed integration + RSC prefetch
+- `581a6d1` — routing audit + backlog
+- `1172004` — cache invalidation
+- `9e84ceb` — e2e spec
+
+### Quality gate
+- vitest: 87/87 pass (67 baseline + 20 nowe)
+- tsc: 0 errors
+- next build: success
+- playwright `digest.spec.ts`: 1 pass + 1 fixme, 0 regression
+- lint: skipped (`next lint` removed w Next.js 16, pre-existing baseline issue)
+
+### Odrzucone / out-of-scope
+- Cross-check `EventAttendance` w attendance48h (wymaga raw SQL).
+- Inline akcje na karcie (wariant B/C z auditu).
+- Snooze / dismiss (YAGNI).
+- Real-time updates (polling 2min wystarczy).
+- Weekly recap, new followers, matchmaking suggestions (warianty C z auditu).
+- Nowe widoki filtrowane (9 backlog rows Low).
+- Telemetria click-through (przyszły spec).
