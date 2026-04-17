@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,18 @@ import { Bell } from "lucide-react";
 
 export default function NotificationsPage() {
   const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const invitationsOnly = searchParams?.get("filter") === "invitations";
   const utils = api.useUtils();
   const { data, isLoading } = api.notification.list.useQuery({ limit: 50 });
-  const notifications = data?.notifications ?? [];
+  const allNotifications = data?.notifications ?? [];
+  const notifications = invitationsOnly
+    ? allNotifications.filter((n) =>
+        n.type === "CLUB_INVITATION" ||
+        n.type === "SPARING_INVITATION" ||
+        n.type === "MEMBERSHIP_REQUEST",
+      )
+    : allNotifications;
 
   const markAsRead = api.notification.markAsRead.useMutation({
     onSuccess: () => utils.notification.list.invalidate(),
@@ -27,7 +37,17 @@ export default function NotificationsPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("Powiadomienia")}</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{t("Powiadomienia")}</h1>
+          {invitationsOnly && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("Filtr: zaproszenia")} ·{" "}
+              <Link href="/notifications" className="underline">
+                {t("pokaż wszystkie")}
+              </Link>
+            </p>
+          )}
+        </div>
         {notifications.some((n) => !n.read) && (
           <Button
             variant="outline"
@@ -39,6 +59,7 @@ export default function NotificationsPage() {
           </Button>
         )}
       </div>
+
 
       {isLoading ? (
         <div className="space-y-2">

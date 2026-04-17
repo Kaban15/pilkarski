@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/trpc-react";
@@ -47,9 +48,13 @@ import {
 export default function SparingsClient() {
   const { t } = useI18n();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const isClub = session?.user?.role === "CLUB";
   const isPlayer = session?.user?.role === "PLAYER";
-  const [tab, setTab] = useState<"search" | "my">("search");
+  const urlTab = searchParams?.get("tab");
+  const initialTab =
+    urlTab === "applications" || urlTab === "invitations" ? "my" : "search";
+  const [tab, setTab] = useState<"search" | "my">(initialTab);
 
   const pendingCount = api.stats.clubDashboard.useQuery(undefined, {
     enabled: isClub,

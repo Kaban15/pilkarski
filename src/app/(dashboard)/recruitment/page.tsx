@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
@@ -346,9 +347,11 @@ function ListRow({
 export default function RecruitmentPage() {
   const { t } = useI18n();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const isClub = session?.user?.role === "CLUB";
   const [view, setView] = useState<"list" | "board">("list");
   const [activeStage, setActiveStage] = useState<StageValue | null>(null);
+  const staleOnly = searchParams?.get("filter") === "stale";
 
   const utils = api.useUtils();
 
@@ -425,9 +428,13 @@ export default function RecruitmentPage() {
 
   const total = stageCounts.reduce((a, b) => a + b.count, 0);
 
-  const filteredEntries = activeStage
+  const staleCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  const filteredEntries = (activeStage
     ? entries.filter((e) => e.stage === activeStage)
-    : entries;
+    : entries
+  ).filter((e) =>
+    staleOnly ? new Date(e.updatedAt).getTime() < staleCutoff : true,
+  );
 
   function handleCsvExport() {
     const rows = [

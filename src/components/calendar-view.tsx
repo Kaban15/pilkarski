@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
@@ -49,11 +50,13 @@ function getDayGradientStyle(items: CalendarItem[]): string {
 
 export function CalendarView() {
   const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const weekMode = searchParams?.get("range") === "week";
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [onlyMine, setOnlyMine] = useState(false);
-  const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [view, setView] = useState<"calendar" | "list">(weekMode ? "list" : "calendar");
   const [todayOnly, setTodayOnly] = useState(false);
 
   const { data: session } = useSession();
@@ -62,8 +65,13 @@ export function CalendarView() {
     enabled: session?.user?.role === "CLUB",
   });
 
-  const dateFrom = `${year}-${String(month + 1).padStart(2, "0")}-01`;
-  const dateTo = `${year}-${String(month + 1).padStart(2, "0")}-${getDaysInMonth(year, month)}`;
+  const toYMD = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const dateFrom = weekMode ? toYMD(now) : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const dateTo = weekMode
+    ? toYMD(weekEnd)
+    : `${year}-${String(month + 1).padStart(2, "0")}-${getDaysInMonth(year, month)}`;
 
   const sparingQuery = {
     dateFrom,
