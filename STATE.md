@@ -313,15 +313,15 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | ~~6~~ | ~~2 testy w `e2e/auth.spec.ts` failing (outdated: h1 "Feed"→"Pulpit" po Etap 47, `tab`→`button` role selector)~~ | ~~✅ Naprawione (Etap 52)~~ |
 | ~~7~~ | ~~14 E2E testów failing (pre-existing, odblokowane po fix middleware)~~ | ~~✅ Naprawione w większości (Etap 53) — 43/47 pass (91.4%), pozostałe 2: complete sparing flow + onboarding step re-mount (`test.skip`)~~ |
 | 8 | E2E: `sparing-advanced.spec:65` "club A accepts and completes" — complete sparing flow (`Oznacz jako zakończony` button) nie wykonuje się w teście. Do sprawdzenia czy to bug w teście czy w UI. | Low |
-| 9 | Filtr `?filter=pending-attendance` na `/events` — brak handlera (`events/page.tsx` nie czyta URL), digest linkuje do pełnej listy wydarzeń zamiast zgłoszeń czekających na potwierdzenie obecności | Low |
-| 10 | Tab `?tab=applications` na `/sparings` — brak handlera (`sparings-client.tsx` używa lokalnego `useState` bez synchronizacji z URL), digest linkuje klub do zakładki "Szukaj" zamiast "Moje sparingi" z pendingami | Low |
-| 11 | Tab `?tab=invitations` na `/sparings` — brak osobnej zakładki invitations, digest linkuje do listy sparingów bez możliwości filtrowania zaproszeń | Low |
-| 12 | Zakres `?range=week` na `/calendar` — `CalendarView` nie czyta URL, digest linkuje do domyślnego widoku miesięcznego zamiast tygodniowego | Low |
-| 13 | Filtr `?filter=stale` na `/recruitment` — brak handlera (`StagePill` filter to lokalny `activeStage`), digest linkuje do pełnego pipeline zamiast kandydatów bez ruchu >14 dni | Low |
-| 14 | Tab `?tab=my-applications` na `/events` — zakładka nie istnieje (tylko `search`/`my` dla klubów/trenerów), digest linkuje zawodnika do wyszukiwarki zamiast jego aplikacji | Low |
-| 15 | Filtr `?filter=recommended` na `/events` — brak zakładki/filtra "polecane", digest linkuje zawodnika do pełnej listy zamiast nowych naborów dopasowanych do profilu | Low |
-| 16 | Tab `?tab=applications` na `/trainings` — zakładki to `trainings`/`coaches` (brak `applications`), digest linkuje trenera do listy treningów zamiast zgłoszeń na jego treningi | Low |
-| 17 | Filtr `?filter=invitations` na `/notifications` — strona jest płaską listą (brak filtrów), digest linkuje trenera do wszystkich powiadomień zamiast samych zaproszeń od klubów | Low |
+| 9 | Filtr `?filter=pending-attendance` na `/events` — brak handlera, digest linkuje do pełnej listy zamiast zgłoszeń czekających na potwierdzenie obecności (wymaga cross-joina applications+events po stronie serwera) | Low |
+| ~~10~~ | ~~Tab `?tab=applications` na `/sparings`~~ | ~~✅ Etap 55 — URL handler otwiera „Moje sparingi"~~ |
+| ~~11~~ | ~~Tab `?tab=invitations` na `/sparings`~~ | ~~✅ Etap 55 — URL handler otwiera „Moje sparingi"~~ |
+| ~~12~~ | ~~Zakres `?range=week` na `/calendar`~~ | ~~✅ Etap 55 — switch do list view + week date range~~ |
+| ~~13~~ | ~~Filtr `?filter=stale` na `/recruitment`~~ | ~~✅ Etap 55 — client-side filter entries `updatedAt >14d`~~ |
+| 14 | Tab `?tab=my-applications` na `/events` — zakładka nie istnieje dla PLAYER, digest linkuje zawodnika do wyszukiwarki zamiast jego aplikacji (wymaga nowego tab + server query) | Low |
+| 15 | Filtr `?filter=recommended` na `/events` — brak zakładki/filtra „polecane", digest linkuje zawodnika do pełnej listy zamiast naborów dopasowanych do profilu (wymaga server-side recommendation query) | Low |
+| 16 | Tab `?tab=applications` na `/trainings` — zakładki to `trainings`/`coaches` (brak `applications`), digest linkuje trenera do listy treningów zamiast zgłoszeń na jego treningi (wymaga nowego endpointa + tab) | Low |
+| ~~17~~ | ~~Filtr `?filter=invitations` na `/notifications`~~ | ~~✅ Etap 55 — client-side filter na typach CLUB_INVITATION/SPARING_INVITATION/MEMBERSHIP_REQUEST~~ |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
 | ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |
