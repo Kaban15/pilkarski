@@ -12,6 +12,8 @@ import { Trophy, MapPin, Star } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 import { SocialLinks } from "@/components/social-links";
 import { ActivityHeatmap } from "@/components/activity-heatmap";
+import { ClubReputationBadges } from "@/components/club-reputation-badges";
+import { computeReputation, REPUTATION_THRESHOLDS } from "@/lib/reputation";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -54,7 +56,9 @@ export default async function ClubPublicProfilePage({ params }: Props) {
   const club = await getClub(id);
   if (!club) notFound();
 
-  const [upcomingMatches, completedMatches, eventsRes, reviewStats, recentReviews, members] =
+  const reputationSince = new Date(Date.now() - REPUTATION_THRESHOLDS.windowDays * 24 * 60 * 60 * 1000);
+
+  const [upcomingMatches, completedMatches, eventsRes, reviewStats, recentReviews, members, repReceivedApps, repOwnedOffers] =
     await Promise.all([
       // Upcoming — MATCHED sparings in the future
       db.sparingOffer.findMany({
@@ -160,7 +164,38 @@ export default async function ClubPublicProfilePage({ params }: Props) {
         },
         orderBy: { acceptedAt: "desc" },
       }),
+      // Reputation inputs
+      db.sparingApplication.findMany({
+        where: {
+          sparingOffer: { clubId: id },
+          createdAt: { gte: reputationSince },
+        },
+        select: { status: true, createdAt: true, updatedAt: true },
+      }),
+      db.sparingOffer.findMany({
+        where: {
+          clubId: id,
+          matchDate: { gte: reputationSince },
+          status: { in: ["COMPLETED", "CANCELLED"] },
+        },
+        select: {
+          status: true,
+          applications: {
+            where: { status: "ACCEPTED" },
+            select: { id: true },
+            take: 1,
+          },
+        },
+      }),
     ]);
+
+  const reputation = computeReputation({
+    receivedApps: repReceivedApps,
+    ownedOffers: repOwnedOffers.map((o) => ({
+      status: o.status,
+      hadAcceptedApp: o.applications.length > 0,
+    })),
+  });
 
   const leagueGroupHref =
     club.leagueGroup && club.region
@@ -178,6 +213,17 @@ export default async function ClubPublicProfilePage({ params }: Props) {
     <div className="min-h-screen bg-background">
       {/* Hero banner */}
       <div className="relative overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-black">
+        {club.coverUrl && (
+          <>
+            <img
+              src={club.coverUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover opacity-40"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+          </>
+        )}
         {/* Dot pattern overlay */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.03]"
@@ -187,7 +233,7 @@ export default async function ClubPublicProfilePage({ params }: Props) {
             backgroundSize: "24px 24px",
           }}
         />
-        <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+        <div className="relative mx-auto max-w-4xl px-4 py-10 sm:px-6">
           <BackButton label="Powrót" />
           <div className="flex items-center gap-5 mt-2">
             {club.logoUrl ? (
@@ -243,6 +289,9 @@ export default async function ClubPublicProfilePage({ params }: Props) {
                     </span>
                   </Link>
                 )}
+              </div>
+              <div className="mt-3">
+                <ClubReputationBadges stats={reputation} />
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <FollowClubButton clubId={id} />

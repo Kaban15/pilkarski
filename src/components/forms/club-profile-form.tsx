@@ -23,6 +23,7 @@ interface ClubProfileFormProps {
     id: string;
     name: string;
     logoUrl: string | null;
+    coverUrl: string | null;
     description: string | null;
     city: string | null;
     regionId: number | null;
@@ -197,6 +198,7 @@ function EditableTextarea({
 export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
   const { t } = useI18n();
   const [logoUrl, setLogoUrl] = useState<string | null>(club.logoUrl);
+  const [coverUrl, setCoverUrl] = useState<string | null>(club.coverUrl);
 
   // Field values (kept in sync after save)
   const [name, setName] = useState(club.name);
@@ -250,6 +252,7 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
     updateMut.mutate({
       name,
       logoUrl: logoUrl ?? undefined,
+      coverUrl: coverUrl ?? undefined,
       description: description || undefined,
       city: city || undefined,
       regionId: regionId ?? undefined,
@@ -438,7 +441,21 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
         <CardHeader>
           <CardTitle>{t("Profil klubu")}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-muted-foreground">{t("Zdjęcie tła")}</Label>
+            <ImageUpload
+              variant="cover"
+              currentUrl={coverUrl}
+              folder="clubs-covers"
+              entityId={club.id}
+              onUploaded={(url) => {
+                setCoverUrl(url);
+                save({ coverUrl: url });
+              }}
+            />
+          </div>
+
           <ImageUpload
             currentUrl={logoUrl}
             folder="clubs"

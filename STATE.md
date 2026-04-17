@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-17
-**Aktualny etap:** 55 etapów ukończonych
+**Aktualny etap:** 66 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -88,6 +88,7 @@
 - **Digest Card** — karta „Twój status" na górze feedu, per rola (CLUB/PLAYER/COACH), agregat liczników (aplikacje, zaproszenia, attendance 48h, upcoming 7d, stale pipeline, recommendations), linki do pre-filtered list, skip gdy `totalCount = 0`, staleTime 2min + invalidation z 8 mutacji, RSC prefetch, test-id per wiersz
 
 ### UI/Design
+- **Cover photo klubu:** `Club.coverUrl` (nullable VarChar 500), edytowalne w panelu profilu klubu przez `ImageUpload variant="cover"` (1600px max, 16:5 preview), renderowane jako tło hero bannera na publicznym profilu z gradient overlay; fallback gradient violet→slate→black gdy brak
 - **Dashboard Redesign (Etap 47):** Deep Charcoal palette, Sportstream-inspired hybrid layout
 - **Dark mode:** tło `#09090b`, karty `#111116`, cienie z violet tint, border `rgba(139,92,246,0.06)`
 - **Light mode:** tło `#fafafa`, karty `#ffffff`, violet-tinted borders
@@ -143,11 +144,12 @@
 
 | Etap | Data | Opis |
 |------|------|------|
-| 55 | 2026-04-17 | Quick-apply + Design sweep + Digest cleanup: (1) Inline „Aplikuj" na `SparingCard` dla CLUB-viewera (1-click, nowy endpoint `sparing.checkApplications`), (2) brand gradients w landing + profilu klubu + sidebar logo: violet→sky → violet→orange (zgodność z DESIGN.md), unifikacja „Pulpit" zamiast mieszanego „Panel/Feed/Pulpit", (3) `recommendedWhere: any` → `Prisma.EventWhereInput`, drop `generatedAt` z `DigestResponse`. 87/87 unit pass, 0 typecheck errors. |
-| 54 | 2026-04-17 | Digest Card: karta „Twój status" na feedzie per rola (CLUB/PLAYER/COACH) — 14 wierszy liczników (aplikacje, zaproszenia, attendance 48h, upcoming 7d, stale pipeline, recommendations). Nowy `digest.get` tRPC endpoint + `src/lib/digest.ts` helpers. 87/87 unit tests pass, 1 E2E (+1 fixme). Inwalidacja cache z 9 mutacji. 9 backlog rows (brakujące filtry `?tab/?filter` — Low). |
+| 66 | 2026-04-17 | P2 Seed helpers + E2E coverage: 3 helpery (`completeClubOnboarding`, `createQuickSparing`, `applyToSparing`), `digest.spec.ts` fixme → pełny test (2-club flow), nowy `quick-apply.spec.ts`. 103/103 unit pass, 0 typecheck errors. |
+| 65 | 2026-04-17 | P4 ESLint 9 flat config: `eslint.config.mjs` (nowy) importuje `eslint-config-next` v16, `npm run lint` → `eslint .` odblokowany. 65 pre-existing issues (23 errors, 42 warnings) poza scope — brak CI, nie blokuje. 103/103 unit pass, 0 typecheck errors. |
+| 64 | 2026-04-17 | C3 „Kluby dla Ciebie" z reasoning: `club.newInRegion` rozszerzony o curating score (position +8, recruiting +4, active +2, new +1, followers * 0.1), zwraca kluby z ≥1 reason sortowane po score. Badges per reason (violet/sky/emerald/orange), subheader z regionem. 103/103 unit pass, 0 typecheck errors. |
+| 63 | 2026-04-17 | A2 Rotujący headline: landing h1 rotuje co 3.2s przez 4 persony (CLUB sparing, PLAYER „znajdź klub", CLUB „prowadź nabory", PLAYER „trenuj z trenerem"). Fade+translate 200ms, gradient accent. Nowy `src/components/landing/rotating-headline.tsx`. 103/103 unit pass, 0 typecheck errors. |
+| 62 | 2026-04-17 | A3 Persistent „Pierwsze kroki" + FAB: karta na feedzie CLUB widoczna dopóki jakikolwiek krok nieskończony (real `done`: `activeSparings > 0`, `upcomingEvents > 0`), licznik `2/4`, gradient top border. FAB „Dodaj sparing" (56px, gradient) w prawym dolnym rogu — tylko CLUB. Pominięte: coachmark tour (wymaga biblioteki). 103/103 unit pass, 0 typecheck errors. |
 | 53 | 2026-04-16 | Stabilizacja E2E (bug #7): +16 testów odblokowanych — recruitment-board 4/4 (+fix Rules of Hooks violation w `/recruitment`), coach 4/4, event, messages, sparing, sparing-advanced, public-profiles, onboarding. Robust `login()` helper w helpers.ts. 43/47 pass (91.4%). Simplify review: usunięty duplikat `robustLogin`, `test.skip` → `test.fixme`. |
-| 52 | 2026-04-16 | Stabilizacja: E2E spec dla Etap 51 (5 testów — SectionNav desktop/mobile, URL routing, filtr pozycji, PLAYER bez sekcji), fix middleware cookie name (HTTP/HTTPS-aware), archiwizacja 3 przedawnionych planów po pivocie matchmaking |
-| 51 | 2026-04-16 | Dashboard Sections: Pulpit klubowy z 5 sekcjami (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby), filtr pozycji, feed redistribution, deduplikacja, date picker fix |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -272,32 +274,39 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 
 ## Następna sesja — TODO (priority-ordered)
 
-> Etap 55 zamknął Priority 1 (D1 Quick-apply, E1+E2 Design sweep) + cały backlog
-> digest filtrów (9/9) + follow-up Etap 54. Kolejny cykl: Priority 3 audit findings.
+> Sesja 2026-04-17 zamknęła etapy 56–66 (11 pozycji backlogu audytu +
+> hygiene). Tylko **D3** pozostało z Priority 3.
 
-### Priority 1 — pick next
-- Wybrać z Priority 3 poniżej (rekomendacja: **C1 Cover photo klubu** lub **A1 Landing hero product shot** — oba duże UX wins).
+### ⚠️ Przed startem nowej sesji — manual action (deploy from 2026-04-17)
+- **Migracja prod:** `npm run db:migrate -- --url "postgresql://..." --name add_club_cover_url` (dodaje `clubs.cover_url VARCHAR(500)` — wymagane dla Etap 56, bez tego profil klubu fail na read).
+- Opcjonalne: `npm run test:e2e` aby zweryfikować nowe testy `digest.spec.ts` + `quick-apply.spec.ts` w runtime.
 
-### Priority 2 — follow-up z Etap 54/55 (non-blocking, drobne)
-- Happy-path E2E dla digestu (`e2e/digest.spec.ts:47` fixme) gdy pojawi się seed helper dla pending sparing application.
-- E2E dla quick-apply (`sparing.checkApplications` flow) — wymaga 2-club fixture.
+### Priority 1 — pick next (rekomendacja)
+1. **ESLint cleanup** (~2h, low-risk) — 23 errors pre-existing, głównie 2 miejsca: `use-sidebar-state.ts:13` + `i18n.tsx:25` (`set-state-in-effect`). Szybki, domyka Priority 4.
+2. **D3 Unified sparing flow** (~4h, high-risk) — wymaga zgromadzenia UX evidence (czy użytkownicy faktycznie gubią się w 2 torach?). Bez evidence → defer.
+3. **P2 reszta** (~2h, low-risk) — E2E smoke dla 9 URL handlerów digestu, digest telemetria gdy pojawi się pipeline obserwacji.
+
+### Priority 2 — follow-up (low, szczątkowe)
+- ~~Happy-path E2E dla digestu~~ — ✅ Etap 66
+- ~~E2E dla quick-apply~~ — ✅ Etap 66 (nowy `quick-apply.spec.ts`)
 - E2E dla URL filter handlers (9 linków digest) — smoke test że każdy ?param otwiera właściwy widok.
 - Digest telemetria — log click-through per `row.key` (przy własnym telemetry pipeline, obecnie brak).
 
 ### Priority 3 — audit findings odsunięte (osobne cykle)
-- **A1** Landing — product shot/GIF/preview feedu w hero (zamiast tylko tekstu + CTA).
-- **A2** Propozycja wartości — rotujący headline per persona (Strava pattern) albo 3 landing warianty per rola.
-- **A3** Coachmark tour + persistent „Pierwsze kroki" + FAB „Dodaj sparing" na feedzie CLUB.
-- **B1** Feed hierarchia — przenieść `DashboardStats` do sidebar, uprościć main column.
-- **B3** Notification grouping — `/notifications` jako płaska lista; konkurencja (FB/IG) grupuje per typ/aktor + sekcje „Dziś/Wcześniej".
-- **C1** Cover photo na profilu klubu (data model: `Club.coverUrl` + upload flow).
-- **C2** Reputation metrics na profilu — response rate, response time, fulfilment rate jako badge pod avatarem (Airbnb pattern).
-- **C3** „Kluby dla Ciebie" (PLAYER) z reasoning — `NewClubsInRegion` istnieje, ale bez kuratorstwa.
+- ~~**A1** Landing hero product shot~~ — ✅ Etap 57
+- ~~**A2** Rotujący headline per persona~~ — ✅ Etap 63
+- ~~**A3** Coachmark tour + persistent „Pierwsze kroki" + FAB~~ — ✅ Etap 62 (bez coachmark tour)
+- ~~**C2** Reputation metrics na profilu~~ — ✅ Etap 58
+- ~~**B1** Feed hierarchia~~ — ✅ Etap 59
+- ~~**B3** Notification grouping~~ — ✅ Etap 61
+- ~~**C3** „Kluby dla Ciebie" z reasoning~~ — ✅ Etap 64
 - **D3** Unified sparing flow — „szybki sparing" vs 3-krokowy wizard to dwa tory z kolizjami. Progressive disclosure w jednym formularzu.
-- **E3** Global search / command palette (⌘K) + search w sidebar header (desktop).
+- ~~**E3** Global search / command palette (⌘K)~~ — ✅ Etap 60
+- ~~**C1** Cover photo na profilu klubu~~ — ✅ Etap 56
 
 ### Priority 4 — hygiene
-- **`next lint` broken** — Next.js 16 usunął `next lint` subcommand, `npm run lint` rzuca błąd. Do decyzji: **ESLint 9 flat config** (`eslint.config.mjs` + `eslint-config-next` już w deps, gotowy template w sesji Etap 55) albo **biome** (speed play, zmiana toolingu). Pre-existing od upgrade'u, nieblokujący — vitest + tsc pokrywają jakość w pre-commit hook. **Wymaga explicit instrukcji** (guarded by `guard-config.sh`).
+- ~~**`next lint` broken**~~ — ✅ Etap 65 (ESLint 9 flat config)
+- **ESLint cleanup** — 23 errors + 42 warnings pre-existing (głównie `react-hooks/set-state-in-effect` w `use-sidebar-state.ts` i `i18n.tsx`, `exhaustive-deps` warnings). Osobny etap — fix + ustalenie dyscypliny.
 
 ---
 

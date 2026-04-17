@@ -14,6 +14,8 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { LandingHeroPreview } from "@/components/landing/landing-hero-preview";
+import { RotatingHeadline } from "@/components/landing/rotating-headline";
 
 export const metadata = {
   title: "PilkaSport — Platforma dla klubów i zawodników piłkarskich",
@@ -107,7 +109,7 @@ export default async function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-5 pb-20 pt-24 sm:px-8 sm:pb-28 sm:pt-32 lg:pt-40">
+        <div className="mx-auto max-w-6xl px-5 pb-12 pt-24 sm:px-8 sm:pb-20 sm:pt-32 lg:pt-40">
           <div className="mx-auto max-w-[680px] text-center">
             {/* Pill */}
             <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-violet-500/10 px-4 py-1.5 text-[13px] text-violet-400 backdrop-blur-sm">
@@ -115,12 +117,7 @@ export default async function LandingPage() {
               Platforma dla polskiego futbolu
             </div>
 
-            <h1 className="mb-6 text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-tight">
-              Umów sparing{" "}
-              <span className="bg-gradient-to-r from-violet-400 to-orange-400 bg-clip-text text-transparent">
-                w 2 minuty
-              </span>
-            </h1>
+            <RotatingHeadline />
 
             <p className="mb-10 text-[15px] leading-relaxed text-white/40 sm:text-base md:text-lg md:leading-relaxed">
               Darmowa platforma dla klubów piłkarskich i zawodników.
@@ -144,6 +141,8 @@ export default async function LandingPage() {
               </Link>
             </div>
           </div>
+
+          <LandingHeroPreview />
         </div>
       </section>
 

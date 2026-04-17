@@ -13,15 +13,15 @@ type StatCard = {
   href: string;
 };
 
-function StatCardItem({ stat }: { stat: StatCard }) {
+function StatCardItem({ stat, compact }: { stat: StatCard; compact?: boolean }) {
   return (
     <Link href={stat.href}>
-      <div className="rounded-xl border border-[var(--card-elevated-border)] bg-card p-4 transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)]">
+      <div className={`rounded-xl border border-[var(--card-elevated-border)] bg-card transition-all hover:border-primary/15 hover:shadow-[var(--shadow-card-hover)] ${compact ? "p-3" : "p-4"}`}>
         <p className="text-[11px] font-medium text-muted-foreground">{stat.label}</p>
-        <p className="mt-1 font-display text-[28px] font-extrabold leading-none tracking-tight text-foreground">
+        <p className={`mt-1 font-display font-extrabold leading-none tracking-tight text-foreground ${compact ? "text-[22px]" : "text-[28px]"}`}>
           {stat.value}
         </p>
-        {stat.trend && (
+        {stat.trend && !compact && (
           <p className={`mt-1 text-[11px] font-medium ${
             stat.trendDirection === "up" ? "text-emerald-500" :
             stat.trendDirection === "down" ? "text-red-500" :
@@ -35,16 +35,18 @@ function StatCardItem({ stat }: { stat: StatCard }) {
   );
 }
 
-export function DashboardStats() {
+type StatsVariant = "main" | "sidebar";
+
+export function DashboardStats({ variant = "main" }: { variant?: StatsVariant } = {}) {
   const { data: session } = useSession();
   const role = session?.user?.role;
 
-  if (role === "CLUB") return <ClubStats />;
-  if (role === "COACH") return <CoachStats />;
-  return <PlayerStats />;
+  if (role === "CLUB") return <ClubStats variant={variant} />;
+  if (role === "COACH") return <CoachStats variant={variant} />;
+  return <PlayerStats variant={variant} />;
 }
 
-function ClubStats() {
+function ClubStats({ variant }: { variant: StatsVariant }) {
   const { t } = useI18n();
   const { data: session } = useSession();
   const { data } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 300_000 });
@@ -63,10 +65,10 @@ function ClubStats() {
     { label: t("Ranking"), value: myRank >= 0 ? `#${myRank + 1}` : "—", href: "/ranking" },
   ];
 
-  return <StatsGrid stats={stats} />;
+  return <StatsGrid stats={stats} variant={variant} />;
 }
 
-function PlayerStats() {
+function PlayerStats({ variant }: { variant: StatsVariant }) {
   const { t } = useI18n();
   const { data } = api.stats.dashboard.useQuery(undefined, { staleTime: 300_000 });
   const playerData = data as { role: string; eventApps?: number; unreadMessages?: number } | undefined;
@@ -78,10 +80,10 @@ function PlayerStats() {
     { label: t("Ranking"), value: "—", href: "/ranking" },
   ];
 
-  return <StatsGrid stats={stats} />;
+  return <StatsGrid stats={stats} variant={variant} />;
 }
 
-function CoachStats() {
+function CoachStats({ variant }: { variant: StatsVariant }) {
   const { t } = useI18n();
   const { data } = api.stats.coachDashboard.useQuery(undefined, { staleTime: 300_000 });
 
@@ -92,10 +94,19 @@ function CoachStats() {
     { label: t("Wiadomości"), value: 0, href: "/messages" },
   ];
 
-  return <StatsGrid stats={stats} />;
+  return <StatsGrid stats={stats} variant={variant} />;
 }
 
-function StatsGrid({ stats }: { stats: StatCard[] }) {
+function StatsGrid({ stats, variant }: { stats: StatCard[]; variant: StatsVariant }) {
+  if (variant === "sidebar") {
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {stats.map((stat) => (
+          <StatCardItem key={stat.label} stat={stat} compact />
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
       {stats.map((stat) => (

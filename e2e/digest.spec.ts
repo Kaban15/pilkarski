@@ -1,5 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { registerClub, login, uniqueEmail } from "./helpers";
+import {
+  registerClub,
+  login,
+  uniqueEmail,
+  completeClubOnboarding,
+  createQuickSparing,
+  applyToSparing,
+  logout,
+} from "./helpers";
 
 test.describe("Digest card", () => {
   test("new CLUB with zero activity does NOT see digest card", async ({ page }) => {
@@ -33,19 +41,44 @@ test.describe("Digest card", () => {
     await expect(page.getByTestId("digest-card")).toHaveCount(0);
   });
 
-  // Requires a seed helper to create a pending sparing application for the signed-in CLUB.
-  // Current e2e/helpers.ts does not expose that — deferred to a future stage.
-  //
-  // When the helper exists, the body will be:
-  //   1. Register club A + register club B.
-  //   2. Club A creates a sparing offer.
-  //   3. Club B applies.
-  //   4. Login as club A → /feed.
-  //   5. expect(getByTestId("digest-card")).toBeVisible()
-  //   6. expect(getByTestId("club.pendingSparingApplications")).toBeVisible()
-  //   7. Click it → expect URL to include "/sparings"
-  test.fixme(
-    "CLUB with pending application sees digest row and navigates on click",
-    async () => {},
-  );
+  test("CLUB with pending application sees digest row and navigates on click", async ({ page }) => {
+    const passwordA = "TestPasswordA123!";
+    const passwordB = "TestPasswordB123!";
+    const emailA = uniqueEmail("digest-host");
+    const emailB = uniqueEmail("digest-applicant");
+    const clubA = `Digest Host ${Date.now()}`;
+    const clubB = `Digest Applicant ${Date.now()}`;
+
+    // 1. Register club A (host) + onboard + create sparing.
+    await registerClub(page, emailA, passwordA, clubA);
+    if (page.url().includes("/login")) await login(page, emailA, passwordA);
+    await completeClubOnboarding(page);
+
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const dateISO = tomorrow.toISOString().slice(0, 16);
+    const sparingId = await createQuickSparing(page, {
+      dateISO,
+      location: "Stadion Testowy",
+    });
+
+    // 2. Logout, register club B (applicant), onboard, apply.
+    await logout(page);
+    await registerClub(page, emailB, passwordB, clubB);
+    if (page.url().includes("/login")) await login(page, emailB, passwordB);
+    await completeClubOnboarding(page);
+    await applyToSparing(page, sparingId);
+
+    // 3. Logout, login as club A → /feed, digest card with pending row.
+    await logout(page);
+    await login(page, emailA, passwordA);
+    await page.waitForLoadState("networkidle");
+
+    const digest = page.getByTestId("digest-card");
+    await expect(digest).toBeVisible({ timeout: 10000 });
+
+    const row = page.getByTestId("club.pendingSparingApplications");
+    await expect(row).toBeVisible();
+    await row.click();
+    await expect(page).toHaveURL(/\/sparings/);
+  });
 });

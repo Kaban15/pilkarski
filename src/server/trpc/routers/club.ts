@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { updateClubSchema } from "@/lib/validators/profile";
 import { TRPCError } from "@trpc/server";
+import { computeReputation, REPUTATION_THRESHOLDS } from "@/lib/reputation";
 
 function getMatchTier(
   club: { regionId: number | null; leagueGroup: { leagueLevelId: number } | null },
@@ -191,31 +192,68 @@ export const clubRouter = router({
       });
     }),
 
+  reputation: publicProcedure
+    .input(z.object({ clubId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const since = new Date(Date.now() - REPUTATION_THRESHOLDS.windowDays * 24 * 60 * 60 * 1000);
+
+      const [receivedApps, ownedOffers] = await Promise.all([
+        ctx.db.sparingApplication.findMany({
+          where: {
+            sparingOffer: { clubId: input.clubId },
+            createdAt: { gte: since },
+          },
+          select: { status: true, createdAt: true, updatedAt: true },
+        }),
+        ctx.db.sparingOffer.findMany({
+          where: {
+            clubId: input.clubId,
+            matchDate: { gte: since },
+            status: { in: ["COMPLETED", "CANCELLED"] },
+          },
+          select: {
+            status: true,
+            applications: {
+              where: { status: "ACCEPTED" },
+              select: { id: true },
+              take: 1,
+            },
+          },
+        }),
+      ]);
+
+      return computeReputation({
+        receivedApps,
+        ownedOffers: ownedOffers.map((o) => ({
+          status: o.status,
+          hadAcceptedApp: o.applications.length > 0,
+        })),
+      });
+    }),
+
   newInRegion: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(10).default(4) }))
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
-      // Get player's region
       const player = await ctx.db.player.findUnique({
         where: { userId },
-        select: { regionId: true },
+        select: { regionId: true, primaryPosition: true },
       });
-      if (!player?.regionId) return { items: [] };
+      if (!player?.regionId) return { items: [], regionName: null };
 
-      // Get clubs player already follows
       const following = await ctx.db.clubFollower.findMany({
         where: { userId },
         select: { clubId: true },
       });
       const followedIds = following.map((f) => f.clubId);
 
-      // Find recent clubs in region not followed
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const items = await ctx.db.club.findMany({
+      const now = new Date();
+
+      const candidates = await ctx.db.club.findMany({
         where: {
           regionId: player.regionId,
-          createdAt: { gte: thirtyDaysAgo },
           ...(followedIds.length > 0 ? { id: { notIn: followedIds } } : {}),
           userId: { not: userId },
         },
@@ -223,11 +261,62 @@ export const clubRouter = router({
           region: { select: { name: true, slug: true } },
           leagueGroup: { include: { leagueLevel: { select: { name: true } } } },
           _count: { select: { followers: true } },
+          sparingOffers: {
+            where: { createdAt: { gte: thirtyDaysAgo } },
+            select: { id: true },
+            take: 1,
+          },
+          events: {
+            where: {
+              eventDate: { gte: now },
+              type: { in: ["RECRUITMENT", "TRYOUT", "CONTINUOUS_RECRUITMENT"] },
+              ...(player.primaryPosition
+                ? { OR: [{ targetPosition: player.primaryPosition }, { targetPosition: null }] }
+                : {}),
+            },
+            select: { id: true, targetPosition: true },
+            take: 1,
+          },
         },
-        orderBy: { createdAt: "desc" },
-        take: input.limit,
+        take: 30,
       });
 
-      return { items };
+      const scored = candidates
+        .map((c) => {
+          const isNew = c.createdAt >= thirtyDaysAgo;
+          const isActive = c.sparingOffers.length > 0;
+          const isRecruiting = c.events.length > 0;
+          const matchesPosition =
+            player.primaryPosition != null &&
+            c.events.some((e) => e.targetPosition === player.primaryPosition);
+
+          const reasons: { key: string; label: string }[] = [];
+          if (matchesPosition) reasons.push({ key: "position", label: "Szuka Twojej pozycji" });
+          else if (isRecruiting) reasons.push({ key: "recruiting", label: "Rekrutuje" });
+          if (isActive) reasons.push({ key: "active", label: "Aktywny klub" });
+          if (isNew) reasons.push({ key: "new", label: "Nowy w regionie" });
+
+          const score =
+            (matchesPosition ? 8 : 0) +
+            (isRecruiting ? 4 : 0) +
+            (isActive ? 2 : 0) +
+            (isNew ? 1 : 0) +
+            c._count.followers * 0.1;
+
+          return { club: c, reasons, score };
+        })
+        .filter((x) => x.reasons.length > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, input.limit);
+
+      return {
+        regionName: candidates[0]?.region?.name ?? null,
+        items: scored.map((s) => ({
+          ...s.club,
+          sparingOffers: undefined as never,
+          events: undefined as never,
+          reasons: s.reasons,
+        })),
+      };
     }),
 });

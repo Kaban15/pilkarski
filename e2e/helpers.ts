@@ -95,3 +95,49 @@ export async function logout(page: Page) {
   await page.getByRole("button", { name: "Wyloguj" }).click();
   await page.waitForURL("**/login", { timeout: 10000 });
 }
+
+/**
+ * Dismiss the club onboarding wizard by picking the first region and saving.
+ * Requires the user to be logged in as a freshly registered CLUB on /feed.
+ */
+export async function completeClubOnboarding(page: Page) {
+  await expect(page.getByText("Witaj w PilkaSport!")).toBeVisible({ timeout: 10000 });
+  await page.getByRole("combobox").first().click();
+  await page.getByRole("option").first().click();
+  await page.getByRole("button", { name: /Zapisz i dalej/ }).click();
+  await expect(page.getByRole("link", { name: /Dodaj sparing/ })).toBeVisible({ timeout: 10000 });
+}
+
+/**
+ * Create a sparing offer using the Quick mode. Returns the sparing ID
+ * parsed from the resulting URL (/sparings/{uuid}).
+ */
+export async function createQuickSparing(
+  page: Page,
+  opts: { dateISO: string; location?: string },
+): Promise<string> {
+  await page.goto("/sparings/new");
+  await page.getByRole("button", { name: /Szybki sparing/ }).click();
+  await page.locator('input[type="datetime-local"]').fill(opts.dateISO);
+  if (opts.location) {
+    await page
+      .locator('input[placeholder*="Stadion"], input[placeholder*="Miejsce"]')
+      .first()
+      .fill(opts.location);
+  }
+  await page.getByRole("button", { name: /Opublikuj sparing/ }).click();
+  await page.waitForURL(/\/sparings\/[0-9a-f-]+$/, { timeout: 15000 });
+  const match = page.url().match(/\/sparings\/([0-9a-f-]+)$/);
+  if (!match) throw new Error(`Could not parse sparing ID from ${page.url()}`);
+  return match[1];
+}
+
+/**
+ * Apply to a sparing as the currently-logged-in club.
+ */
+export async function applyToSparing(page: Page, sparingId: string) {
+  await page.goto(`/sparings/${sparingId}`);
+  await page.getByRole("button", { name: /^Aplikuj$/ }).first().click();
+  await page.getByRole("button", { name: /Wyślij zgłoszenie|Aplikuj/ }).last().click();
+  await page.waitForLoadState("networkidle");
+}

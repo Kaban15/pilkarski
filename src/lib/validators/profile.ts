@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 export const updateClubSchema = z.object({
   name: z.string().min(2).max(200),
   logoUrl: z.string().url().max(500).optional(),
+  coverUrl: z.string().url().max(500).optional(),
   description: z.string().max(2000).optional(),
   city: z.string().max(100).optional(),
   regionId: z.number().int().positive().optional(),

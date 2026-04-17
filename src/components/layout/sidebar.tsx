@@ -11,6 +11,7 @@ import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { PushNotificationToggle } from "@/components/push-notification-toggle";
+import { CommandPalette, CommandPaletteTrigger } from "@/components/command-palette";
 import {
   Home,
   Swords,
@@ -124,6 +125,13 @@ export function Sidebar({ user }: SidebarProps) {
 
         {/* Separator */}
         <div className="mx-3 h-px bg-border dark:bg-gradient-to-r dark:from-transparent dark:via-white/10 dark:to-transparent" />
+
+        {/* Command palette trigger (expanded only) */}
+        {!collapsed && (
+          <div className="px-3 py-3">
+            <CommandPaletteTrigger />
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="relative flex-1 overflow-y-auto px-2 py-4 sidebar-scroll">
@@ -244,6 +252,7 @@ export function Sidebar({ user }: SidebarProps) {
           )}
         </div>
       </aside>
+      <CommandPalette />
     </>
   );
 }

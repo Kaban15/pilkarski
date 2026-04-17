@@ -38,6 +38,7 @@ import {
   CheckCircle2,
   GraduationCap,
   Users,
+  Plus,
 } from "lucide-react";
 
 type DashboardStats = {
@@ -94,6 +95,13 @@ function PlayerDevelopment() {
   );
 }
 
+const REASON_TONES: Record<string, string> = {
+  position: "bg-violet-500/15 text-violet-400",
+  recruiting: "bg-sky-500/15 text-sky-400",
+  active: "bg-emerald-500/15 text-emerald-400",
+  new: "bg-orange-500/15 text-orange-400",
+};
+
 function NewClubsInRegion() {
   const { t } = useI18n();
   const { data } = api.club.newInRegion.useQuery({ limit: 4 }, { staleTime: 300_000 });
@@ -112,13 +120,18 @@ function NewClubsInRegion() {
   return (
     <Card className="mb-6">
       <CardContent className="py-4">
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
+        <p className="mb-1 flex items-center gap-2 text-sm font-semibold">
           <Users className="h-4 w-4 text-blue-500" />
-          {t("Nowe kluby w Twoim regionie")}
+          {t("Kluby dla Ciebie")}
         </p>
+        {data?.regionName && (
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            {t("Z Twojego regionu:")} <span className="font-medium text-foreground">{data.regionName}</span>
+          </p>
+        )}
         <div className="space-y-2">
-          {items.map((club: any) => (
-            <div key={club.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">
+          {items.map((club) => (
+            <div key={club.id} className="flex items-start gap-3 rounded-lg border border-border px-3 py-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                 {club.logoUrl ? (
                   <img src={club.logoUrl} alt="" className="h-full w-full object-cover" />
@@ -133,10 +146,22 @@ function NewClubsInRegion() {
                   {club.name}
                 </Link>
                 <p className="text-[11px] text-muted-foreground">
-                  {club.city}{club.region ? ` · ${club.region.name}` : ""}
+                  {club.city}
                   {club.leagueGroup && ` · ${club.leagueGroup.leagueLevel.name} — ${club.leagueGroup.name}`}
                   {club._count.followers > 0 && ` · ${club._count.followers} obs.`}
                 </p>
+                {club.reasons.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {club.reasons.map((r) => (
+                      <span
+                        key={r.key}
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${REASON_TONES[r.key] ?? "bg-muted text-muted-foreground"}`}
+                      >
+                        {t(r.label)}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <Button
                 size="sm"
@@ -222,43 +247,55 @@ export default function FeedClient() {
         <CoachOnboarding onComplete={() => { localStorage.setItem("ps_coach_onboarded", "1"); setCoachOnboardingDone(true); }} />
       )}
 
-      <DashboardStatsWidget />
+      <div className="lg:hidden">
+        <DashboardStatsWidget />
+      </div>
       <HeroCard />
 
-      {isClub && !showOnboarding && stats.data &&
-        (stats.data as DashboardStats).activeSparings === 0 &&
-        (stats.data as DashboardStats).upcomingEvents === 0 && (
-        <Card className="mb-6 border-dashed border-primary/20">
-          <CardContent className="py-5">
-            <p className="mb-3 text-sm font-semibold">{t("Pierwsze kroki")}</p>
-            <div className="space-y-2">
-              {[
-                { done: true, label: t("Zarejestruj konto") },
-                { done: !!clubProfile.data?.regionId, label: t("Uzupełnij profil klubu"), href: "/profile" },
-                { done: false, label: t("Dodaj pierwszy sparing"), href: "/sparings/new" },
-                { done: false, label: t("Dodaj pierwsze wydarzenie"), href: "/events/new" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2.5">
-                  {item.done ? (
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                  ) : (
-                    <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
-                  )}
-                  {item.href && !item.done ? (
-                    <Link href={item.href} className="text-sm text-primary hover:underline">
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <span className={`text-sm ${item.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                      {item.label}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {isClub && !showOnboarding && stats.data && (() => {
+        const sd = stats.data as DashboardStats;
+        const steps = [
+          { done: true, label: t("Zarejestruj konto") },
+          { done: !!clubProfile.data?.regionId, label: t("Uzupełnij profil klubu"), href: "/profile" },
+          { done: (sd.activeSparings ?? 0) > 0, label: t("Dodaj pierwszy sparing"), href: "/sparings/new" },
+          { done: (sd.upcomingEvents ?? 0) > 0, label: t("Dodaj pierwsze wydarzenie"), href: "/events/new" },
+        ];
+        const doneCount = steps.filter((s) => s.done).length;
+        if (doneCount === steps.length) return null;
+        return (
+          <Card className="mb-6 overflow-hidden border-primary/20">
+            <div className="h-0.5 bg-gradient-to-r from-violet-500 to-orange-500" />
+            <CardContent className="py-5">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold">{t("Pierwsze kroki")}</p>
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  {doneCount}/{steps.length}
+                </p>
+              </div>
+              <div className="space-y-2">
+                {steps.map((item) => (
+                  <div key={item.label} className="flex items-center gap-2.5">
+                    {item.done ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
+                    )}
+                    {item.href && !item.done ? (
+                      <Link href={item.href} className="text-sm text-primary hover:underline">
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <span className={`text-sm ${item.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* CLUB — section navigation + routed content */}
       {isClub && !showOnboarding && (
@@ -315,11 +352,24 @@ export default function FeedClient() {
       </div>
 
       <RightPanel>
+        <div className="mb-4">
+          <DashboardStatsWidget variant="sidebar" />
+        </div>
         <MiniCalendar />
         <UpcomingWidget />
         <RankingWidget />
         {isClub && <SectionNav />}
       </RightPanel>
+
+      {isClub && (
+        <Link
+          href="/sparings/new"
+          aria-label={t("Dodaj sparing")}
+          className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-orange-500 text-white shadow-lg shadow-orange-500/30 transition hover:scale-105 hover:shadow-xl active:scale-95 md:bottom-8 md:right-8"
+        >
+          <Plus className="h-6 w-6" />
+        </Link>
+      )}
     </div>
   );
 }

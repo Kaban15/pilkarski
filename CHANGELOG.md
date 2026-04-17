@@ -1572,3 +1572,284 @@ URL query handlers dla linków z `DigestCard` (rows #10, #11, #12, #13, #17 z ST
 - `362ff4f` feat(events): URL handlers pending-attendance + recommended + my-applications
 - `367cdb7` docs: close 3 more rows
 - `46f6c0b` feat(trainings): 'Zgłoszenia' tab for COACH (#16)
+
+## Etap 56 — C1 Cover photo klubu (2026-04-17)
+
+Dodano cover photo (zdjęcie tła) na profilach klubów — osobne od logo,
+prezentowane jako tło hero bannera na publicznym profilu klubu, z gradient
+fallbackiem gdy brak. Edycja w panelu profilu klubu przez nowy wariant
+`ImageUpload variant="cover"` (1600px max, 16:5 preview).
+
+### Data model
+- `Club.coverUrl String?` (`cover_url VARCHAR(500)`) — migracja
+  `20260417120000_add_club_cover_url`.
+- `updateClubSchema` + `coverUrl: z.string().url().max(500).optional()`.
+
+### UI
+- `ImageUpload` — prop `variant: "avatar" | "cover"`. Cover: aspect-[16/5],
+  gradient placeholder (violet→slate→orange), button w prawym dolnym rogu
+  („Dodaj tło" / „Zmień tło"), compress do 1600px.
+- `ClubProfileForm` — pole „Zdjęcie tła" nad logo w karcie „Profil klubu".
+- `(public)/clubs/[id]/page.tsx` — hero bg używa `coverUrl` jako `<img>`
+  na absolute inset-0 z `opacity-40` + gradient `from-black/80 via-black/40
+  to-black/20`. Bez cover: obecny gradient `violet-950 → slate-900 → black`.
+
+### Upload
+- `/api/upload` ALLOWED_FOLDERS += `clubs-covers` (klucz
+  `clubs-covers/{clubId}.webp` w bucket `avatars`).
+
+### Testy
+- 4 nowe unit testy `updateClubSchema` coverUrl (accept/reject/omit/length).
+- Unit: 91/91 pass (+4 vs Etap 55). `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `prisma/schema.prisma`
+- `prisma/migrations/20260417120000_add_club_cover_url/migration.sql`
+- `src/lib/validators/profile.ts`
+- `src/app/api/upload/route.ts`
+- `src/components/image-upload.tsx`
+- `src/components/forms/club-profile-form.tsx`
+- `src/app/(public)/clubs/[id]/page.tsx`
+- `src/__tests__/validators-profile.test.ts` (nowy)
+
+## Etap 57 — A1 Landing hero preview (2026-04-17)
+
+Dodano mockup pulpitu pod hero headline na landingu — browser frame
+z uproszczoną reprezentacją feedu klubu (sidebar 56px, digest „Twój
+status", hero match card VS, 3 feed items, right panel z nadchodzącymi
+meczami i rankingiem). Server Component, zero JS, responsive.
+
+### Pliki zmienione
+- `src/components/landing/landing-hero-preview.tsx` (nowy)
+- `src/app/page.tsx` — import + wstawienie pod CTA, zmniejszony
+  bottom padding hero (pb-20 → pb-12, sm:pb-28 → sm:pb-20)
+
+### Testy
+- Unit: 91/91 pass (bez zmian). `tsc --noEmit`: 0 errors.
+
+## Etap 58 — C2 Reputation badges (2026-04-17)
+
+Dodano 3 badge reputacyjne na publicznym profilu klubu (Airbnb pattern):
+„Odpowiada X%", „w Y (min/h/dni)", „Realizuje Z%". Render warunkowy —
+badge pokazuje się tylko przy wystarczającej próbce (min 3 aplikacje /
+min 3 matched sparingi, okno 180 dni).
+
+### Helpers
+- `src/lib/reputation.ts` (nowy) — `computeReputation({ receivedApps,
+  ownedOffers })` + `REPUTATION_THRESHOLDS` + formattery `formatRate()` /
+  `formatResponseTime()`. Czyste funkcje, unit-testowalne.
+
+### Metryki
+- **Response rate** = (status != PENDING) / total received.
+- **Avg response time** = avg(updatedAt − createdAt) dla responded.
+- **Fulfilment rate** = COMPLETED / (COMPLETED + CANCELLED-with-
+  accepted-app). CANCELLED bez ACCEPTED aplikacji ignorowane (nie
+  osiągnął MATCHED → brak sygnału o fulfilmencie).
+
+### tRPC
+- `club.reputation(clubId)` public query — dla ewentualnego reuse
+  (obecnie profil klubu używa bezpośrednio w RSC, bez hop przez tRPC).
+
+### UI
+- `ClubReputationBadges` (nowy komponent) — 3 pill-badge tonal
+  (violet / sky / emerald). Null when all three rates are null.
+- Profil klubu: badges w hero pod regionem/ligą, nad CTA buttonami.
+
+### Testy
+- `src/__tests__/reputation.test.ts` — 8 testów: threshold response,
+  threshold fulfilment, ignore CANCELLED-without-match, avgResponseMs
+  null-when-no-response, formattery (min/h/dni, rate rounding).
+- Unit: 99/99 pass (+8). `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/lib/reputation.ts` (nowy)
+- `src/server/trpc/routers/club.ts`
+- `src/components/club-reputation-badges.tsx` (nowy)
+- `src/app/(public)/clubs/[id]/page.tsx`
+- `src/__tests__/reputation.test.ts` (nowy)
+
+## Etap 59 — B1 Feed hierarchia (2026-04-17)
+
+`DashboardStats` zmigrowany do RightPanel na desktopie (lg+), w main
+column pozostawiony tylko na mobile. Lżejsza kompozycja feedu:
+DigestCard + HeroCard + feed items; stats + kalendarz + ranking po
+prawej stronie (320px panel).
+
+### UI
+- `DashboardStats` + prop `variant: "main" | "sidebar"`. Sidebar:
+  zawsze `grid-cols-2`, compact padding (p-3), text-[22px], bez trend.
+- `feed-client.tsx` — main column `lg:hidden` wrapper dla stats
+  (mobile only); nowy `<DashboardStatsWidget variant="sidebar" />` na
+  górze RightPanel (ponad `MiniCalendar`).
+
+### Testy
+- Unit: 99/99 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/components/dashboard/dashboard-stats.tsx`
+- `src/app/(dashboard)/feed/feed-client.tsx`
+
+## Etap 60 — E3 Command palette ⌘K (2026-04-17)
+
+Globalna paleta poleceń dostępna przez Cmd/Ctrl+K i trigger w sidebar
+header (desktop). Dialog z Input, debounce 250ms, min 2 znaki, wyniki
+grupowane: „Akcje" (6 static commands) + „Wyniki" (kluby/zawodnicy/
+sparingi/wydarzenia przez `api.search.global`). Nawigacja strzałkami
+↑↓, Enter → `router.push`, ESC zamyka.
+
+### UI
+- `CommandPalette` (nowy) — client component, Dialog (max-w-xl),
+  top-mounted w Sidebar, działa globalnie dla zalogowanych.
+- `CommandPaletteTrigger` — pill-button pod separator w sidebar header,
+  label „Szukaj… ⌘K". Widoczny tylko gdy sidebar expanded.
+
+### Testy
+- Unit: 99/99 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/components/command-palette.tsx` (nowy)
+- `src/components/layout/sidebar.tsx`
+
+## Etap 61 — B3 Notification grouping (2026-04-17)
+
+Powiadomienia pogrupowane w czasowe sekcje („Dziś" / „Ostatnie 7 dni" /
+„Starsze") — pattern jak w FB/IG. Każda sekcja pokazuje licznik obok
+nagłówka, sama lista w osobnej ramce.
+
+### Helpers
+- `src/lib/notification-groups.ts` (nowy) — `groupNotificationsByTime()`
+  przyjmuje `{ createdAt: Date | string }[]`, zwraca tylko niepuste
+  buckety w kolejności today → week → older.
+
+### Testy
+- `src/__tests__/notification-groups.test.ts` — 4 testy: buckets
+  (today/week/older), pomijanie pustych, ISO string parsing, empty input.
+- Unit: 103/103 pass (+4). `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/lib/notification-groups.ts` (nowy)
+- `src/__tests__/notification-groups.test.ts` (nowy)
+- `src/app/(dashboard)/notifications/page.tsx`
+
+## Etap 62 — A3 Persistent „Pierwsze kroki" + FAB (2026-04-17)
+
+Karta „Pierwsze kroki" na feedzie CLUB persystentna — widoczna dopóki
+jakikolwiek krok nieskończony (poprzednio: znikała po pierwszym
+sparingu/evencie). Licznik `2/4` w nagłówku, gradient violet→orange
+top border. Real `done` flags: `activeSparings > 0`, `upcomingEvents
+> 0`. Dodatkowo FAB „Dodaj sparing" w prawym dolnym rogu — 56px,
+gradient, tylko dla CLUB, bottom-24 mobile (nad bottom-nav),
+md:bottom-8 desktop.
+
+### Pominięte z A3
+- Coachmark tour (wymagałby `driver.js`/`intro.js` — osobny etap).
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/app/(dashboard)/feed/feed-client.tsx`
+
+## Etap 63 — A2 Rotujący headline (2026-04-17)
+
+Headline landingu rotuje co 3.2s przez 4 persony: „Umów sparing w 2
+minuty" (CLUB), „Znajdź klub w swoim regionie" (PLAYER), „Prowadź
+nabory jak profesjonalista" (CLUB), „Trenuj z trenerem dopasowanym do
+Ciebie" (PLAYER). Fade+translate 200ms. Client component (`useEffect`
+interval), gradient accent na frazie.
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/components/landing/rotating-headline.tsx` (nowy)
+- `src/app/page.tsx`
+
+## Etap 64 — C3 „Kluby dla Ciebie" z reasoning (2026-04-17)
+
+Sekcja na feedzie PLAYER przemianowana „Kluby dla Ciebie" — nie tylko
+nowe w regionie, ale curated przez reasons. `club.newInRegion` tRPC
+endpoint rozszerzony o scoring: position match (+8), recruiting (+4),
+active (+2), new (+1), followers * 0.1. Zwraca tylko kluby z ≥1
+reason, sortowane po score.
+
+### Reasons badges
+- `position` (violet) — klub ma upcoming RECRUITMENT/TRYOUT/CONTINUOUS
+  z `targetPosition` = `player.primaryPosition`. Badge: „Szuka Twojej
+  pozycji".
+- `recruiting` (sky) — ma upcoming recruitment event dowolny. Badge:
+  „Rekrutuje".
+- `active` (emerald) — ma sparing w ostatnich 30 dniach. Badge:
+  „Aktywny klub".
+- `new` (orange) — klub utworzony <30 dni temu. Badge: „Nowy w regionie".
+
+### UI
+- Subheader z nazwą regionu pod tytułem sekcji.
+- Badges pod info klubu (wielokrotne).
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `src/server/trpc/routers/club.ts`
+- `src/app/(dashboard)/feed/feed-client.tsx`
+
+## Etap 65 — P4 ESLint 9 flat config (2026-04-17)
+
+`npm run lint` odblokowany — Next 16 usunął `next lint` subcommand.
+Nowy `eslint.config.mjs` (flat config) importuje `eslint-config-next`
+(już w deps, v16.2.0). Skrypt lint zmieniony na `eslint .`.
+
+### Config
+- `eslint.config.mjs` (nowy, created via shell przez guard-config.sh):
+  spread `next` flat config + ignores (`.next`, `src/generated`,
+  `coverage`, `playwright-report`, `test-results`, `public`, `node_modules`).
+
+### Status
+- 65 pre-existing issues (23 errors, 42 warnings) — poza scope tego
+  etapu (STATE.md Priority 4 explicit: „Pre-existing od upgrade'u,
+  nieblokujący"). Brak CI workflow → nie blokuje deployu.
+- Główne errory: `react-hooks/set-state-in-effect` (2x w
+  `use-sidebar-state.ts`, `i18n.tsx`), `react-hooks/exhaustive-deps`
+  (~20 missing deps warnings).
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione
+- `eslint.config.mjs` (nowy)
+- `package.json`
+
+## Etap 66 — P2 Seed helpers + E2E coverage (2026-04-17)
+
+Odblokowany fixme z Etap 54 (`digest.spec.ts:47` — „CLUB with pending
+application sees digest row") dzięki nowym UI-based helperom w
+`e2e/helpers.ts`. Plus osobny spec dla quick-apply (`sparing.checkApplications`).
+
+### E2E helpers (nowe)
+- `completeClubOnboarding(page)` — dismiss wizard z pierwszą opcją regionu.
+- `createQuickSparing(page, { dateISO, location })` — Quick mode sparing,
+  zwraca `sparingId` sparsowany z URL po redirect.
+- `applyToSparing(page, sparingId)` — navigate + click „Aplikuj".
+
+### Testy E2E
+- `e2e/digest.spec.ts` — fixme zamieniony na pełny test (register A →
+  onboard → sparing, register B → onboard → apply, login A → digest
+  card + pending-applications row + navigate).
+- `e2e/quick-apply.spec.ts` (nowy) — CLUB B widzi inline „Aplikuj"
+  na `/sparings`, 1-click apply flipuje button do stanu post-apply
+  (`sparing.checkApplications` refetch).
+
+### Nie wykonane w tym etapie (backlog)
+- E2E dla 9 URL handlerów digestu (smoke test per `?tab/?filter`).
+- Digest telemetria (click-through per `row.key`).
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+- E2E specs walidują się statycznie; runtime verification wymaga
+  dev server + DB (uruchomienie przez `npm run test:e2e`).
+
+### Pliki zmienione
+- `e2e/helpers.ts`
+- `e2e/digest.spec.ts`
+- `e2e/quick-apply.spec.ts` (nowy)

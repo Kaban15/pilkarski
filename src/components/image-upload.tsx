@@ -35,14 +35,18 @@ interface ImageUploadProps {
   folder: string;
   entityId: string;
   onUploaded: (url: string) => void;
+  variant?: "avatar" | "cover";
 }
 
-export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageUploadProps) {
+export function ImageUpload({ currentUrl, folder, entityId, onUploaded, variant = "avatar" }: ImageUploadProps) {
   const { t } = useI18n();
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isCover = variant === "cover";
+  const maxSize = isCover ? 1600 : 800;
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -61,8 +65,7 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
     setUploading(true);
     setError("");
 
-    // Client-side resize & compress (max 800x800, WebP quality 0.8)
-    const compressed = await compressImage(file, 800, 0.8);
+    const compressed = await compressImage(file, maxSize, 0.8);
 
     const formData = new FormData();
     formData.append("file", compressed, `${entityId}.webp`);
@@ -83,6 +86,37 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded }: ImageU
       setError(t("Błąd połączenia z serwerem"));
     }
     setUploading(false);
+  }
+
+  if (isCover) {
+    return (
+      <div className="space-y-2">
+        <div className="relative w-full overflow-hidden rounded-xl border bg-gradient-to-br from-violet-500/20 via-slate-500/10 to-orange-500/20 aspect-[16/5]">
+          {preview && (
+            <img src={preview} alt={t("Zdjęcie tła")} className="h-full w-full object-cover" />
+          )}
+          <div className="absolute inset-0 flex items-end justify-end p-3">
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+            >
+              {uploading ? t("Przesyłanie...") : preview ? t("Zmień tło") : t("Dodaj tło")}
+            </Button>
+          </div>
+        </div>
+        {error && <p className="text-xs text-destructive">{error}</p>}
+      </div>
+    );
   }
 
   return (

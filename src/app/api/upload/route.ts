@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
   env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-const ALLOWED_FOLDERS = ["clubs", "players", "coaches", "events"] as const;
+const ALLOWED_FOLDERS = ["clubs", "players", "coaches", "events", "clubs-covers"] as const;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: NextRequest) {
