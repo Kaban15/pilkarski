@@ -34,6 +34,17 @@ function formatCount(n: number): string {
   return n >= 100 ? "99+" : String(n);
 }
 
+function trackDigestClick(key: string, role: string, count: number) {
+  // Telemetry stub — structured log prefix `[digest:click]` makes it
+  // grep-friendly for future pipeline (Vercel Analytics / custom sink).
+  console.info("[digest:click]", {
+    key,
+    role,
+    count,
+    ts: Date.now(),
+  });
+}
+
 export function DigestCard() {
   const { t } = useI18n();
   const { data, isLoading, error } = api.digest.get.useQuery(undefined, {
@@ -77,6 +88,7 @@ export function DigestCard() {
                 <Link
                   href={row.href}
                   data-testid={row.key}
+                  onClick={() => trackDigestClick(row.key, data.role, row.count)}
                   className="group flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-accent"
                 >
                   <Icon className={`h-5 w-5 shrink-0 ${color}`} />
