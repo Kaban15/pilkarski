@@ -270,6 +270,40 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 
 ---
 
+## Następna sesja — TODO (priority-ordered)
+
+> Audyt UX z 2026-04-17 zidentyfikował 15 findings (3 × 5 kategorii). Z top 3 do wdrożenia wybrane:
+> **B2 Digest Card** (✅ Etap 54), **D1 Quick-apply**, **E1+E2 Design sweep**. Reszta w `docs/superpowers/specs/2026-04-17-digest-card-design.md` sekcja „Out of scope" + poniższe.
+
+### Priority 1 — pick next
+- **D1 Inline quick-apply na karcie sparingu** — 1-click apply zamiast 2. Nowy brainstorming → spec → plan → execute. Reużywa istniejący `sparing.applyFor` mutation. Effort: mały. Impact: konwersja × 2 na core business flow.
+- **E1+E2 Design discipline sweep** — łamany własny DESIGN.md (indigo/sky gradienty w landing + profilu klubu), unifikacja „Pulpit/Feed/Panel". Effort: mały. Impact: polish widoczny wszędzie.
+
+### Priority 2 — follow-up z Etap 54 (non-blocking, drobne)
+- Zamień `recommendedWhere: any` → `Prisma.EventWhereInput` w `src/lib/digest.ts:201` (~10 min).
+- Decyzja dla `generatedAt`: wire relative timestamp (`formatDistanceToNow`) albo drop z `DigestResponse` contract (obecnie unused client-side).
+- Happy-path E2E dla digestu (`e2e/digest.spec.ts:47` fixme) gdy pojawi się seed helper dla pending sparing application.
+- Digest telemetria — log click-through per `row.key` (przy własnym telemetry pipeline, obecnie brak).
+
+### Priority 3 — audit findings odsunięte (osobne cykle)
+- **A1** Landing — product shot/GIF/preview feedu w hero (zamiast tylko tekstu + CTA).
+- **A2** Propozycja wartości — rotujący headline per persona (Strava pattern) albo 3 landing warianty per rola.
+- **A3** Coachmark tour + persistent „Pierwsze kroki" + FAB „Dodaj sparing" na feedzie CLUB.
+- **B1** Feed hierarchia — przenieść `DashboardStats` do sidebar, uprościć main column.
+- **B3** Notification grouping — `/notifications` jako płaska lista; konkurencja (FB/IG) grupuje per typ/aktor + sekcje „Dziś/Wcześniej".
+- **C1** Cover photo na profilu klubu (data model: `Club.coverUrl` + upload flow). Landing + club profile używają indigo/sky gradients (łamie DESIGN.md).
+- **C2** Reputation metrics na profilu — response rate, response time, fulfilment rate jako badge pod avatarem (Airbnb pattern).
+- **C3** „Kluby dla Ciebie" (PLAYER) z reasoning — `NewClubsInRegion` istnieje, ale bez kuratorstwa.
+- **D2** PLAYER view „Twoje aplikacje" — osobna ścieżka `/events?tab=my-applications` (obecnie fallback do parent view, patrz #14 w backlog).
+- **D3** Unified sparing flow — „szybki sparing" vs 3-krokowy wizard to dwa tory z kolizjami. Progressive disclosure w jednym formularzu.
+- **E3** Global search / command palette (⌘K) + search w sidebar header (desktop).
+
+### Priority 4 — hygiene
+- **`next lint` broken** — Next.js 16 usunął `next lint` subcommand, `npm run lint` rzuca błąd. Do decyzji: ESLint 9 flat config (`eslint.config.mjs`) albo `biome`. Pre-existing od upgrade'u, nieblokujący.
+- Push 15 commitów z Etapu 54 na `origin/main` → auto-deploy Vercel (jeśli nie wypchnięte przez skończeniem sesji).
+
+---
+
 ## Znane Problemy (backlog)
 
 | # | Problem | Priorytet |
