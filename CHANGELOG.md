@@ -1853,3 +1853,97 @@ application sees digest row") dzięki nowym UI-based helperom w
 - `e2e/helpers.ts`
 - `e2e/digest.spec.ts`
 - `e2e/quick-apply.spec.ts` (nowy)
+
+## Etap 67 — P4 ESLint cleanup (2026-04-17)
+
+23 errors → **0 errors**. 18 plików tknięte. Warnings (42) zostawione
+na osobny cykl (głównie `<img>` → `<Image />`, mass refactor).
+
+### Kategorie fixów
+- **`react/no-unescaped-entities` (3)** — `"` w JSX zamienione na polskie
+  cudzysłowy `„…”` (command-palette.tsx, invite-club-dialog.tsx).
+- **`react-hooks/preserve-manual-memoization` (3)** — `mini-calendar.tsx`:
+  `useState(() => new Date())` zamiast `new Date()` w render body;
+  `use-paginated-list.ts`: inline disable z komentarzem (TanStack's
+  `fetchNextPage` jest stable ref, chcemy recreate tylko przy zmianie).
+- **`react-hooks/purity` (5)** — server components (`clubs/[id]`,
+  `players/[id]`) disable z komentarzem: fresh `Date.now()` per request
+  to zamierzone; client (`events/[id]`, `recruitment`, `apply-form`)
+  disable — próba zawinięcia w `useMemo` wprowadzała `rules-of-hooks`
+  violations (hooks po early returns), zostawione z komentarzem że
+  dynamic recompute jest celowy.
+- **`react-hooks/set-state-in-effect` (12)** — wszystkie to hydration
+  lub browser-API sync patterns (theme-toggle, use-sidebar-state, i18n,
+  coachmark, map-view, offline-banner, command-palette reset, messages
+  sync, transfers edit form load, club-profile-form cascade). Disable
+  inline z komentarzem *why*. Pełny refactor na `useSyncExternalStore`
+  wymagałby testów regresji SSR — poza scope.
+
+### Uzasadnienie disable > refactor
+Reguły z `eslint-plugin-react-hooks` v6+ zakładają włączony React
+Compiler (`next.config.ts` → `experimental: { reactCompiler: true }`).
+Compiler nie jest włączony (brak flagi). Real fixy dla hydration/memo
+patterns wymagałyby migracji na `useSyncExternalStore` + ref-based
+stable callbacks → risk regresji (SSR flash, observer recreation).
+Każdy `eslint-disable` ma komentarz *Why:* i scope do jednej reguły.
+
+### Status
+- ESLint: **0 errors**, 45 warnings (42 oryginalnych + 3 nowe disable
+  directives).
+- Warnings do osobnego etapu: 34× `@next/next/no-img-element`,
+  7× `react-hooks/exhaustive-deps`, 4× inne.
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+
+### Pliki zmienione (18)
+- `src/app/(dashboard)/events/[id]/page.tsx`
+- `src/app/(dashboard)/messages/[conversationId]/page.tsx`
+- `src/app/(dashboard)/recruitment/page.tsx`
+- `src/app/(dashboard)/sparings/[id]/_components/apply-form.tsx`
+- `src/app/(dashboard)/transfers/[id]/edit/page.tsx`
+- `src/app/(public)/clubs/[id]/page.tsx`
+- `src/app/(public)/players/[id]/page.tsx`
+- `src/components/coachmark.tsx`
+- `src/components/command-palette.tsx`
+- `src/components/dashboard/mini-calendar.tsx`
+- `src/components/forms/club-profile-form.tsx`
+- `src/components/map-view.tsx`
+- `src/components/offline-banner.tsx`
+- `src/components/sparings/invite-club-dialog.tsx`
+- `src/components/theme-toggle.tsx`
+- `src/hooks/use-paginated-list.ts`
+- `src/hooks/use-sidebar-state.ts`
+- `src/lib/i18n.tsx`
+
+## Etap 68 — P2 E2E smoke dla 10 URL handlerów digestu (2026-04-17)
+
+Domyka Priority 2 z backlogu: smoke test że każdy `?tab/?filter`
+z linków digest otwiera właściwy widok bez crashu/redirectu.
+
+### Pokrycie (10 URL, 3 role)
+- **CLUB (5):** `/events?filter=pending-attendance`,
+  `/sparings?tab=applications`, `/sparings?tab=invitations`,
+  `/calendar?range=week`, `/recruitment?filter=stale`
+- **PLAYER (3):** `/events?tab=my-applications`,
+  `/events?filter=recommended`, `/calendar?range=week`
+- **COACH (2):** `/trainings?tab=applications`,
+  `/notifications?filter=invitations`
+
+### Asercje per URL
+- response status < 500
+- `page.url()` zawiera spodziewany query param (nie redirect)
+- brak redirectu na `/login` (middleware nie wywala)
+- `body.textContent` nie zawiera „Wystąpił błąd" / „Application error"
+
+### Status runtime
+- 3/3 pass w ~54s (local, `workers: 1`).
+- `helper assertUrlHandler(page, url, expectedQuery)` reusable
+  pattern — można rozszerzyć o inne URL handlers w przyszłości.
+
+### Testy
+- Unit: 103/103 pass. `tsc --noEmit`: 0 errors.
+- E2E (nowe): 3/3 pass.
+
+### Pliki zmienione
+- `e2e/digest-urls.spec.ts` (nowy)
