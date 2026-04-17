@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
@@ -20,7 +21,7 @@ import { CardSkeleton } from "@/components/card-skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { usePaginatedList } from "@/hooks/use-paginated-list";
 import { useI18n } from "@/lib/i18n";
-import { EVENT_TYPE_LABELS } from "@/lib/labels";
+import { EVENT_TYPE_LABELS, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from "@/lib/labels";
 import type { EventTypeValue } from "@/lib/validators/event";
 import { EmptyState } from "@/components/empty-state";
 import { ProcessSteps } from "@/components/process-steps";
@@ -63,10 +64,23 @@ const EVENT_BADGE_STYLES: Record<string, string> = {
 export default function EventsPage() {
   const { t } = useI18n();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const isPlayer = session?.user?.role === "PLAYER";
   const isClub = session?.user?.role === "CLUB";
   const isCoach = session?.user?.role === "COACH";
-  const [eventsTab, setEventsTab] = useState<"search" | "my">("search");
+  const urlTab = searchParams?.get("tab");
+  const urlFilter = searchParams?.get("filter");
+  const pendingAttendance = urlFilter === "pending-attendance";
+  const recommendedOnly = urlFilter === "recommended";
+  const initialTab: "search" | "my" | "applications" =
+    urlTab === "my-applications" && isPlayer
+      ? "applications"
+      : urlTab === "my"
+        ? "my"
+        : "search";
+  const [eventsTab, setEventsTab] = useState<"search" | "my" | "applications">(
+    initialTab,
+  );
 
   // Fetch player profile for matching badge (only for PLAYER)
   const { data: playerProfile } = api.player.me.useQuery(undefined, {
@@ -98,12 +112,27 @@ export default function EventsPage() {
     return () => clearTimeout(t);
   }, [cityInput]);
 
+  const now = new Date();
+  const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  const toISODate = (d: Date) => d.toISOString().slice(0, 10);
+  const recruitmentTypes: EventTypeValue[] = [
+    "RECRUITMENT",
+    "TRYOUT",
+    "CONTINUOUS_RECRUITMENT",
+  ];
   const queryInput = {
-    regionId,
-    type,
+    regionId:
+      recommendedOnly && isPlayer && playerProfile?.regionId
+        ? playerProfile.regionId
+        : regionId,
+    type: pendingAttendance || recommendedOnly ? undefined : type,
+    types: pendingAttendance || recommendedOnly ? recruitmentTypes : undefined,
     city: city || undefined,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
+    dateFrom:
+      pendingAttendance || recommendedOnly
+        ? toISODate(now)
+        : dateFrom || undefined,
+    dateTo: pendingAttendance ? toISODate(in48h) : dateTo || undefined,
     sortBy,
     sortOrder,
   };
@@ -144,16 +173,35 @@ export default function EventsPage() {
         )}
       </div>
 
-      {canCreateEvents && (
-        <Tabs value={eventsTab} onValueChange={(v) => setEventsTab(v as "search" | "my")} className="mb-6">
+      {(canCreateEvents || isPlayer) && (
+        <Tabs value={eventsTab} onValueChange={(v) => setEventsTab(v as "search" | "my" | "applications")} className="mb-6">
           <TabsList>
             <TabsTrigger value="search">{t("Szukaj")}</TabsTrigger>
-            <TabsTrigger value="my">{t("Moje wydarzenia")}</TabsTrigger>
+            {canCreateEvents && (
+              <TabsTrigger value="my">{t("Moje wydarzenia")}</TabsTrigger>
+            )}
+            {isPlayer && (
+              <TabsTrigger value="applications">{t("Moje zgłoszenia")}</TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       )}
 
-      {eventsTab === "search" || !canCreateEvents ? (
+      {(pendingAttendance || recommendedOnly) && eventsTab === "search" && (
+        <div className="mb-4 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          {pendingAttendance
+            ? t("Filtr: nabory/testy w najbliższych 48h")
+            : t("Filtr: polecane nabory z Twojego regionu")}{" "}
+          ·{" "}
+          <Link href="/events" className="underline">
+            {t("wyczyść")}
+          </Link>
+        </div>
+      )}
+
+      {eventsTab === "applications" ? (
+        <MyApplicationsTab />
+      ) : eventsTab === "search" || !canCreateEvents ? (
       <>
       <div className="mb-6 space-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -460,6 +508,74 @@ function MyEventsTab() {
             ))}
           </div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function MyApplicationsTab() {
+  const { t } = useI18n();
+  const { data: apps, isLoading, isError, refetch } = api.event.myApplications.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        icon={Trophy}
+        title={t("Błąd ładowania")}
+        description={t("Nie udało się pobrać Twoich zgłoszeń.")}
+        actionLabel={t("Spróbuj ponownie")}
+        actionOnClick={() => refetch()}
+      />
+    );
+  }
+
+  if (!apps || apps.length === 0) {
+    return (
+      <EmptyState
+        icon={Trophy}
+        title={t("Brak zgłoszeń")}
+        description={t("Nie zaaplikowałeś jeszcze na żadne wydarzenie. Przeglądaj nabory i treningi.")}
+      />
+    );
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {apps.map((a) => (
+        <Link key={a.id} href={`/events/${a.event.id}`} className="group">
+          <Card className="h-full transition-colors hover:border-primary/40">
+            <CardContent className="p-5">
+              <div className="mb-1 flex items-center gap-2">
+                <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${EVENT_BADGE_STYLES[a.event.type] ?? "bg-muted text-muted-foreground"}`}>
+                  {t(EVENT_TYPE_LABELS[a.event.type] ?? a.event.type)}
+                </span>
+                <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${APPLICATION_STATUS_COLORS[a.status] ?? "bg-muted text-muted-foreground"}`}>
+                  {t(APPLICATION_STATUS_LABELS[a.status] ?? a.status)}
+                </span>
+              </div>
+              <h3 className="font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                {a.event.title}
+              </h3>
+              <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {formatDate(a.event.eventDate)}
+                </span>
+                <span className="truncate">{a.event.club?.name ?? ""}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       ))}
     </div>
   );
