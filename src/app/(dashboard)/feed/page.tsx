@@ -10,6 +10,7 @@ export default async function FeedPage() {
   // Prefetch key queries server-side — data streams to client
   void trpc.feed.get.prefetch({ limit: 30 });
   void trpc.stats.dashboard.prefetch();
+  void trpc.digest.get.prefetch();
 
   if (role === "CLUB") {
     void trpc.club.me.prefetch();

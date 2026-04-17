@@ -26,6 +26,7 @@ import { PlayersSection } from "@/components/dashboard/sections/players-section"
 import { ClubsSection } from "@/components/dashboard/sections/clubs-section";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { DashboardStats as DashboardStatsWidget } from "@/components/dashboard/dashboard-stats";
+import { DigestCard } from "@/components/dashboard/digest-card";
 import { HeroCard } from "@/components/dashboard/hero-card";
 import { PlayerRecruitments } from "@/components/dashboard/player-recruitments";
 import { ClubInvitations } from "@/components/dashboard/club-invitations";
@@ -205,6 +206,8 @@ export default function FeedClient() {
           </p>
         ) : null}
       </div>
+
+      {!showOnboarding && !showPlayerOnboarding && !showCoachOnboarding && <DigestCard />}
 
       {showOnboarding && (
         <ClubOnboarding onComplete={() => {
