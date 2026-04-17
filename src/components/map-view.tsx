@@ -67,6 +67,8 @@ export function MapView({ markers, center = POLAND_CENTER, zoom = DEFAULT_ZOOM, 
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Hydration gate — Leaflet requires window, defer render until after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

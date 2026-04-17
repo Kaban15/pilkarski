@@ -22,9 +22,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Hydration: gate on mount + load locale from localStorage (SSR-safe).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const saved = localStorage.getItem("locale") as Locale | null;
     if (saved === "en" || saved === "pl") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocaleState(saved);
       document.documentElement.lang = saved;
     }

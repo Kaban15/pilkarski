@@ -428,6 +428,8 @@ export default function RecruitmentPage() {
 
   const total = stageCounts.reduce((a, b) => a + b.count, 0);
 
+  // Intentionally recomputed per render — cutoff is a filter boundary, stable per render.
+  // eslint-disable-next-line react-hooks/purity
   const staleCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
   const filteredEntries = (activeStage
     ? entries.filter((e) => e.stage === activeStage)

@@ -427,7 +427,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
                 </div>
               </div>
               {inv.message && (
-                <p className="text-[13px] text-muted-foreground italic">"{inv.message}"</p>
+                <p className="text-[13px] text-muted-foreground italic">„{inv.message}”</p>
               )}
               {isExpired ? (
                 <Badge variant="secondary">{t("Wygasło")}</Badge>

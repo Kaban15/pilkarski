@@ -116,6 +116,8 @@ export default function EventDetailPage() {
   const isPlayer = session?.user?.role === "PLAYER";
   const isAccepted = myApplication?.status === "ACCEPTED";
   const isRecruitmentType = event.type === "TRYOUT" || event.type === "RECRUITMENT";
+  // Intentionally recomputed per render — countdown must reflect current time.
+  // eslint-disable-next-line react-hooks/purity
   const hoursToEvent = (new Date(event.eventDate).getTime() - Date.now()) / (1000 * 60 * 60);
   const showAntiNoShow = isPlayer && isAccepted && isRecruitmentType && hoursToEvent > 0 && hoursToEvent <= 48;
   const myAttendance = event.attendance?.find((a: { userId: string; status: string }) => a.userId === session?.user?.id);

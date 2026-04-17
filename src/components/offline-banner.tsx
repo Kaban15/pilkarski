@@ -14,6 +14,8 @@ export function OfflineBanner() {
     function handleOffline() { setOffline(true); setDismissed(false); }
 
     if (!navigator.onLine) {
+      // Sync with browser online/offline state on mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOffline(true);
     }
 

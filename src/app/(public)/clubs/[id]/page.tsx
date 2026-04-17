@@ -56,6 +56,8 @@ export default async function ClubPublicProfilePage({ params }: Props) {
   const club = await getClub(id);
   if (!club) notFound();
 
+  // Server Component — fresh Date.now() per request is the desired behavior.
+  // eslint-disable-next-line react-hooks/purity
   const reputationSince = new Date(Date.now() - REPUTATION_THRESHOLDS.windowDays * 24 * 60 * 60 * 1000);
 
   const [upcomingMatches, completedMatches, eventsRes, reviewStats, recentReviews, members, repReceivedApps, repOwnedOffers] =

@@ -54,6 +54,8 @@ export default function EditTransferPage() {
 
   useEffect(() => {
     if (transfer && !loaded) {
+      // Sync server record → form state once on first load.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         type: transfer.type,
         title: transfer.title,

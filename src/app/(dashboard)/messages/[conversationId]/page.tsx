@@ -65,6 +65,8 @@ export default function ConversationPage() {
     const items = (messagesData as { items: Message[] }).items;
     const newLastId = items.length > 0 ? items[items.length - 1].id : null;
     if (newLastId !== lastMessageIdRef.current) {
+      // Sync server query → local state for optimistic updates during realtime/poll.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMessages(items);
       lastMessageIdRef.current = newLastId;
       if (conversationId) markAsReadMut.mutate({ conversationId });
@@ -80,7 +82,10 @@ export default function ConversationPage() {
     if (!convs || !conversationId) return;
     const conv = (convs as unknown as { id: string; otherUser: { id: string; role?: string; email?: string; club?: { id: string; name: string } | null; player?: { id: string; firstName: string; lastName: string } | null; coach?: { id: string; firstName: string; lastName: string } | null } | null }[]).find((c) => c.id === conversationId);
     if (conv?.otherUser) {
+      // Sync conversation metadata to local state when conversations list or id changes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOtherUserId(conv.otherUser.id);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOtherUserName(getUserDisplayName(conv.otherUser));
     }
   }, [convs, conversationId]);

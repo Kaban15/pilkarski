@@ -92,10 +92,9 @@ export function ApplyForm({
     });
   }
 
-  // Minimum datetime for counter-proposal (1 hour from now)
-  const minDatetime = new Date(Date.now() + 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 16);
+  // Minimum datetime for counter-proposal (1 hour from now).
+  // eslint-disable-next-line react-hooks/purity
+  const minDatetime = new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16);
 
   return (
     <Card className="mb-6 border-primary/20">

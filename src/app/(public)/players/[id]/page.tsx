@@ -64,9 +64,12 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
   const player = await getPlayer(id);
   if (!player) notFound();
 
+  // Server Component — fresh Date.now() per request is the desired behavior.
+  /* eslint-disable react-hooks/purity */
   const age = player.dateOfBirth
     ? Math.floor((Date.now() - new Date(player.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null;
+  /* eslint-enable react-hooks/purity */
 
   const stats = [
     age !== null && { label: "Wiek", value: `${age} lat`, icon: Clock },

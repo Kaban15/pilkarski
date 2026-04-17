@@ -9,7 +9,10 @@ export function ThemeToggle() {
   const { t } = useI18n();
 
   useEffect(() => {
+    // Hydration: sync with DOM class set by zero-flash script. Intentional mount gate.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(document.documentElement.classList.contains("dark"));
   }, []);
 

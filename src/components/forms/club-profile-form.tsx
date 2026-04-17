@@ -228,8 +228,11 @@ export function ClubProfileForm({ club, regions }: ClubProfileFormProps) {
 
   useEffect(() => {
     if (!regionId) {
+      // Cascade reset when parent region is cleared.
+      /* eslint-disable react-hooks/set-state-in-effect */
       setLeagueLevelId(null);
       setLeagueGroupId(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [regionId]);
 

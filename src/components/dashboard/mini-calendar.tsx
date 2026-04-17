@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/trpc-react";
 
 export function MiniCalendar() {
   const router = useRouter();
-  const now = new Date();
+  const [now] = useState(() => new Date());
   const year = now.getFullYear();
   const month = now.getMonth();
 

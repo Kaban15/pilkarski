@@ -17,6 +17,8 @@ export function Coachmark({ storageKey, title, description }: CoachmarkProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const seen = localStorage.getItem(storageKey);
+    // Hydration: show only if not dismissed previously (SSR-safe).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!seen) setVisible(true);
   }, [storageKey]);
 

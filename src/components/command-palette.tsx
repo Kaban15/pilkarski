@@ -67,9 +67,12 @@ export function CommandPalette() {
 
   useEffect(() => {
     if (open) {
+      // Reset palette state when it opens — intentional side effect on external trigger.
+      /* eslint-disable react-hooks/set-state-in-effect */
       setQuery("");
       setDebounced("");
       setActiveIdx(0);
+      /* eslint-enable react-hooks/set-state-in-effect */
       setTimeout(() => inputRef.current?.focus(), 40);
     }
   }, [open]);
@@ -141,6 +144,8 @@ export function CommandPalette() {
   );
 
   useEffect(() => {
+    // Reset selection when search results change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIdx(0);
   }, [debounced, query]);
 
@@ -208,7 +213,7 @@ export function CommandPalette() {
               )}
               {!isFetching && searchItems.length === 0 && debounced.length >= 2 && (
                 <p className="px-4 py-6 text-center text-[12px] text-muted-foreground">
-                  {t("Brak wyników dla")} „{debounced}"
+                  {t("Brak wyników dla")} „{debounced}”
                 </p>
               )}
               {searchItems.map((item, i) => {
