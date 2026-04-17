@@ -70,13 +70,15 @@ test.describe.serial("Sparing — wizard, complete, player view", () => {
     // Accept application
     await expect(page.getByText(/Zgłoszenia \([1-9]/).first()).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: "Akceptuj" }).click();
-    await expect(page.getByText("Dopasowany").first()).toBeVisible({ timeout: 10000 });
 
-    // Complete sparing
-    await page.getByRole("button", { name: /Oznacz jako zakończony|Zakończ/ }).click();
+    // Wait for the complete button — it renders only when status=MATCHED
+    const completeBtn = page.getByRole("button", { name: "Oznacz jako zakończony" });
+    await expect(completeBtn).toBeVisible({ timeout: 15000 });
+    await completeBtn.click();
+
     // Confirm dialog
-    await page.getByRole("button", { name: /Tak, zakończ/ }).click();
-    await expect(page.getByText("Zakończony")).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "Tak, zakończ" }).click();
+    await expect(page.getByText("Zakończony").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("player cannot see 'Dodaj sparing' button", async ({ page }) => {
@@ -86,8 +88,8 @@ test.describe.serial("Sparing — wizard, complete, player view", () => {
     await page.goto("/sparings");
     await page.waitForLoadState("networkidle");
 
-    // Player should NOT see "Dodaj sparing" button
-    await expect(page.getByRole("link", { name: /Dodaj sparing|Dodaj/ })).not.toBeVisible();
+    // Player should NOT see "Dodaj sparing" link (href=/sparings/new is club-only)
+    await expect(page.locator('a[href="/sparings/new"]')).toHaveCount(0);
 
     // Navigate to a sparing detail — player should not see apply form
     await page.goto(sparingUrl);
