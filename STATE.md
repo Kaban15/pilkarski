@@ -272,18 +272,16 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 
 ## Następna sesja — TODO (priority-ordered)
 
-> Audyt UX z 2026-04-17 zidentyfikował 15 findings (3 × 5 kategorii). Z top 3 do wdrożenia wybrane:
-> **B2 Digest Card** (✅ Etap 54), **D1 Quick-apply**, **E1+E2 Design sweep**. Reszta w `docs/superpowers/specs/2026-04-17-digest-card-design.md` sekcja „Out of scope" + poniższe.
+> Etap 55 zamknął Priority 1 (D1 Quick-apply, E1+E2 Design sweep) + cały backlog
+> digest filtrów (9/9) + follow-up Etap 54. Kolejny cykl: Priority 3 audit findings.
 
 ### Priority 1 — pick next
-- ~~**D1 Inline quick-apply na karcie sparingu**~~ ✅ Etap 55 — endpoint `sparing.checkApplications` + inline „Aplikuj" w `SparingCard` z `e.preventDefault()`.
-- ~~**E1+E2 Design discipline sweep**~~ ✅ Etap 55 — violet→sky → violet→orange (landing, profil klubu, sidebar logo); unifikacja „Pulpit".
+- Wybrać z Priority 3 poniżej (rekomendacja: **C1 Cover photo klubu** lub **A1 Landing hero product shot** — oba duże UX wins).
 
 ### Priority 2 — follow-up z Etap 54/55 (non-blocking, drobne)
-- ~~Zamień `recommendedWhere: any` → `Prisma.EventWhereInput`~~ ✅ Etap 55.
-- ~~Decyzja dla `generatedAt`~~ ✅ Etap 55 (drop).
 - Happy-path E2E dla digestu (`e2e/digest.spec.ts:47` fixme) gdy pojawi się seed helper dla pending sparing application.
 - E2E dla quick-apply (`sparing.checkApplications` flow) — wymaga 2-club fixture.
+- E2E dla URL filter handlers (9 linków digest) — smoke test że każdy ?param otwiera właściwy widok.
 - Digest telemetria — log click-through per `row.key` (przy własnym telemetry pipeline, obecnie brak).
 
 ### Priority 3 — audit findings odsunięte (osobne cykle)
@@ -292,16 +290,14 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 - **A3** Coachmark tour + persistent „Pierwsze kroki" + FAB „Dodaj sparing" na feedzie CLUB.
 - **B1** Feed hierarchia — przenieść `DashboardStats` do sidebar, uprościć main column.
 - **B3** Notification grouping — `/notifications` jako płaska lista; konkurencja (FB/IG) grupuje per typ/aktor + sekcje „Dziś/Wcześniej".
-- **C1** Cover photo na profilu klubu (data model: `Club.coverUrl` + upload flow). Landing + club profile używają indigo/sky gradients (łamie DESIGN.md).
+- **C1** Cover photo na profilu klubu (data model: `Club.coverUrl` + upload flow).
 - **C2** Reputation metrics na profilu — response rate, response time, fulfilment rate jako badge pod avatarem (Airbnb pattern).
 - **C3** „Kluby dla Ciebie" (PLAYER) z reasoning — `NewClubsInRegion` istnieje, ale bez kuratorstwa.
-- **D2** PLAYER view „Twoje aplikacje" — osobna ścieżka `/events?tab=my-applications` (obecnie fallback do parent view, patrz #14 w backlog).
 - **D3** Unified sparing flow — „szybki sparing" vs 3-krokowy wizard to dwa tory z kolizjami. Progressive disclosure w jednym formularzu.
 - **E3** Global search / command palette (⌘K) + search w sidebar header (desktop).
 
 ### Priority 4 — hygiene
-- **`next lint` broken** — Next.js 16 usunął `next lint` subcommand, `npm run lint` rzuca błąd. Do decyzji: ESLint 9 flat config (`eslint.config.mjs`) albo `biome`. Pre-existing od upgrade'u, nieblokujący.
-- Push 15 commitów z Etapu 54 na `origin/main` → auto-deploy Vercel (jeśli nie wypchnięte przez skończeniem sesji).
+- **`next lint` broken** — Next.js 16 usunął `next lint` subcommand, `npm run lint` rzuca błąd. Do decyzji: **ESLint 9 flat config** (`eslint.config.mjs` + `eslint-config-next` już w deps, gotowy template w sesji Etap 55) albo **biome** (speed play, zmiana toolingu). Pre-existing od upgrade'u, nieblokujący — vitest + tsc pokrywają jakość w pre-commit hook. **Wymaga explicit instrukcji** (guarded by `guard-config.sh`).
 
 ---
 
