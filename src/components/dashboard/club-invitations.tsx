@@ -9,12 +9,14 @@ import { useI18n } from "@/lib/i18n";
 
 export function ClubInvitations() {
   const { t } = useI18n();
+  const utils = api.useUtils();
   const { data: invitations = [], refetch } = api.clubMembership.myInvitations.useQuery();
 
   const respondMut = api.clubMembership.respondToInvite.useMutation({
     onSuccess: (_, vars) => {
       toast.success(vars.decision === "ACCEPT" ? t("Dołączyłeś do klubu") : t("Zaproszenie odrzucone"));
       refetch();
+      utils.digest.get.invalidate();
     },
     onError: (e) => toast.error(e.message),
   });
