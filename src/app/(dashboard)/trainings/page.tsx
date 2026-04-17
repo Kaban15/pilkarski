@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,11 +91,18 @@ function RecommendedTrainings() {
   );
 }
 
+type TabKey = "trainings" | "coaches" | "applications";
+
 export default function TrainingsPage() {
   const { t } = useI18n();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const isPlayer = session?.user?.role === "PLAYER";
-  const [tab, setTab] = useState<"trainings" | "coaches">("trainings");
+  const isCoach = session?.user?.role === "COACH";
+  const urlTab = searchParams?.get("tab");
+  const initialTab: TabKey =
+    urlTab === "applications" && isCoach ? "applications" : "trainings";
+  const [tab, setTab] = useState<TabKey>(initialTab);
 
   const trainings = api.event.list.useQuery(
     { types: ["INDIVIDUAL_TRAINING", "GROUP_TRAINING"], sortBy: "eventDate", sortOrder: "asc", limit: 40 },
@@ -105,6 +113,10 @@ export default function TrainingsPage() {
     { limit: 20 },
     { enabled: tab === "coaches" }
   );
+
+  const myCoachTrainings = api.event.myCoachTrainings.useQuery(undefined, {
+    enabled: tab === "applications" && isCoach,
+  });
 
   const allTrainings = (trainings.data?.items ?? []) as TrainingItem[];
   const isLoadingTrainings = trainings.isLoading;
@@ -128,10 +140,13 @@ export default function TrainingsPage() {
         loading={tab === "trainings" ? isLoadingTrainings : coaches.isLoading}
       />
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "trainings" | "coaches")}>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
         <TabsList>
           <TabsTrigger value="trainings">{t("Treningi")}</TabsTrigger>
           <TabsTrigger value="coaches">{t("Trenerzy")}</TabsTrigger>
+          {isCoach && (
+            <TabsTrigger value="applications">{t("Zgłoszenia")}</TabsTrigger>
+          )}
         </TabsList>
       </Tabs>
 
@@ -239,6 +254,55 @@ export default function TrainingsPage() {
                   </div>
                 </CardContent>
               </Card>
+              </Link>
+            ))
+          )}
+        </div>
+      )}
+
+      {tab === "applications" && isCoach && (
+        <div className="space-y-3">
+          {myCoachTrainings.isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
+          ) : (myCoachTrainings.data ?? []).length === 0 ? (
+            <EmptyState
+              icon={GraduationCap}
+              title={t("Brak zgłoszeń")}
+              description={t("Nie masz jeszcze treningów z aktywnymi zgłoszeniami. Utwórz trening w sekcji Wydarzenia.")}
+            />
+          ) : (
+            (myCoachTrainings.data ?? []).map((ev) => (
+              <Link key={ev.id} href={`/events/${ev.id}`}>
+                <Card className="transition-colors hover:border-primary/40">
+                  <CardContent className="flex items-center gap-4 py-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <GraduationCap className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold">{ev.title}</p>
+                        <Badge variant="secondary" className="text-[10px] shrink-0">
+                          {EVENT_TYPE_LABELS[ev.type] ?? ev.type}
+                        </Badge>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatShortDate(ev.eventDate)}
+                        </span>
+                        {ev.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {ev.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Badge variant={ev._count.applications > 0 ? "default" : "outline"} className="shrink-0">
+                      {ev._count.applications} {t("zgł.")}
+                    </Badge>
+                  </CardContent>
+                </Card>
               </Link>
             ))
           )}

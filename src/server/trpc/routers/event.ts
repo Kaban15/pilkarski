@@ -526,6 +526,28 @@ export const eventRouter = router({
     });
   }),
 
+  // My trainings (as coach) — events with coachId = this coach + applications count
+  myCoachTrainings: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "COACH") return [];
+    const coach = await ctx.db.coach.findUnique({
+      where: { userId: ctx.session.user.id },
+      select: { id: true },
+    });
+    if (!coach) return [];
+
+    return ctx.db.event.findMany({
+      where: {
+        coachId: coach.id,
+        type: { in: ["INDIVIDUAL_TRAINING", "GROUP_TRAINING"] },
+      },
+      include: {
+        region: true,
+        _count: { select: { applications: true } },
+      },
+      orderBy: { eventDate: "desc" },
+    });
+  }),
+
   // My applications (as player)
   myApplications: protectedProcedure.query(async ({ ctx }) => {
     const player = await ctx.db.player.findUnique({
