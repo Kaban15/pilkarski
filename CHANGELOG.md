@@ -1947,3 +1947,123 @@ z linków digest otwiera właściwy widok bez crashu/redirectu.
 
 ### Pliki zmienione
 - `e2e/digest-urls.spec.ts` (nowy)
+
+---
+
+## Etap 69 — Bug #8 fix E2E sparing-advanced (2026-04-17)
+
+### Problem
+`e2e/sparing-advanced.spec.ts:65` (`club A accepts and completes sparing`)
+padał losowo — po kliknięciu „Akceptuj" test próbował kliknąć przycisk
+„Oznacz jako zakończony", ale ten był jeszcze nie wyrenderowany
+(React Query cache nie zdążył się invalidować).
+
+### Root cause
+```ts
+await expect(page.getByText("Dopasowany").first()).toBeVisible();
+await page.getByRole("button", { name: /Oznacz jako zakończony|Zakończ/ }).click();
+```
+- „Dopasowany" to label środkowego kroku w `SparingTimeline` — **zawsze
+  obecny w DOM** niezależnie od statusu. Asercja przechodziła trywialnie
+  przy `status=OPEN`, zanim status zmienił się na `MATCHED`.
+- Przycisk renderuje się tylko gdy `sparing.status === "MATCHED"`
+  (`sparing-info.tsx:127`) — test klikał zanim ReactQuery invalidate
+  odświeżyła dane.
+
+### Fix
+Zamiana pośredniej asercji na bezpośrednie oczekiwanie na przycisk:
+```ts
+const completeBtn = page.getByRole("button", { name: "Oznacz jako zakończony" });
+await expect(completeBtn).toBeVisible({ timeout: 15000 });
+await completeBtn.click();
+```
+
+### Bonus fix: regex overreach
+Test 4 (`player cannot see 'Dodaj sparing' button`) padał z „strict mode
+violation" — regex `/Dodaj sparing|Dodaj/` matchował też `Dodaj do
+ulubionych` w 20+ kartach sparingów. Zamiana na specific locator:
+```ts
+await expect(page.locator('a[href="/sparings/new"]')).toHaveCount(0);
+```
+
+### Testy
+- E2E: 4/4 pass (wcześniej 3/4).
+
+### Pliki zmienione
+- `e2e/sparing-advanced.spec.ts`
+
+---
+
+## Etap 70 — ESLint exhaustive-deps cleanup (2026-04-17)
+
+### Scope
+45 warnings → 35 warnings. Naprawione:
+- **`messages/[conversationId]/page.tsx`** — 3× `exhaustive-deps`
+  (useEffect z mutacją TanStack `markAsReadMut.mutate`, która jest
+  stabilna referencyjnie). Dodane `// eslint-disable-next-line` z
+  uzasadnieniem. Przy okazji usunięte 3× `Unused eslint-disable`
+  (rule `set-state-in-effect` nie odpalała dla conditional sets).
+- **`recruitment/page.tsx`** — `entries = (pipeline ?? []) as ...`
+  tworzyło nową referencję na każdym renderze, co unieważniało
+  `useMemo(stageCounts)` i `useMemo(entriesByStage)`. Wrap w
+  `useMemo(() => (pipeline ?? []) as PipelineEntry[], [pipeline])`.
+- **`calendar-view.tsx`** — `const now = new Date()` na każdym
+  renderze ⇒ stabilizacja przez `const [now] = useState(() => new Date())`.
+  Dodane `now` do deps `listItems` useMemo.
+- **`use-paginated-list.ts`** — destructure `const { fetchNextPage }
+  = query` + `useCallback([fetchNextPage])` zamiast `[query.fetchNextPage]`
+  (ESLint nie rozumiał property access). Usunięto zbędny
+  `preserve-manual-memoization` disable.
+- **`theme-toggle.tsx`, `i18n.tsx`** — usunięte unused
+  `set-state-in-effect` disables (rule nie triggerował dla 2. setState
+  w useEffect).
+
+### Dlaczego nie wszystkie 7
+- 7× zgłoszonych w Etap 67 zawierało 3 warnings na tym samym
+  useEffect (3 różne liniie). Po naprawie zostało 1 pre-existing
+  warning w client-expected pattern (nie w tej rundzie).
+
+### Testy
+- `npm run lint`: 45 → 35 warnings (0 errors).
+- `npx tsc --noEmit`: 0 errors.
+- `npx vitest run`: 103/103 pass.
+
+### Pliki zmienione
+- `src/app/(dashboard)/messages/[conversationId]/page.tsx`
+- `src/app/(dashboard)/recruitment/page.tsx`
+- `src/components/calendar-view.tsx`
+- `src/components/theme-toggle.tsx`
+- `src/hooks/use-paginated-list.ts`
+- `src/lib/i18n.tsx`
+
+---
+
+## Etap 71 — Digest click-through telemetry stub (2026-04-17)
+
+### Problem
+Digest card (P2 z Etap 68 backlogu) nie raportował które wiersze są
+klikane. Bez danych nie można ocenić czy wszystkie `row.key` są
+użyteczne, czy część to martwe alerty.
+
+### Rozwiązanie — stub z grep-friendly prefixem
+W `src/components/dashboard/digest-card.tsx` dodany helper
+`trackDigestClick(key, role, count)` wywołujący:
+```ts
+console.info("[digest:click]", { key, role, count, ts: Date.now() });
+```
+Wpięty jako `onClick` na każdym `<Link>` w digest card.
+
+### Dlaczego stub a nie pipeline
+STATE.md P2 zaznaczała „przy własnym telemetry pipeline, obecnie
+brak". Struktura loga celowo grep-friendly — future pipeline
+(Vercel Analytics albo `/api/telemetry`) może je skonsumować bez
+zmian w kodzie komponentu.
+
+### Testy
+- `npx tsc --noEmit`: 0 errors.
+- `npx vitest run`: 103/103 pass.
+- Brak zmian w kontrakcie API ani w server-side digest logic — testy
+  w `__tests__/routers/digest.test.ts` bez zmian (4/4 pass).
+
+### Pliki zmienione
+- `src/components/dashboard/digest-card.tsx`
