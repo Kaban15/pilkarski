@@ -117,7 +117,7 @@ export default async function LandingPage() {
 
             <h1 className="mb-6 text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-tight">
               Umów sparing{" "}
-              <span className="bg-gradient-to-r from-violet-400 to-sky-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-400 to-orange-400 bg-clip-text text-transparent">
                 w 2 minuty
               </span>
             </h1>
@@ -131,7 +131,7 @@ export default async function LandingPage() {
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/register"
-                className="group flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-sky-500 px-7 py-3 text-[14px] font-semibold text-white transition-all hover:from-violet-600 hover:to-sky-600 hover:shadow-[0_0_24px_rgba(6,182,212,0.3)]"
+                className="group flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-orange-500 px-7 py-3 text-[14px] font-semibold text-white transition-all hover:from-violet-600 hover:to-orange-600 hover:shadow-[0_0_24px_rgba(249,115,22,0.3)]"
               >
                 Zarejestruj się za darmo
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -236,7 +236,7 @@ export default async function LandingPage() {
                 },
               ].map((item) => (
                 <div key={item.step} className="bg-background p-8">
-                  <span className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-sky-500 font-mono text-[13px] font-bold text-white">
+                  <span className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-orange-500 font-mono text-[13px] font-bold text-white">
                     {item.step}
                   </span>
                   <h3 className="mb-2 text-[15px] font-semibold">{item.title}</h3>
@@ -325,7 +325,7 @@ export default async function LandingPage() {
             </p>
             <Link
               href="/register"
-              className="group relative inline-flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-sky-500 px-8 py-3.5 text-[14px] font-semibold text-white transition hover:from-violet-600 hover:to-sky-600 hover:shadow-[0_0_32px_rgba(139,92,246,0.15)]"
+              className="group relative inline-flex items-center gap-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-orange-500 px-8 py-3.5 text-[14px] font-semibold text-white transition hover:from-violet-600 hover:to-orange-600 hover:shadow-[0_0_32px_rgba(249,115,22,0.25)]"
             >
               Zacznij teraz
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

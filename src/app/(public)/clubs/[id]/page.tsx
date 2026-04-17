@@ -177,7 +177,7 @@ export default async function ClubPublicProfilePage({ params }: Props) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero banner */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-950 via-slate-900 to-sky-950">
+      <div className="relative overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-black">
         {/* Dot pattern overlay */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.03]"

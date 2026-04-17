@@ -102,12 +102,12 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Logo header */}
         <div className="flex h-16 items-center justify-center px-3">
           {collapsed ? (
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-sm font-black text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-orange-500 text-sm font-black text-white">
               PS
             </div>
           ) : (
             <div className="flex items-center gap-3 px-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-sm font-black text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-orange-500 text-sm font-black text-white">
                 PS
               </div>
               <div>
@@ -115,7 +115,7 @@ export function Sidebar({ user }: SidebarProps) {
                   PilkaSport
                 </p>
                 <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground/50 dark:text-white/30">
-                  {t("Panel")}
+                  {t("Pulpit")}
                 </p>
               </div>
             </div>

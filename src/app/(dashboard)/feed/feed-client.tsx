@@ -198,7 +198,7 @@ export default function FeedClient() {
       <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} progress={progress} />
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          {isClub ? t("Pulpit") : "Feed"}
+          {t("Pulpit")}
         </h1>
         {!isClub && feed.data?.regionName ? (
           <p className="mt-1 text-sm text-muted-foreground">
