@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import {
@@ -83,7 +84,7 @@ export function SparingInfo({
             <div className="mt-3 flex items-center gap-2.5 rounded-lg border bg-muted/40 px-3 py-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
                 {opponent.logoUrl ? (
-                  <img src={opponent.logoUrl} alt={opponent.name} className="h-full w-full object-cover" />
+                  <Image src={opponent.logoUrl} alt={opponent.name} width={32} height={32} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-xs font-bold text-muted-foreground">
                     {(opponent.name ?? "?").slice(0, 2).toUpperCase()}

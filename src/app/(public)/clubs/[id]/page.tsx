@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { FollowClubButton } from "@/components/follow-club-button";
@@ -217,11 +218,13 @@ export default async function ClubPublicProfilePage({ params }: Props) {
       <div className="relative overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-black">
         {club.coverUrl && (
           <>
-            <img
+            <Image
               src={club.coverUrl}
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover opacity-40"
+              fill
+              sizes="100vw"
+              className="object-cover opacity-40"
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
           </>
@@ -239,9 +242,11 @@ export default async function ClubPublicProfilePage({ params }: Props) {
           <BackButton label="Powrót" />
           <div className="flex items-center gap-5 mt-2">
             {club.logoUrl ? (
-              <img
+              <Image
                 src={club.logoUrl}
                 alt={club.name}
+                width={112}
+                height={112}
                 className="h-24 w-24 rounded-2xl border-2 border-white/20 object-cover sm:h-28 sm:w-28 shrink-0"
               />
             ) : (

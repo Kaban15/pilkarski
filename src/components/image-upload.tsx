@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import NextImage from "next/image";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 
@@ -93,7 +94,7 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded, variant 
       <div className="space-y-2">
         <div className="relative w-full overflow-hidden rounded-xl border bg-gradient-to-br from-violet-500/20 via-slate-500/10 to-orange-500/20 aspect-[16/5]">
           {preview && (
-            <img src={preview} alt={t("Zdjęcie tła")} className="h-full w-full object-cover" />
+            <NextImage src={preview} alt={t("Zdjęcie tła")} fill sizes="100vw" className="object-cover" />
           )}
           <div className="absolute inset-0 flex items-end justify-end p-3">
             <input
@@ -122,9 +123,11 @@ export function ImageUpload({ currentUrl, folder, entityId, onUploaded, variant 
   return (
     <div className="flex items-center gap-4">
       {preview ? (
-        <img
+        <NextImage
           src={preview}
           alt={t("Zdjęcie")}
+          width={80}
+          height={80}
           className="h-20 w-20 rounded-full object-cover border"
         />
       ) : (

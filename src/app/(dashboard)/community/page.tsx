@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { MobileRefresh } from "@/components/mobile-refresh";
 import { Plus, Trash2, Megaphone, Flag, Bookmark, Users, Zap } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 type CategoryFilter = ClubPostCategoryValue | "ALL";
 
@@ -230,9 +231,11 @@ export default function CommunityPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {post.club.logoUrl && (
-                      <img
+                      <Image
                         src={post.club.logoUrl}
                         alt=""
+                        width={20}
+                        height={20}
                         className="h-5 w-5 rounded-full object-cover"
                       />
                     )}

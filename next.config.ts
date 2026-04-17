@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
       static: 180,
     },
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+    ],
+  },
   async headers() {
     return [
       {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,9 +47,11 @@ export function PlayerRecruitments() {
               <CardContent className="py-3">
                 <div className="mb-2 flex items-start gap-2">
                   {event.club?.logoUrl ? (
-                    <img
+                    <Image
                       src={event.club.logoUrl}
                       alt={event.club.name}
+                      width={32}
+                      height={32}
                       className="h-8 w-8 shrink-0 rounded-lg object-cover"
                     />
                   ) : (

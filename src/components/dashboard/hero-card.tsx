@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
@@ -21,7 +22,7 @@ function ClubCrest({ name, logoUrl }: { name: string; logoUrl?: string | null })
   return (
     <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--card-elevated-border)] bg-secondary shadow-lg">
       {logoUrl ? (
-        <img src={logoUrl} alt={name} className="h-10 w-10 rounded-lg object-contain" />
+        <Image src={logoUrl} alt={name} width={40} height={40} className="h-10 w-10 rounded-lg object-contain" />
       ) : (
         <span className="text-2xl font-black text-muted-foreground">
           {name.charAt(0).toUpperCase()}

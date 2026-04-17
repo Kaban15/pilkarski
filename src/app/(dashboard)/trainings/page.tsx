@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
@@ -216,9 +217,11 @@ export default function TrainingsPage() {
               <Card className="transition-colors hover:border-primary/40">
                 <CardContent className="flex items-center gap-4 py-4">
                   {c.photoUrl ? (
-                    <img
+                    <Image
                       src={c.photoUrl}
                       alt={`${c.firstName} ${c.lastName}`}
+                      width={40}
+                      height={40}
                       className="h-10 w-10 shrink-0 rounded-full object-cover"
                     />
                   ) : (

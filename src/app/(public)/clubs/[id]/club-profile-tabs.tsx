@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { MatchCard } from "@/components/match-card";
 import { PositionGroup, POSITION_GROUPS } from "@/components/squad/position-group";
 import { StarRating } from "@/components/star-rating";
@@ -284,7 +285,7 @@ export function ClubProfileTabs({
                         return (
                           <div key={m.id} className="flex items-center px-3 py-2.5 gap-2.5">
                             {c.photoUrl ? (
-                              <img src={c.photoUrl} alt={name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                              <Image src={c.photoUrl} alt={name} width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" />
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-violet-500/10 flex items-center justify-center text-xs font-bold shrink-0 text-violet-400">
                                 {initials}

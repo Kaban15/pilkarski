@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { formatShortDate } from "@/lib/format";
 
 interface ClubInfo {
@@ -21,9 +22,11 @@ function ClubAvatar({ club, size = "sm" }: { club: ClubInfo; size?: "sm" | "md" 
   const dim = size === "md" ? "w-9 h-9 text-xs" : "w-7 h-7 text-[9px]";
   if (club.logoUrl) {
     return (
-      <img
+      <Image
         src={club.logoUrl}
         alt={club.name}
+        width={size === "md" ? 36 : 28}
+        height={size === "md" ? 36 : 28}
         className={`${dim} rounded-lg object-cover`}
       />
     );

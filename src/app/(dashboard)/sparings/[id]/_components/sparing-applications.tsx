@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/trpc-react";
@@ -99,7 +100,7 @@ export function SparingApplications({
                   <div className="flex min-w-0 items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
                       {app.applicantClub?.logoUrl ? (
-                        <img src={app.applicantClub.logoUrl} alt={app.applicantClub.name} className="h-full w-full object-cover" />
+                        <Image src={app.applicantClub.logoUrl} alt={app.applicantClub.name} width={36} height={36} className="h-full w-full object-cover" />
                       ) : (
                         <span className="text-xs font-bold text-muted-foreground">
                           {(app.applicantClub?.name ?? "?").slice(0, 2).toUpperCase()}

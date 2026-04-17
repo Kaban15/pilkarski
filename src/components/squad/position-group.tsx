@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { POSITION_LABELS } from "@/lib/labels";
 import { Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -77,7 +78,7 @@ export function PositionGroup({
             <div key={p.userId} className="flex items-center px-3 py-2.5">
               <Link href={`/players/${p.id}`} className="flex items-center gap-2.5 flex-1 min-w-0 hover:text-primary transition-colors">
                 {p.photoUrl ? (
-                  <img src={p.photoUrl} alt={name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  <Image src={p.photoUrl} alt={name} width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0" />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold shrink-0">
                     {initials}

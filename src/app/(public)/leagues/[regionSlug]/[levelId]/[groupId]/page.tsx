@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
@@ -102,9 +103,11 @@ export default async function ClubsInGroupPage({ params }: Props) {
                   {i + 1}.
                 </div>
                 {club.logoUrl ? (
-                  <img
+                  <Image
                     src={club.logoUrl}
                     alt={club.name}
+                    width={32}
+                    height={32}
                     className="h-8 w-8 shrink-0 rounded-md object-cover"
                   />
                 ) : (

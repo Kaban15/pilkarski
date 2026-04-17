@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,9 +88,11 @@ export default async function PlayerPublicProfilePage({ params }: Props) {
           <BackButton label="Powrót" />
           <div className="flex items-center gap-5">
             {player.photoUrl ? (
-              <img
+              <Image
                 src={player.photoUrl}
                 alt={`${player.firstName} ${player.lastName}`}
+                width={112}
+                height={112}
                 className="h-24 w-24 rounded-2xl border-2 border-white/20 object-cover sm:h-28 sm:w-28"
               />
             ) : (

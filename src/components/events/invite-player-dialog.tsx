@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
@@ -240,7 +241,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
                       >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
                           {player.photoUrl ? (
-                            <img src={player.photoUrl} alt="" className="h-full w-full object-cover" />
+                            <Image src={player.photoUrl} alt="" width={32} height={32} className="h-full w-full object-cover" />
                           ) : (
                             <span className="text-[10px] font-bold text-muted-foreground">
                               {player.firstName[0]}{player.lastName[0]}
@@ -284,7 +285,7 @@ export function InvitePlayerDialog({ eventId, regionId: eventRegionId }: InviteP
             <div className="flex items-center gap-3 rounded-lg border border-sport-orange/20 bg-sport-orange/5 px-3 py-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
                 {selectedPlayer.photoUrl ? (
-                  <img src={selectedPlayer.photoUrl} alt="" className="h-full w-full object-cover" />
+                  <Image src={selectedPlayer.photoUrl} alt="" width={32} height={32} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-[10px] font-bold text-muted-foreground">
                     {selectedPlayer.firstName[0]}{selectedPlayer.lastName[0]}

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ export function ClubInvitations() {
           {invitations.map((inv) => (
             <li key={inv.id} className="flex items-center gap-3">
               {inv.club.logoUrl ? (
-                <img src={inv.club.logoUrl} alt="" className="h-8 w-8 rounded-md object-cover" />
+                <Image src={inv.club.logoUrl} alt="" width={32} height={32} className="h-8 w-8 rounded-md object-cover" />
               ) : (
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
                   {inv.club.name.charAt(0)}

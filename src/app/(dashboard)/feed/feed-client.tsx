@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -134,7 +135,7 @@ function NewClubsInRegion() {
             <div key={club.id} className="flex items-start gap-3 rounded-lg border border-border px-3 py-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                 {club.logoUrl ? (
-                  <img src={club.logoUrl} alt="" className="h-full w-full object-cover" />
+                  <Image src={club.logoUrl} alt="" width={32} height={32} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-[10px] font-bold text-muted-foreground">
                     {club.name.slice(0, 2).toUpperCase()}

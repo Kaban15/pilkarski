@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/trpc-react";
@@ -88,7 +89,7 @@ export function InviteMemberDialog({ onInvited }: { onInvited: () => void }) {
             {allResults.map((user) => (
               <li key={user.userId} className="flex items-center gap-3 rounded-lg border border-border p-3">
                 {user.photoUrl ? (
-                  <img src={user.photoUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                  <Image src={user.photoUrl} alt="" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                     {user.name.charAt(0)}

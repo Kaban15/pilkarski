@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
@@ -108,9 +109,11 @@ export function ClubRecruitment({ showSection }: { showSection?: "recruitments" 
                 <Card className="transition-all hover:border-primary/40">
                   <CardContent className="flex items-center gap-3 py-3">
                     {t.user.player?.photoUrl ? (
-                      <img
+                      <Image
                         src={t.user.player.photoUrl}
                         alt=""
+                        width={32}
+                        height={32}
                         className="h-8 w-8 rounded-full object-cover"
                       />
                     ) : (

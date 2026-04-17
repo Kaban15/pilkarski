@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -291,7 +292,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
                       >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                           {club.logoUrl ? (
-                            <img src={club.logoUrl} alt="" className="h-full w-full object-cover" />
+                            <Image src={club.logoUrl} alt="" width={32} height={32} className="h-full w-full object-cover" />
                           ) : (
                             <span className="text-[10px] font-bold text-muted-foreground">
                               {club.name.slice(0, 2).toUpperCase()}
@@ -407,7 +408,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                   {inv.fromClub.logoUrl ? (
-                    <img src={inv.fromClub.logoUrl} alt="" className="h-full w-full object-cover" />
+                    <Image src={inv.fromClub.logoUrl} alt="" width={32} height={32} className="h-full w-full object-cover" />
                   ) : (
                     <span className="text-[10px] font-bold text-muted-foreground">
                       {inv.fromClub.name.slice(0, 2).toUpperCase()}
@@ -493,7 +494,7 @@ export function SentInvitations({ sparingOfferId }: { sparingOfferId: string }) 
             <div key={inv.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                 {inv.toClub.logoUrl ? (
-                  <img src={inv.toClub.logoUrl} alt="" className="h-full w-full object-cover" />
+                  <Image src={inv.toClub.logoUrl} alt="" width={28} height={28} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-[9px] font-bold text-muted-foreground">
                     {inv.toClub.name.slice(0, 2).toUpperCase()}

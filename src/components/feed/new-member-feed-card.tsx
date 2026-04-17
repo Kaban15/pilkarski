@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Users, User, MapPin } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -39,7 +40,7 @@ export function NewMemberFeedCard({ type, data, createdAt }: NewMemberFeedCardPr
           {/* Avatar */}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted overflow-hidden">
             {data.logoUrl ? (
-              <img src={data.logoUrl} alt={name ?? ""} className="h-full w-full object-cover" />
+              <Image src={data.logoUrl} alt={name ?? ""} width={40} height={40} className="h-full w-full object-cover" />
             ) : (
               <Icon className="h-5 w-5 text-muted-foreground" />
             )}

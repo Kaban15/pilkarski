@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Swords, Calendar, MapPin, Clock } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -25,7 +26,7 @@ function ClubBadge({ name, logoUrl }: { name: string; logoUrl?: string | null })
     <div className="flex flex-col items-center gap-1.5">
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted overflow-hidden">
         {logoUrl ? (
-          <img src={logoUrl} alt={name} className="h-full w-full object-cover" />
+          <Image src={logoUrl} alt={name} width={40} height={40} className="h-full w-full object-cover" />
         ) : (
           <span className="text-xs font-bold text-muted-foreground">{initials}</span>
         )}

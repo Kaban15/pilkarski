@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "@/lib/trpc-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -190,7 +191,7 @@ export default function RankingPage() {
                       {i + 1}
                     </span>
                     {entry.avatar ? (
-                      <img src={entry.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      <Image src={entry.avatar} alt="" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
                     ) : (
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-bold">
                         {entry.role === "CLUB" ? <Shield className="h-4 w-4" /> : <User className="h-4 w-4" />}

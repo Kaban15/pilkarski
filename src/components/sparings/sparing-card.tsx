@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -102,7 +103,7 @@ export function SparingCard({
           <div className="flex items-center gap-2.5">
             <div className={crestSlotClass}>
               {sparing.club.logoUrl ? (
-                <img src={sparing.club.logoUrl} alt="" className="h-full w-full object-cover" />
+                <Image src={sparing.club.logoUrl} alt="" width={40} height={40} className="h-full w-full object-cover" />
               ) : (
                 <span className="text-sm font-bold text-muted-foreground">
                   {sparing.club.name.slice(0, 2).toUpperCase()}

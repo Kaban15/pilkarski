@@ -14,6 +14,7 @@ import { Users, Check, X, UserMinus, Shield } from "lucide-react";
 import { InviteMemberDialog } from "@/components/squad/invite-member-dialog";
 import { PositionGroup, POSITION_GROUPS } from "@/components/squad/position-group";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SquadPage() {
   const { t } = useI18n();
@@ -222,9 +223,11 @@ export default function SquadPage() {
                     className="flex items-center gap-2.5 flex-1 min-w-0 hover:text-primary transition-colors"
                   >
                     {c.photoUrl ? (
-                      <img
+                      <Image
                         src={c.photoUrl}
                         alt={name}
+                        width={36}
+                        height={36}
                         className="w-9 h-9 rounded-full object-cover shrink-0"
                       />
                     ) : (
@@ -306,9 +309,11 @@ export default function SquadPage() {
               return (
                 <div key={req.id} className="flex items-center px-3 py-2.5 gap-2.5">
                   {photo ? (
-                    <img
+                    <Image
                       src={photo}
                       alt={name}
+                      width={36}
+                      height={36}
                       className="w-9 h-9 rounded-full object-cover shrink-0"
                     />
                   ) : (

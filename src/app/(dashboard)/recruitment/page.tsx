@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -139,7 +140,7 @@ function BoardCard({
     >
       <div className="flex items-start gap-3">
         {player?.photoUrl ? (
-          <img src={player.photoUrl} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+          <Image src={player.photoUrl} alt="" width={32} height={32} className="h-8 w-8 shrink-0 rounded-full object-cover" />
         ) : (
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-xs font-bold text-violet-600 dark:text-violet-400">
             {player ? `${player.firstName[0]}${player.lastName[0]}` : "?"}
@@ -279,7 +280,7 @@ function ListRow({
     <div className="flex items-start gap-3 px-4 py-3">
       {/* Avatar */}
       {player?.photoUrl ? (
-        <img src={player.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+        <Image src={player.photoUrl} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
       ) : (
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-sm font-bold text-violet-600 dark:text-violet-400">
           {player ? `${player.firstName[0]}${player.lastName[0]}` : "?"}

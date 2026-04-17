@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { getUserDisplayName } from "@/lib/labels";
@@ -91,9 +92,11 @@ export default function ClubChatPage() {
             </Button>
           </Link>
           {data.club.logoUrl ? (
-            <img
+            <Image
               src={data.club.logoUrl}
               alt={data.club.name ?? t("Klub")}
+              width={32}
+              height={32}
               className="h-8 w-8 rounded-full object-cover"
             />
           ) : (

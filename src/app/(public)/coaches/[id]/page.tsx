@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Metadata } from "next";
 import { db } from "@/server/db/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,9 +85,11 @@ export default async function CoachProfilePage({ params }: Props) {
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-end">
             {/* Photo */}
             {coach.photoUrl ? (
-              <img
+              <Image
                 src={coach.photoUrl}
                 alt={name}
+                width={128}
+                height={128}
                 className="h-28 w-28 rounded-full border-4 border-white/20 object-cover sm:h-32 sm:w-32"
               />
             ) : (
