@@ -23,7 +23,6 @@ export const digestRouter = router({
       role,
       rows: result.rows,
       totalCount: result.totalCount,
-      generatedAt: new Date().toISOString(),
     };
   }),
 });

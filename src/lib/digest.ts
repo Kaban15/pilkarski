@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 
 export const DIGEST_THRESHOLDS = {
   attendanceWarnHours: 48,
@@ -32,7 +32,6 @@ export type DigestResponse = {
   role: DigestRole;
   rows: DigestRow[];
   totalCount: number;
-  generatedAt: string;
 };
 
 export type Db = Pick<
@@ -198,7 +197,7 @@ export async function getPlayerDigest(args: {
   const inWeek = new Date(now.getTime() + DIGEST_THRESHOLDS.upcomingDays * DAY_MS);
   const since72h = new Date(now.getTime() - DIGEST_THRESHOLDS.recommendedEventHours * HOUR_MS);
 
-  const recommendedWhere: any = {
+  const recommendedWhere: Prisma.EventWhereInput = {
     createdAt: { gte: since72h },
     type: { in: ["RECRUITMENT", "TRYOUT", "CONTINUOUS_RECRUITMENT"] },
   };

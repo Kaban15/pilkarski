@@ -42,15 +42,12 @@ function makeCtx(role: Role, dbOverrides: Record<string, unknown> = {}) {
   } as never;
 }
 
-const ISO_PREFIX = /^\d{4}-\d{2}-\d{2}T/;
-
 describe("digestRouter.get", () => {
   it("returns CLUB digest with zero counts -> empty rows", async () => {
     const caller = digestRouter.createCaller(makeCtx("CLUB"));
     const res = await caller.get();
 
     expect(res.role).toBe("CLUB");
-    expect(res.generatedAt).toMatch(ISO_PREFIX);
     expect(typeof res.totalCount).toBe("number");
     expect(res.totalCount).toBe(0);
     expect(Array.isArray(res.rows)).toBe(true);
@@ -62,7 +59,6 @@ describe("digestRouter.get", () => {
     const res = await caller.get();
 
     expect(res.role).toBe("PLAYER");
-    expect(res.generatedAt).toMatch(ISO_PREFIX);
     expect(typeof res.totalCount).toBe("number");
     expect(Array.isArray(res.rows)).toBe(true);
   });
@@ -72,7 +68,6 @@ describe("digestRouter.get", () => {
     const res = await caller.get();
 
     expect(res.role).toBe("COACH");
-    expect(res.generatedAt).toMatch(ISO_PREFIX);
     expect(typeof res.totalCount).toBe("number");
     expect(Array.isArray(res.rows)).toBe(true);
   });
