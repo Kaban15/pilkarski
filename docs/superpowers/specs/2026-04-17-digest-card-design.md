@@ -80,7 +80,7 @@ Konkurencja (FB notifications bell, LinkedIn „Top updates", Slack unread summa
     - transfer → `text-cyan-500`
     - calendar/upcoming → `text-sky-500`
     - pipeline/stale → `text-slate-500`
-  - Liczba: `text-[18px] font-bold tabular-nums` (Rubik bold), min-width 28px żeby wyrównać.
+  - Liczba: `text-[18px] font-bold tabular-nums` (Rubik bold), min-width 28px żeby wyrównać. Format: raw liczba dla 1–99, `"99+"` dla count ≥ 100.
   - Label: `text-[14px] text-foreground/90 flex-1 truncate`.
   - `ChevronRight` 16px po prawej (`text-muted-foreground/50`, hover → `text-foreground`).
 - Max 5 wierszy — jeśli pojawi się 6., zastępujemy ostatni (least-priority) „Zobacz wszystkie →" linkiem do `/notifications`.
@@ -96,7 +96,7 @@ Wszystkie progi są w `DIGEST_THRESHOLDS` const w `src/lib/digest.ts` (nowy plik
 |---|---------|--------|-------|------|
 | 1 | attendance 48h (TRYOUT/RECRUITMENT z ACCEPTED bez YES/NO/MAYBE) | count zgłoszeń | „Zgłoszenia bez potwierdzenia (<48h)" | `/events?filter=pending-attendance` |
 | 2 | pending aplikacje sparingowe (status=PENDING, ogłoszenia mojego klubu + moje aplikacje do innych) | count | „Aplikacje sparingowe czekają" | `/sparings?tab=applications` |
-| 3 | nieodebrane SparingInvitation (expiresAt > now, response=null) | count | „Nieodebrane zaproszenia" | `/sparings?tab=invitations` |
+| 3 | nieodebrane SparingInvitation **otrzymane przez mój klub** (invitedClubId=me, expiresAt > now, response=null) | count | „Nieodebrane zaproszenia" | `/sparings?tab=invitations` |
 | 4 | sparingi+eventy w najbliższych 7d dla klubu (user lub ACCEPTED) | count | „Wydarzenia w tym tygodniu" | `/calendar?range=week` |
 | 5 | RecruitmentTarget bez RecruitmentEvent w ostatnich 14d, stage ≠ (SIGNED, ARCHIVED) | count | „Kandydaci bez ruchu >14 dni" | `/recruitment?filter=stale` |
 
@@ -174,7 +174,16 @@ obok istniejących prefetchów. Dzięki temu digest ładuje się równolegle z f
 - **Error:** karta nie renderuje się (silent fail — digest jest enhancement, nie blocker). `console.error("[digest] fetch failed", err)` do logów.
 - **totalCount === 0:** karta nie renderuje się.
 
-### 4.6. Mobile treatment
+### 4.6. i18n key convention
+
+Serwer zwraca `labelKey` (nie pre-translated string). Klucze używają stabilnego schematu:
+- `digest.row.{role}.{rowKey}` — np. `digest.row.club.pendingSparingApplications`, `digest.row.player.myApplicationsInProgress`, `digest.row.coach.trainingApplications`.
+- `digest.header.title` = „Twój status"
+- `digest.header.updatedNow` = „zaktualizowano teraz"
+
+`rowKey` jest tym samym identyfikatorem co `key` w `DigestResponse.rows` (§4.4) — jedno źródło prawdy dla testów, a11y (`data-testid={key}`) i i18n.
+
+### 4.7. Mobile treatment
 
 - Karta używa pełnej szerokości głównej kolumny (już `min-w-0 flex-1` w `feed-client.tsx`).
 - Labels dłuższe → `truncate` (label ma `flex-1`, liczba + ikona + chevron są shrink-0).
@@ -201,7 +210,7 @@ obok istniejących prefetchów. Dzięki temu digest ładuje się równolegle z f
 | `src/app/(dashboard)/feed/page.tsx` | Dodać `void trpc.digest.get.prefetch();`. |
 | `src/app/(dashboard)/feed/feed-client.tsx` | Import `DigestCard`, render nad `DashboardStatsWidget`, pod H1, pod `showOnboarding` check. |
 | `src/lib/trpc-react.ts` | Dodać `invalidateDigest()` helper. |
-| Mutacje (`sparing.apply`, `sparing.respond`, `event.applyFor`, `event.respondToInvitation`, `event.setAttendance`, `sparing.invite.respond`, `recruitment.updateStage`, `message.send`) | W `onSuccess` / `utils` dodać `invalidateDigest()`. |
+| Mutacje zmieniające liczniki: `sparing.applyFor`, `sparing.respond`, `event.applyFor`, `event.respondToInvitation`, `event.setAttendance`, `sparing.invite.respond`, `recruitment.updateStage`, `message.send` (**dokładne nazwy do zweryfikowania w `src/server/trpc/router.ts` podczas planowania — `apply` jest reserved word, stąd `applyFor`, decyzja #6 w STATE.md**) | W `onSuccess` / `utils` dodać `invalidateDigest()`. |
 | `src/lib/translations.ts` | Nowe klucze: `"Twój status"`, `"zaktualizowano teraz"`, wszystkie labels z content matrix. |
 
 ## 6. Routing fallback (§4.3)
