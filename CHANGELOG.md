@@ -1539,7 +1539,7 @@ Wszystkie 9 param-hrefs → Bucket B (silent ignore, poprawna lista rodzic). Bra
 - tsc: 0 errors
 - lint: skipped (`next lint` broken w Next.js 16, pre-existing baseline)
 
-### Backlog digest links — 5 z 9 zamknięte
+### Backlog digest links — 8 z 9 zamknięte
 URL query handlers dla linków z `DigestCard` (rows #10, #11, #12, #13, #17 z STATE.md).
 
 - `/sparings?tab=applications|invitations` (#10, #11): `sparings-client` czyta URL,
@@ -1550,14 +1550,23 @@ URL query handlers dla linków z `DigestCard` (rows #10, #11, #12, #13, #17 z ST
 - `/notifications?filter=invitations` (#17): client-side filter na typach
   CLUB_INVITATION / SPARING_INVITATION / MEMBERSHIP_REQUEST + banner z
   linkiem „pokaż wszystkie".
+- `/events?filter=pending-attendance` (#9): filter search tab do
+  RECRUITMENT / TRYOUT / CONTINUOUS_RECRUITMENT w najbliższych 48h
+  + filter-active banner z linkiem „wyczyść".
+- `/events?filter=recommended` (#15): filter dla PLAYER — RECRUITMENT
+  types z regionu zawodnika + upcoming only.
+- `/events?tab=my-applications` (#14): nowy `MyApplicationsTab` dla PLAYER
+  używa `event.myApplications` z status badges per aplikacja.
 
-Pozostałe 4 (#9 events pending-attendance, #14 events my-applications,
-#15 events recommended, #16 trainings applications) wymagają nowych
-server endpoints lub nowych zakładek — out of scope dla tego fix-packa.
+Pozostałe 1 (#16 `/trainings?tab=applications` dla COACH) wymaga nowego
+endpointa `event.applicationsForCoachTrainings` i tabu na /trainings —
+niezależna feature, out of scope.
 
 ### Commits (Etap 55)
 - `b7ef2fa` refactor(digest): tighten types, drop generatedAt
 - `3a508ed` feat(sparing): inline quick-apply on card
 - `31ffb48` chore(design): align brand gradients with DESIGN.md
 - `41134e1` docs: update STATE and CHANGELOG
-- `59ef36b` feat(digest): URL query handlers for digest links
+- `59ef36b` feat(digest): URL query handlers for digest links (5/9)
+- `0d7e880` docs: close 5 digest rows
+- `362ff4f` feat(events): URL handlers pending-attendance + recommended + my-applications

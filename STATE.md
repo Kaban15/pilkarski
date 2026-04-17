@@ -313,14 +313,14 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | ~~6~~ | ~~2 testy w `e2e/auth.spec.ts` failing (outdated: h1 "Feed"→"Pulpit" po Etap 47, `tab`→`button` role selector)~~ | ~~✅ Naprawione (Etap 52)~~ |
 | ~~7~~ | ~~14 E2E testów failing (pre-existing, odblokowane po fix middleware)~~ | ~~✅ Naprawione w większości (Etap 53) — 43/47 pass (91.4%), pozostałe 2: complete sparing flow + onboarding step re-mount (`test.skip`)~~ |
 | 8 | E2E: `sparing-advanced.spec:65` "club A accepts and completes" — complete sparing flow (`Oznacz jako zakończony` button) nie wykonuje się w teście. Do sprawdzenia czy to bug w teście czy w UI. | Low |
-| 9 | Filtr `?filter=pending-attendance` na `/events` — brak handlera, digest linkuje do pełnej listy zamiast zgłoszeń czekających na potwierdzenie obecności (wymaga cross-joina applications+events po stronie serwera) | Low |
+| ~~9~~ | ~~Filtr `?filter=pending-attendance` na `/events`~~ | ~~✅ Etap 55 — filter search tab do RECRUITMENT/TRYOUT/CONTINUOUS_RECRUITMENT w 48h~~ |
 | ~~10~~ | ~~Tab `?tab=applications` na `/sparings`~~ | ~~✅ Etap 55 — URL handler otwiera „Moje sparingi"~~ |
 | ~~11~~ | ~~Tab `?tab=invitations` na `/sparings`~~ | ~~✅ Etap 55 — URL handler otwiera „Moje sparingi"~~ |
 | ~~12~~ | ~~Zakres `?range=week` na `/calendar`~~ | ~~✅ Etap 55 — switch do list view + week date range~~ |
 | ~~13~~ | ~~Filtr `?filter=stale` na `/recruitment`~~ | ~~✅ Etap 55 — client-side filter entries `updatedAt >14d`~~ |
-| 14 | Tab `?tab=my-applications` na `/events` — zakładka nie istnieje dla PLAYER, digest linkuje zawodnika do wyszukiwarki zamiast jego aplikacji (wymaga nowego tab + server query) | Low |
-| 15 | Filtr `?filter=recommended` na `/events` — brak zakładki/filtra „polecane", digest linkuje zawodnika do pełnej listy zamiast naborów dopasowanych do profilu (wymaga server-side recommendation query) | Low |
-| 16 | Tab `?tab=applications` na `/trainings` — zakładki to `trainings`/`coaches` (brak `applications`), digest linkuje trenera do listy treningów zamiast zgłoszeń na jego treningi (wymaga nowego endpointa + tab) | Low |
+| ~~14~~ | ~~Tab `?tab=my-applications` na `/events`~~ | ~~✅ Etap 55 — nowy `MyApplicationsTab` dla PLAYER z `event.myApplications`~~ |
+| ~~15~~ | ~~Filtr `?filter=recommended` na `/events`~~ | ~~✅ Etap 55 — filter RECRUITMENT + player's region + upcoming~~ |
+| 16 | Tab `?tab=applications` na `/trainings` — digest linkuje trenera do listy treningów zamiast zgłoszeń (wymaga `event.applicationsForCoachTrainings` endpoint + nowy tab — niezależna feature) | Low |
 | ~~17~~ | ~~Filtr `?filter=invitations` na `/notifications`~~ | ~~✅ Etap 55 — client-side filter na typach CLUB_INVITATION/SPARING_INVITATION/MEMBERSHIP_REQUEST~~ |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
