@@ -18,11 +18,13 @@ export function ProfileMessageButton({ recipientUserId }: ProfileMessageButtonPr
   const { t } = useI18n();
   const { data: session, status } = useSession();
   const router = useRouter();
+  const utils = api.useUtils();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
 
   const send = api.message.send.useMutation({
     onSuccess: (result) => {
+      utils.digest.get.invalidate();
       router.push(`/messages/${result.conversationId}`);
     },
     onError: (err) => {

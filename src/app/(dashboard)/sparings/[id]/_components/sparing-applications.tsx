@@ -26,8 +26,10 @@ export function SparingApplications({
   onResponded,
 }: SparingApplicationsProps) {
   const { t } = useI18n();
+  const utils = api.useUtils();
   const respondMutation = api.sparing.respond.useMutation({
     onSuccess: (_data, variables) => {
+      utils.digest.get.invalidate();
       toast.success(
         variables.status === "ACCEPTED"
           ? t("Zgłoszenie zaakceptowane")

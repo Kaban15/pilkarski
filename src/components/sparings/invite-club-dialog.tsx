@@ -100,6 +100,7 @@ export function InviteClubDialog({ sparingOfferId }: InviteClubDialogProps) {
       setLeagueLevelId(null);
       setLeagueGroupId(null);
       utils.sparing.myInvitations.invalidate();
+      utils.digest.get.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -387,6 +388,7 @@ export function ReceivedInvitations({ sparingOfferId }: { sparingOfferId: string
       toast.success(result.accepted ? t("Zaproszenie zaakceptowane!") : t("Zaproszenie odrzucone"));
       utils.sparing.myInvitations.invalidate();
       utils.sparing.getById.invalidate();
+      utils.digest.get.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });

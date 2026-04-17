@@ -32,6 +32,7 @@ export default function ConversationPage() {
   const { t } = useI18n();
   const { conversationId } = useParams<{ conversationId: string }>();
   const router = useRouter();
+  const utils = api.useUtils();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [otherUserName, setOtherUserName] = useState("");
@@ -48,7 +49,11 @@ export default function ConversationPage() {
     }
   );
 
-  const markAsReadMut = api.message.markAsRead.useMutation();
+  const markAsReadMut = api.message.markAsRead.useMutation({
+    onSuccess: () => {
+      utils.digest.get.invalidate();
+    },
+  });
 
   const { data: convs } = api.message.getConversations.useQuery(undefined, {
     enabled: !!conversationId,
@@ -123,6 +128,7 @@ export default function ConversationPage() {
         event: "new_message",
         payload: result.message,
       });
+      utils.digest.get.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });

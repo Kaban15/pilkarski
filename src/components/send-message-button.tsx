@@ -15,11 +15,13 @@ interface SendMessageButtonProps {
 export function SendMessageButton({ recipientUserId }: SendMessageButtonProps) {
   const { t } = useI18n();
   const router = useRouter();
+  const utils = api.useUtils();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
 
   const send = api.message.send.useMutation({
     onSuccess: (result) => {
+      utils.digest.get.invalidate();
       router.push(`/messages/${result.conversationId}`);
     },
     onError: (err) => {

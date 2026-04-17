@@ -365,6 +365,7 @@ export default function RecruitmentPage() {
   function invalidatePipeline() {
     utils.recruitment.myPipeline.invalidate();
     utils.recruitment.stats.invalidate();
+    utils.digest.get.invalidate();
   }
 
   const updateStageOrderMut = api.recruitment.updateStageAndOrder.useMutation({

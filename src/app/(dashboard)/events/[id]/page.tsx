@@ -66,6 +66,7 @@ export default function EventDetailPage() {
   const attendanceMut = api.event.setAttendance.useMutation({
     onSuccess: () => {
       utils.event.getById.invalidate({ id });
+      utils.digest.get.invalidate();
       toast.success(t("Obecność zaktualizowana"));
     },
     onError: (err: { message: string }) => toast.error(err.message),
@@ -80,6 +81,7 @@ export default function EventDetailPage() {
     onSuccess: () => {
       setJustApplied(true);
       utils.event.getById.invalidate({ id });
+      utils.digest.get.invalidate();
       setMessage("");
       toast.success(t("Zgłoszenie wysłane"));
     },
@@ -89,6 +91,7 @@ export default function EventDetailPage() {
   const respondMut = api.event.respond.useMutation({
     onSuccess: (_, variables) => {
       utils.event.getById.invalidate({ id });
+      utils.digest.get.invalidate();
       toast.success(variables.status === "ACCEPTED" ? t("Zgłoszenie zaakceptowane") : t("Zgłoszenie odrzucone"));
     },
     onError: (err) => toast.error(err.message),

@@ -18,6 +18,7 @@ interface AttendanceSectionProps {
 
 export function AttendanceSection({ eventId, isClubMember, isAdmin }: AttendanceSectionProps) {
   const { t } = useI18n();
+  const utils = api.useUtils();
   const { data, refetch } = api.event.getAttendance.useQuery(
     { eventId },
     { enabled: isClubMember }
@@ -25,6 +26,7 @@ export function AttendanceSection({ eventId, isClubMember, isAdmin }: Attendance
 
   const setAttendance = api.event.setAttendance.useMutation({
     onSuccess: () => {
+      utils.digest.get.invalidate();
       toast.success(t("Obecność zapisana"));
       refetch();
     },

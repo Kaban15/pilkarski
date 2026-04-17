@@ -30,6 +30,7 @@ export function ApplyForm({
   onApplied,
 }: ApplyFormProps) {
   const { t } = useI18n();
+  const utils = api.useUtils();
   const [message, setMessage] = useState("");
   const [counterDate, setCounterDate] = useState("");
   const [showCounterDate, setShowCounterDate] = useState(false);
@@ -37,6 +38,7 @@ export function ApplyForm({
 
   const applyMutation = api.sparing.applyFor.useMutation({
     onSuccess: () => {
+      utils.digest.get.invalidate();
       setMessage("");
       setCounterDate("");
       toast.success(
