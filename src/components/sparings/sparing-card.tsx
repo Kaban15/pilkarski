@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/trpc-react";
 import { formatDate } from "@/lib/format";
 import {
   SPARING_LEVEL_LABELS,
   SPARING_LEVEL_COLORS,
   AGE_CATEGORY_LABELS,
   PITCH_STATUS_LABELS,
+  APPLICATION_STATUS_LABELS,
 } from "@/lib/labels";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/favorite-button";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Send, Check } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 
 export type SparingCardItem = {
@@ -50,18 +55,41 @@ function getCountdown(dateStr: string | Date): string | null {
 
 const crestSlotClass = "flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-muted to-secondary border border-primary/15";
 
+export type QuickApplyState = {
+  existingStatus: string | null;
+  isOwn: boolean;
+};
+
 export function SparingCard({
   sparing,
   favorited,
   showFavorite = true,
+  quickApply,
 }: {
   sparing: SparingCardItem;
   favorited?: boolean;
   showFavorite?: boolean;
+  quickApply?: QuickApplyState;
 }) {
   const { t } = useI18n();
+  const utils = api.useUtils();
+  const [localStatus, setLocalStatus] = useState<string | null>(quickApply?.existingStatus ?? null);
+  const applyMutation = api.sparing.applyFor.useMutation({
+    onSuccess: () => {
+      setLocalStatus("PENDING");
+      toast.success(t("Zgłoszenie wysłane"));
+      utils.digest.get.invalidate();
+      utils.sparing.checkApplications.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
   const countdown = getCountdown(sparing.matchDate);
   const isUrgent = countdown !== null && (countdown === "za chwilę" || countdown.endsWith("h"));
+  const canQuickApply =
+    !!quickApply &&
+    !quickApply.isOwn &&
+    localStatus === null &&
+    sparing.status === "OPEN";
 
   return (
     <Link href={`/sparings/${sparing.id}`} className="group block">
@@ -155,6 +183,33 @@ export function SparingCard({
             </span>
           )}
         </div>
+
+        {quickApply && !quickApply.isOwn && sparing.status === "OPEN" && (
+          <div className="mt-3 flex items-center justify-end" onClick={(e) => e.preventDefault()}>
+            {canQuickApply ? (
+              <Button
+                size="sm"
+                variant="default"
+                disabled={applyMutation.isPending}
+                onClick={() => applyMutation.mutate({ sparingOfferId: sparing.id })}
+                data-testid="quick-apply-button"
+                className="h-8 gap-1.5"
+              >
+                <Send className="h-3.5 w-3.5" />
+                {applyMutation.isPending ? t("Wysyłanie...") : t("Aplikuj")}
+              </Button>
+            ) : (
+              <Badge
+                variant="secondary"
+                data-testid="quick-apply-status"
+                className="gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              >
+                <Check className="h-3 w-3" />
+                {t(APPLICATION_STATUS_LABELS[localStatus ?? "PENDING"] ?? "Wysłano")}
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );

@@ -118,6 +118,8 @@ export default function SparingsClient() {
 
 function SearchTab() {
   const { t } = useI18n();
+  const { data: session } = useSession();
+  const isClubViewer = session?.user?.role === "CLUB";
   const [regionId, setRegionId] = useState<string>("");
   const [cityInput, setCityInput] = useState("");
   const [city, setCity] = useState("");
@@ -162,6 +164,13 @@ function SearchTab() {
     { enabled: itemIds.length > 0 },
   );
   const favoritedIds = new Set(favIds ?? []);
+
+  const { data: applyCheck } = api.sparing.checkApplications.useQuery(
+    { sparingOfferIds: itemIds },
+    { enabled: isClubViewer && itemIds.length > 0, staleTime: 60_000 },
+  );
+  const ownedIdSet = new Set(applyCheck?.ownedIds ?? []);
+  const appliedMap = applyCheck?.applied ?? {};
 
   const hasActiveFilters = cityInput || dateFrom || dateTo || levelFilter || ageCategoryFilter;
 
@@ -322,7 +331,19 @@ function SearchTab() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map((s) => (
-            <SparingCard key={s.id} sparing={s} favorited={favoritedIds.has(s.id)} />
+            <SparingCard
+              key={s.id}
+              sparing={s}
+              favorited={favoritedIds.has(s.id)}
+              quickApply={
+                isClubViewer
+                  ? {
+                      existingStatus: appliedMap[s.id] ?? null,
+                      isOwn: ownedIdSet.has(s.id),
+                    }
+                  : undefined
+              }
+            />
           ))}
           {isFetchingNextPage && (
             <>

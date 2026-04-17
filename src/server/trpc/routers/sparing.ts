@@ -168,6 +168,38 @@ export const sparingRouter = router({
       return { items, nextCursor };
     }),
 
+  // Bulk check viewer's application state for a list of sparing offers (CLUB viewer)
+  checkApplications: protectedProcedure
+    .input(z.object({ sparingOfferIds: z.array(z.string().uuid()).max(50) }))
+    .query(async ({ ctx, input }) => {
+      if (input.sparingOfferIds.length === 0) {
+        return { applied: {} as Record<string, string>, ownedIds: [] as string[], ownClubId: null as string | null };
+      }
+      const club = await ctx.db.club.findUnique({
+        where: { userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      if (!club) {
+        return { applied: {} as Record<string, string>, ownedIds: [] as string[], ownClubId: null };
+      }
+      const [apps, owned] = await Promise.all([
+        ctx.db.sparingApplication.findMany({
+          where: {
+            applicantClubId: club.id,
+            sparingOfferId: { in: input.sparingOfferIds },
+          },
+          select: { sparingOfferId: true, status: true },
+        }),
+        ctx.db.sparingOffer.findMany({
+          where: { id: { in: input.sparingOfferIds }, clubId: club.id },
+          select: { id: true },
+        }),
+      ]);
+      const applied: Record<string, string> = {};
+      for (const a of apps) applied[a.sparingOfferId] = a.status;
+      return { applied, ownedIds: owned.map((o) => o.id), ownClubId: club.id };
+    }),
+
   // Get single sparing with applications (applications filtered by auth)
   getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
