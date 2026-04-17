@@ -22,6 +22,7 @@ import { coachRouter } from "./routers/coach";
 import { clubMembershipRouter } from "./routers/club-membership";
 import { teamLineupRouter } from "./routers/team-lineup";
 import { tournamentRouter } from "./routers/tournament";
+import { digestRouter } from "./routers/digest";
 import { adminRouter } from "./routers/admin";
 
 export const appRouter = router({
@@ -48,6 +49,7 @@ export const appRouter = router({
   clubMembership: clubMembershipRouter,
   teamLineup: teamLineupRouter,
   tournament: tournamentRouter,
+  digest: digestRouter,
   admin: adminRouter,
 });
 
