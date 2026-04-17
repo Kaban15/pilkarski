@@ -320,7 +320,7 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | ~~13~~ | ~~Filtr `?filter=stale` na `/recruitment`~~ | ~~✅ Etap 55 — client-side filter entries `updatedAt >14d`~~ |
 | ~~14~~ | ~~Tab `?tab=my-applications` na `/events`~~ | ~~✅ Etap 55 — nowy `MyApplicationsTab` dla PLAYER z `event.myApplications`~~ |
 | ~~15~~ | ~~Filtr `?filter=recommended` na `/events`~~ | ~~✅ Etap 55 — filter RECRUITMENT + player's region + upcoming~~ |
-| 16 | Tab `?tab=applications` na `/trainings` — digest linkuje trenera do listy treningów zamiast zgłoszeń (wymaga `event.applicationsForCoachTrainings` endpoint + nowy tab — niezależna feature) | Low |
+| ~~16~~ | ~~Tab `?tab=applications` na `/trainings`~~ | ~~✅ Etap 55 — nowy endpoint `event.myCoachTrainings` + tab „Zgłoszenia" dla COACH~~ |
 | ~~17~~ | ~~Filtr `?filter=invitations` na `/notifications`~~ | ~~✅ Etap 55 — client-side filter na typach CLUB_INVITATION/SPARING_INVITATION/MEMBERSHIP_REQUEST~~ |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |

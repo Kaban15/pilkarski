@@ -1539,7 +1539,7 @@ Wszystkie 9 param-hrefs → Bucket B (silent ignore, poprawna lista rodzic). Bra
 - tsc: 0 errors
 - lint: skipped (`next lint` broken w Next.js 16, pre-existing baseline)
 
-### Backlog digest links — 8 z 9 zamknięte
+### Backlog digest links — 9/9 zamknięte ✅
 URL query handlers dla linków z `DigestCard` (rows #10, #11, #12, #13, #17 z STATE.md).
 
 - `/sparings?tab=applications|invitations` (#10, #11): `sparings-client` czyta URL,
@@ -1558,9 +1558,9 @@ URL query handlers dla linków z `DigestCard` (rows #10, #11, #12, #13, #17 z ST
 - `/events?tab=my-applications` (#14): nowy `MyApplicationsTab` dla PLAYER
   używa `event.myApplications` z status badges per aplikacja.
 
-Pozostałe 1 (#16 `/trainings?tab=applications` dla COACH) wymaga nowego
-endpointa `event.applicationsForCoachTrainings` i tabu na /trainings —
-niezależna feature, out of scope.
+- `/trainings?tab=applications` (#16): nowy endpoint `event.myCoachTrainings`
+  zwraca eventy (INDIVIDUAL/GROUP_TRAINING) z `coachId = session.coach.id`
+  + `_count.applications`. Nowy tab „Zgłoszenia" widoczny tylko dla COACH.
 
 ### Commits (Etap 55)
 - `b7ef2fa` refactor(digest): tighten types, drop generatedAt
@@ -1570,3 +1570,5 @@ niezależna feature, out of scope.
 - `59ef36b` feat(digest): URL query handlers for digest links (5/9)
 - `0d7e880` docs: close 5 digest rows
 - `362ff4f` feat(events): URL handlers pending-attendance + recommended + my-applications
+- `367cdb7` docs: close 3 more rows
+- `46f6c0b` feat(trainings): 'Zgłoszenia' tab for COACH (#16)
