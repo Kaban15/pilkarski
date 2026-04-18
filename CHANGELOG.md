@@ -2155,3 +2155,218 @@ behavior. Compiler wykonuje optymalizacje niezależnie.
 ### Pliki zmienione
 - `next.config.ts`
 - `package.json` + `package-lock.json`
+
+---
+
+## Etap 74 — Landing polish + pełny QA pass (2026-04-18)
+
+### Cel
+Pre-launch landing hardening (FB-traffic-friendly gateway dla zimnego
+clicku z grup na FB) + full-regression QA pass na wszystkich E2E +
+unit testach, z identyfikacją pre-existing bugów do fixu
+w kolejnej sesji.
+
+Kontekst sesji (grill-me + brainstorming): GTM = posty w grupach FB,
+brak osobnego marketing site, user traktuje `/` jako jedyny gateway.
+Priorytet: „platforma działa zgodnie z zamysłem" (Workstream A —
+QA pass) równolegle z „FB-traffic-friendly gateway"
+(Workstream B — landing).
+
+### Zmiany — Landing (`src/app/page.tsx`)
+
+#### Problem (audyt pre-existing stanu)
+Przed Etap 74 landing miał **3 blocker'y dla cold FB traffic**:
+
+1. **Social proof counters 0/0/0 anti-trust signal**
+   `db.club.count() + db.sparingOffer.count() + db.event.count()`
+   — pre-launch wszystkie zwracały 0. Pokazanie „0 klubów"
+   na landingu = natychmiastowy bounce („platforma jest pusta").
+
+2. **RotatingHeadline gimmick zabijał clarity value propu**
+   Headline rotował co 3.2s między 4 persona-specific wariantami
+   („Umów sparing / Znajdź klub / Prowadź nabory / Trenuj z
+   trenerem"). Zimny user z FB ma ~3s decision window —
+   potrzebuje STATIC + konkretnej oferty, nie animacji.
+
+3. **6 akcentów kolorystycznych → wizualny chaos**
+   FEATURES (4): violet/sky/emerald/amber. Role cards (3):
+   emerald/violet/sky. Razem 6 unikalnych kolorów w 7 komponentach
+   na jednym page. Widoczne jako „rainbow AI-slop"
+   zamiast designed brand identity. Spoglo (konkurent) używa
+   **jednego akcentu** (violet) — i dlatego wygląda profesjonalnie.
+
+#### Usunięte
+- `<RotatingHeadline />` w `page.tsx`.
+- `src/components/landing/rotating-headline.tsx` — orphan po zmianie
+  (grep confirmed: używany wyłącznie w `page.tsx`).
+- Unused lucide imports: `Trophy`, `ChevronRight`, `Globe` (imported
+  ale nie renderowane).
+- Tablica `ACCENT_STYLES` z 4 wariantami (violet/sky/emerald/amber).
+- Pole `accent` w obiektach `FEATURES`.
+- Per-role color fields w role cards:
+  `hoverBorder/iconBg/iconText/bulletText/ctaText`.
+
+#### Dodane / zmienione
+- **Static h1** zastępujący rotating:
+  ```tsx
+  <h1>
+    Sparingi, nabory i rekrutacja —{" "}
+    <span className="bg-gradient-to-r from-violet-400 to-orange-400
+                     bg-clip-text text-transparent">
+      dla klubów piłkarskich
+    </span>
+  </h1>
+  ```
+  Gradient violet→orange tylko na frazie kluczowej (brand touch),
+  reszta statyczna, accessible, crawler-friendly.
+- **DB queries: catalog zamiast user-generated:**
+  ```ts
+  db.region.count()       // 16  (PZPN województwa)
+  db.leagueLevel.count()  // 69  (szczeble rozgrywkowe)
+  db.leagueGroup.count()  // 397 (grupy ligowe sezon 2024/25)
+  ```
+  Wszystko z seed'u (Etap 3). Transparent, nie kłamie, pozytywny
+  sygnał „mamy kompletną bazę polskiej piłki".
+  Stats labels: „klubów/sparingów/wydarzeń" →
+  „regionów PZPN/szczebli rozgrywek/grup ligowych".
+- **Subhead copy tightening:**
+  „Darmowa platforma dla klubów piłkarskich i zawodników. /
+  Sparingi, nabory, treningi — bez telefonów i maili."
+  → „Darmowa platforma dla klubów, zawodników i trenerów. / Znajdź
+  rywala, zorganizuj nabór, prowadź rekrutację — bez telefonów
+  i maili." (3 role explicit, czasowniki w 1. os.)
+- **Accent unification:**
+  FEATURES — wszystkie 4 karty violet (dot, icon, hover border).
+  Role cards — wszystkie 3 role violet (iconBg, iconText,
+  bulletText, ctaText).
+  Orange pozostaje **tylko** w: (a) main CTA gradient
+  violet→orange, (b) embedded screenshot `LandingHeroPreview`
+  (nie ruszany — screenshot app jest semantic).
+
+### QA pass — results
+
+**Metoda:** uruchomienie całego existing test suite — Vitest + all
+Playwright specs. Cel: inventory stanu przed launch.
+
+**Total: 152/156 pass (97.4%), 1 skip, 4 fail.**
+
+#### Zielone (152 / 156)
+- **Unit (Vitest):** 103/103 pass (16 plików: notification-groups,
+  email-throttle, gamification, email-template, file-validation,
+  reputation, tournament-logic, format, activity-utils, digest,
+  award-points, is-club-member, form-errors, validators-profile,
+  routers/digest, routers/auth).
+- **E2E (Playwright chromium):** 49/53 pass (exec pojedynczo:
+  auth 5/5, onboarding 4/5 incl. 1 planned skip, sparing 4/4,
+  sparing-advanced 4/4, messages 4/4, community 3/3, event 4/4,
+  notifications 2/2, public-profiles 3/3, coach 4/4,
+  digest-urls 3/3, recruitment-board 4/4, dashboard-sections 3/5,
+  digest 1/2).
+
+#### Czerwone (4) — wszystkie pre-existing w HEAD przed Etap 74
+| Test | Symptom | Hipoteza root cause |
+|---|---|---|
+| `quick-apply.spec.ts:12` | `locator.click: Test timeout of 60000ms exceeded` — click na inline „Aplikuj" button wewnątrz `SparingCard` | **Etap 72 (img→Image) cicho zepsuł** — weryfikacja Etap 72 testowała tylko `sparing-advanced + digest-urls`, pominęła `quick-apply`. Prawdop. interakcja Next.js `<Image>` layout/load + `transition-all` hover na wrapper card + Playwright stability check pętli retry'ów. |
+| `dashboard-sections.spec.ts:60` | `toBeVisible fail — element(s) not found` — position filter pills niewidoczne w `PlayersSection` | Prawdop. selektor testowy nieaktualny po refaktorze sekcji (Etap 51 — `SectionNav + 5 sekcji`). Fix = aktualizacja selektora, nie kodu. |
+| `dashboard-sections.spec.ts:74` | `toBeVisible fail` — `SectionNavMobile` pill bar niewidoczny na mobile viewport | j.w. — mobile variant tego samego refaktoru. |
+| `digest.spec.ts:44` | click timeout — CLUB pending application digest row click → expected nawigacja | **Ta sama klasa problemu co #19** (click w karcie z Link + Image + transitions). Fix dla quick-apply prawdop. naprawi przy okazji. |
+
+#### Próby fixa quick-apply (wszystkie cofnięte)
+
+**Próba 1** — `stopPropagation + preventDefault` na button `onClick`
+handler (hipoteza: event bubble do Link):
+
+```tsx
+onClick={(e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  applyMutation.mutate({ sparingOfferId: sparing.id });
+}}
+```
+
+Re-run: **nadal click timeout**. Hipoteza była błędna — problem nie
+jest na poziomie event handlingu.
+
+**Próba 2** — hoist button OUT of `<Link>` wrapper, jako sibling
+w outer div `position:relative` z `absolute bottom-5 right-5 z-10`:
+
+```tsx
+<div className="group relative block">
+  <Link href={...} className="block h-full ...">
+    {/* card content + reserved space placeholder */}
+  </Link>
+  {quickApply && (
+    <div className="absolute bottom-5 right-5 z-10">
+      <Button onClick={...} />
+    </div>
+  )}
+</div>
+```
+
+Re-run: **nadal click timeout**. Dodatkowo wprowadziło przejściowy
+parse error (window between Edit #1 structural + Edit #2 action
+hoist) — podczas którego background task uruchomił
+`digest.spec.ts` na broken state i wynik był fałszywie-negatywny.
+
+**Revert:**
+```bash
+git checkout HEAD -- src/components/sparings/sparing-card.tsx
+```
+File wrócił do stanu po Etap 72.
+
+**Wniosek:** bez Playwright trace zgadywanie root cause nie
+działa. Kolejne próby bez dowodów = marnowanie czasu.
+
+#### Rekomendacja dla następnej sesji (w STATE.md TODO)
+
+```bash
+npx playwright test --trace on --headed e2e/quick-apply.spec.ts
+npx playwright show-trace test-results/.../trace.zip
+```
+
+Trace pokaże:
+- Czy `elementFromPoint` w click position zwraca inny element niż
+  button (overlay, Link, Image loading placeholder)
+- Czy element jest unstable (animation frames — `transition-all`
+  trigger on hover)
+- Czy `<Image>` wprowadza layout shift podczas load'u
+- Czy Next.js Link prefetch interferuje
+
+### Weryfikacja
+
+- `npx tsc --noEmit`: 0 errors (po każdym kroku — landing edits +
+  sparing-card edits i po revert).
+- `npx eslint src/app/page.tsx`: clean (0 errors/warnings po
+  usunięciu unused imports).
+- `npx vitest run`: 103/103 pass.
+- `npx playwright test` (pełny suite): 49/53 pass, 1 skip, 4 fail
+  (szczegóły powyżej).
+- `git diff --stat`: `.claude/settings.local.json` (tylko uprawnienia
+  narzędzi, nie kod produkcyjny).
+
+### Pliki zmienione (commit `e1e2ca4`)
+
+**Commit message:**
+```
+feat(landing): remove counter 0/0/0 + unify accent + static hero
+
+Pre-launch landing hardening for cold FB traffic:
+- Replace <RotatingHeadline /> with static h1 (value prop clarity over gimmick)
+- Swap user counters (club/sparing/event = 0/0/0 pre-launch) for real ZPN
+  catalog counts (region/leagueLevel/leagueGroup = 16/69/397 from seed)
+- Collapse 6 accent colors (violet/sky/emerald/amber) to 1 (violet),
+  orange reserved for main CTA gradient only
+- Drop unused lucide imports (Trophy, ChevronRight, Globe)
+- Delete orphan rotating-headline.tsx
+```
+
+**Diff:**
+- `src/app/page.tsx`: 34 insertions, 97 deletions (net −63 linii)
+- `src/components/landing/rotating-headline.tsx`: deleted (47 linii)
+
+### Brak zmian w
+
+- `sparing-card.tsx` (próby fixa cofnięte)
+- Prisma schema, migracje, API routes, other components
+- Tests (żadne nie dodane ani nie zmienione)
+- Docs poza STATE.md + CHANGELOG.md

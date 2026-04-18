@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
-**Ostatnia sesja:** 2026-04-17
-**Aktualny etap:** 73 etapów ukończonych
+**Ostatnia sesja:** 2026-04-18
+**Aktualny etap:** 74 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -144,11 +144,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 74 | 2026-04-18 | Landing polish (pre-launch FB-ready) + full QA pass. `page.tsx`: `<RotatingHeadline />` → statyczny h1 z gradientem violet→orange na frazie „dla klubów piłkarskich"; liczniki `club/sparing/event.count()` (pre-launch = 0/0/0 anti-trust signal) → katalog PZPN `region/leagueLevel/leagueGroup.count()` (16/69/397 z seed'u); 6 akcentów (violet/sky/emerald/amber) → 1 (violet), orange tylko na main CTA gradient + screenshot; unused imports (Trophy/ChevronRight/Globe) removed; `rotating-headline.tsx` deleted. Commit `e1e2ca4`, −63 linii. **QA pass:** 152/156 (97.4%), 1 skip, 4 pre-existing E2E fails: `quick-apply.spec.ts:12` (click timeout), `dashboard-sections.spec.ts:60+74` (toBeVisible), `digest.spec.ts:44` (click timeout). Próby fixa quick-apply (stopPropagation + hoist button out of Link) cofnięte — zgadywanie root cause bez Playwright trace. Patrz: **Następna sesja — TODO** + Bugi #19–#22. |
 | 73 | 2026-04-17 | P4 React Compiler enable: `npm i -D babel-plugin-react-compiler@^1.0.0`, `next.config.ts`: `reactCompiler: true` (top-level, Next 16 moved z experimental). Auto-memoization runtime. Eslint disables z Etap 67 zostają — lint rules dalej firingują (compiler-friendly code guidance). Build pass, tsc 0, unit 103/103, E2E 12/12 (auth + sparing-advanced + digest-urls). |
 | 72 | 2026-04-17 | P1 `<img>` → `<Image />` mass refactor: 34 wystąpień w 27 plikach zmigrowane na `next/image`. `next.config.ts`: dodane `images.remotePatterns` dla `*.supabase.co/storage/v1/object/public/**`. Strategia: fixed `h-N w-N` → `<Image width height />` z px; cover-photo `h-full w-full` w relative parent → `fill + sizes`. `image-upload.tsx`: import jako `NextImage` (kolizja z `new Image()` w `compressImage()`). Lint: 35 → 1 warning. Tests: 103/103 unit + 7/7 E2E (sparing-advanced + digest-urls) pass. |
 | 71 | 2026-04-17 | P2 Digest telemetry stub: `trackDigestClick()` w `digest-card.tsx` — `console.info("[digest:click]", {key, role, count, ts})` na click każdego wiersza. Grep-friendly prefix dla future pipeline (Vercel Analytics/własny sink). Brak mutacji kontraktu API, brak testów do zmiany. |
 | 70 | 2026-04-17 | P1 ESLint exhaustive-deps cleanup: 45 → 35 warnings. `messages/[conversationId]/page.tsx` (3× disable z uzasadnieniem TanStack stable mutate + 3× unused disable removed), `recruitment/page.tsx` (entries wrapped w useMemo), `calendar-view.tsx` (useState initializer dla `now`), `use-paginated-list.ts` (destructure `fetchNextPage`), `theme-toggle.tsx` + `i18n.tsx` (unused disables removed). |
-| 69 | 2026-04-17 | Bug #8 fix E2E sparing-advanced: race condition w `club A accepts and completes sparing` — zamiana `getByText("Dopasowany").first()` (timeline label zawsze w DOM) na `expect(completeBtn).toBeVisible()` — button renderuje się dopiero gdy `status=MATCHED`. Przy okazji fix regex `/Dodaj sparing|Dodaj/` → `a[href="/sparings/new"]` (regex matchował "Dodaj do ulubionych"). 4/4 testy pass. |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -273,26 +273,68 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 
 ## Następna sesja — TODO (priority-ordered)
 
-> Sesja 2026-04-17 zamknęła etapy 69–73 (incl. React Compiler
-> enable). Pozostał tylko **D3** z Priority 1 (wymaga UX evidence).
+> Sesja 2026-04-18 zamknęła etap 74 (landing polish + full QA pass).
+> **Odkryte 4 pre-existing E2E failures — Priority 1.**
+> Kontekst: GTM = FB groups, pre-launch, priorytet = „platforma
+> działa zgodnie z zamysłem" (Workstream A) równolegle z
+> „FB-traffic-friendly gateway" (Workstream B — landing ✅ done).
 
 ### ⚠️ Przed startem nowej sesji — status deploy
-- **Migracja prod `add_club_cover_url`:** ✅ zastosowana (2026-04-17
-  13:48 UTC), wpis w `_prisma_migrations` potwierdzony.
-- **Branch `main`:** lokalne commity 69–72, wymaga push.
+- **Migracja prod `add_club_cover_url`:** ✅ zastosowana (2026-04-17).
+- **Branch `main`:** lokalne commity 69–74 (incl. `e1e2ca4` landing
+  fix), wymaga **`git push origin main`**.
 
-### Priority 1 — pick next (rekomendacja)
-1. **D3 Unified sparing flow** (~4h, high-risk) — „szybki sparing" vs
-   3-krokowy wizard = dwa tory z kolizjami. Progressive disclosure
-   w jednym formularzu. **Prerequisite:** UX evidence (analytics,
-   session recordings). Bez evidence → defer.
+### Priority 1 — E2E debug z Playwright trace (~2h)
 
-### Priority 2 — follow-up
-- ~~Digest telemetria~~ — ✅ Etap 71 (stub console.info, czeka na pipeline).
-- Digest telemetry pipeline — spiąć `[digest:click]` logi do Vercel
-  Analytics albo własnego endpointu `/api/telemetry`.
-- ESLint config.mjs warning (`import/no-anonymous-default-export`) —
-  1× pre-existing, assign do var przed eksport.
+**Root cause bez trace'a = zgadywanie. Start w NEXT sesji:**
+
+```bash
+npx playwright test --trace on --headed e2e/quick-apply.spec.ts
+npx playwright show-trace test-results/.../trace.zip
+```
+
+Patrzeć na: `elementFromPoint` przy click, stability check
+(animation frames), `<Image>` load timing, Next.js Link prefetch,
+`transition-all` CSS.
+
+1. **`quick-apply.spec.ts:12`** — click timeout na inline „Aplikuj"
+   button w `SparingCard`. Hipoteza: **Etap 72 (img→Image)**
+   wprowadził regresję niezauważoną (tamta weryfikacja testowała
+   tylko `sparing-advanced+digest-urls`). Pattern: Next.js `<Image>`
+   layout shift + `transition-all` hover + Playwright stability
+   check. **Cofnięte próby fixa:** stopPropagation na button `onClick`
+   (nie zadziałało), hoist button OUT of `<Link>` as sibling w outer
+   div `position:relative` (nie zadziałało, przejściowo rozwalił
+   digest.spec.ts przez compile error w oknie edit-between).
+   **Rekomendacja:** trace first, nie dalsza iteracja na ślepo.
+2. **`digest.spec.ts:44`** — CLUB pending application digest row
+   click timeout. Prawdop. **ta sama klasa problemu co quick-apply**
+   (click w karcie zawierającej Link + Image). Fix quick-apply może
+   naprawić ten test przy okazji.
+3. **`dashboard-sections.spec.ts:60+74`** — `toBeVisible` fail na
+   position filter pills (PlayersSection) + SectionNavMobile pill bar
+   na mobile viewport. Selektory prawdopod. nieaktualne po ostatnim
+   refaktorze sekcji (Etap 51). Naprawić selektory **w teście**,
+   nie w kodzie — jeśli UI faktycznie renderuje element.
+
+### Priority 2 — po fixie P1
+- **D3 Unified sparing flow** (~4h, high-risk) — dwa tory
+  („szybki sparing" vs 3-krokowy wizard) z kolizjami. Progressive
+  disclosure w jednym formularzu. **Prerequisite:** UX evidence
+  (analytics, session recordings). Bez evidence → defer.
+- **Digest telemetry pipeline** — spiąć `[digest:click]` console.info
+  (Etap 71) do Vercel Analytics albo `/api/telemetry`.
+- **ESLint `config.mjs` warning** (`import/no-anonymous-default-export`) —
+  1× pre-existing, assign do var przed export.
+
+### Priority 3 — opcjonalne polish z sesji 2026-04-18
+- **Weryfikacja landing w browserze** — scommitowano `e1e2ca4` bez
+  uruchomienia dev servera. Kontrola: czy gradient violet→orange
+  na h1 nie wygląda za „rainbow"; jeśli tak — zamienić na solid
+  `text-violet-400`.
+- **Copy review** — nowe headline i subhead są generyczne. Po
+  soft-launchu (5-10 klubów) zebrać feedback i doprecyzować value
+  prop pod konkretny painpoint.
 
 ### Priority 3 — audit findings domknięte (dla referencji)
 - ~~**A1** Landing hero product shot~~ — ✅ Etap 57
@@ -334,6 +376,10 @@ e2e/helpers.ts + *.spec.ts        — 7 plików testowych
 | ~~16~~ | ~~Tab `?tab=applications` na `/trainings`~~ | ~~✅ Etap 55 — nowy endpoint `event.myCoachTrainings` + tab „Zgłoszenia" dla COACH~~ |
 | ~~17~~ | ~~Filtr `?filter=invitations` na `/notifications`~~ | ~~✅ Etap 55 — client-side filter na typach CLUB_INVITATION/SPARING_INVITATION/MEMBERSHIP_REQUEST~~ |
 | ~~18~~ | ~~35 ESLint warnings pre-existing (34× `<img>` → `<Image />`)~~ | ~~✅ Etap 72 — 0 img warnings, only 1 pre-existing (eslint.config.mjs anon default)~~ |
+| 19 | E2E `quick-apply.spec.ts:12` click timeout 60s na inline „Aplikuj" button w `SparingCard`. Odkryte w Etap 74 QA pass. Hipoteza: regres z Etap 72 (img→Image). Wymaga Playwright trace. | Średni |
+| 20 | E2E `dashboard-sections.spec.ts:60` — `toBeVisible` fail na position filter pills w `PlayersSection`. Odkryte w Etap 74. Prawdop. stare selektory po refaktorze sekcji (Etap 51). | Niski |
+| 21 | E2E `dashboard-sections.spec.ts:74` — `toBeVisible` fail na `SectionNavMobile` pill bar (mobile viewport). Odkryte w Etap 74. Podobnie jak #20 — prawdop. selektor testowy. | Niski |
+| 22 | E2E `digest.spec.ts:44` click timeout — CLUB pending application digest row nawigacja. Odkryte w Etap 74. Prawdop. **ta sama klasa** co #19 (Link + Image + transition-all). | Średni |
 | ~~2~~ | ~~Upload bez walidacji server-side content-type~~ | ~~✅ Naprawione (Etap 34)~~ |
 | ~~3~~ | ~~Fire-and-forget notifications połykają błędy~~ | ~~✅ Naprawione (Etap 42 — kontekstowe console.error)~~ |
 | ~~4~~ | ~~Brak unit testów (tylko E2E)~~ | ~~✅ Naprawione (Etap 34 — Vitest, 33 testów)~~ |
