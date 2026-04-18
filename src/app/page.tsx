@@ -2,20 +2,16 @@ import { db } from "@/server/db/client";
 import Link from "next/link";
 import {
   Swords,
-  Trophy,
   MessageSquare,
   Users,
   Shield,
   ArrowRight,
-  ChevronRight,
-  Globe,
   Zap,
   Target,
   GraduationCap,
 } from "lucide-react";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { LandingHeroPreview } from "@/components/landing/landing-hero-preview";
-import { RotatingHeadline } from "@/components/landing/rotating-headline";
 
 export const metadata = {
   title: "PilkaSport — Platforma dla klubów i zawodników piłkarskich",
@@ -34,40 +30,29 @@ const FEATURES = [
     icon: Swords,
     title: "Sparingi",
     description: "Dodaj ogłoszenie, odbieraj zgłoszenia, wybierz rywala. Cały proces w jednym miejscu.",
-    accent: "violet",
   },
   {
     icon: Target,
     title: "Nabory i rekrutacja",
     description: "Pipeline rekrutacyjny, zaproszenia na testy, ocena kandydatów — jak w profesjonalnym klubie.",
-    accent: "sky",
   },
   {
     icon: GraduationCap,
     title: "Treningi",
     description: "Katalog trenerów i treningów indywidualnych. Rozwijaj się z najlepszymi w regionie.",
-    accent: "emerald",
   },
   {
     icon: MessageSquare,
     title: "Komunikacja",
     description: "Bezpośredni czat między klubami, zawodnikami i trenerami. Zero maili.",
-    accent: "amber",
   },
 ];
 
-const ACCENT_STYLES: Record<string, { dot: string; icon: string; border: string }> = {
-  violet: { dot: "bg-violet-400", icon: "text-violet-400", border: "group-hover:border-violet-500/30" },
-  sky: { dot: "bg-sky-400", icon: "text-sky-400", border: "group-hover:border-sky-500/30" },
-  emerald: { dot: "bg-emerald-400", icon: "text-emerald-400", border: "group-hover:border-emerald-500/30" },
-  amber: { dot: "bg-amber-400", icon: "text-amber-400", border: "group-hover:border-amber-500/30" },
-};
-
 export default async function LandingPage() {
-  const [clubs, sparings, events] = await Promise.all([
-    db.club.count(),
-    db.sparingOffer.count(),
-    db.event.count(),
+  const [regions, levels, groups] = await Promise.all([
+    db.region.count(),
+    db.leagueLevel.count(),
+    db.leagueGroup.count(),
   ]).catch(() => [0, 0, 0]);
 
   return (
@@ -117,12 +102,17 @@ export default async function LandingPage() {
               Platforma dla polskiego futbolu
             </div>
 
-            <RotatingHeadline />
+            <h1 className="mb-6 text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.08] tracking-tight">
+              Sparingi, nabory i rekrutacja —{" "}
+              <span className="bg-gradient-to-r from-violet-400 to-orange-400 bg-clip-text text-transparent">
+                dla klubów piłkarskich
+              </span>
+            </h1>
 
             <p className="mb-10 text-[15px] leading-relaxed text-white/40 sm:text-base md:text-lg md:leading-relaxed">
-              Darmowa platforma dla klubów piłkarskich i zawodników.
+              Darmowa platforma dla klubów, zawodników i trenerów.
               <br className="hidden sm:block" />
-              Sparingi, nabory, treningi — bez telefonów i maili.
+              Znajdź rywala, zorganizuj nabór, prowadź rekrutację — bez telefonów i maili.
             </p>
 
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -151,9 +141,9 @@ export default async function LandingPage() {
         <section className="border-y border-border">
           <div className="mx-auto flex max-w-6xl items-center justify-center gap-12 px-5 py-8 sm:gap-20 sm:px-8">
             {[
-              { value: String(clubs || "0"), label: "klubów" },
-              { value: String(sparings || "0"), label: "sparingów" },
-              { value: String(events || "0"), label: "wydarzeń" },
+              { value: String(regions || "16"), label: "regionów PZPN" },
+              { value: String(levels || "69"), label: "szczebli rozgrywek" },
+              { value: String(groups || "397"), label: "grup ligowych" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl font-bold tabular-nums tracking-tight text-sport-orange sm:text-4xl">
@@ -181,24 +171,21 @@ export default async function LandingPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            {FEATURES.map((feature) => {
-              const styles = ACCENT_STYLES[feature.accent];
-              return (
-                <div
-                  key={feature.title}
-                  className={`group rounded-xl border border-border bg-white/[0.02] p-6 transition-all hover:bg-white/[0.04] ${styles.border}`}
-                >
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className={`h-2 w-2 rounded-full ${styles.dot}`} />
-                    <feature.icon className={`h-[18px] w-[18px] ${styles.icon}`} />
-                  </div>
-                  <h3 className="mb-2 text-[15px] font-semibold">{feature.title}</h3>
-                  <p className="text-[14px] leading-relaxed text-white/40">
-                    {feature.description}
-                  </p>
+            {FEATURES.map((feature) => (
+              <div
+                key={feature.title}
+                className="group rounded-xl border border-border bg-white/[0.02] p-6 transition-all hover:bg-white/[0.04] group-hover:border-violet-500/30"
+              >
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-violet-400" />
+                  <feature.icon className="h-[18px] w-[18px] text-violet-400" />
                 </div>
-              );
-            })}
+                <h3 className="mb-2 text-[15px] font-semibold">{feature.title}</h3>
+                <p className="text-[14px] leading-relaxed text-white/40">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
           </div>
         </section>
       </ScrollReveal>
@@ -268,39 +255,36 @@ export default async function LandingPage() {
                   Icon: Shield, title: "Dla klubów",
                   items: ["Sparingi — rywale z regionu zgłoszą się sami", "Pipeline rekrutacyjny i nabory online", "Tablica społeczności i wiadomości"],
                   cta: "Zarejestruj klub", extraClass: "",
-                  hoverBorder: "hover:border-emerald-500/20", iconBg: "bg-emerald-500/10", iconText: "text-emerald-400", bulletText: "text-emerald-400/50", ctaText: "text-emerald-400 hover:text-emerald-300",
                 },
                 {
                   Icon: Users, title: "Dla zawodników",
                   items: ["Nabory dopasowane do pozycji i regionu", "Profil zawodnika z historią kariery", "Bezpośredni czat z klubami"],
                   cta: "Dołącz jako zawodnik", extraClass: "",
-                  hoverBorder: "hover:border-violet-500/20", iconBg: "bg-violet-500/10", iconText: "text-violet-400", bulletText: "text-violet-400/50", ctaText: "text-violet-400 hover:text-violet-300",
                 },
                 {
                   Icon: GraduationCap, title: "Dla trenerów",
                   items: ["Profil z licencją i specjalizacją", "Katalog treningów indywidualnych", "Dostęp do naborów i społeczności"],
                   cta: "Dołącz jako trener", extraClass: "sm:col-span-2 lg:col-span-1",
-                  hoverBorder: "hover:border-sky-500/20", iconBg: "bg-sky-500/10", iconText: "text-sky-400", bulletText: "text-sky-400/50", ctaText: "text-sky-400 hover:text-sky-300",
                 },
               ]).map((role) => (
-                <div key={role.title} className={`group rounded-xl border border-border bg-white/[0.02] p-6 transition hover:bg-white/[0.04] ${role.hoverBorder} ${role.extraClass}`}>
+                <div key={role.title} className={`group rounded-xl border border-border bg-white/[0.02] p-6 transition hover:bg-white/[0.04] hover:border-violet-500/20 ${role.extraClass}`}>
                   <div className="mb-5 flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${role.iconBg}`}>
-                      <role.Icon className={`h-4 w-4 ${role.iconText}`} />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
+                      <role.Icon className="h-4 w-4 text-violet-400" />
                     </div>
                     <h3 className="text-[15px] font-semibold">{role.title}</h3>
                   </div>
                   <ul className="space-y-3 text-[14px] text-white/40">
                     {role.items.map((item) => (
                       <li key={item} className="flex items-start gap-2.5">
-                        <Zap className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${role.bulletText}`} />
+                        <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400/50" />
                         {item}
                       </li>
                     ))}
                   </ul>
                   <Link
                     href="/register"
-                    className={`mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold transition ${role.ctaText}`}
+                    className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet-400 transition hover:text-violet-300"
                   >
                     {role.cta}
                     <ArrowRight className="h-3.5 w-3.5" />
