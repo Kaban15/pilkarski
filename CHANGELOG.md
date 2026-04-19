@@ -2446,3 +2446,116 @@ webServer: {
 - **#22 (pozostał): `applyToSparing` helper modal submit flaky** —
   `digest.spec.ts:44` skipped. Przepisać selektory na stable
   `data-testid` po wyjaśnieniu czemu button „not enabled / detached".
+
+---
+
+## Etap 76 — perf diagnosis + 4 fixes (2026-04-19)
+
+### Kontekst
+
+User subiektywnie raportował „lag" na obu środowiskach (lokalne + prod).
+Sesja prowadzona przez brainstorming skill — spec w
+`docs/superpowers/specs/2026-04-19-perf-diagnosis-design.md`, review loop
+passed iteracja 2/3.
+
+### Metodologia — pomiary pierwsze, fixy drugie
+
+Lesson z etapu 74 (fałszywa hipoteza img→Image bez trace'a):
+**żadnego kodu fixa bez danych.** Zbierane przez `curl` TTFB × 3 próbki
+× 14 route'ów × 2 środowiska = baseline w
+`docs/perf-baseline-2026-04-19.md`.
+
+### Znalezione i naprawione (4 różne root cause, nie jeden)
+
+#### Commit `4105d04` — H5 middleware matcher zbyt szeroki
+
+**Root cause:** `matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]`
+łapał wszystko w `/public/` i Next metadata routes — `/regions/*.png`,
+`/robots.txt`, `/manifest.webmanifest`, `/sitemap.xml`, `/icon.svg`,
+`/sw.js` — wymuszając JWT verify na każdym assecie (na Vercel Edge
+~140 ms per request).
+
+**Impact:** Feed renderujący 5-10 RegionLogo PNGs płacił 700-1500 ms
+narzutu tylko na middleware.
+
+**Fix:** rozszerzenie matcher exclusion list.
+
+**Measured:** `/regions/wielkopolski-zpn.png`: 307 (145 ms) → 200
+(0-36 ms z disk cache).
+
+#### Commit `98189ac` — H2.1 hover prefetch input mismatch
+
+**Root cause:** `src/hooks/use-prefetch-route.ts:24`:
+`utils.sparing.list.prefetchInfinite({})` z pustym inputem, ale
+`SparingsClient.tsx:159`: `api.sparing.list.useInfiniteQuery({ status:
+"OPEN", sortBy, sortOrder })` z pełnym input. **Różne TanStack cache
+keys → prefetch nigdy nie reused, query fires dwukrotnie.** Ten sam
+bug dla `/events`.
+
+**Fix:** dopasowanie `prefetchInfinite` do initial input client component
+(sparing: `{ status, sortBy, sortOrder }`, event: `{ sortBy, sortOrder }`).
+Tournament już działało (undefined serializes to {}).
+
+#### Commit `accf2da` — P1 message.unreadCount outlier (7.27 s cold)
+
+**Root cause dwuskładnikowy:**
+1. `src/server/trpc/routers/message.ts:249-268` — 2-step query
+   (`findMany` z `WHERE userId` + `count` z `IN (conversationIds)`).
+   Dwa round-trips + IN na potencjalnie długiej liście.
+2. `ConversationParticipant` PK = `(conversationId, userId)`.
+   PostgreSQL **nie używa PK jako index dla WHERE userId** bez prefix
+   match. **Sequential scan całej tabeli** na pierwszej query.
+
+**Fix:**
+- Merge dwóch queries w jedną `count` z nested `conversation:
+  { participants: { some: { userId } } }` (Prisma generuje EXISTS).
+- `@@index([userId])` na `ConversationParticipant` +
+  migracja `20260419100000_add_conversation_participant_user_id_index`
+  (`CREATE INDEX conversation_participants_user_id_idx`).
+
+**Expected impact:** bell badge (polling 60s, used w sidebar +
+bottom-nav) z 7.27 s cold → ~50-150 ms.
+
+#### Commit `accf2da` — P2 `/api/health` warm-up endpoint
+
+**Root cause:** Supabase Session Pooler (6543) na free tier idle-out.
+Pierwsze query po przerwie = 2-3 s. Vercel Hobby cron = 1×/day, za rzadki.
+
+**Fix:** `src/app/api/health/route.ts` — GET → `SELECT 1` → 200 JSON
+z `{ok,db,ms}`. External uptime monitor (cron-job.org / UptimeRobot
+free tier) konfigurowany na 5-min interval. Pooler stays warm,
+Lambda stays warm.
+
+**Measured:** `/api/health` po deployu: `{"ok":true,"db":"up","ms":616}`.
+Post-fix TTFB: `/feed` warm 295-338 ms (wcześniej cold ~689 ms),
+`/sparings` warm 147-337 ms.
+
+### Manual steps wykonane przez usera
+
+1. ✅ Migracja prod Supabase (`CREATE INDEX
+   conversation_participants_user_id_idx`)
+2. ✅ External cron skonfigurowany (cron-job.org pinguje
+   `/api/health` co 5 min)
+
+### Lessons learned
+
+- **Różne symptomy = różne root cause.** „Wszystko wolne" miało 4
+  niezależne przyczyny. Metoda: pomiar → hipoteza → fix → re-measure
+  dla każdej osobno.
+- **Hover prefetch matching input** to częsty silent bug — łatwy do
+  napisania błędnie (różne cache keys), trudny do zauważenia bez
+  Network tab.
+- **Index na secondary pole composite PK** to standardowy anti-pattern
+  którego Prisma nie wymusza automatycznie.
+- **Vercel Hobby cron limits** trzeba obejść external monitorem —
+  darmowe rozwiązanie istnieje (cron-job.org).
+
+### Nie rozwiązane (backlog)
+
+- **`sparing.list` + `event.list` + `feed.get` cold (2-4 s)** — H1
+  Supabase pooler. Powinno zostać załatwione P2 po ustabilizowaniu
+  cron external pingów. Weryfikacja za 24h.
+- **Outlier `281de1f0-...` 3.60 s (w pomiarze wcześniej)** — nie
+  zidentyfikowany dokładnie, warm potem 200-770 ms. Może być
+  `recruitment.myPipeline` (1.51 s widoczny w drugim pomiarze).
+  Jeśli dalej będzie bolał po P2, follow-up.
