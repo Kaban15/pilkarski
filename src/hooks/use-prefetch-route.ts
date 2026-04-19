@@ -21,15 +21,26 @@ export function usePrefetchRoute() {
           void utils.stats.dashboard.prefetch(undefined);
           break;
         case "/sparings":
-          void utils.sparing.list.prefetchInfinite({});
+          // Match SparingsClient initial input (sparings-client.tsx:133,147-157)
+          void utils.sparing.list.prefetchInfinite({
+            status: "OPEN",
+            sortBy: "matchDate",
+            sortOrder: "asc",
+          });
           break;
         case "/events":
-          void utils.event.list.prefetchInfinite({});
+          // Match EventsPage initial input (events/page.tsx:104-105,123-138)
+          void utils.event.list.prefetchInfinite({
+            sortBy: "eventDate",
+            sortOrder: "asc",
+          });
           break;
         case "/transfers":
           void utils.transfer.list.prefetchInfinite({});
           break;
         case "/tournaments":
+          // Tournaments client uses `{ regionId: undefined, status: undefined }`
+          // which serializes identically to {} for TanStack cache key
           void utils.tournament.list.prefetchInfinite({});
           break;
         case "/messages":
