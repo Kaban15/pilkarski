@@ -9,134 +9,81 @@
 
 ## Co jest zbudowane
 
-### Auth & Role (3 role)
-- Auth.js v5 (credentials, JWT), auto-login po rejestracji
-- Role: CLUB, PLAYER, COACH — rejestracja, profil, dashboard per rola
-- Middleware: `getToken()` Edge-compatible, public prefixes
-- Onboarding: 3-krokowy wizard per rola (club/player/coach)
+> Skrót stanu. Szczegóły implementacyjne (dlaczego, jak) w [CHANGELOG.md](CHANGELOG.md).
 
-### Sparingi (pełny flow)
-- CRUD + aplikacje + kontr-propozycje (COUNTER_PROPOSED) + dopasowanie (MATCHED) + zakończenie (COMPLETED)
-- 3-krokowy wizard tworzenia + tryb "Szybki sparing"
-- Zaproszenia (`SparingInvitation` z expiresAt) — grupowe do 5 klubów na raz
-- Koszty: costPerTeam (tylko info tekstowe, bez śledzenia opłat)
-- **PitchStatus**: WE_HAVE_PITCH / LOOKING_FOR_PITCH / SPLIT_COSTS — select w formularzu, kolorowe badge na kartach
-- Recenzje (rating 1-5, StarRating komponent)
-- "Moje sparingi" z tabs per status
+### Auth, role, onboarding
+- Auth.js v5 (credentials, JWT, auto-login po rejestracji), 3 role: CLUB / PLAYER / COACH
+- Middleware `getToken()` Edge-compatible, public prefixes, matcher wyklucza `/public/*` i Next metadata (etap 76)
+- 3-krokowy wizard onboardingu per rola
 
-### Wydarzenia (7 typów)
-- Typy: OPEN_TRAINING, RECRUITMENT, TRYOUT, CAMP, CONTINUOUS_RECRUITMENT, INDIVIDUAL_TRAINING, GROUP_TRAINING
-- Widoczność: PUBLIC / INTERNAL (tylko kadra)
-- Obecność: YES/NO/MAYBE (AttendanceSection) + **Anty No-Show**: baner 48h dla TRYOUT/RECRUITMENT z ACCEPTED, badge attendance na liście zgłoszeń
-- Smart lokalizacje: auto-ładowanie ostatniej, picker z zapisanymi, edycja inline
-- Delegowanie uprawnień (canManageEvents)
-- COACH tworzy treningi przez klub (membership required)
+### Sparingi
+- Pełny flow: CRUD → aplikacje → kontr-propozycje → MATCHED → COMPLETED
+- 3-krokowy wizard + „Szybki sparing", zaproszenia grupowe (`SparingInvitation`, expiresAt, do 5 klubów)
+- PitchStatus (WE_HAVE_PITCH / LOOKING_FOR_PITCH / SPLIT_COSTS), costPerTeam (info), recenzje 1-5
+
+### Wydarzenia (7 typów: OPEN_TRAINING, RECRUITMENT, TRYOUT, CAMP, CONTINUOUS_RECRUITMENT, INDIVIDUAL_TRAINING, GROUP_TRAINING)
+- Widoczność PUBLIC / INTERNAL, obecność YES/NO/MAYBE + anty no-show (baner 48h + attendance badges)
+- Smart lokalizacje (auto-ładowanie ostatniej), delegowanie uprawnień (`canManageEvents`), COACH tworzy treningi przez klub
 
 ### Turnieje
-- Format: faza grupowa, puchar (drabinka), grupa + puchar (4-16 drużyn)
-- Rejestracja: kluby i ad-hoc drużyny, accept/reject przez organizatora
-- Round-robin + knockout bracket (auto-generowane)
-- Wyniki z dwustronnym potwierdzeniem, karne w fazie pucharowej
-- Tabele grupowe (materialized standings)
-- 4-tabowa strona turnieju (Drużyny/Grupy/Drabinka/Info)
-- Feed + kalendarz + sidebar integration (orange accent)
-- Gamifikacja: tournament_created/win + badge "Mistrz turniejów"
+- Formaty: grupowa / puchar (drabinka) / grupa+puchar (4-16 drużyn)
+- Round-robin + knockout auto-generowane, wyniki z dwustronnym potwierdzeniem + karne, materialized standings
+- Strona turnieju 4-taby (Drużyny/Grupy/Drabinka/Info), gamifikacja + badge „Mistrz turniejów"
 
 ### Transfery & Rekrutacja
-- Ogłoszenia transferowe (LOOKING_FOR_CLUB/PLAYER/FREE_AGENT)
-- Pipeline rekrutacyjny: Kanban board (6 etapów WATCHING→SIGNED), drag-and-drop
-- RecruitmentEvent timeline, stats, CSV export
-- "Na radar" button, "Nabory dla Ciebie" (region-matched)
-- "Szukam klubu" toggle na profilu (prywatny, powiadomienia na nabory/transfery w regionie)
-- **Tryb dyskretny** (`isDiscreet` na Player + Transfer) — ukrywa profil w wyszukiwarce, feed i listach transferowych; widoczny tylko dla klubów do których zawodnik aplikuje
-- Smart club sorting w zaproszeniach sparingowych (LeagueLevel + Region priority)
-- Zapraszanie zawodników na wydarzenia (`player.search` + `event.invitePlayer` + `InvitePlayerDialog`)
+- Ogłoszenia (LOOKING_FOR_CLUB/PLAYER/FREE_AGENT), Kanban 6-etapowy (WATCHING→SIGNED) z drag-and-drop
+- `RecruitmentEvent` timeline + stats + CSV export, „Nabory dla Ciebie" (region-matched), „Szukam klubu" toggle (prywatny)
+- Tryb dyskretny (`isDiscreet`) — ukrywa profil, widoczny tylko dla klubów do których player aplikuje
+- Zapraszanie zawodników na wydarzenia (`InvitePlayerDialog`)
 
-### Wiadomości
-- 1:1 czat z Supabase Realtime (WebSocket), fallback poll 30s
-- Czat grupowy klubu (`Conversation.clubId`, polling 10s)
-- `ProfileMessageButton` na publicznych profilach
-
-### Kadra & Membership
-- `ClubMembership` (PENDING/ACCEPTED/REJECTED/LEFT/REMOVED/INVITED)
-- Join request + club invite flow
-- `TeamLineup` + `TeamLineupPlayer` (składy: STARTER/BENCH)
-- `/squad` — 3 taby (Zawodnicy, Trenerzy, Prośby), permissions toggle
-
-### Community
-- `ClubPost` z kategoriami (6 + INTERNAL), limit 5 aktywnych per klub
-- Zgłaszanie postów, bookmarki (Favorite z clubPostId)
-- Feed integration (region-filtered, wyklucza wygasłe)
+### Wiadomości, kadra, community
+- Czat 1:1 z Supabase Realtime (fallback poll 30 s), czat grupowy klubu (`Conversation.clubId`, poll 10 s)
+- `ClubMembership` (6 statusów), `TeamLineup`/`TeamLineupPlayer` (STARTER/BENCH), `/squad` 3-tabowy
+- `ClubPost` (6 kategorii + INTERNAL, limit 5 aktywnych), zgłaszanie + bookmarki, feed integration
 
 ### Ligi (publiczny katalog)
-- 4-poziomowa hierarchia: `/leagues` → region → szczebel → grupa → kluby
-- Seed: 16 regionów, 69 szczebli, 397 grup (dane realne 2024/2025)
-- Mapa Polski (grid 4x4) z logami ZPN, badge "Aktywny" przy klubach
-- Loga ZPN regionów we wszystkich widokach lig, profilach, sparingach
-- Dynamic sitemap (~480 URL-i)
+- Hierarchia 4-poziomowa `/leagues`, seed 16 regionów / 69 szczebli / 397 grup
+- Mapa Polski (grid 4×4) z logami ZPN, dynamic sitemap (~480 URL)
 
-### Powiadomienia & Push & Email
-- In-app: 19 typów, fire-and-forget z kontekstowym error logging, bell badge z polling 60s
-- Push: web-push + VAPID, Service Worker, auto-cleanup expired subscriptions
-- Email: Resend (5 triggerów: sparing apply/respond/invite, message, club invite), throttle 15min na wiadomościach
-- Przypomnienia 24h (attendance, inactive clubs, stale pipeline)
-
-### Gamifikacja
-- Punkty (18 akcji), 10 odznak, leaderboard top 20
-- `/ranking` — punkty, odznaki, historia
-- **Activity Heatmap** — GitHub-style heatmap aktywności na publicznych profilach (kluby, zawodnicy, trenerzy), rolling 12 miesięcy, 4 karty statystyk (aktywne dni, aktualna seria, najaktywniejszy miesiąc, najlepszy dzień), violet kolorystyka, responsive
-- **Digest Card** — karta „Twój status" na górze feedu, per rola (CLUB/PLAYER/COACH), agregat liczników (aplikacje, zaproszenia, attendance 48h, upcoming 7d, stale pipeline, recommendations), linki do pre-filtered list, skip gdy `totalCount = 0`, staleTime 2min + invalidation z 8 mutacji, RSC prefetch, test-id per wiersz
+### Powiadomienia, push, email, gamifikacja
+- In-app: 19 typów, fire-and-forget, bell badge polling 60 s
+- Push: web-push + VAPID + Service Worker + auto-cleanup expired
+- Email: Resend (5 triggerów, throttle 15 min), cron przypomnień 24h
+- Punkty (18 akcji), 10 odznak, leaderboard top 20, Activity Heatmap (publiczne profile), Digest Card na feedzie (per rola)
 
 ### UI/Design
-- **Cover photo klubu:** `Club.coverUrl` (nullable VarChar 500), edytowalne w panelu profilu klubu przez `ImageUpload variant="cover"` (1600px max, 16:5 preview), renderowane jako tło hero bannera na publicznym profilu z gradient overlay; fallback gradient violet→slate→black gdy brak
-- **Dashboard Redesign (Etap 47):** Deep Charcoal palette, Sportstream-inspired hybrid layout
-- **Dark mode:** tło `#09090b`, karty `#111116`, cienie z violet tint, border `rgba(139,92,246,0.06)`
-- **Light mode:** tło `#fafafa`, karty `#ffffff`, violet-tinted borders
-- **Dual accent:** violet `#8b5cf6` (primary) + orange `#f97316` (sport-accent)
-- **Sidebar:** collapsed by default (64px, ikony), expand toggle, orange active state z gradient bar
-- **Top tabs:** role-specific navigation (CLUB/PLAYER/COACH), sticky, pill-style, orange active
-- **Dashboard stats:** 4 stat cards z KPI per rola (Rubik 28px bold), trend indicators
-- **Hero card:** VS layout z herbami klubów, countdown, gradient-border top (violet→orange)
-- **Right panel (lg+):** mini kalendarz, nadchodzące wydarzenia, ranking, szybkie akcje (260px)
-- **Feed cards:** ikony z tint per typ (orange=sparing, violet=event, green=turniej, cyan=transfer, blue=post)
-- **Zaokrąglenia:** karty 12px (rounded-xl), buttony 8px, inputy 10px, dialogi 16px
-- **Fonty:** Rubik (nagłówki/display, wagi 600-900) + Inter (body text)
-- **Pipeline rekrutacyjny:** gradient tiles w 2x2 grid, duże liczby 32px
-- **Kalendarz:** gradient highlights na dniach z wydarzeniami (orange/violet per typ)
-- **Micro-interactions:** heart bounce, check-pop, countdown pulse, hover glow, card elevation transitions
-- Shared components: StatsCell, MatchCard, PositionGroup, StagePill, RegionLogo, SocialLinks, InvitePlayerDialog, DashboardStats, HeroCard, MiniCalendar, UpcomingWidget, RankingWidget, TopTabs, RightPanel
-- Bottom Nav mobile (role-aware)
-- shadcn/ui: 15 komponentów
-- Dark mode: class-based, ThemeToggle, zero-flash script
-- **i18n PL/EN:** `useI18n()` hook + `t()` + `LanguageToggle` w sidebarze, ~65 komponentów przetłumaczonych
+- Deep Charcoal palette, dual accent: violet (primary) + orange (sport), Rubik (display) + Inter (body)
+- Sidebar collapsed 64 px, Top tabs role-specific, Right panel 260 px (mini kalendarz, upcoming, ranking, szybkie akcje)
+- Dashboard stats (4 KPI per rola), Hero card (VS + countdown), feed cards z tint per typ
+- Cover photo klubu (`Club.coverUrl`, 1600 px max, 16:5)
+- Dark/Light mode class-based + zero-flash, i18n PL/EN (~65 komponentów)
+- shadcn/ui (15 komponentów), Bottom Nav mobile, micro-interactions
 
-### Admin & Moderacja
-- Panel admina `/admin` (4 taby: Raporty, Użytkownicy, Metryki, Treści)
-- `isAdmin` Boolean na User — dowolna rola może być adminem
-- `isBanned` z 5-min cache w JWT — blokada logowania
-- `ClubPostReport` model — zgłoszenia postów z deduplikacją (unique userId+postId)
-- Ukrywanie postów (soft delete: hidden flag), filtrowanie w feed/favorites/list
-- Zarządzanie użytkownikami: ban/unban, nadawanie/odbieranie admina (guard na ostatniego admina)
-- Metryki platformy: łączne i 7-dniowe statystyki
-- Zarządzanie treścią: anulowanie sparingów/turniejów, usuwanie wydarzeń
-- Edge middleware: `/admin` dostępne tylko dla isAdmin
+### Admin & moderacja
+- `/admin` 4 taby (Raporty, Użytkownicy, Metryki, Treści), `isAdmin` Boolean (any role), `isBanned` cache 5 min w JWT
+- `ClubPostReport` (dedup unique userId+postId), soft-delete postów (hidden flag)
+- Ban/unban, nadawanie/odbieranie admina (guard na ostatniego), metryki platformy (łączne + 7d), anulowanie sparingów/turniejów
 
-### Inne
-- Feed z regionu: zróżnicowane karty (6 typów z unikalnymi layoutami), 3-kolumnowy layout desktop (feed+right panel 320px z kalendarzem/rankingiem/nawigacją sekcji), pull-to-refresh (mobile gesture)
-- **Dashboard sekcje (CLUB):** Pulpit podzielony na 5 nawigowalnych sekcji (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby) z query param routing (`?section=`), SectionNav w sidebarze (desktop) + pill bar (mobile), filtr pozycji w sekcji zawodników
-- Wyszukiwarka globalna, ulubione, kalendarz, mapa (Leaflet), statystyki (Recharts)
-- Publiczne profile: kluby, zawodnicy, trenerzy (SEO z generateMetadata)
-- Klikalne profile na 11+ stronach (`getProfileHref()`)
-- E2E: Playwright, 31+ testów (z `test.skip` guards na shared state), w tym `dashboard-sections.spec.ts` pokrywający Etap 51 (SectionNav desktop/mobile, URL routing, filtr pozycji, brak sekcji dla PLAYER)
-- Unit: Vitest 67 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth router, tournament-logic, activity-utils), coverage v8
-- Security: headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist
-- Server-side file validation: magic bytes (JPEG/PNG/WebP) w `/api/upload`
-- Route boundaries: skeleton `loading.tsx` + `error.tsx` w 8 dashboard segments
-- Shared hook `usePaginatedList` — DRY pagination w sparings + events
-- **RSC data prefetch:** feed + sparings pages jako Server Components z `createHydrationHelpers` — dane prefetchowane server-side, zero waterfall na first render
-- **Query caching:** staleTime tuning (global 60s, feed/stats 5min, listy 3min, clubDashboard 2min) — szybsza nawigacja między podstronami
-- **Prefetch on hover:** `usePrefetchRoute` hook — time-aware (re-prefetch po 60s), sidebar (onMouseEnter) + bottom-nav (onTouchStart)
-- **RSC router cache:** `staleTimes` w next.config (dynamic 30s, static 180s) — klient cachuje RSC payload
+### Dashboard & nawigacja
+- Feed regionalny, 6 typów kart z unikalnymi layoutami, 3-kolumnowy desktop + pull-to-refresh mobile
+- Dashboard CLUB podzielony na 5 sekcji (Terminarz/Aktywność/Rekrutacja/Szukający klubu/Nowe kluby) z `?section=` routing
+- Wyszukiwarka globalna, ulubione, kalendarz, mapa Leaflet, statystyki Recharts, publiczne profile (SEO), klikalne profile na 11+ stronach
+
+### Performance (etap 65–76)
+- **RSC prefetch** feed + sparings (`createHydrationHelpers`, zero waterfall na first render)
+- **Query caching** staleTime tuning (global 60 s, feed/stats 5 min, listy 3 min, clubDashboard 2 min)
+- **Prefetch on hover** (`usePrefetchRoute`, re-prefetch po 60 s, input-matched etap 76) + **RSC router cache** (dynamic 30 s, static 180 s)
+- **React Compiler** auto-memoization (etap 73), `<Image />` na Supabase remotePatterns (etap 72)
+- **Middleware matcher** wyklucza public/metadata routes (etap 76) — −1.4 s na feed
+- **`message.unreadCount` optimized** (etap 76): single EXISTS query + `ConversationParticipant(userId)` index
+- **`/api/health` warm-up** endpoint + external cron ping co 5 min (utrzymuje Supabase pooler + Lambda warm)
+
+### Testy & security
+- E2E: Playwright, 31+ testów (49 pass / 3 skip po etapie 75)
+- Unit: Vitest 103 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth, tournament-logic, activity-utils), coverage v8
+- Security headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist, server-side file validation (magic bytes)
+- Route boundaries: `loading.tsx` + `error.tsx` w 8 dashboard segments
+- Shared hooks: `usePaginatedList` (pagination DRY)
 
 ---
 
@@ -174,80 +121,48 @@
 
 ---
 
-## Kluczowe Pliki
+## Kluczowe Pliki (navigation map)
 
 ```
-prisma/schema.prisma              — schemat BD (27+ modeli)
-prisma/prisma.config.ts           — konfiguracja Prisma 7
-prisma/migrations/                — migracje BD (26 migracji)
-prisma/seed.ts                    — seed regionów/lig/grup
+prisma/schema.prisma                 — 27+ modeli + indexy
+prisma/migrations/                   — 27 migracji (ręcznie via npm run db:migrate)
 
-src/middleware.ts                  — ochrona tras (JWT, public prefixes)
-src/server/auth/config.ts         — Auth.js config
-src/server/db/client.ts           — Prisma client singleton
-src/server/trpc/trpc.ts           — tRPC init + procedures
-src/server/trpc/router.ts         — root router (21 routerów)
-src/server/trpc/routers/          — auth, club, player, coach, region, sparing, event,
-                                    message, feed, search, notification, favorite, stats,
-                                    review, transfer, gamification, push, recruitment,
-                                    club-post, club-membership, team-lineup, admin
-src/env.ts                        — Zod-validated env vars (server-side)
-src/server/award-points.ts        — gamifikacja helper
-src/server/fire-and-log.ts        — fire-and-forget helper z logging
-src/server/send-push.ts           — web-push helper
-src/server/is-club-member.ts      — membership helpers
-src/server/get-user-club-id.ts    — resolve clubId from user role
-src/server/check-event-permission.ts — event permission helper
-src/app/api/upload/route.ts       — server-side image upload
-src/app/api/reminders/route.ts    — cron przypomnienia
+src/middleware.ts                    — JWT guard + matcher exclusions (etap 76)
+src/env.ts                           — Zod-validated env
+src/server/auth/config.ts            — Auth.js v5
+src/server/db/client.ts              — Prisma singleton
+src/server/trpc/{trpc,router}.ts     — tRPC init + 22 routerów
+src/server/trpc/routers/             — auth, club, player, coach, region, sparing, event,
+                                       message, feed, search, notification, favorite, stats,
+                                       review, transfer, gamification, push, recruitment,
+                                       club-post, club-membership, team-lineup, admin
+src/server/{award-points,fire-and-log,send-push,is-club-member,
+            get-user-club-id,check-event-permission}.ts  — helpers
 
-src/lib/trpc.ts                   — tRPC client (frontend)
-src/lib/supabase.ts               — Supabase client (realtime)
-src/lib/labels.ts                 — stałe, labele, statusy, getLabels(), helpers (getUserDisplayName, getProfileHref, pluralPL)
-src/lib/i18n.tsx                  — I18nProvider, useI18n(), t() — przełączanie PL/EN
-src/lib/translations.ts           — słownik PL→EN (~950 wpisów)
-src/lib/format.ts                 — formatDate, formatEventDateTime
-src/lib/rate-limit.ts             — in-memory rate limiter
-src/lib/gamification.ts           — punkty, odznaki
-src/lib/activity-utils.ts         — agregacja aktywności (daily counts, streaks, best month/dow)
-src/lib/training-presets.ts       — szablony treningów
-src/lib/validators/               — Zod schemas (auth, profile, sparing, event, review, transfer, message, coach, club-post)
-src/lib/form-errors.ts            — getFieldErrors()
+src/app/api/{upload,reminders,health,trpc,auth}/route.ts
 
-src/app/(auth)/                   — login, register
-src/app/(dashboard)/              — feed, sparings, events, messages, notifications,
-                                    favorites, calendar, map, stats, ranking, transfers,
-                                    recruitment, community, trainings, squad, club-chat,
-                                    search, profile
-src/app/(public)/                 — clubs/[id], players/[id], coaches/[id], leagues/...
+src/lib/{trpc,supabase}.ts           — clients
+src/lib/{labels,i18n,translations}    — stałe + PL/EN (~950 wpisów)
+src/lib/{format,rate-limit,gamification,activity-utils,training-presets}.ts
+src/lib/validators/                  — Zod schemas (per domena)
+src/lib/form-errors.ts               — getFieldErrors()
 
-src/components/layout/sidebar.tsx     — sidebar desktop
-src/components/layout/bottom-nav.tsx  — mobile bottom nav
-src/components/ui/                    — shadcn/ui (15 komponentów)
-src/components/forms/                 — club, player, coach profile forms
-src/components/sparings/              — sparing-form, sparing-card, invite-club-dialog
-src/components/events/                — invite-player-dialog
-src/components/onboarding/            — club, player, coach onboarding wizards
-src/components/dashboard/             — club-sections, player-recruitments, club-invitations, recruitment-stats
-src/components/squad/                 — invite-member-dialog, position-group
-src/components/recruitment/           — recruitment-stats, stage-pill
-src/components/leagues/               — poland-map
-src/components/region-logo.tsx        — logo ZPN regionu (reużywalny)
-src/components/social-links.tsx       — ikony FB/Insta (reużywalny)
-src/components/                       — empty-state, confirm-dialog, breadcrumbs, star-rating,
-                                        favorite-button, follow-club-button, back-button,
-                                        profile-message-button, club-invite-button, scroll-reveal,
-                                        image-upload, card-skeleton, theme-toggle, language-toggle,
-                                        map-view, push-notification-toggle, form-tooltip,
-                                        public-profile-cta, stats-cell, match-card, activity-heatmap
+src/app/(auth)/                      — login, register
+src/app/(dashboard)/                 — 18 rout (feed, sparings, events, messages, ...)
+src/app/(public)/                    — clubs/[id], players/[id], coaches/[id], leagues/...
+src/app/{robots,sitemap,manifest,icon}.{ts,svg}  — Next metadata
 
-src/hooks/use-infinite-scroll.ts
-src/types/next-auth.d.ts          — Session + JWT types (id, role)
+src/components/layout/{sidebar,bottom-nav,top-tabs,right-panel}.tsx
+src/components/ui/                   — shadcn/ui (15)
+src/components/{forms,sparings,events,onboarding,dashboard,squad,recruitment,leagues}/
+src/components/*.tsx                 — shared (empty-state, star-rating, image-upload,
+                                       theme/language-toggle, activity-heatmap, itd.)
 
-src/app/robots.ts, sitemap.ts, manifest.ts, icon.svg, error.tsx, not-found.tsx
+src/hooks/{use-infinite-scroll,use-paginated-list,use-prefetch-route}.ts
+src/types/next-auth.d.ts             — Session + JWT types
 
 playwright.config.ts
-e2e/helpers.ts + *.spec.ts        — 7 plików testowych
+e2e/helpers.ts + *.spec.ts           — 12 plików testowych (31+ scenariuszy)
 ```
 
 ---
