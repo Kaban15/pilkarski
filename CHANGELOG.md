@@ -2641,3 +2641,95 @@ hit by external pings → leak w cache lub logach. Fix: log server-side
 - **Komentarze rotują szybciej niż się wydaje.** Line references
   (`file:123`), doc paths z datą, narracja zmian ("1 round-trip vs 2")
   — wszystkie dekomponują się przy pierwszej edycji otoczenia.
+
+---
+
+## Etap 78 — E2E helper hardening (P1 + P2 unskip) (2026-04-19)
+
+### Kontekst
+
+Priorities z STATE etap 77: P1 „shadcn Select + React Compiler race"
+(~3h) blokujący `dashboard-sections.spec.ts:60` + `onboarding.spec.ts:22`,
+oraz P2 „applyToSparing modal flaky" (~1h) blokujący `digest.spec.ts:44`.
+Planowane jako dwa osobne fixy. W trakcie debuggingu: oba testy miały
+ten sam root cause — nie React Compiler ani modal, tylko non-blocking
+`isVisible({timeout:1500})` w `completeClubOnboarding` helperze.
+
+### Root cause
+
+`completeClubOnboarding` sprawdzał banner przez `isVisible().catch(()=>false)`
+— snapshot w momencie wywołania, nie blocking wait. `clubProfile` query
+(`api.club.me`) zwraca dane po ~3-5 s (pooler cold + RSC hydration),
+banner pojawia się dopiero wtedy. Helper wracał `false` → zero-op →
+klub nigdy nie dostał regionu w DB. `createQuickSparing` działa bez regionu
+(sparing.create nie wymaga), więc test szedł dalej i łapał błąd dopiero
+przy `DigestCard`: po re-login Club A widział OnboardingBanner, a
+`feed-client.tsx` ma guard `{!showOnboarding && <DigestCard />}` → kartka
+nigdy się nie renderowała mimo że `digest.get` zwracał pending=1.
+
+Bug #20 w STATE opisywał to jako „shadcn Select + React Compiler race"
+— błędna hipoteza. Select działa poprawnie, po prostu helper nigdy nie
+dochodził do kliknięcia w combobox.
+
+### Fixy
+
+**`e2e/helpers.ts::completeClubOnboarding`:**
+- `isVisible(1500)` → `waitFor({state:"visible", timeout:15000})` —
+  blocking wait na banner po `club.me` query.
+- `toBeVisible` na `firstOption` + `toBeEnabled` na submit button
+  przed kliknięciem („Zapisz i dalej" disabled dopóki regionId=null,
+  więc assertion forsuje poprawną propagację stanu Select).
+- `waitForResponse` na `club.update` POST — helper rzuca jeśli mutation
+  zwróci !ok (zamiast silent pass).
+- Assertion końcowa zmieniona z `getByRole("link", { name: /Dodaj sparing/ })`
+  (strict mode violation — FAB na /feed ma tę samą aria-label) na
+  `getByText("Znajdź rywala na mecz sparingowy")` — unikalny tekst z
+  onboarding step 1 card.
+
+**`e2e/helpers.ts::applyToSparing`:**
+- Stare: `getByRole("button", { name: /^Aplikuj$/ }).first().click()` +
+  drugi click na `/Wyślij zgłoszenie|Aplikuj/` — klika ten sam inline
+  button dwa razy (inline, nie modal). Drugi click trafia w pending /
+  justApplied state (disabled) → „not enabled" / „detached".
+- Nowe: single `getByTestId("sparing-apply-submit")` click +
+  `waitForResponse` na `sparing.applyFor` + assertion na „Wysłano" text.
+
+**`src/app/(dashboard)/sparings/[id]/_components/apply-form.tsx`:**
+- `data-testid="sparing-apply-submit"` na Button (linia 115).
+
+**Unskip:**
+- `e2e/digest.spec.ts:44` — „CLUB with pending application sees digest row".
+- `e2e/dashboard-sections.spec.ts:60` — „position filter pills visible
+  in PlayersSection".
+
+### Wyniki
+
+| Metryka | Przed (etap 77) | Po (etap 78) |
+|---|---|---|
+| E2E | 49 pass / 3 skip | 52 pass / 1 skip |
+| tsc | 0 | 0 |
+| Unit | 103/103 | 103/103 |
+
+Pozostały skip: `onboarding.spec.ts:57` — `test.fixme` z pustym body
+(placeholder, wymaga app-level fix na „Pomiń" button re-mount przez
+useTransition/flushSync). Poza scope.
+
+### Lessons learned
+
+- **`isVisible` to snapshot, nie wait.** Default behavior Playwright
+  `expect(locator).toBeVisible()` ma auto-retry, ale `locator.isVisible()`
+  sprawdza w momencie wywołania. Użycie `.catch(()=>false)` maskuje
+  prawdziwy problem — element nigdy się nie pojawił.
+- **„Flaky" test często maskuje cichego zero-opa w fixture/helper.**
+  Etap 77 uczynił `completeClubOnboarding` idempotent, ale zamiast
+  fixa ukrył race condition jako „feature" (early return). Idempotency
+  + blocking waits razem.
+- **Hipoteza z STATE była błędna.** „React Compiler race" brzmiał
+  wiarygodnie (etap 73 wprowadził compiler), ale faktyczny bug był
+  w teście. Instytucja „devil's advocate" na etapie 77 przyjęła
+  hipotezę bez empirycznej weryfikacji. Następnym razem: trace przed
+  hipotezami architektonicznymi.
+- **`page.getByRole("link")` wrażliwe na FAB.** Na /feed jest FAB z
+  `aria-label="Dodaj sparing"` + onboarding card z tym samym textem.
+  Strict mode violation. Preferuj text-based selectors dla assertions
+  wewnątrz komponentów (unique copy) lub testid.

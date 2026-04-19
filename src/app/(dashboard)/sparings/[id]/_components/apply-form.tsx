@@ -112,6 +112,7 @@ export function ApplyForm({
             onChange={(e) => setMessage(e.target.value)}
           />
           <Button
+            data-testid="sparing-apply-submit"
             onClick={handleApply}
             disabled={applyMutation.isPending || justApplied}
             variant={justApplied ? "secondary" : "default"}

@@ -57,13 +57,7 @@ test.describe("Dashboard Sections", () => {
     await expect(page).not.toHaveURL(/\?section=/);
   });
 
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("position filter pills visible in PlayersSection", async ({ page }) => {
-    // Skipped: completeClubOnboarding silently fails — shadcn Select region
-    // combobox does not propagate value after getByRole("option").click(),
-    // leaving "Zapisz i dalej" disabled. Main content renders OnboardingBanner
-    // instead of PlayersSection. Root cause likely shadcn Select + React
-    // Compiler interaction; needs isolated reproduction before fixing.
+  test("position filter pills visible in PlayersSection", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await login(page, clubEmail, password);
     await completeClubOnboarding(page);

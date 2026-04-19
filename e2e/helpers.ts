@@ -102,11 +102,26 @@ export async function logout(page: Page) {
  */
 export async function completeClubOnboarding(page: Page) {
   const banner = page.getByText("Witaj w PilkaSport!");
-  if (!(await banner.isVisible({ timeout: 1500 }).catch(() => false))) return;
+  const bannerVisible = await banner
+    .waitFor({ state: "visible", timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!bannerVisible) return;
   await page.getByRole("combobox").first().click();
-  await page.getByRole("option").first().click();
-  await page.getByRole("button", { name: /Zapisz i dalej/ }).click();
-  await expect(page.getByRole("link", { name: /Dodaj sparing/ })).toBeVisible({ timeout: 10000 });
+  const firstOption = page.getByRole("option").first();
+  await expect(firstOption).toBeVisible({ timeout: 5000 });
+  await firstOption.click();
+  const submit = page.getByRole("button", { name: /Zapisz i dalej/ });
+  await expect(submit).toBeEnabled({ timeout: 5000 });
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes("club.update") && r.request().method() === "POST",
+      { timeout: 15000 },
+    ),
+    submit.click(),
+  ]);
+  if (!response.ok()) throw new Error(`club.update failed: ${response.status()}`);
+  await expect(page.getByText("Znajdź rywala na mecz sparingowy")).toBeVisible({ timeout: 10000 });
 }
 
 /**
@@ -135,10 +150,20 @@ export async function createQuickSparing(
 
 /**
  * Apply to a sparing as the currently-logged-in club.
+ * Single click on the inline Apply button; waits for justApplied state
+ * (button disables + switches to "Wysłano").
  */
 export async function applyToSparing(page: Page, sparingId: string) {
   await page.goto(`/sparings/${sparingId}`);
-  await page.getByRole("button", { name: /^Aplikuj$/ }).first().click();
-  await page.getByRole("button", { name: /Wyślij zgłoszenie|Aplikuj/ }).last().click();
-  await page.waitForLoadState("networkidle");
+  const submit = page.getByTestId("sparing-apply-submit");
+  await expect(submit).toBeEnabled({ timeout: 10000 });
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes("sparing.applyFor") && r.request().method() === "POST",
+      { timeout: 20000 },
+    ),
+    submit.click(),
+  ]);
+  if (!response.ok()) throw new Error(`applyFor failed: ${response.status()}`);
+  await expect(submit).toContainText(/Wysłano/i, { timeout: 5000 });
 }
