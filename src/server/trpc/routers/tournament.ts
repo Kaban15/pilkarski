@@ -797,42 +797,6 @@ export const tournamentRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Nie wszystkie mecze są potwierdzone" });
       }
 
-      // Find winner
-      let winnerUserId: string | null = null;
-
-      if (tournament.format === "GROUP_STAGE") {
-        // Winner is the group leader (single group assumed, or overall top)
-        const topStanding = await ctx.db.tournamentStanding.findFirst({
-          where: { tournamentId: input.tournamentId },
-          orderBy: [{ points: "desc" }, { goalsFor: "desc" }],
-          include: { team: { select: { userId: true } } },
-        });
-        winnerUserId = topStanding?.team.userId ?? null;
-      } else {
-        // Find FINAL match winner
-        const finalMatch = await ctx.db.tournamentMatch.findFirst({
-          where: { tournamentId: input.tournamentId, phase: "FINAL", scoreConfirmed: true },
-          include: {
-            homeTeam: { select: { userId: true } },
-            awayTeam: { select: { userId: true } },
-          },
-        });
-        if (finalMatch) {
-          const h = finalMatch.homeScore!;
-          const a = finalMatch.awayScore!;
-          if (h > a) {
-            winnerUserId = finalMatch.homeTeam.userId;
-          } else if (a > h) {
-            winnerUserId = finalMatch.awayTeam.userId;
-          } else {
-            const ph = finalMatch.penaltyHome ?? 0;
-            const pa = finalMatch.penaltyAway ?? 0;
-            winnerUserId = ph >= pa ? finalMatch.homeTeam.userId : finalMatch.awayTeam.userId;
-          }
-        }
-      }
-
-
       await ctx.db.tournament.update({
         where: { id: input.tournamentId },
         data: { status: "COMPLETED" },

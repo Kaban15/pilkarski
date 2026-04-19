@@ -101,8 +101,9 @@ function StatsGrid({ stats, variant }: { stats: StatCard[]; variant: StatsVarian
       </div>
     );
   }
+  const lgCols = stats.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4";
   return (
-    <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className={`mb-5 grid grid-cols-2 gap-3 ${lgCols}`}>
       {stats.map((stat) => (
         <StatCardItem key={stat.label} stat={stat} />
       ))}
