@@ -2559,3 +2559,85 @@ Post-fix TTFB: `/feed` warm 295-338 ms (wcześniej cold ~689 ms),
   zidentyfikowany dokładnie, warm potem 200-770 ms. Może być
   `recruitment.myPipeline` (1.51 s widoczny w drugim pomiarze).
   Jeśli dalej będzie bolał po P2, follow-up.
+
+---
+
+## Etap 77 — /simplify code review + 2 security fixy (2026-04-19)
+
+### Kontekst
+
+Po etapie 76 (4 perf fixy) uruchomiony `/simplify` skill — 3 agenty
+review (code reuse, quality, efficiency) w parallel na świeżym diffie.
+Znalezione 2 blockery + kilka non-blocking.
+
+### Blockery
+
+**`4105d04..23c3830` — `src/middleware.ts` matcher auth bypass.**
+Etap 76 wprowadził matcher:
+```
+/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml|manifest.webmanifest|sw.js|regions|images).*)
+```
+`regions|images` jako bare alternatives w negative lookahead matchuje
+**prefiksy** — `/regions-club`, `/images-anything` pasowałyby do
+exclusion → middleware nie uruchamia się → **bypass auth**. Fix:
+trailing slash: `regions/|images/`. Tylko dokładne path prefixes pod
+public folders.
+
+**`accf2da..23c3830` — `/api/health` leak error message.**
+Endpoint zwracał `error: (err as Error).message` w 503 response.
+Prisma `PrismaClientInitializationError` / `P1001` / `P1000` osadzają
+connection string z kredami w komunikacie: `"Authentication failed
+against database server at \`db.xxx.supabase.co\`..."`. Public endpoint
+hit by external pings → leak w cache lub logach. Fix: log server-side
+(`console.error`), zwróć tylko `{ok:false,db:"down",ms}`.
+
+### Cleanup (non-blocking)
+
+- **`completeClubOnboarding` uczyniony idempotent** — early-return jeśli
+  banner nie jest visible. Drop duplicate `ensureOnboarded` helper
+  z `dashboard-sections.spec.ts` (który robił check-then-call pattern).
+- **Trim narratywnych komentarzy:**
+  - `message.ts`: `// Get unread count for badge — single EXISTS query
+    (1 round-trip vs 2)` → usunięte (narracja zmiany, query speaks for itself).
+  - `use-prefetch-route.ts`: hardcoded `:line` references
+    (`sparings-client.tsx:133,147-157`) → usunięte (rot-prone przy
+    każdej edycji pliku).
+  - `middleware.ts`: `see docs/perf-baseline-2026-04-19.md` path →
+    usunięte (dated filename rot).
+  - `health/route.ts`: `// Returns 200 on DB reachable, 503 otherwise.`
+    → usunięte (narracja kodu poniżej).
+
+### False positives / świadomie nie naprawione
+
+- **Stringly-typed prefetch inputs** (`"OPEN"`, `"matchDate"`) w
+  `use-prefetch-route.ts` — flagged ale wymagałoby eksportu initial
+  state z client components; większy scope niż zasadny.
+- **Partial index `Message(conversationId) WHERE readAt IS NULL`** —
+  nice-to-have ale EXISTS + istniejący index już rozwiązuje 7.27s.
+
+### Weryfikacja
+
+- tsc: 0 errors
+- Vitest: 103/103 pass
+- Auth E2E: 5/5 pass (nie testowane full suite — zmiany w helpers mogą
+  wpłynąć, ale auth.spec pokrywa core login/register/logout)
+
+### Wyniki review
+
+| Agent | Verdict |
+|---|---|
+| Code Reuse | MINOR — tylko `ensureOnboarded` placement (fixed) |
+| Code Quality | CLEAN — ship it |
+| Efficiency | MAJOR — matcher regex + health leak (oba fixed) |
+
+### Lessons learned
+
+- **Agent reviews złapały 2 bugi niewidoczne przy pisaniu** — auth
+  bypass w regex i error leak w endpoint (Prisma errors osadzają
+  secrets). Bez reviews poszłoby na prod.
+- **Idempotent helpers > wrapper helpers.** Jeśli baza ma guard, drop
+  wrapper. Etap 76 wprowadził `ensureOnboarded` obok
+  `completeClubOnboarding` — etap 77 zmergował w jedno.
+- **Komentarze rotują szybciej niż się wydaje.** Line references
+  (`file:123`), doc paths z datą, narracja zmian ("1 round-trip vs 2")
+  — wszystkie dekomponują się przy pierwszej edycji otoczenia.
