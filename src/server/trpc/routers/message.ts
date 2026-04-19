@@ -245,7 +245,6 @@ export const messageRouter = router({
       return { success: true };
     }),
 
-  // Get unread count for badge — single EXISTS query (1 round-trip vs 2)
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     return ctx.db.message.count({

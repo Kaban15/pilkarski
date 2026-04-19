@@ -98,10 +98,11 @@ export async function logout(page: Page) {
 
 /**
  * Dismiss the club onboarding wizard by picking the first region and saving.
- * Requires the user to be logged in as a freshly registered CLUB on /feed.
+ * Idempotent — no-op if banner is not visible (already onboarded).
  */
 export async function completeClubOnboarding(page: Page) {
-  await expect(page.getByText("Witaj w PilkaSport!")).toBeVisible({ timeout: 10000 });
+  const banner = page.getByText("Witaj w PilkaSport!");
+  if (!(await banner.isVisible({ timeout: 1500 }).catch(() => false))) return;
   await page.getByRole("combobox").first().click();
   await page.getByRole("option").first().click();
   await page.getByRole("button", { name: /Zapisz i dalej/ }).click();

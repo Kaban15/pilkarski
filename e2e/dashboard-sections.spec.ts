@@ -1,13 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { uniqueEmail, registerClub, registerPlayer, login, completeClubOnboarding } from "./helpers";
 
-async function ensureOnboarded(page: import("@playwright/test").Page) {
-  const banner = page.getByText("Witaj w PilkaSport!");
-  if (await banner.isVisible({ timeout: 1500 }).catch(() => false)) {
-    await completeClubOnboarding(page);
-  }
-}
-
 test.describe("Dashboard Sections", () => {
   const clubEmail = uniqueEmail("sections-club");
   const password = "TestPassword123!";
@@ -73,7 +66,7 @@ test.describe("Dashboard Sections", () => {
     // Compiler interaction; needs isolated reproduction before fixing.
     await page.setViewportSize({ width: 1280, height: 900 });
     await login(page, clubEmail, password);
-    await ensureOnboarded(page);
+    await completeClubOnboarding(page);
     await page.goto("/feed?section=players");
 
     await expect(
@@ -88,7 +81,7 @@ test.describe("Dashboard Sections", () => {
   test("SectionNavMobile pill bar visible on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await login(page, clubEmail, password);
-    await ensureOnboarded(page);
+    await completeClubOnboarding(page);
 
     // Mobile nav renders before the (hidden) RightPanel in DOM order,
     // so .first() picks the visible mobile pill.

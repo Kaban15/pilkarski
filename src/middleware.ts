@@ -49,10 +49,11 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Exclude static files served from /public and Next metadata routes —
-  // none of them need auth. Matching them forces JWT verify on every
-  // asset request (on Vercel Edge ~140ms each) — see docs/perf-baseline-2026-04-19.md.
+  // Public static assets and Next metadata routes bypass middleware —
+  // forcing JWT verify on every asset adds ~140ms on Vercel Edge.
+  // Folder excludes use trailing slash to avoid matching prefixes like
+  // `/regions-anything` (auth bypass).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml|manifest.webmanifest|sw.js|regions|images).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml|manifest.webmanifest|sw.js|regions/|images/).*)",
   ],
 };
