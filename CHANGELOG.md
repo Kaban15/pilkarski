@@ -2826,3 +2826,101 @@ Alternatywą byłaby migracja heatmap na eventy z `sparing_offer`,
 - **DB cost:** mniejszy write amplification — 9 mutacji `awardPoints()`
   per user action nie spamuje już `user_points` insertami na każdym
   sparingu / wydarzeniu / review
+
+---
+
+## Etap 80 — /simplify review po etap 79 (2026-04-19)
+
+**Co:** standardowy review pass na etap 79 — 3 agenty (reuse / quality /
+efficiency) w parallel przejechały cały diff. Cel: wyłapać leftoveri,
+martwy kod i drobne regresje, które zawsze zostają po dużym refactorze.
+
+### Findings (2 actionable, reszta clean)
+
+**Fix 1 — orphaned DB queries w tournament.ts (commit `c6e6a50`):**
+
+W `src/server/trpc/routers/tournament.ts` (linie 800–833 pre-fix)
+pozostał 33-liniowy blok obliczający `winnerUserId`:
+
+```ts
+let winnerUserId: string | null = null;
+if (tournament.format === "GROUP_STAGE") {
+  const topStanding = await ctx.db.tournamentStanding.findFirst({...});
+  winnerUserId = topStanding?.team.userId ?? null;
+} else {
+  const finalMatch = await ctx.db.tournamentMatch.findFirst({
+    where: { tournamentId, phase: "FINAL", scoreConfirmed: true },
+    include: { homeTeam: { select: { userId: true } }, ... },
+  });
+  // determine winner by score + penalties
+}
+```
+
+Zmienna była write-only — jedynym konsumentem było wywołanie
+`awardPoints(ctx.db, winnerUserId, "tournament_win", ...)` usunięte
+w etap 79. Blok został po cichu, bo kontekstowo wyglądał jak część
+logiki `complete` tournament mutation — tsc nie flaguje write-only
+wars w zwykłym trybie. **Oba query zostały usunięte** — 1 mniej DB
+round-trip per `tournament.complete` mutation.
+
+**Fix 2 — grid shrinkage w dashboard-stats.tsx:**
+
+Etap 79 skrócił `PlayerStats` i `ClubStats` z 4 kart do 3 (usunięta
+„Ranking"), ale grid `mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4`
+został niezmieniony. Na ≥lg breakpoint 3 karty renderują się w 4
+kolumnach → 4. kolumna pusta, cards stretched / misaligned z innymi
+komponentami na stronie. `CoachStats` ma nadal 4 karty i wyglądało OK
+— dlatego nie wyłapane w etap 79.
+
+Fix: adaptive `lgCols` na podstawie `stats.length`:
+
+```ts
+const lgCols = stats.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4";
+return (
+  <div className={`mb-5 grid grid-cols-2 gap-3 ${lgCols}`}>
+    {stats.map(...)}
+  </div>
+);
+```
+
+Trzymane prosto — bez abstrakcji na generyczną liczbę kart (YAGNI;
+tylko 2 stany aktualnie używane).
+
+### Co było clean
+
+- Brak leftover importów (`Medal`, `Button`, `TrendingUp`, `MessageSquare`,
+  `ActivityHeatmap`, `RankingWidget`, `useSession` w miejscach gdzie
+  straciło konsumenta).
+- Brak orphaned tRPC queries (`api.gamification.*` zgrepowane 0 razy
+  w `src/`).
+- Brak martwych `useEffect` hooków (`checkBadges.mutate()` z ranking
+  page zniknął razem z plikiem).
+- Prisma client zregenerowany — `src/generated/prisma/` nie zawiera
+  `UserPoints` ani `UserBadge`.
+- Brak stringly-typed leftoverów ("ranking" / "points" / "gamification"
+  / "leaderboard" jako hardcoded strings w żywym kodzie).
+- Brak orphaned JSX wrappers (puste `<div className="mb-6">` po
+  `ActivityHeatmap`).
+
+### Weryfikacja
+
+- `npx tsc --noEmit` — 0 errors
+- `npx vitest run` — 76/76 pass
+- Commit `c6e6a50`: +2 linii, −37 linii, net −35 linii
+
+### Lessons learned
+
+- **Gdy usuwasz funkcję, sprawdź też argumenty które do niej szły.**
+  `awardPoints(winnerUserId, ...)` został usunięty, ale `winnerUserId`
+  był dedykowanym polem obliczanym 33 liniami wcześniej. Write-only
+  zmienne nie krzyczą, jeśli są single-use. Grep po usuwanej funkcji
+  zanim zdeletujesz — jeśli wszystkie callsity znikają, flag kandydat
+  na orphaning.
+- **Grid-col count jest sprzężony z `stats.length`.** Gdy zmniejszasz
+  listę items, grid column count trzeba zrewidować ręcznie. Tailwind
+  nie ma auto-fit sensownego dla tego przypadku (`auto-fit` z
+  `minmax` daje inne zachowanie niż fixed breakpoints).
+- **Review na świeżo kosztuje tanio, review retroaktywnie boli.**
+  Gdyby `/simplify` nie poszedł, Fix 1 prawdopodobnie zszedłby do
+  prod i żył tam niewidzialnie (feature nadal działa, po prostu
+  robi extra DB query na każdy `complete` turnieju).
