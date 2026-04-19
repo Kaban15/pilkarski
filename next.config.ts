@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  devIndicators: process.env.E2E_DISABLE_DEV_TOOLS === "1" ? false : undefined,
   experimental: {
     staleTimes: {
       dynamic: 30,

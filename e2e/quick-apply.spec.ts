@@ -40,10 +40,10 @@ test.describe("Quick apply inline on SparingCard", () => {
     await expect(applyBtn).toBeVisible({ timeout: 10000 });
     await applyBtn.click();
 
-    // After successful quick-apply, the button should flip to "Aplikowano"
-    // or a disabled state (sparing.checkApplications query refetched).
+    // After successful quick-apply, button is replaced by a status Badge
+    // (component renders Badge with data-testid="quick-apply-status" once localStatus is set).
     await expect(
-      page.getByRole("button", { name: /Aplikowano|Zastosowano|Oczekuje/ }).first(),
+      page.getByTestId("quick-apply-status").first(),
     ).toBeVisible({ timeout: 10000 });
   });
 });
