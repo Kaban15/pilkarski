@@ -2,7 +2,6 @@ import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure, rateLimitedProcedure } from "../trpc";
 import { createClubPostSchema, updateClubPostSchema } from "@/lib/validators/club-post";
 import { TRPCError } from "@trpc/server";
-import { awardPoints } from "@/server/award-points";
 
 export const clubPostRouter = router({
   create: rateLimitedProcedure({ maxAttempts: 10 })
@@ -37,8 +36,6 @@ export const clubPostRouter = router({
           },
         });
       });
-
-      awardPoints(ctx.db, ctx.session.user.id, "club_post_created", post.id).catch((err) => console.error("[awardPoints]", err));
 
       return post;
     }),

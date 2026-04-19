@@ -1,7 +1,7 @@
 # PilkaSport — Stan Projektu
 
 **Ostatnia sesja:** 2026-04-19
-**Aktualny etap:** 78 etapów ukończonych
+**Aktualny etap:** 79 etapów ukończonych
 **Live:** https://pilkarski.vercel.app
 **GitHub:** https://github.com/Kaban15/pilkarski
 
@@ -28,7 +28,7 @@
 ### Turnieje
 - Formaty: grupowa / puchar (drabinka) / grupa+puchar (4-16 drużyn)
 - Round-robin + knockout auto-generowane, wyniki z dwustronnym potwierdzeniem + karne, materialized standings
-- Strona turnieju 4-taby (Drużyny/Grupy/Drabinka/Info), gamifikacja + badge „Mistrz turniejów"
+- Strona turnieju 4-taby (Drużyny/Grupy/Drabinka/Info)
 
 ### Transfery & Rekrutacja
 - Ogłoszenia (LOOKING_FOR_CLUB/PLAYER/FREE_AGENT), Kanban 6-etapowy (WATCHING→SIGNED) z drag-and-drop
@@ -45,15 +45,15 @@
 - Hierarchia 4-poziomowa `/leagues`, seed 16 regionów / 69 szczebli / 397 grup
 - Mapa Polski (grid 4×4) z logami ZPN, dynamic sitemap (~480 URL)
 
-### Powiadomienia, push, email, gamifikacja
+### Powiadomienia, push, email
 - In-app: 19 typów, fire-and-forget, bell badge polling 60 s
 - Push: web-push + VAPID + Service Worker + auto-cleanup expired
 - Email: Resend (5 triggerów, throttle 15 min), cron przypomnień 24h
-- Punkty (18 akcji), 10 odznak, leaderboard top 20, Activity Heatmap (publiczne profile), Digest Card na feedzie (per rola)
+- Digest Card na feedzie (per rola)
 
 ### UI/Design
 - Deep Charcoal palette, dual accent: violet (primary) + orange (sport), Rubik (display) + Inter (body)
-- Sidebar collapsed 64 px, Top tabs role-specific, Right panel 260 px (mini kalendarz, upcoming, ranking, szybkie akcje)
+- Sidebar collapsed 64 px, Top tabs role-specific, Right panel 260 px (mini kalendarz, upcoming, szybkie akcje)
 - Dashboard stats (4 KPI per rola), Hero card (VS + countdown), feed cards z tint per typ
 - Cover photo klubu (`Club.coverUrl`, 1600 px max, 16:5)
 - Dark/Light mode class-based + zero-flash, i18n PL/EN (~65 komponentów)
@@ -80,7 +80,7 @@
 
 ### Testy & security
 - E2E: Playwright, 31+ testów (52 pass / 1 skip po etapie 78)
-- Unit: Vitest 103 testów (format, gamification, form-errors, award-points, is-club-member, file-validation, auth, tournament-logic, activity-utils), coverage v8
+- Unit: Vitest 76 testów (format, form-errors, is-club-member, file-validation, auth, tournament-logic, digest, reputation), coverage v8
 - Security headers (HSTS, CSP, X-Frame-Options), Zod `.strict()`, env validation, upload folder whitelist, server-side file validation (magic bytes)
 - Route boundaries: `loading.tsx` + `error.tsx` w 8 dashboard segments
 - Shared hooks: `usePaginatedList` (pagination DRY)
@@ -91,11 +91,11 @@
 
 | Etap | Data | Opis |
 |------|------|------|
+| 79 | 2026-04-19 | Usunięcie gamifikacji (ranking, punkty, odznaki, activity heatmap) — user feedback: nie potrzebne na platformie. Usunięte: `/ranking` page + widget, `src/lib/gamification.ts`, `src/server/award-points.ts`, `src/server/trpc/routers/gamification.ts`, `src/components/activity-heatmap.tsx`, `src/lib/activity-utils.ts` i testy (gamification, award-points, activity-utils). Usunięto wywołania `awardPoints()` z 6 routerów (event, sparing, tournament, recruitment, club-post, review). Usunięto linki `/ranking` z sidebar/top-tabs/bottom-nav/command-palette/prefetch/landing-preview/feed-client/dashboard-stats. Usunięto modele Prisma `UserPoints` + `UserBadge` (migracja `20260419180000_drop_gamification` — `DROP TABLE user_badges; DROP TABLE user_points`). `ActivityHeatmap` zniknął z profili gracza/trenera/klubu (używał tych samych tabel). tsc 0, unit 76/76 (było 103), build OK. |
 | 78 | 2026-04-19 | E2E helper hardening — P1+P2 z STATE etap 77 zdiagnozowane jako **jeden root cause**: `completeClubOnboarding` używał `isVisible({timeout:1500}).catch(()=>false)` (snapshot, nie wait). `clubProfile` query loaduje ~3-5s (pooler cold), banner pojawiał się za późno → helper zero-op → klub bez regionu w DB. `createQuickSparing` nie wymaga regionu, więc test szedł dalej i łapał błąd dopiero przy `DigestCard` (guard `!showOnboarding` w feed-client). **Hipoteza „React Compiler race" z etapu 77 była błędna** — Select działa poprawnie, helper nigdy nie dochodził do kliknięcia. Fix: `waitFor({state:"visible", timeout:15000})` na banner, `toBeVisible`+`toBeEnabled` przed click, `waitForResponse` na `club.update`. Assertion końcowa z `getByRole("link","Dodaj sparing")` (FAB kolizja strict mode) → `getByText("Znajdź rywala na mecz sparingowy")`. `applyToSparing` przepisany: `data-testid="sparing-apply-submit"` w `apply-form.tsx` + single click + `waitForResponse`. Unskip: `digest.spec.ts:44`, `dashboard-sections.spec.ts:60`. Wynik: **49/3→52/1**. Pozostały skip: `onboarding.spec.ts:57` (test.fixme, wymaga app fix useTransition). tsc 0, unit 103/103. |
 | 77 | 2026-04-19 | `/simplify` review pass na etap 76 — 3 agenty (reuse/quality/efficiency) w parallel. **2 blockery znalezione i naprawione (`23c3830`):** (1) middleware matcher `regions\|images` bez trailing slash matchował prefiksy → `/regions-anything` bypassował auth; fix `regions/\|images/`. (2) `/api/health` zwracał `err.message` w 503 — Prisma errors (`P1001`) osadzają connection string z kredami; log server-side, return tylko `{ok,db,ms}`. **Cleanup:** `completeClubOnboarding` uczyniony idempotent (early-return jeśli banner nie visible) → usunięty duplicate `ensureOnboarded` helper z `dashboard-sections.spec.ts`. Trim narratywnych komentarzy (rot-prone `file:line` refs, „1 round-trip vs 2", doc path z datą). Net −6 linii. tsc 0, unit 103/103, auth E2E 5/5. |
 | 76 | 2026-04-19 | Perf diagnosis + 4 fixes (brainstorming skill, full spec+review loop). `curl` TTFB × 14 routes × 2 env = baseline w `docs/perf-baseline-2026-04-19.md`. **Fix #1 (`4105d04`) H5 middleware matcher:** `/regions/*.png`, `/robots.txt`, `/manifest.webmanifest`, `/sw.js` etc. były łapane przez matcher → JWT verify na każdym statycznym asseccie (Vercel Edge ~140ms each). Rozszerzenie exclusion list → PNG 307→200, feed z 10 logami **−1.4s**. **Fix #2 (`98189ac`) H2.1 hover prefetch input mismatch:** `use-prefetch-route.ts` prefetchował `sparing.list({})`, client `SparingsClient` robił `sparing.list({status:"OPEN",sortBy,sortOrder})` → różne TanStack cache keys, prefetch nigdy reused. Match input → **−500-800ms per sidebar nav**. **Fix #3 (`accf2da`) P1 `message.unreadCount` outlier (7.27s cold):** 2-step query (`findMany` + `count` z `IN`) → single `count` z nested `participants: { some }` (EXISTS). Plus `@@index([userId])` na `ConversationParticipant` (PK był `[conversationId, userId]` → seq scan dla WHERE userId). Migracja `20260419100000_add_conversation_participant_user_id_index`. Expected **7.27s → ~50-150ms** na bell badge polling. **Fix #4 (`accf2da`) P2 `/api/health` warm-up:** endpoint `GET /api/health` → `SELECT 1`, returns `{ok,db,ms}`. External cron (cron-job.org) pinguje co 5 min → Supabase pooler + Lambda stay warm. Manual steps zrobione: migracja prod + cron skonfigurowany. Post-fix TTFB: `/feed` warm 295-338ms. tsc 0, unit 103/103. |
 | 75 | 2026-04-19 | E2E trace debug + quick-apply fix. Playwright trace ujawnił 2 odrębne root cause pod #19 (nie img→Image regres jak zakładano w STATE 74). **#1 Next 16 Dev Tools portal** intercepts pointer events w dev mode (`<nextjs-portal data-nextjs-dev-overlay>`) — blokował `logout()` click, test nawet nie dochodził do `applyBtn.click()`. Fix: env-gated `devIndicators: false` w `next.config.ts` via `E2E_DISABLE_DEV_TOOLS=1` ustawianym w `playwright.config.ts webServer.env`. **#2 mismatch selektora** — po apply `SparingCard` renderuje `<Badge data-testid="quick-apply-status">`, nie Button. Fix w teście: `getByRole("button"...)` → `getByTestId`. **quick-apply.spec.ts: PASS** (21.1s). **dashboard-sections:74 (SectionNavMobile)**: PASS po dodaniu `ensureOnboarded()` helper. **dashboard-sections:60 + digest:44**: `test.skip` z root-cause commentami (shadcn Select + React Compiler race / modal submit flaky). Pełny suite: 49 pass / 3 skip. tsc 0, unit 103/103. Commity w tej sesji: git push d795de6..(push HEAD). |
-| 74 | 2026-04-18 | Landing polish (pre-launch FB-ready) + full QA pass. `page.tsx`: `<RotatingHeadline />` → statyczny h1 z gradientem violet→orange na frazie „dla klubów piłkarskich"; liczniki `club/sparing/event.count()` (pre-launch = 0/0/0 anti-trust signal) → katalog PZPN `region/leagueLevel/leagueGroup.count()` (16/69/397 z seed'u); 6 akcentów (violet/sky/emerald/amber) → 1 (violet), orange tylko na main CTA gradient + screenshot; unused imports (Trophy/ChevronRight/Globe) removed; `rotating-headline.tsx` deleted. Commit `e1e2ca4`, −63 linii. **QA pass:** 152/156 (97.4%), 1 skip, 4 pre-existing E2E fails: `quick-apply.spec.ts:12` (click timeout), `dashboard-sections.spec.ts:60+74` (toBeVisible), `digest.spec.ts:44` (click timeout). Próby fixa quick-apply (stopPropagation + hoist button out of Link) cofnięte — zgadywanie root cause bez Playwright trace. Patrz: **Następna sesja — TODO** + Bugi #19–#22. |
 
 > Szczegóły wszystkich etapów: [CHANGELOG.md](CHANGELOG.md)
 
@@ -134,7 +134,7 @@ src/server/db/client.ts              — Prisma singleton
 src/server/trpc/{trpc,router}.ts     — tRPC init + 22 routerów
 src/server/trpc/routers/             — auth, club, player, coach, region, sparing, event,
                                        message, feed, search, notification, favorite, stats,
-                                       review, transfer, gamification, push, recruitment,
+                                       review, transfer, push, recruitment,
                                        club-post, club-membership, team-lineup, admin
 src/server/{award-points,fire-and-log,send-push,is-club-member,
             get-user-club-id,check-event-permission}.ts  — helpers
@@ -143,7 +143,7 @@ src/app/api/{upload,reminders,health,trpc,auth}/route.ts
 
 src/lib/{trpc,supabase}.ts           — clients
 src/lib/{labels,i18n,translations}    — stałe + PL/EN (~950 wpisów)
-src/lib/{format,rate-limit,gamification,activity-utils,training-presets}.ts
+src/lib/{format,rate-limit,training-presets}.ts
 src/lib/validators/                  — Zod schemas (per domena)
 src/lib/form-errors.ts               — getFieldErrors()
 

@@ -8,7 +8,6 @@ import {
 } from "@/lib/validators/event";
 import type { Prisma } from "@/generated/prisma/client";
 import { TRPCError } from "@trpc/server";
-import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
 import { isClubMember } from "@/server/is-club-member";
 import { getUserClubId } from "@/server/get-user-club-id";
@@ -88,8 +87,6 @@ export const eventRouter = router({
 
       const recruitTypes = ["RECRUITMENT", "TRYOUT", "CAMP", "CONTINUOUS_RECRUITMENT"];
       const isRecruitment = recruitTypes.includes(input.type);
-
-      awardPoints(ctx.db, ctx.session.user.id, isRecruitment ? "recruitment_created" : "event_created", event.id).catch((err) => console.error("[awardPoints]", err));
 
       // Notify club followers (fire-and-forget) — only for club-created events
       if (!clubId) return event;

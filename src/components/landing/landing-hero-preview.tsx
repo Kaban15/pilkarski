@@ -130,19 +130,6 @@ export function LandingHeroPreview() {
                 </div>
               ),
             )}
-            <p className="mb-2 mt-5 text-[10px] font-semibold uppercase tracking-widest text-white/30">
-              Ranking
-            </p>
-            <div className="space-y-1.5 text-[11px]">
-              {["1. KS Wisła", "2. Orlik Poznań", "3. LKS Polonia"].map((r, i) => (
-                <div key={r} className="flex justify-between">
-                  <span className="text-white/60">{r}</span>
-                  <span className={i === 0 ? "text-orange-400" : "text-white/30"}>
-                    {1820 - i * 40}
-                  </span>
-                </div>
-              ))}
-            </div>
           </aside>
         </div>
       </div>

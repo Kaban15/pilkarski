@@ -12,7 +12,6 @@ import { ClubProfileTabs } from "./club-profile-tabs";
 import { Trophy, MapPin, Star } from "lucide-react";
 import { RegionLogo } from "@/components/region-logo";
 import { SocialLinks } from "@/components/social-links";
-import { ActivityHeatmap } from "@/components/activity-heatmap";
 import { ClubReputationBadges } from "@/components/club-reputation-badges";
 import { computeReputation, REPUTATION_THRESHOLDS } from "@/lib/reputation";
 
@@ -321,10 +320,6 @@ export default async function ClubPublicProfilePage({ params }: Props) {
           <div className="flex-1">
             <StatsCell value={members.length} label="Kadra" color="sky" />
           </div>
-        </div>
-
-        <div className="my-4">
-          <ActivityHeatmap userId={club.userId} />
         </div>
 
         {/* Tabs */}

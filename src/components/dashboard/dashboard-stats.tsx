@@ -48,21 +48,16 @@ export function DashboardStats({ variant = "main" }: { variant?: StatsVariant } 
 
 function ClubStats({ variant }: { variant: StatsVariant }) {
   const { t } = useI18n();
-  const { data: session } = useSession();
   const { data } = api.stats.clubDashboard.useQuery(undefined, { staleTime: 300_000 });
-  const { data: ranking } = api.gamification.leaderboard.useQuery({ limit: 20 }, { staleTime: 300_000 });
 
   const activeSparings = data?.activeSparings?.length ?? 0;
   const pendingApps = data?.pendingApplications?.length ?? 0;
   const events = data?.upcomingEvents?.length ?? 0;
-  const userId = session?.user?.id;
-  const myRank = ranking?.findIndex((e) => e.userId === userId) ?? -1;
 
   const stats: StatCard[] = [
     { label: t("Aktywne sparingi"), value: activeSparings, href: "/sparings" },
     { label: t("Oczekujące aplikacje"), value: pendingApps, href: "/recruitment" },
     { label: t("Wydarzenia"), value: events, trend: t("ten tydzień"), trendDirection: "neutral", href: "/events" },
-    { label: t("Ranking"), value: myRank >= 0 ? `#${myRank + 1}` : "—", href: "/ranking" },
   ];
 
   return <StatsGrid stats={stats} variant={variant} />;
@@ -77,7 +72,6 @@ function PlayerStats({ variant }: { variant: StatsVariant }) {
     { label: t("Zgłoszenia"), value: playerData?.eventApps ?? 0, href: "/events" },
     { label: t("Treningi ten tydzień"), value: 0, href: "/trainings" },
     { label: t("Wiadomości"), value: playerData?.unreadMessages ?? 0, href: "/messages" },
-    { label: t("Ranking"), value: "—", href: "/ranking" },
   ];
 
   return <StatsGrid stats={stats} variant={variant} />;

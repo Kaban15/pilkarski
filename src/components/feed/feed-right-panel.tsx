@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { api } from "@/lib/trpc-react";
 import { useI18n } from "@/lib/i18n";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { StatsCell } from "@/components/stats-cell";
 import {
   Swords,
@@ -13,9 +12,6 @@ import {
   Target,
   Calendar,
   Search,
-  TrendingUp,
-  MessageSquare,
-  Medal,
 } from "lucide-react";
 
 export function FeedRightPanel() {
@@ -26,7 +22,6 @@ export function FeedRightPanel() {
   return (
     <div className="space-y-4">
       {isClub ? <ClubQuickLinks /> : <PlayerQuickLinks />}
-      <TopLeaderboard />
     </div>
   );
 }
@@ -82,32 +77,3 @@ function PlayerQuickLinks() {
   );
 }
 
-function TopLeaderboard() {
-  const { t } = useI18n();
-  const { data } = api.gamification.leaderboard.useQuery({ limit: 5 }, { staleTime: 300_000 });
-
-  if (!data || data.length === 0) return null;
-
-  return (
-    <Card>
-      <CardContent className="py-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Medal className="mr-1 inline h-3.5 w-3.5" />
-            {t("Top 5")}
-          </p>
-          <Link href="/ranking" className="text-[11px] text-primary hover:underline">{t("Ranking →")}</Link>
-        </div>
-        <div className="space-y-1.5">
-          {data.map((entry, i) => (
-            <div key={entry.userId} className="flex items-center gap-2 text-[12px]">
-              <span className="w-4 text-center font-bold tabular-nums text-muted-foreground">{i + 1}</span>
-              <span className="flex-1 truncate">{entry.name ?? "—"}</span>
-              <span className="font-semibold tabular-nums text-foreground">{entry.points}</span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}

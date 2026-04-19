@@ -2733,3 +2733,96 @@ useTransition/flushSync). Poza scope.
   `aria-label="Dodaj sparing"` + onboarding card z tym samym textem.
   Strict mode violation. Preferuj text-based selectors dla assertions
   wewnątrz komponentów (unique copy) lub testid.
+
+---
+
+## Etap 79 — Usunięcie gamifikacji (2026-04-19)
+
+**Co:** kompletne usunięcie systemu rankingu / punktów / odznak / Activity
+Heatmap z platformy na prośbę użytkownika („nie potrzebuję tego typu
+rzeczy"). Gamifikacja wprowadzona we wcześniejszych etapach (`POINTS_MAP`
+z 18 akcji, 10 odznak `BADGES`, leaderboard, heatmap aktywności na
+publicznych profilach) została w całości wywalona — feature nie generuje
+wartości dla klubów / zawodników / trenerów szukających siebie nawzajem.
+
+### Zmiany
+
+**Usunięte pliki (9):**
+- `src/app/(dashboard)/ranking/page.tsx` — strona Ranking z moją pozycją,
+  top 20, odznakami, historią punktów
+- `src/components/dashboard/ranking-widget.tsx` — widget w right panel
+- `src/lib/gamification.ts` — `POINTS_MAP`, `POINTS_LABELS`, `BADGES`
+- `src/server/award-points.ts` — helper `awardPoints(db, userId, action)`
+- `src/server/trpc/routers/gamification.ts` — router z `myPoints`,
+  `myBadges`, `checkBadges`, `leaderboard`, `activityHeatmap`
+- `src/components/activity-heatmap.tsx` — heatmap na profilach (zależał
+  od `userPoints.createdAt`)
+- `src/lib/activity-utils.ts` — helpers do heatmap (streaks, best month/dow)
+- `src/__tests__/gamification.test.ts`, `src/__tests__/award-points.test.ts`,
+  `src/__tests__/activity-utils.test.ts`
+
+**Zmodyfikowane pliki (13):**
+- `src/server/trpc/router.ts` — usunięta rejestracja `gamificationRouter`
+- `src/server/trpc/routers/{event,sparing,tournament,recruitment,club-post,review}.ts`
+  — usunięto 9 wywołań `awardPoints()` (fire-and-forget) + importy
+- `src/components/layout/top-tabs.tsx` — usunięto tab `{href:"/ranking"}`
+  z `TABS_PLAYER`
+- `src/components/command-palette.tsx` — usunięto pozycję `cmd-ranking`
+  + import `Medal`
+- `src/hooks/use-prefetch-route.ts` — usunięto `case "/ranking"`
+- `src/components/landing/landing-hero-preview.tsx` — usunięto sekcję
+  „Ranking" z right panel landing preview
+- `src/app/(dashboard)/feed/feed-client.tsx` — usunięto `<RankingWidget />`
+  + import
+- `src/components/feed/feed-right-panel.tsx` — usunięto `TopLeaderboard`
+  section + nieużywane importy (`Button`, `Medal`, `TrendingUp`,
+  `MessageSquare`, `Trophy`)
+- `src/components/dashboard/dashboard-stats.tsx` — `ClubStats` i
+  `PlayerStats` straciły czwartą kartę „Ranking" (zostały 3: sparingi,
+  aplikacje, wydarzenia / zgłoszenia, treningi, wiadomości)
+- `src/app/(public)/{players,coaches,clubs}/[id]/page.tsx` — usunięto
+  `<ActivityHeatmap userId={...} />` + importy
+
+**Prisma:**
+- `schema.prisma`: usunięte modele `UserPoints` i `UserBadge` oraz
+  relacje `User.points` + `User.badges`
+- Migracja `prisma/migrations/20260419180000_drop_gamification/migration.sql`:
+  ```sql
+  DROP TABLE IF EXISTS "user_badges";
+  DROP TABLE IF EXISTS "user_points";
+  ```
+
+### Dlaczego
+
+User feedback: ranking z punktami za akcje („utworzenie sparingu +10pkt")
+i odznakami („Debiutant", „Mistrz sparingów") to typowa gamifikacja
+z aplikacji konsumenckich, która nie wspiera rdzennego use case'u
+platformy (kluby szukające rywali, zawodnicy szukający klubów). Punkty
+nie kształtują decyzji rekrutacyjnych, a odznaki na profilu klubu
+trenerskiego nie budują reputacji (od tego mają etap wcześniejszy
+`club-reputation-badges.tsx` bazujący na `review` i `sparing completed`).
+
+Activity Heatmap wyleciała razem, bo czerpała dane wyłącznie z tabeli
+`user_points` — gdyby została, pokazywałaby pusty grid po migracji.
+Alternatywą byłaby migracja heatmap na eventy z `sparing_offer`,
+`event`, `message` — ale to dodatkowa praca bez jasnego value.
+
+### Weryfikacja
+
+- `npx prisma generate` — OK (Prisma client bez `userPoints`/`userBadge`)
+- `npx tsc --noEmit` — 0 errors (po usunięciu stale'owych plików
+  `.next/dev/types/validator.ts` + `.next/types/validator.ts`, które
+  wskazywały na usunięty `ranking/page.js`)
+- `npx vitest run` — **76/76 pass** (było 103 — -27 testów z 3 plików
+  gamification/award-points/activity-utils; pozostałe suite bez zmian)
+- `npm run build` — OK, brak `/ranking` w liście tras
+
+### Impact
+
+- **Schema delta:** 2 tabele mniej (`user_points`, `user_badges`) + 2 indeksy
+- **Code delta:** −~450 linii (net — biorąc pod uwagę dodaną migrację SQL)
+- **UI delta:** mniej szumu w right panel, dashboard stats z 4 kart → 3,
+  profile publiczne bez pustej sekcji heatmap
+- **DB cost:** mniejszy write amplification — 9 mutacji `awardPoints()`
+  per user action nie spamuje już `user_points` insertami na każdym
+  sparingu / wydarzeniu / review

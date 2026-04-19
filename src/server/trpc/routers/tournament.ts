@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
 import { sendEmailToUser } from "@/server/send-email";
 import { generateRoundRobin, generateKnockoutBracket, recalculateStandings, getNextPhase } from "@/server/tournament-logic";
@@ -104,8 +103,6 @@ export const tournamentRouter = router({
 
         return created;
       });
-
-      awardPoints(ctx.db, ctx.session.user.id, "tournament_created", tournament.id).catch((err) => console.error("[awardPoints]", err));
 
       return tournament;
     }),
@@ -835,9 +832,6 @@ export const tournamentRouter = router({
         }
       }
 
-      if (winnerUserId) {
-        awardPoints(ctx.db, winnerUserId, "tournament_win", input.tournamentId).catch((err) => console.error("[awardPoints]", err));
-      }
 
       await ctx.db.tournament.update({
         where: { id: input.tournamentId },

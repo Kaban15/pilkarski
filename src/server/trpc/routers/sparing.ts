@@ -7,7 +7,6 @@ import {
   respondApplicationSchema,
 } from "@/lib/validators/sparing";
 import { TRPCError } from "@trpc/server";
-import { awardPoints } from "@/server/award-points";
 import { sendPushToUser } from "@/server/send-push";
 import { sendEmailToUser } from "@/server/send-email";
 
@@ -39,8 +38,6 @@ export const sparingRouter = router({
           pitchStatus: input.pitchStatus,
         },
       });
-
-      awardPoints(ctx.db, ctx.session.user.id, "sparing_created", sparing.id).catch((err) => console.error("[awardPoints]", err));
 
       // Notify club followers (fire-and-forget)
       ctx.db.clubFollower.findMany({
@@ -291,8 +288,6 @@ export const sparingRouter = router({
         ctaUrl: `${baseUrl}/sparings/${offer.id}`,
       }).catch((err) => console.error("[email]", err));
 
-      awardPoints(ctx.db, ctx.session.user.id, "application_sent", application.id).catch((err) => console.error("[awardPoints]", err));
-
       return application;
     }),
 
@@ -343,10 +338,6 @@ export const sparingRouter = router({
           },
           data: { status: "REJECTED" },
         });
-
-        // Points for match (fire-and-forget)
-        awardPoints(ctx.db, ctx.session.user.id, "sparing_matched", application.sparingOfferId).catch((err) => console.error("[awardPoints]", err));
-        awardPoints(ctx.db, updated.applicantClub.userId, "application_accepted", application.sparingOfferId).catch((err) => console.error("[awardPoints]", err));
       }
 
       // Notify applicant (fire-and-forget)
@@ -624,8 +615,6 @@ export const sparingRouter = router({
             link: `/sparings/${invitation.sparingOfferId}`,
           },
         }).catch((err) => console.error("[notification]", err));
-
-        awardPoints(ctx.db, invitation.fromClub.userId, "sparing_matched", invitation.sparingOfferId).catch((err) => console.error("[awardPoints]", err));
 
         return { accepted: true };
       }

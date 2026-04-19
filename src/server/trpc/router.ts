@@ -14,7 +14,6 @@ import { favoriteRouter } from "./routers/favorite";
 import { statsRouter } from "./routers/stats";
 import { reviewRouter } from "./routers/review";
 import { transferRouter } from "./routers/transfer";
-import { gamificationRouter } from "./routers/gamification";
 import { pushRouter } from "./routers/push";
 import { recruitmentRouter } from "./routers/recruitment";
 import { clubPostRouter } from "./routers/club-post";
@@ -41,7 +40,6 @@ export const appRouter = router({
   stats: statsRouter,
   review: reviewRouter,
   transfer: transferRouter,
-  gamification: gamificationRouter,
   push: pushRouter,
   recruitment: recruitmentRouter,
   clubPost: clubPostRouter,

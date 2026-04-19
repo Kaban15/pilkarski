@@ -22,7 +22,6 @@ const TABS_PLAYER: Tab[] = [
   { href: "/events", label: "Wydarzenia" },
   { href: "/trainings", label: "Treningi" },
   { href: "/transfers", label: "Transfery" },
-  { href: "/ranking", label: "Ranking" },
 ];
 
 const TABS_COACH: Tab[] = [

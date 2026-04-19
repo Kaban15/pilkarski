@@ -47,9 +47,6 @@ export function usePrefetchRoute() {
         case "/community":
           void utils.clubPost.list.prefetch({});
           break;
-        case "/ranking":
-          void utils.gamification.leaderboard.prefetch({ limit: 20 });
-          break;
         case "/notifications":
           void utils.notification.list.prefetch({ limit: 50 });
           break;

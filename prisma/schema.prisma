@@ -114,8 +114,6 @@ model User {
   notifications            Notification[]
   favorites                Favorite[]
   transfers                Transfer[]
-  points                   UserPoints[]
-  badges                   UserBadge[]
   pushSubscriptions        PushSubscription[]
   followedClubs            ClubFollower[]
   clubMemberships          ClubMembership[]
@@ -585,37 +583,6 @@ model PushSubscription {
 
   @@unique([userId, endpoint])
   @@map("push_subscriptions")
-}
-
-// ============================================================
-// GAMIFIKACJA
-// ============================================================
-
-model UserPoints {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  points    Int      @default(0)
-  action    String   @db.VarChar(50) // np. "sparing_created", "review_given"
-  refId     String?  @map("ref_id") @db.Uuid // ID powiązanego obiektu
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([userId, createdAt])
-  @@map("user_points")
-}
-
-model UserBadge {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  badge     String   @db.VarChar(50) // klucz odznaki
-  awardedAt DateTime @default(now()) @map("awarded_at") @db.Timestamptz
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, badge])
-  @@map("user_badges")
 }
 
 // ============================================================

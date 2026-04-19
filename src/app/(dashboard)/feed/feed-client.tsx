@@ -17,7 +17,6 @@ import { PullToRefreshIndicator } from "@/components/feed/pull-to-refresh-indica
 import { RightPanel } from "@/components/layout/right-panel";
 import { MiniCalendar } from "@/components/dashboard/mini-calendar";
 import { UpcomingWidget } from "@/components/dashboard/upcoming-widget";
-import { RankingWidget } from "@/components/dashboard/ranking-widget";
 import { SectionNav } from "@/components/dashboard/section-nav";
 import { SectionNavMobile } from "@/components/dashboard/section-nav-mobile";
 import { ActivitySection } from "@/components/dashboard/sections/activity-section";
@@ -358,7 +357,6 @@ export default function FeedClient() {
         </div>
         <MiniCalendar />
         <UpcomingWidget />
-        <RankingWidget />
         {isClub && <SectionNav />}
       </RightPanel>
 

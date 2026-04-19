@@ -19,7 +19,6 @@ import {
   Target,
   UserCircle,
   Plus,
-  Medal,
   ArrowRight,
 } from "lucide-react";
 
@@ -87,7 +86,6 @@ export function CommandPalette() {
       { id: "cmd-new-sparing", label: t("Dodaj sparing"), href: "/sparings/new", icon: Plus, tone: "violet" },
       { id: "cmd-new-event", label: t("Dodaj wydarzenie"), href: "/events/new", icon: Plus, tone: "sky" },
       { id: "cmd-profile", label: t("Mój profil"), href: "/profile", icon: UserCircle, tone: "amber" },
-      { id: "cmd-ranking", label: t("Ranking"), href: "/ranking", icon: Medal, tone: "orange" },
       { id: "cmd-search", label: t("Szukaj rywala"), href: "/search", icon: Search, tone: "emerald" },
       { id: "cmd-calendar", label: t("Kalendarz"), href: "/calendar", icon: Calendar, tone: "violet" },
     ],

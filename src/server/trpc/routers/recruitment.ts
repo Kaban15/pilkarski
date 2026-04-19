@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 import { router, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { awardPoints } from "@/server/award-points";
 
 const PIPELINE_STAGES = [
   "WATCHING",
@@ -44,8 +43,6 @@ export const recruitmentRouter = router({
         },
         update: {},
       });
-
-      awardPoints(ctx.db, ctx.session.user.id, "player_added_to_radar", entry.id).catch((err) => console.error("[awardPoints]", err));
 
       // Log initial timeline event
       ctx.db.recruitmentEvent.create({

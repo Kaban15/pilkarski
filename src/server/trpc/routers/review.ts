@@ -2,7 +2,6 @@ import { z } from "zod/v4";
 import { router, protectedProcedure, publicProcedure, rateLimitedProcedure } from "../trpc";
 import { createReviewSchema } from "@/lib/validators/review";
 import { TRPCError } from "@trpc/server";
-import { awardPoints } from "@/server/award-points";
 
 export const reviewRouter = router({
   // Create review after a matched/completed sparing
@@ -68,8 +67,6 @@ export const reviewRouter = router({
           link: `/sparings/${input.sparingOfferId}`,
         },
       }).catch((err) => console.error("[notification]", err));
-
-      awardPoints(ctx.db, ctx.session.user.id, "review_given", review.id).catch((err) => console.error("[awardPoints]", err));
 
       return review;
     }),
