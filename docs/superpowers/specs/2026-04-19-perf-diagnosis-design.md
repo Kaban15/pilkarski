@@ -73,26 +73,50 @@ przeglądarce.
 ### Metryki per pomiar
 
 - **TTFB** — z głównego dokumentu HTML/RSC payload (Network → pierwszy
-  request → Timing tab)
-- **LCP** — Performance Insights overlay
-- **TBT** — Performance Insights overlay
-- **Najwolniejszy fetch** — URL + czas (Network → filtr, sortuj)
-- **Liczba tRPC calls** — Network → filtr `trpc` → count
+  request → Timing tab). Uwaga: w RSC App Routerze HTML payload zawiera
+  już wynik **server-side tRPC calls** — długi TTFB może skrywać
+  waterfall który nie jest widoczny w Network jako osobne fetche.
+- **RSC payload duration** — osobna kolumna; dla requestów
+  `?_rsc=...` lub `text/x-component` content-type
+- **Client-side tRPC count + sum** — liczba requestów tRPC w Network
+  (client-side fetches) + suma czasu tych które są na **critical path**
+  (serial waterfall, nie parallel). Notatka: jeśli widać 5× 400 ms
+  serial, suma = 2 s — to gorsze niż pojedynczy 1.2 s parallel fetch
+- **LCP, TBT** — Performance Insights overlay. **3 próbki, median** —
+  Performance Insights jest sampled, nie deterministic
+- **Slowest fetch** — URL + czas (kontekstowe, nie jedyny indicator)
 
 ### Narzędzia
 
-- **Chrome DevTools Network tab** (Disable cache OFF, Preserve log ON)
+- **Chrome DevTools Network tab** — **Disable cache ON dla cold
+  pomiarów** (hard-reload + wyłączony cache, żeby nie było
+  contamination z disk cache), **OFF dla warm** (symulacja realnego
+  usera z ciepłą przeglądarką)
 - **Chrome DevTools Performance Insights** (Web Vitals overlay)
 - **tRPC debug:** filtr `trpc` w Network → sortuj po `Time`
 - Brak artificial throttling
 
-### Cold-start trick
+### Definicja cold-start per środowisko
 
-Przed każdym pomiarem cold:
-1. Zamknij wszystkie karty domeny
-2. Poczekaj ≥10 min (middleware cache timeout + Supabase pooler
-   idle-out na free tier)
-3. Otwórz świeżą kartę, uruchom pomiar
+„≥10 min idle" ma różną semantykę w każdym środowisku — musimy
+przypiąć definicję, bo inaczej cold/warm spread nie da się
+zinterpretować.
+
+| Env | Co się „wychładza" | Operacja cold |
+|---|---|---|
+| A (`npm run dev`) | Supabase pooler + build cache Next dev | Kill dev server (Ctrl+C), `rm -rf .next`, `npm run dev`, pierwsze hit |
+| B (`npm start` po build) | Supabase pooler + node.js process state | Kill server, `npm start`, pierwsze hit |
+| C (Vercel prod) | Lambda cold start + Supabase pooler + middleware cache (3 niezależne timery) | Poczekaj ≥10 min bez requestów do domeny, pierwsze hit z fresh incognito window |
+
+**Kontrola dla H1 (Supabase cold) vs ogólny cold start:** każdy env mierzy też
+**jedną ścieżkę bez DB access** (`/` landing page lub `/robots.txt`).
+Jeśli ta też wolna na cold → to nie Supabase, tylko framework/infra cold.
+
+### Sampling
+
+- **Cold:** N=1 per cell (cold jest drogi — restart/odczekać 10 min).
+  **Notuj jako noisy, nie stosuj dokładnego progu dla delta cold-only**
+- **Warm:** 3 kolejne hity, **median** jako raportowana wartość
 
 ### Co świadomie NIE mierzymy (i dlaczego)
 
@@ -123,14 +147,21 @@ po idle.
 **Koszt fixa:** ~1 h (warm-up endpoint + Vercel cron ping) lub upgrade
 planu.
 
-### H2 — tRPC waterfall
+### H2 — tRPC waterfall (client OR server)
 
 **Dlaczego prawdopodobna:** pomimo RSC prefetch, niektóre strony mogą
-nie prefetchować wszystkiego. Widać „schody" w Network timeline.
+nie prefetchować wszystkiego albo prefetchować sekwencyjnie w RSC
+layerze.
 
 **Sygnał:**
-- 5+ tRPC requestów sekwencyjnych, każdy czeka na poprzedni
-- Nawet na warm: total page load = sum(tRPC calls), nie max
+- **Client-side:** 5+ tRPC requestów sekwencyjnych w Network, każdy
+  czeka na poprzedni; sum(tRPC critical path) ≫ max(single fetch)
+- **Server-side (RSC waterfall):** długi TTFB głównego dokumentu BEZ
+  proporcjonalnie długich client tRPC calls — sugeruje że czas idzie
+  w server-side prefetchu. **Nie da się tego w pełni rozróżnić bez
+  server-side trace** → jeśli H2 dominuje ale client tRPC jest
+  tani → **forced escalation do Alt B** (console.time markery w RSC
+  layout/page + tRPC middleware)
 - Bardziej widoczne na `/sparings/[id]`, mniej na `/feed` (który ma RSC
   prefetch w Etap 65)
 
@@ -150,6 +181,24 @@ handlers).
 **Koszt fixa:** 1–2 h (`callbacks.jwt` with `trigger === "update"`
 throttle, JWT maxAge extend).
 
+### H5 — Middleware matcher zbyt szeroki
+
+**Dlaczego prawdopodobna:** Auth.js middleware w Next uruchamia się
+na każdym request pasującym matcher config. Jeśli `matcher` łapie też
+static assets (np. `/_next/static/*` albo `/images/*`), każdy PNG/CSS
+płaci JWT verification + getToken cost. Distinct od H3 (config matcher
+vs callback logic).
+
+**Sygnał:**
+- W Network tab wiele static assets (obrazy, fonts, `_next/static/`)
+  ma niespodziewany TTFB (>50 ms zamiast <10 ms)
+- `/robots.txt` albo czysty static route ma TTFB proporcjonalny do
+  JWT cost (rzędu 100+ ms zamiast edge-cached <20 ms)
+
+**Koszt fixa:** 15 min (zawęzić `matcher` w `middleware.ts` żeby
+wykluczyć `_next/static/`, `_next/image/`, `favicon.ico`, `/api/` gdzie
+nie trzeba auth).
+
 ### H4 — Dev-mode only artifact
 
 **Dlaczego prawdopodobna:** `npm run dev` kompiluje on-demand, Next 16
@@ -165,12 +214,16 @@ developera że dev mode to nie prod."
 
 ### Progi decyzyjne
 
-- **Jedna hipoteza ma silny sygnał (spread ≥2×)** → fix od razu +
+- **Silny sygnał = spread ≥2× AND absolute delta ≥300 ms** (ta druga
+  część kluczowa — 2× przy 80 ms to 160 ms, poniżej network jitter).
+  Jeśli oba warunki spełnione dla jednej hipotezy → fix od razu +
   re-measure walidacyjny
 - **Dwie hipotezy równorzędne** → fix tańszą pierwszą, re-measure,
   potem druga
-- **Żadna nie pasuje** → eskalacja do opcji **B** (server-side
+- **Żadna nie pasuje progi** → eskalacja do opcji **B** (server-side
   instrumentacja, osobny brainstorm) — spodziewany ~30% edge case
+- **H2 sygnał dominuje ale client-side tRPC tani** → automatyczna
+  eskalacja do B (bo samego DevTools nie wystarczy na RSC trace)
 
 ### Świadomie odrzucone hipotezy (żeby nie wracać)
 
@@ -203,12 +256,16 @@ developera że dev mode to nie prod."
 
 ### `docs/perf-baseline-2026-04-19.md`
 
-Tabela markdown z 30 pomiarami. Commitable — baseline dla przyszłych
+Tabela markdown z pomiarami. Commitable — baseline dla przyszłych
 porównań. Struktura:
 
 ```
-| Route | Env | Scenario | TTFB | LCP | TBT | Slowest fetch | tRPC count | Notes |
+| Route | Env | Scenario | TTFB | RSC payload ms | Client tRPC count | Client tRPC critical path sum | LCP | TBT | Slowest fetch | Notes |
 ```
+
+Warm scenario: median z 3 próbek. Cold scenario: N=1, oznaczone jako
+noisy. Osobna sekcja kontrolna dla `/robots.txt` lub `/` (bez DB) jako
+control dla H1.
 
 ### Ewentualny `docs/perf-after-fix-2026-04-XX.md`
 
@@ -230,6 +287,28 @@ dla fazy diagnostycznej.
    „przy okazji" refaktor.
 4. **Post-fix re-measure obowiązkowy** — bez porównania nie wiemy czy
    fix pomógł.
+
+---
+
+## Znane ryzyka pomiarowe (zapisane, żeby nie zaskoczyły)
+
+1. **Vercel Lambda cold start konfunduje z Supabase pooler cold** —
+   oba idle-out ~podobnie. **Mitigation:** control route bez DB
+   (`/robots.txt` albo `/`) — jeśli ona też wolna na cold, to infra
+   cold (Lambda), nie DB.
+2. **Windows local TLS setup overhead** — Windows network stack bez WSL
+   może dodać 100–300 ms TLS do Supabase połączenia, czego nie ma na
+   Vercel. **Mitigation:** porównanie dev vs `npm start` lokalnie na
+   tym samym łączu; jeśli oba tak samo wolne → to nie framework,
+   tylko OS-level TLS.
+3. **Chrome Performance Insights LCP jest sampled** — shift między
+   runs bez zmiany kodu. **Mitigation:** 3 próbki warm, median.
+4. **„Disable cache"** — **ON dla cold**, OFF dla warm (zrobione w
+   sekcji protokołu). Na cold disk cache zafałszuje drugi i kolejny
+   route w sesji.
+5. **Incognito mode na prod** — ekstensje mogą dodawać latencję
+   (uBlock parsing, password managers). Rekomendacja: incognito window
+   bez extensions dla prod pomiarów.
 
 ---
 
