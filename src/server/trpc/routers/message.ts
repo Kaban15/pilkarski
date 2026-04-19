@@ -245,26 +245,16 @@ export const messageRouter = router({
       return { success: true };
     }),
 
-  // Get unread count for badge
+  // Get unread count for badge — single EXISTS query (1 round-trip vs 2)
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
-
-    const myConversations = await ctx.db.conversationParticipant.findMany({
-      where: { userId },
-      select: { conversationId: true },
-    });
-
-    if (myConversations.length === 0) return 0;
-
-    const count = await ctx.db.message.count({
+    return ctx.db.message.count({
       where: {
-        conversationId: { in: myConversations.map((c) => c.conversationId) },
+        conversation: { participants: { some: { userId } } },
         senderId: { not: userId },
         readAt: null,
       },
     });
-
-    return count;
   }),
 
   // Find or get conversation ID with a specific user (for "Napisz wiadomość" button)
